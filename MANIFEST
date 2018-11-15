@@ -1,0 +1,17 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/PrivateKey.t
+t/PublicKey.t
+t/Network.t
+t/Config.t
+t/Base58.t
+t/Util.t
+lib/Bitcoin/Crypto/PrivateKey.pm
+lib/Bitcoin/Crypto/PublicKey.pm
+lib/Bitcoin/Crypto/Config.pm
+lib/Bitcoin/Crypto/Network.pm
+lib/Bitcoin/Crypto/Util.pm
+lib/Bitcoin/Crypto/Base58.pm
+lib/Bitcoin/Crypto/Roles/Key.pm
