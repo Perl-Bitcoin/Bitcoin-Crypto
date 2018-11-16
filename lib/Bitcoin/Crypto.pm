@@ -2,6 +2,16 @@ package Bitcoin::Crypto;
 
 our $VERSION = "0.01";
 
+use Modern::Perl "2010";
+use Exporter qw(import);
+
+our @EXPORT_OK = qw(version);
+
+sub version
+{
+    return $VERSION;
+}
+
 __END__
 =head1 NAME
 
@@ -28,31 +38,60 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 =head1 DESCRIPTION
 
 This package allows you to do basic cryptography tasks for Bitcoin such as:
-- creating private key / public key pairs
-- creating Bitcoin addresses (p2pkh)
-- creating signatures for messages
-- importing / exporting using popular mediums (WIF, mnemonic, hex)
-- creating custom (non-Bitcoin) networks
+
+=over 2
+
+=item * creating private key / public key pairs
+
+=item * creating Bitcoin addresses (p2pkh)
+
+=item * creating signatures for messages
+
+=item * importing / exporting using popular mediums (WIF, mnemonic, hex)
+
+=item * creating custom (non-Bitcoin) networks
+
+=back
 
 This package won't help you with:
-- generating random entropy for private keys
-- serializing transactions
-- using any Bitcoin CLI tools / clients
-- connecting to Bitcoin network
+
+=over 2
+
+=item * generating random entropy for private keys
+
+=item * serializing transactions
+
+=item * using any Bitcoin CLI tools / clients
+
+=item * connecting to Bitcoin network
+
+=back
 
 See child modules for more documentation and examples.
 
 =head1 TODO
 
-- P2SH addresses
-- Bech32 addresses
-- Extended private keys, key deriviation
+=over 2
+
+=item * P2SH addresses
+
+=item * Bech32 addresses
+
+=item * Extended private keys, key deriviation
+
+=back
 
 =head1 SEE ALSO
 
-Bitcoin::Crypto::PrivateKey
-Bitcoin::Crypto::PublicKey
-Bitcoin::Crypto::Network
+=over 2
+
+=item Bitcoin::Crypto::PrivateKey
+
+=item Bitcoin::Crypto::PublicKey
+
+=item Bitcoin::Crypto::Network
+
+=back
 
 =head1 AUTHOR
 
@@ -65,6 +104,5 @@ Copyright (C) 2018 by Bartosz Jarzyna
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,
 at your option, any later version of Perl 5 you may have available.
-
 
 =cut
