@@ -1,6 +1,12 @@
 Bitcoin-Crypto version 0.01
 ================================
 
+This module aims at enabling easy manipulation of Bitcoin
+keypairs, signatures, addresses and networks. It contains
+representation classes for private and public keys, network
+management module and Bitcoin-compatible Base58 and Base58Check
+implementation.
+
 INSTALLATION
 
 To install this module type the following:

@@ -162,28 +162,36 @@ This package allows you to manage non-bitcoin cryptocurrencies.
 Before you start producing keys and addresses for your favorite crypto
 you have to configure it's network first. Right now networks only use three
 keys, but they may grow in the future (for p2sh, bech32 etc.)
+
   my $network = (
       name => "human-readable network name",
       p2pkh_byte => "p2pkh address prefix byte, eg. 0x00",
       wif_byte => "WIF private key prefix byte, eg. 0x80"
   );
+
 After you add_network your program will be able to import WIF keys for that
 network but all keys created from other sources will be treated as bitcoin.
 You need to set_default_network to make all new keys use it. If you use many
 networks it might be better to set a network with key's setNetwork method:
+
   $priv->setNetwork("your_network");
+
 Some things to consider:
 
-- it is entirely possible to add a network that already exists. Because of
+=over 2
+
+=item * it is entirely possible to add a network that already exists. Because of
 this, if you don't need bitcoin in your program you can replace existing
 networks with custom ones.
 
-- get_network functions make clones of network configuration at the time
+=item * get_network functions make clones of network configuration at the time
 of creation, so  changing configuration after you've created your keys
 may not bring the results you're expecting. You probably shouldn't be doing
 this anyway, but if for some reason you need to update your configuration
 then you need to either re-create all private and public keys or use setNetwork
 method on them all.
+
+=back
 
 =head1 FUNCTIONS
 
@@ -225,7 +233,12 @@ Returns all available network names.
 
 =head1 SEE ALSO
 
-Bitcoin::Crypto::PrivateKey
-Bitcoin::Crypto::PublicKey
+=over 2
+
+=item Bitcoin::Crypto::PrivateKey
+
+=item Bitcoin::Crypto::PublicKey
+
+=back
 
 =cut

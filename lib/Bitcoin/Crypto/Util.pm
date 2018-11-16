@@ -78,7 +78,12 @@ Ensures Base58 encoded string looks like encoded private key in WIF format.
 
 =head1 SEE ALSO
 
-Bitcoin::Crypto::PrivateKey
-Bitcoin::Crypto::PublicKey
+=over 2
+
+=item Bitcoin::Crypto::PrivateKey
+
+=item Bitcoin::Crypto::PublicKey
+
+=back
 
 =cut

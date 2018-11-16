@@ -78,12 +78,24 @@ Bitcoin::Crypto::PublicKey - class for Bitcoin public keys
 This class allows you to create a public key instance.
 
 You can use a public key to:
-- read from and export to byte / hexadecimal string
-- verify messages
-- create p2pkh address
+
+=over 2
+
+=item * read from and export to byte / hexadecimal string
+
+=item * verify messages
+
+=item * create p2pkh address
+
+=back
 
 This class doesn't:
-- create any addresses other than p2pkh (yet)
+
+=over 2
+
+=item * create any addresses other than p2pkh (yet)
+
+=back
 
 =head1 METHODS
 
@@ -126,8 +138,12 @@ Returns public key representation in specified format.
 
 =head1 SEE ALSO
 
-Bitcoin::Crypto::PrivateKey
-Bitcoin::Crypto::Network
+=over 2
 
+=item Bitcoin::Crypto::PrivateKey
+
+=item Bitcoin::Crypto::Network
+
+=back
 
 =cut

@@ -110,9 +110,16 @@ Bitcoin::Crypto::Base58 - Bitcoin's Base58 implementation in Perl
 Implementation of Base58Check algorithm with Math::BigInt.
 
 It seems all the existing implementations of the Base58 either:
-- have external dependencies
-- have alphabets incompatible with Bitcoin
-- don't do leading zeros perservation
+
+=over 2
+
+=item * have external dependencies
+
+=item * have alphabets incompatible with Bitcoin
+
+=item * don't do leading zeros perservation
+
+=back
 
 =head1 FUNCTIONS
 
@@ -132,7 +139,12 @@ Base58 with leading zero perservation and checksum validation.
 
 =head1 SEE ALSO
 
-Bitcoin::Crypto::PrivateKey
-Bitcoin::Crypto::PublicKey
+=over 2
+
+=item Bitcoin::Crypto::PrivateKey
+
+=item Bitcoin::Crypto::PublicKey
+
+=back
 
 =cut
