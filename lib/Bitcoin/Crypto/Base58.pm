@@ -5,7 +5,7 @@ use Exporter qw(import);
 use Math::BigInt;
 use Digest::SHA qw(sha256);
 
-use constant CHECKSUM_SIZE => 4;
+use Bitcoin::Crypto::Helpers qw(pad_hex);
 
 our @EXPORT_OK = qw(
     encode_base58
@@ -18,18 +18,27 @@ our @EXPORT_OK = qw(
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
 
+my $CHECKSUM_SIZE = 4;
+
 my @alphabet = qw(
     1 2 3 4 5 6 7 8 9
     A B C D E F G H J K L M N P Q R S T U V W X Y Z
     a b c d e f g h i j k m n o p q r s t u v w x y z
 );
 
-my %alphabet_mapped = map { $alphabet[$_] => $_ } keys @alphabet;
+my %alphabet_mapped;
+
+{
+    my $i;
+    for ($i = 0; $i < @alphabet; ++$i) {
+        $alphabet_mapped{$alphabet[$i]} = $i;
+    }
+}
 
 sub encode_base58
 {
     my ($bytes) = @_;
-    my $number = Math::BigInt->from_bytes($bytes);
+    my $number = Math::BigInt->from_hex("0x" . unpack "H*", $bytes);
     my $result = "";
     my $size = scalar @alphabet;
     while ($number->is_pos()) {
@@ -51,7 +60,7 @@ sub encode_base58_perserve
 sub encode_base58check
 {
     my ($bytes) = @_;
-    my $checksum = pack("a" . CHECKSUM_SIZE, sha256(sha256($bytes)));
+    my $checksum = pack("a" . $CHECKSUM_SIZE, sha256(sha256($bytes)));
     return encode_base58_perserve($bytes . $checksum);
 }
 
@@ -63,10 +72,10 @@ sub decode_base58
     while (@arr > 0) {
         my $current = $alphabet_mapped{shift @arr};
         return undef unless defined $current;
-        my $step = Math::BigInt->new(58)->bpow(scalar @arr)->bmul($current);
+        my $step = Math::BigInt->new(scalar @alphabet)->bpow(scalar @arr)->bmul($current);
         $result->badd($step);
     }
-    return $result->as_bytes();
+    return pack "H*", pad_hex($result->as_hex());
 }
 
 sub decode_base58_perserve
@@ -84,9 +93,9 @@ sub decode_base58check
     my ($base58encoded) = @_;
     my $decoded = decode_base58_perserve($base58encoded);
     return undef unless defined $decoded;
-    my $encoded_val = substr $decoded, 0, -CHECKSUM_SIZE;
-    my $checksum = substr $decoded, -CHECKSUM_SIZE;
-    if (unpack("a" . CHECKSUM_SIZE, sha256(sha256($encoded_val))) eq $checksum) {
+    my $encoded_val = substr $decoded, 0, -$CHECKSUM_SIZE;
+    my $checksum = substr $decoded, -$CHECKSUM_SIZE;
+    if (unpack("a" . $CHECKSUM_SIZE, sha256(sha256($encoded_val))) eq $checksum) {
         return $encoded_val;
     }
     return 0;
@@ -141,9 +150,9 @@ Base58 with leading zero perservation and checksum validation.
 
 =over 2
 
-=item Bitcoin::Crypto::PrivateKey
+=item L<Bitcoin::Crypto::PrivateKey>
 
-=item Bitcoin::Crypto::PublicKey
+=item L<Bitcoin::Crypto::PublicKey>
 
 =back
 

@@ -1,6 +1,6 @@
 package Bitcoin::Crypto;
 
-our $VERSION = "0.01";
+our $VERSION = "0.02";
 
 use Modern::Perl "2010";
 use Exporter qw(import);
@@ -85,11 +85,11 @@ See child modules for more documentation and examples.
 
 =over 2
 
-=item Bitcoin::Crypto::PrivateKey
+=item L<Bitcoin::Crypto::PrivateKey>
 
-=item Bitcoin::Crypto::PublicKey
+=item L<Bitcoin::Crypto::PublicKey>
 
-=item Bitcoin::Crypto::Network
+=item L<Bitcoin::Crypto::Network>
 
 =back
 

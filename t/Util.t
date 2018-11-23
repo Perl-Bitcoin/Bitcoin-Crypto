@@ -1,20 +1,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 7;
 use Math::BigInt;
 
-BEGIN { use_ok('Bitcoin::Crypto::Util', qw(pack_hex validate_wif validate_address)) };
-
-# pack_hex - 2 tests
-
-my @hexes = qw(1a3efb 1a3ef);
-
-for my $hex (@hexes) {
-    my $from_bi = substr Math::BigInt->from_bytes(pack_hex($hex))->as_hex(), -length $hex;
-    my $from_pack = substr unpack("H*", pack_hex($hex)), -length $hex;
-    is($from_pack, $from_bi, "hex packing ok");
-}
+BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif validate_address)) };
 
 # validate_wif - 3 tests
 

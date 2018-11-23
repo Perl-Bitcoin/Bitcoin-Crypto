@@ -7,17 +7,9 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Base58 qw(decode_base58check);
 
 our @EXPORT_OK = qw(
-    pack_hex
     validate_address
     validate_wif
 );
-
-sub pack_hex
-{
-    my ($hex_based) = @_;
-    #complete hex to full bytes with leading zeros
-    return pack "H*", "0" x (length($hex_based) % 2) . $hex_based;
-}
 
 sub validate_address
 {
@@ -51,7 +43,6 @@ Bitcoin::Crypto::Util - Basic utilities for working with bitcoin
 =head1 SYNOPSIS
 
   use Bitcoin::Crypto::Util qw(
-      pack_hex
       validate_address
       validate_wif
   );
@@ -61,12 +52,6 @@ Bitcoin::Crypto::Util - Basic utilities for working with bitcoin
 These are basic utilities for working with bitcoin, used by other packages.
 
 =head1 FUNCTIONS
-
-=head2 pack_hex($str)
-
-Ensures hex data is packed correctly by adding leading zero to uneven length
-hex string.
-Returns byte string.
 
 =head2 validate_address($str)
 
@@ -80,9 +65,9 @@ Ensures Base58 encoded string looks like encoded private key in WIF format.
 
 =over 2
 
-=item Bitcoin::Crypto::PrivateKey
+=item L<Bitcoin::Crypto::PrivateKey>
 
-=item Bitcoin::Crypto::PublicKey
+=item L<Bitcoin::Crypto::PublicKey>
 
 =back
 

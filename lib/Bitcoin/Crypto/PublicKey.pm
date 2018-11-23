@@ -107,7 +107,7 @@ Returns class instance.
 
 =head2 new($instance)
 
-Takes a single argument which must be instance of Crypt::PK::ECC.
+Takes a single argument which must be instance of L<Crypt::PK::ECC>.
 This allows you to use raw Crypt::PK::ECC methods to create key on your own.
 
 =head2 setCompressed($val)
@@ -140,9 +140,9 @@ Returns public key representation in specified format.
 
 =over 2
 
-=item Bitcoin::Crypto::PrivateKey
+=item L<Bitcoin::Crypto::PrivateKey>
 
-=item Bitcoin::Crypto::Network
+=item L<Bitcoin::Crypto::Network>
 
 =back
 

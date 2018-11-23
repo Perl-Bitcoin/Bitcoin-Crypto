@@ -10,7 +10,6 @@ BEGIN { use_ok('Bitcoin::Crypto::Base58', qw(:all)) };
 my $case = pack("H*", "0000a0bc153fea");
 
 # default base58
-
 is($case, decode_base58_perserve(encode_base58_perserve($case)),
     "encoding and decoding yields initial value");
 like(encode_base58_perserve($case), qr/^11/, "perserving zeros works");

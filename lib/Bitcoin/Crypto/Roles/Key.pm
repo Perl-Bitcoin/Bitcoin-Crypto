@@ -6,7 +6,7 @@ use MooX::Types::MooseLike::Base qw(:all);
 use Digest::SHA qw(sha256);
 use Crypt::PK::ECC;
 
-use Bitcoin::Crypto::Util qw(pack_hex);
+use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Network qw(get_default_network get_network validate_network);
 use Bitcoin::Crypto::Config;
 
@@ -41,7 +41,7 @@ sub verifyMessage
 sub fromHex
 {
     my ($class, $val) = @_;
-    return $class->fromBytes(pack_hex($val));
+    return $class->fromBytes(pack "H*", pad_hex($val));
 }
 
 sub toHex

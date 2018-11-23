@@ -206,7 +206,7 @@ NULL byte will be added so that it is 20 bytes long. Minimum byte
 size is 16, maximum is 32 and the step is 4 bytes. This allows creation of
 mnemonics of standard word counts: 12, 15, 18, 21, 24.
 
-see Bitcoin::Crypto::Network if you want to work with other networks than Bitcoin Mainnet.
+see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bitcoin Mainnet.
 
 =head1 METHODS
 
@@ -228,7 +228,7 @@ Returns class instance.
 
 =head2 new($instance)
 
-Takes a single argument which must be instance of Crypt::PK::ECC.
+Takes a single argument which must be instance of L<Crypt::PK::ECC>.
 This allows you to use raw Crypt::PK::ECC methods to create key on your own.
 
 =head2 setCompressed($val)
@@ -268,9 +268,9 @@ Returns private key representation in specified format.
 
 =over 2
 
-=item Bitcoin::Crypto::PublicKey
+=item L<Bitcoin::Crypto::PublicKey>
 
-=item Bitcoin::Crypto::Network
+=item L<Bitcoin::Crypto::Network>
 
 =back
 

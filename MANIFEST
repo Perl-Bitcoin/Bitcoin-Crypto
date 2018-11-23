@@ -9,6 +9,7 @@ t/Network.t
 t/Config.t
 t/Base58.t
 t/Util.t
+t/Helpers.t
 t/Crypto.t
 lib/Bitcoin/Crypto.pm
 lib/Bitcoin/Crypto/PrivateKey.pm
@@ -18,3 +19,4 @@ lib/Bitcoin/Crypto/Network.pm
 lib/Bitcoin/Crypto/Util.pm
 lib/Bitcoin/Crypto/Base58.pm
 lib/Bitcoin/Crypto/Roles/Key.pm
+lib/Bitcoin/Crypto/Helpers.pm

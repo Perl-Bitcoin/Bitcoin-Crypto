@@ -2,7 +2,8 @@ use strict;
 use warnings;
 
 use Test::More tests => 14;
-use Bitcoin::Crypto::Util qw(pack_hex validate_address);
+use Bitcoin::Crypto::Util qw(validate_address);
+use Bitcoin::Crypto::Helpers qw(pad_hex);
 
 BEGIN { use_ok('Bitcoin::Crypto::PublicKey') };
 
@@ -37,7 +38,7 @@ my $message = "Perl test script";
 my $pub = $PublicKey->fromHex("04b55965ca968e6e14d9175fb3fc3dc35f68b67b7e69cc2d1fa8c27f2406889c0f77cc2c39331735990bc67ccbf63c67642ff7b8ffd3794a4d76e0b78d9797a347");
 my $pub_compressed = $PublicKey->fromHex("03b55965ca968e6e14d9175fb3fc3dc35f68b67b7e69cc2d1fa8c27f2406889c0f");
 my $random_pub = $PublicKey->fromHex((keys %cases)[0]);
-my $sig = pack_hex("3044022031731fbf940cffc6b72298b8775b12603fe16844a65983fb46b5fa8cf5d9e9bd022064625366f834314f8aef02aedc241a9b393d1f43887875f663b1be7080bae5c5");
+my $sig = pack "H*", pad_hex("3044022031731fbf940cffc6b72298b8775b12603fe16844a65983fb46b5fa8cf5d9e9bd022064625366f834314f8aef02aedc241a9b393d1f43887875f663b1be7080bae5c5");
 
 ok($pub->verifyMessage($message, $sig), "verified message correctly");
 ok($pub_compressed->verifyMessage($message, $sig), "verified message correctly with compressed key");
