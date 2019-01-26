@@ -113,7 +113,7 @@ This allows you to use raw Crypt::PK::ECC methods to create key on your own.
 =head2 setCompressed($val)
 
 Change key's compression state to $val (1/0). This will change the Address generated
-by public key.
+by public key. If $val is omitted it is set to 1
 
 =head2 setNetwork($val)
 

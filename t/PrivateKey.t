@@ -18,13 +18,13 @@ my $PrivateKey = "Bitcoin::Crypto::PrivateKey";
 
 # Basic creation of public keys - 4 tests
 for my $key (keys %cases) {
-    my $privkey = $PrivateKey->fromHex($key);
+    my $privkey = $PrivateKey->fromHex($key)->setCompressed(0);
     is($privkey->toHex(), $key, "imported and exported correctly");
     is($privkey->getPublicKey()->toHex(), $cases{$key}, "correctly created public key");
 }
 
 my @keylist = keys %cases;
-my $privkey = $PrivateKey->fromHex($keylist[0]);
+my $privkey = $PrivateKey->fromHex($keylist[0])->setCompressed(0);
 my $pubkey = $privkey->getPublicKey();
 
 # Message signing - 3 tests
@@ -48,7 +48,7 @@ my $wif = "5JxsKGzCoJwaWEjQvfNqD4qPEoUQ696BUEq68Y68WQ2GNR6zrxW";
 my $testnet_wif = "92jVu1okPY1iUJEhZ1Gk5fPLtTq7FJdNpBh3DASdr8mK9SZXqy3";
 
 is($PrivateKey->fromWif($wif)->toHex(), $wif_raw_key, "imported WIF correctly");
-is($PrivateKey->fromHex($wif_raw_key)->toWif(), $wif, "exported WIF correctly");
+is($PrivateKey->fromHex($wif_raw_key)->setCompressed(0)->toWif(), $wif, "exported WIF correctly");
 is($PrivateKey->fromWif($testnet_wif)->network->{name}, "Bitcoin Testnet", "Recognized non-default network");
 is($PrivateKey->fromWif($testnet_wif)->toHex(), $wif_raw_key, "imported non-default network WIF correctly");
 is($PrivateKey->fromWif($testnet_wif)->getPublicKey()->network->{name}, "Bitcoin Testnet", "Passed network to public key");

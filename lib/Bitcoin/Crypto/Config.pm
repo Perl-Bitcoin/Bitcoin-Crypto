@@ -15,7 +15,7 @@ our %config = (
     key_length_step => 4,
     key_max_length => 32,
     wif_compressed_byte => 0x01,
-    compress_public_point => 0
+    compress_public_point => 1
 );
 
 1;
