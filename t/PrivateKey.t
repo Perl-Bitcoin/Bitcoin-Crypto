@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 18;
+use Test::More tests => 19;
 use Try::Tiny;
 use Bitcoin::Crypto::Config;
 
@@ -30,6 +30,9 @@ my $pubkey = $privkey->getPublicKey();
 # Message signing - 3 tests
 my $message = "Perl test script";
 my $signature = $privkey->signMessage($message);
+
+ok($privkey->signMessage($message) eq $signature, "Signatures generation should be deterministic")
+    or diag("Signatures generation seems to be nondeterministic, which is a possible private key security threat");
 
 ok($privkey->verifyMessage($message, $signature), "Valid signature");
 ok($pubkey->verifyMessage($message, $signature), "Pubkey recognizes signature");
