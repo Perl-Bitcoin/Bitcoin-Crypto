@@ -10,13 +10,13 @@ BEGIN { use_ok('Bitcoin::Crypto::Base58', qw(:all)) };
 my $case = pack("H*", "0000a0bc153fea");
 
 # default base58
-is($case, decode_base58_perserve(encode_base58_perserve($case)),
+is($case, decode_base58_preserve(encode_base58_preserve($case)),
     "encoding and decoding yields initial value");
-like(encode_base58_perserve($case), qr/^11/, "perserving zeros works");
+like(encode_base58_preserve($case), qr/^11/, "perserving zeros works");
 ok(!defined decode_base58(".."), "unknown symbols in decoding returns undef");
 
 my $with_check = encode_base58check($case);
-my $decoded_with_check = decode_base58_perserve($with_check);
+my $decoded_with_check = decode_base58_preserve($with_check);
 
 # base58check
 

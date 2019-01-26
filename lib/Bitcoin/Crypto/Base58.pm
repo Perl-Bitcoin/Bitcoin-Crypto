@@ -9,11 +9,11 @@ use Bitcoin::Crypto::Helpers qw(pad_hex);
 
 our @EXPORT_OK = qw(
     encode_base58
-    encode_base58_perserve
+    encode_base58_preserve
     encode_base58check
     decode_base58
     decode_base58check
-    decode_base58_perserve
+    decode_base58_preserve
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -49,19 +49,19 @@ sub encode_base58
     return $result;
 }
 
-sub encode_base58_perserve
+sub encode_base58_preserve
 {
     my ($bytes) = @_;
-    my $perserve = 0;
-    ++$perserve while vec($bytes, $perserve, 8) == 0x00;
-    return ($alphabet[0] x $perserve) . encode_base58($bytes);
+    my $preserve = 0;
+    ++$preserve while vec($bytes, $preserve, 8) == 0x00;
+    return ($alphabet[0] x $preserve) . encode_base58($bytes);
 }
 
 sub encode_base58check
 {
     my ($bytes) = @_;
     my $checksum = pack("a" . $CHECKSUM_SIZE, sha256(sha256($bytes)));
-    return encode_base58_perserve($bytes . $checksum);
+    return encode_base58_preserve($bytes . $checksum);
 }
 
 sub decode_base58
@@ -78,20 +78,20 @@ sub decode_base58
     return pack "H*", pad_hex($result->as_hex());
 }
 
-sub decode_base58_perserve
+sub decode_base58_preserve
 {
     my ($base58encoded) = @_;
-    my $perserve = 0;
-    ++$perserve while substr($base58encoded, $perserve, 1) eq $alphabet[0];
+    my $preserve = 0;
+    ++$preserve while substr($base58encoded, $preserve, 1) eq $alphabet[0];
     my $decoded = decode_base58($base58encoded);
     return undef unless defined $decoded;
-    return pack("x$perserve") . $decoded;
+    return pack("x$preserve") . $decoded;
 }
 
 sub decode_base58check
 {
     my ($base58encoded) = @_;
-    my $decoded = decode_base58_perserve($base58encoded);
+    my $decoded = decode_base58_preserve($base58encoded);
     return undef unless defined $decoded;
     my $encoded_val = substr $decoded, 0, -$CHECKSUM_SIZE;
     my $checksum = substr $decoded, -$CHECKSUM_SIZE;
@@ -138,7 +138,7 @@ Basic base58 encoding / decoding.
 Encoding takes one argument which is byte string.
 Decoding takes string
 
-=head2 encode_base58_perserve($bytestr) / decode_base58_perserve($str)
+=head2 encode_base58_preserve($bytestr) / decode_base58_preserve($str)
 
 Base58 with leading zero perservation.
 
