@@ -9,7 +9,6 @@ WriteMakefile(
         Moo => 2.003004,
         MooX::Types::MooseLike => 0.29,
         CryptX => 0.062,
-        Crypt::RIPEMD160 => 0.06,
         Bitcoin::BIP39 => 0.002,
         Try::Tiny => 0.30
     },

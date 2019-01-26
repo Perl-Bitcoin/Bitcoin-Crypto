@@ -3,7 +3,7 @@ package Bitcoin::Crypto::PublicKey;
 use Modern::Perl "2010";
 use Moo;
 use Crypt::PK::ECC;
-use Crypt::RIPEMD160;
+use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Try::Tiny;
 use Digest::SHA qw(sha256);
 use Carp qw(croak);
@@ -40,7 +40,7 @@ sub getAddress
 {
     my ($self) = @_;
     my $pubkey = $self->toBytes();
-    my $pkh = pack("C", $self->network->{p2pkh_byte}) . Crypt::RIPEMD160->hash(sha256($pubkey));
+    my $pkh = pack("C", $self->network->{p2pkh_byte}) . ripemd160(sha256($pubkey));
     return encode_base58check($pkh);
 }
 

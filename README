@@ -24,7 +24,6 @@ This module requires these other modules and libraries:
   Moo
   MooX::Types::MooseLike
   CryptX
-  Crypt::RIPEMD160
   Bitcoin::BIP39
   Try::Tiny
 
