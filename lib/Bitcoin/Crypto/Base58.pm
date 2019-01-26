@@ -26,14 +26,7 @@ my @alphabet = qw(
     a b c d e f g h i j k m n o p q r s t u v w x y z
 );
 
-my %alphabet_mapped;
-
-{
-    my $i;
-    for ($i = 0; $i < @alphabet; ++$i) {
-        $alphabet_mapped{$alphabet[$i]} = $i;
-    }
-}
+my %alphabet_mapped = map { $alphabet[$_] => $_ } 0 .. $#alphabet;
 
 sub encode_base58
 {
