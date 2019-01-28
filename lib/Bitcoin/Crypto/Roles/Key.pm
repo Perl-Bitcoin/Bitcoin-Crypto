@@ -65,6 +65,7 @@ sub setNetwork
         $network = get_network($network);
     }
     $self->_setNetwork($network);
+    return self;
 }
 
 sub setCompressed

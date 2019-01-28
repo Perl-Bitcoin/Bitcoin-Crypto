@@ -113,13 +113,15 @@ This allows you to use raw Crypt::PK::ECC methods to create key on your own.
 =head2 setCompressed($val)
 
 Change key's compression state to $val (1/0). This will change the Address generated
-by public key. If $val is omitted it is set to 1
+by public key. If $val is omitted it is set to 1.
+Returns current key instance.
 
 =head2 setNetwork($val)
 
 Change key's network state to $val. It can be either network name present in
 Bitcoin::Crypto::Network package or a valid network hashref. This will
 enable generation of this network's addresses.
+Returns current key instance.
 
 =head2 getAddress()
 
