@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 19;
+use Test::More tests => 17;
 use Try::Tiny;
 use Bitcoin::Crypto::Config;
 
@@ -46,35 +46,23 @@ ok(!$pubkey2->verifyMessage($message, $signature), "Different pubkey doesn't rec
 my $wif_raw_key = "972e85e7e3345cb7e6a5f812aa5f5bea82005e3ded7b32d9d56f5ab2504f1648";
 my $wif = "5JxsKGzCoJwaWEjQvfNqD4qPEoUQ696BUEq68Y68WQ2GNR6zrxW";
 my $testnet_wif = "92jVu1okPY1iUJEhZ1Gk5fPLtTq7FJdNpBh3DASdr8mK9SZXqy3";
-
 is($PrivateKey->fromWif($wif)->toHex(), $wif_raw_key, "imported WIF correctly");
 is($PrivateKey->fromHex($wif_raw_key)->setCompressed(0)->toWif(), $wif, "exported WIF correctly");
 is($PrivateKey->fromWif($testnet_wif)->network->{name}, "Bitcoin Testnet", "Recognized non-default network");
 is($PrivateKey->fromWif($testnet_wif)->toHex(), $wif_raw_key, "imported non-default network WIF correctly");
 is($PrivateKey->fromWif($testnet_wif)->getPublicKey()->network->{name}, "Bitcoin Testnet", "Passed network to public key");
 
-# Mnemonic import / export - 2 tests
-my $mnemonic_raw_key = "b792d0a08067d186ffd9d14e8d964843cc55a91d";
-my $mnemonic = "resource notable choice absorb laptop sell youth demand excess hole must maple shed stand item";
-
-is($PrivateKey->fromBip39Mnemonic($mnemonic)->toHex(), $mnemonic_raw_key, "imported mnemonic correctly");
-is($PrivateKey->fromHex($mnemonic_raw_key)->toBip39Mnemonic(), $mnemonic, "exported mnemonic correctly");
-
 # Key length testing - 3 tests
 my $short_key = "e8d964843cc55a91d";
 my $longer_key = "d0a08067d186ffd9d14e8d964843cc55a91d";
 my $too_long_key = "a3bc641ce7ab9a2ec7697f32d3ade425d9785e8f23bea3501524852cda3ca05fae28";
 
-is(length $PrivateKey->fromHex($short_key)->toBytes(), $config{key_min_length}, "Short key length OK");
-is((length($PrivateKey->fromHex($longer_key)->toBytes()) - $config{key_min_length}) % $config{key_length_step}, 0, "Longer key length OK");
+is(length $PrivateKey->fromHex($short_key)->toBytes(), $config{key_max_length}, "Short key length OK");
+is(length $PrivateKey->fromHex($longer_key)->toBytes(), $config{key_max_length}, "Longer key length OK");
 
 try {
     $PrivateKey->fromHex($too_long_key);
     fail("Too long key was accepted");
 } catch {
-    if (m/[0-9]+ bytes/) {
-        pass("Too long key got rejected");
-    } else {
-        fail("Too long key failed with unknown reason");
-    }
+    pass("Too long key got rejected");
 };

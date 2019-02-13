@@ -2,16 +2,15 @@ package Bitcoin::Crypto::PublicKey;
 
 use Modern::Perl "2010";
 use Moo;
-use Crypt::PK::ECC;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
-use Try::Tiny;
 use Digest::SHA qw(sha256);
 use Carp qw(croak);
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
-use Bitcoin::Crypto::Config;
 
-with "Bitcoin::Crypto::Roles::Key";
+with "Bitcoin::Crypto::Roles::BasicKey";
+with "Bitcoin::Crypto::Roles::Network";
+with "Bitcoin::Crypto::Roles::Compress";
 
 around BUILDARGS => sub {
     my ($orig, $class, $key) = @_;
@@ -21,20 +20,6 @@ around BUILDARGS => sub {
 
     return $class->$orig(keyInstance => $key);
 };
-
-sub fromBytes
-{
-    my ($class, $bytes) = @_;
-
-    my $key = Crypt::PK::ECC->new();
-    try {
-        $key->import_key_raw($bytes, $config{curve_name});
-    } catch {
-        croak "Error creating key - check input data";
-    };
-
-    return $class->new($key);
-}
 
 sub getAddress
 {

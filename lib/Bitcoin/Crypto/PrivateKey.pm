@@ -5,7 +5,6 @@ use Moo;
 use MooX::Types::MooseLike::Base qw(Str);
 use Crypt::PK::ECC;
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
-use Try::Tiny;
 use Carp qw(croak);
 use List::Util qw(first);
 
@@ -15,13 +14,9 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Network qw(find_network get_network);
 use Bitcoin::Crypto::Util qw(validate_wif);
 
-with "Bitcoin::Crypto::Roles::Key";
-
-has "rawKey" => (
-    is => "ro",
-    isa => Str,
-    builder => "_buildKey"
-);
+with "Bitcoin::Crypto::Roles::BasicKey";
+with "Bitcoin::Crypto::Roles::Network";
+with "Bitcoin::Crypto::Roles::Compress";
 
 around BUILDARGS => sub {
     my ($orig, $class, $key) = @_;
@@ -31,21 +26,6 @@ around BUILDARGS => sub {
 
     return $class->$orig(keyInstance => $key);
 };
-
-sub fromBytes
-{
-    my ($class, $bytes) = @_;
-
-    my $key = Crypt::PK::ECC->new();
-    my $built = $class->_buildKey($bytes, $config{key_max_length});
-    try {
-        $key->import_key_raw($built, $config{curve_name});
-    } catch {
-        croak "Error creating key - check input data";
-    };
-
-    return $class->new($key);
-}
 
 sub toWif
 {
@@ -88,19 +68,6 @@ sub fromWif
     return $instance;
 }
 
-sub toBip39Mnemonic
-{
-    my ($self) = @_;
-    my $entropy = $self->toBytes();
-    return entropy_to_bip39_mnemonic(entropy => $entropy);
-}
-
-sub fromBip39Mnemonic
-{
-    my ($class, $mnemonic) = @_;
-    my $bytes = bip39_mnemonic_to_entropy(mnemonic => $mnemonic);
-    return $class->fromBytes($bytes);
-}
 
 sub signMessage
 {
@@ -122,28 +89,12 @@ sub getPublicKey
     return $public;
 }
 
-sub _buildKey
+sub rawKey
 {
-    my ($self, $private, $length) = @_;
-    $private //= $self->keyInstance->export_key_raw("private");
-    $private =~ s/^\x00+//;
-
-    croak "Private key entropy exceeds $config{key_max_length} bytes"
-        if length $private > $config{key_max_length};
-
-    #create known length private key (add missing zero bytes)
-    my $missing;
-    if (defined $length) {
-        $length = $config{key_max_length} if $length > $config{key_max_length};
-        $missing = $length - length $private;
-    } else {
-        $missing = length $private < $config{key_min_length} ?
-            $config{key_min_length} - length $private :
-            ($config{key_max_length} - length($private)) % $config{key_length_step};
-    }
-
-    return pack("x$missing") . $private;
+    my ($self) = @_;
+    return $self->keyInstance->export_key_raw("private");
 }
+
 
 1;
 
