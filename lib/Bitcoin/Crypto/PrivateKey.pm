@@ -13,27 +13,23 @@ use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Network qw(find_network get_network);
 use Bitcoin::Crypto::Util qw(validate_wif);
+use Bitcoin::Crypto::Helpers qw(ensure_length);
 
 with "Bitcoin::Crypto::Roles::BasicKey";
-with "Bitcoin::Crypto::Roles::Network";
-with "Bitcoin::Crypto::Roles::Compress";
 
-around BUILDARGS => sub {
-    my ($orig, $class, $key) = @_;
-
-    croak "Trying to create private key from unknown key data"
-        unless $key->is_private();
-
-    return $class->$orig(keyInstance => $key);
-};
+sub _isPrivate { 1 }
 
 sub toWif
 {
     my ($self) = @_;
     my $bytes = $self->toBytes();
-    my $missing = $config{key_max_length} - length $bytes;
-    my $wifdata = pack("Cx$missing", $self->network->{wif_byte}) . $bytes;
+    # wif network - 1B
+    my $wifdata = pack("C", $self->network->{wif_byte});
+    # key entropy - 32B
+    $wifdata .= ensure_length $bytes, $config{key_max_length};
+    # additional byte for compressed key - 1B
     $wifdata .= pack("C", $config{wif_compressed_byte}) if $self->compressed;
+
     return encode_base58check($wifdata);
 }
 
@@ -68,33 +64,15 @@ sub fromWif
     return $instance;
 }
 
-
-sub signMessage
-{
-    my ($self, $message, $algorithm) = @_;
-    $algorithm //= "sha256";
-    return $self->keyInstance->sign_message($message, $algorithm);
-}
-
 sub getPublicKey
 {
     my ($self) = @_;
-    my $raw_public = $self->keyInstance->export_key_raw("public");
-    my $key = Crypt::PK::ECC->new();
-    $key->import_key_raw($raw_public, $config{curve_name});
 
-    my $public = Bitcoin::Crypto::PublicKey->new($key);
+    my $public = Bitcoin::Crypto::PublicKey->new($self->rawKey("public"));
     $public->setCompressed($self->compressed);
     $public->setNetwork($self->network);
     return $public;
 }
-
-sub rawKey
-{
-    my ($self) = @_;
-    return $self->keyInstance->export_key_raw("private");
-}
-
 
 1;
 

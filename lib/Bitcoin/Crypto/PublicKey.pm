@@ -9,17 +9,8 @@ use Carp qw(croak);
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 
 with "Bitcoin::Crypto::Roles::BasicKey";
-with "Bitcoin::Crypto::Roles::Network";
-with "Bitcoin::Crypto::Roles::Compress";
 
-around BUILDARGS => sub {
-    my ($orig, $class, $key) = @_;
-
-    croak "Trying to create public key from private key data"
-        if $key->is_private();
-
-    return $class->$orig(keyInstance => $key);
-};
+sub _isPrivate { 0 }
 
 sub getAddress
 {
@@ -27,16 +18,6 @@ sub getAddress
     my $pubkey = $self->toBytes();
     my $pkh = pack("C", $self->network->{p2pkh_byte}) . ripemd160(sha256($pubkey));
     return encode_base58check($pkh);
-}
-
-sub rawKey
-{
-    my ($self) = @_;
-    if ($self->compressed) {
-        return $self->keyInstance->export_key_raw("public_compressed");
-    } else {
-        return $self->keyInstance->export_key_raw("public");
-    }
 }
 
 1;

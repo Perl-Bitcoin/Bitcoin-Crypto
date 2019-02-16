@@ -2,19 +2,21 @@ package Bitcoin::Crypto::Roles::BasicKey;
 
 use Modern::Perl "2010";
 use Moo::Role;
-use MooX::Types::MooseLike::Base qw(InstanceOf);
-use Digest::SHA qw(sha256);
-use Crypt::PK::ECC;
 use Carp qw(croak);
-use Try::Tiny;
 
 use Bitcoin::Crypto::Helpers qw(pad_hex);
-use Bitcoin::Crypto::Config;
 
-has "keyInstance" => (
-    is => "ro",
-    isa => InstanceOf["Crypt::PK::ECC"]
-);
+with "Bitcoin::Crypto::Roles::Key";
+with "Bitcoin::Crypto::Roles::Compressed";
+
+sub signMessage
+{
+    my ($self, $message, $algorithm) = @_;
+    croak "Cannot sign a message with a public key"
+        unless $self->_isPrivate;
+    $algorithm //= "sha256";
+    return $self->keyInstance->sign_message($message, $algorithm);
+}
 
 sub verifyMessage
 {
@@ -39,16 +41,7 @@ sub fromBytes
 {
     my ($class, $bytes) = @_;
 
-    my $key = Crypt::PK::ECC->new();
-    my $missing = $config{key_max_length} - length $bytes;
-    $bytes = pack("x$missing") . $bytes if $missing > 0;
-    try {
-        $key->import_key_raw($bytes, $config{curve_name});
-    } catch {
-        croak "Error creating key - check input data";
-    };
-
-    return $class->new($key);
+    return $class->new($bytes);
 }
 
 sub toBytes

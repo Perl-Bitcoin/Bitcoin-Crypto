@@ -2,6 +2,9 @@ package Bitcoin::Crypto::Util;
 
 use Modern::Perl "2010";
 use Exporter qw(import);
+use List::Util qw(first);
+use Try::Tiny;
+use Crypt::PK::ECC;
 
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Base58 qw(decode_base58check);
@@ -9,7 +12,11 @@ use Bitcoin::Crypto::Base58 qw(decode_base58check);
 our @EXPORT_OK = qw(
     validate_address
     validate_wif
+    get_key_type
+    get_path_info
 );
+
+our %EXPORT_TAGS = (all => [@EXPORT_OK]);
 
 sub validate_address
 {
@@ -30,6 +37,32 @@ sub validate_wif
         return ord($last_byte) == $config{wif_compressed_byte};
     } else {
         return length $byte_wif == $config{key_max_length} + 1;
+    }
+}
+
+sub get_key_type
+{
+    my ($entropy) = @_;
+    my $key = Crypt::PK::ECC->new;
+    try {
+        $key->import_key_raw($entropy, $config{curve_name});
+        return $key->is_private;
+    } catch {
+        return undef;
+    };
+}
+
+sub get_path_info
+{
+    my ($path) = @_;
+    if ($path =~ m#^([mM])((?:/\d+'?)+)$#) {
+        my %info;
+        $info{private} = $1 eq "m";
+        $info{path} = [map { s#(\d+)'#$1 + (2 << 30)#er } split "/", substr $2, 1];
+        return undef if first { $_ >= 2 << 31 } @{$info{path}};
+        return \%info;
+    } else {
+        return undef;
     }
 }
 

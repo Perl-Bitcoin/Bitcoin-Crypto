@@ -21,18 +21,29 @@ my %networks = (
     mainnet => {
         name => "Bitcoin Mainnet",
         p2pkh_byte => 0x00,
-        wif_byte => 0x80
+        wif_byte => 0x80,
+        extprv_version => 0x0488ade4,
+        extpub_version => 0x0488b21e,
     },
     testnet => {
         name => "Bitcoin Testnet",
         p2pkh_byte => 0x6f,
-        wif_byte => 0xef
+        wif_byte => 0xef,
+        extprv_version => 0x04358394,
+        extpub_version => 0x043587cf,
     },
 );
 
 my $default_network = "mainnet";
 
-my @network_keys = qw(name p2pkh_byte wif_byte);
+# name => required
+my %network_keys = qw(
+    name 1
+    p2pkh_byte 1
+    wif_byte 1
+    extprv_version 0
+    extpub_version 0
+);
 
 my %network_maps;
 
@@ -55,9 +66,9 @@ sub add_network
 sub validate_network
 {
     my ($args) = @_;
-    for my $el (@network_keys) {
+    for my $el (keys %network_keys) {
         croak "Incomplete network configuration: missing key $el"
-            unless defined $args->{$el};
+            if !defined $args->{$el} && $network_keys{$el};
     }
 }
 
@@ -91,7 +102,7 @@ sub get_available_networks
 sub _map_networks
 {
     %network_maps = ();
-    for my $el (@network_keys) {
+    for my $el (keys %network_keys) {
         my %el_map;
         $network_maps{$el} = \%el_map;
         for my $network (keys %networks) {
