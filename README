@@ -26,7 +26,17 @@ This module requires these other modules and libraries:
   CryptX
   Bitcoin::BIP39
   Try::Tiny
+  Math::BigInt
+  Math::EllipticCurve::Prime
 
+It is strongly recommended to also install:
+
+  Math::BigInt::GMP
+
+Without this module installing Math::EllipticCurve::Prime will result in
+extremely long testing time. Elliptic Curve operations from this module are needed
+in Child Key Derivation functions. This package requires GMP to be installed,
+for example libgmp10-dev (debian).
 
 COPYRIGHT AND LICENCE
 

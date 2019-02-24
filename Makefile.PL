@@ -10,7 +10,9 @@ WriteMakefile(
         MooX::Types::MooseLike => 0.29,
         CryptX => 0.062,
         Bitcoin::BIP39 => 0.002,
-        Try::Tiny => 0.30
+        Try::Tiny => 0.30,
+        Math::BigInt => 1.999816,
+        Math::EllipticCurve::Prime => 0.003,
     },
     ABSTRACT_FROM     => 'lib/Bitcoin/Crypto.pm',
     AUTHOR            => 'Bartosz Jarzyna <brtastic.dev@gmail.com>',

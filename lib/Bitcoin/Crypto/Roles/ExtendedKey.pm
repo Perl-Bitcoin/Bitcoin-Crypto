@@ -3,14 +3,18 @@ package Bitcoin::Crypto::Roles::ExtendedKey;
 use Modern::Perl "2010";
 use Moo::Role;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
-use Digest::SHA qw(sha256);
+use Digest::SHA qw(sha256 sha512);
+use Digest::HMAC qw(hmac);
+use List::Util qw(first);
 use Carp qw(croak);
 
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Types qw(IntMaxBits StrExactLength);
 use Bitcoin::Crypto::PrivateKey;
 use Bitcoin::Crypto::PublicKey;
+use Bitcoin::Crypto::Util qw(get_path_info);
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length);
+use Bitcoin::Crypto::Network qw(find_network get_network);
 
 with "Bitcoin::Crypto::Roles::Key";
 
@@ -72,19 +76,49 @@ sub toSerialized
     $serialized .= ensure_length pack("C", $self->childNumber), 4;
     # chain code (32B) - ensured
     $serialized .= $self->chainCode;
-    # additional 1B for private keys
-    $serialized .= pack "x" if $self->_isPrivate;
-    # key entropy (32B)
-    $serialized .= ensure_length $self->rawKey, $config{key_max_length};
+    # key entropy (1 + 32B or 33B)
+    $serialized .= ensure_length $self->rawKey, $config{key_max_length} + 1;
 
     return $serialized;
 }
 
 sub fromSerialized
 {
-    my ($class, $serialized) = @_;
+    my ($class, $serialized, $network) = @_;
+    if ($serialized =~ /^(.{4})(.)(.{4})(.{4})(.{32})(.{33})$/) {
+        my ($version, $depth, $fingerprint, $number, $chain_code, $data) = @{^CAPTURE};
 
-    return $class->new();
+        my $is_private = pack("x") eq substr $data, 0, 1;
+        croak "Invalid class used - key is " . ($is_private ? "private" : "public")
+            if $is_private != $this->_isPrivate;
+        $data = substr $data, 1, $config{key_max_length}
+            if $is_private;
+
+        $version = unpack "C", $version;
+        my $network_key = "ext" . ($self->_isPrivate ? "prv" : "pub") . "_version";
+        my @found_networks = find_network($network_key => $version);
+        @found_networks = first { $_ eq $network } @found_networks if defined $network;
+
+        croak "Found multiple networks possible for given serialized key. Please specify with third argument"
+            if @found_networks > 1;
+        croak "Network name $network cannot be used for given serialized key"
+            if @found_networks == 0 && defined $network;
+        croak "Couldn't find network for serialized key version $version"
+            if @found_networks == 0;
+
+        $key = $class->new(
+            $data,
+            $chain_code,
+            unpack "C", $number,
+            $fingerprint,
+            unpack "C", $depth
+        );
+        $key->setNetwork(@found_networks);
+
+        return $key;
+    } else {
+        croak "Input data does not look like a valid serialized extended key";
+    }
 }
 
 sub toSerializedBase58
@@ -96,8 +130,8 @@ sub toSerializedBase58
 
 sub fromSerializedBase58
 {
-    my ($class, $base58) = @_;
-    return $class->fromSerialized(decode_base58check $base58);
+    my ($class, $base58, $network) = @_;
+    return $class->fromSerialized(decode_base58check($base58), $network);
 }
 
 sub getBasicKey
@@ -118,6 +152,31 @@ sub getFingerprint
 
     my $identifier = ripemd160(sha256($pubkey));
     return substr $identifier, 0, 4;
+}
+
+sub deriveKey
+{
+    my ($self, $path) = @_;
+    my $path_info = get_path_info $path;
+
+    croak "Invalid key derivation path supplied"
+        unless defined $path_info;
+    croak "Cannot derive private key from public key"
+        if !$self->_isPrivate && $path_info->{private};
+
+    my $key = $self;
+    for my $child_num (@{$path_info->{path}}) {
+        my $hardened = $child_num >= $config{max_child_keys};
+        # croaks if hardened-from-public requested
+        # croaks if key is invalid
+        $key = $key->_deriveKeyPartial($child_num, $hardened);
+    }
+
+    $key->setNetwork($self->network);
+    $key = $key->getPublicKey()
+        if $self->_isPrivate && !$path_info->{private};
+
+    return $key;
 }
 
 1;

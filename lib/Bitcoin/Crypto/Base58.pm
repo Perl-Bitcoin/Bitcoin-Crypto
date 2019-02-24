@@ -2,7 +2,7 @@ package Bitcoin::Crypto::Base58;
 
 use Modern::Perl "2010";
 use Exporter qw(import);
-use Math::BigInt;
+use Math::BigInt 1.999816 try => 'GMP';
 use Digest::SHA qw(sha256);
 
 use Bitcoin::Crypto::Helpers qw(pad_hex);
@@ -31,7 +31,7 @@ my %alphabet_mapped = map { $alphabet[$_] => $_ } 0 .. $#alphabet;
 sub encode_base58
 {
     my ($bytes) = @_;
-    my $number = Math::BigInt->from_hex("0x" . unpack "H*", $bytes);
+    my $number = Math::BigInt->from_bytes($bytes);
     my $result = "";
     my $size = scalar @alphabet;
     while ($number->is_pos()) {
@@ -68,7 +68,7 @@ sub decode_base58
         my $step = Math::BigInt->new(scalar @alphabet)->bpow(scalar @arr)->bmul($current);
         $result->badd($step);
     }
-    return pack "H*", pad_hex($result->as_hex());
+    return $result->as_bytes();
 }
 
 sub decode_base58_preserve

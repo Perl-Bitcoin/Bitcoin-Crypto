@@ -58,8 +58,8 @@ sub get_path_info
     if ($path =~ m#^([mM])((?:/\d+'?)+)$#) {
         my %info;
         $info{private} = $1 eq "m";
-        $info{path} = [map { s#(\d+)'#$1 + (2 << 30)#er } split "/", substr $2, 1];
-        return undef if first { $_ >= 2 << 31 } @{$info{path}};
+        $info{path} = [map { s#(\d+)'#$1 + $config{max_child_keys}#er } split "/", substr $2, 1];
+        return undef if first { $_ >= $config{max_child_keys} * 2 } @{$info{path}};
         return \%info;
     } else {
         return undef;
