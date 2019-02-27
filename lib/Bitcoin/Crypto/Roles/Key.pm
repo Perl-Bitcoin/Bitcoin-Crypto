@@ -44,11 +44,13 @@ sub _createKey
 {
     my ($class, $entropy) = @_;
 
-    unless (defined get_key_type $entropy) {
+    my $key_type = get_key_type $entropy;
+    unless (defined $key_type) {
         croak "Invalid entropy data passed to key creation method"
             if length $entropy > $config{key_max_length};
         $entropy = ensure_length $entropy, $config{key_max_length};
     }
+
     my $key = Crypt::PK::ECC->new();
     $key->import_key_raw($entropy, $config{curve_name});
 
@@ -58,6 +60,7 @@ sub _createKey
 sub rawKey
 {
     my ($self, $type) = @_;
+
     unless (defined $type) {
         $type = "public_compressed";
         if ($self->_isPrivate) {

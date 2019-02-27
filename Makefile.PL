@@ -12,6 +12,7 @@ WriteMakefile(
         Bitcoin::BIP39 => 0.002,
         Try::Tiny => 0.30,
         Math::BigInt => 1.999816,
+        Digest::SHA => 6.02,
         Math::EllipticCurve::Prime => 0.003,
     },
     ABSTRACT_FROM     => 'lib/Bitcoin/Crypto.pm',

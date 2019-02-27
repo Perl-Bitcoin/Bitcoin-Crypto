@@ -3,6 +3,8 @@ Makefile.PL
 MANIFEST
 README
 cpanfile
+t/ExtPrivateKey.t
+t/ExtPublicKey.t
 t/PrivateKey.t
 t/PublicKey.t
 t/Network.t
@@ -12,11 +14,17 @@ t/Util.t
 t/Helpers.t
 t/Crypto.t
 lib/Bitcoin/Crypto.pm
+lib/Bitcoin/Crypto/ExtPrivateKey.pm
+lib/Bitcoin/Crypto/ExtPublicKey.pm
 lib/Bitcoin/Crypto/PrivateKey.pm
 lib/Bitcoin/Crypto/PublicKey.pm
 lib/Bitcoin/Crypto/Config.pm
 lib/Bitcoin/Crypto/Network.pm
 lib/Bitcoin/Crypto/Util.pm
 lib/Bitcoin/Crypto/Base58.pm
-lib/Bitcoin/Crypto/Roles/Key.pm
 lib/Bitcoin/Crypto/Helpers.pm
+lib/Bitcoin/Crypto/Roles/Key.pm
+lib/Bitcoin/Crypto/Roles/BasicKey.pm
+lib/Bitcoin/Crypto/Roles/ExtendedKey.pm
+lib/Bitcoin/Crypto/Roles/Compressed.pm
+lib/Bitcoin/Crypto/Roles/Network.pm

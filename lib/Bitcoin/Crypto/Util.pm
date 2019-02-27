@@ -55,10 +55,14 @@ sub get_key_type
 sub get_path_info
 {
     my ($path) = @_;
-    if ($path =~ m#^([mM])((?:/\d+'?)+)$#) {
+    if ($path =~ m#^([mM])((?:/\d+'?)*)$#) {
         my %info;
         $info{private} = $1 eq "m";
-        $info{path} = [map { s#(\d+)'#$1 + $config{max_child_keys}#er } split "/", substr $2, 1];
+        if (defined $2 && length $2 > 0) {
+            $info{path} = [map { s#(\d+)'#$1 + $config{max_child_keys}#er } split "/", substr $2, 1];
+        } else {
+            $info{path} = [];
+        }
         return undef if first { $_ >= $config{max_child_keys} * 2 } @{$info{path}};
         return \%info;
     } else {

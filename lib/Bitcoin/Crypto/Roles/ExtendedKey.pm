@@ -3,8 +3,7 @@ package Bitcoin::Crypto::Roles::ExtendedKey;
 use Modern::Perl "2010";
 use Moo::Role;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
-use Digest::SHA qw(sha256 sha512);
-use Digest::HMAC qw(hmac);
+use Digest::SHA qw(sha256);
 use List::Util qw(first);
 use Carp qw(croak);
 
@@ -15,6 +14,7 @@ use Bitcoin::Crypto::PublicKey;
 use Bitcoin::Crypto::Util qw(get_path_info);
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length);
 use Bitcoin::Crypto::Network qw(find_network get_network);
+use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 
 with "Bitcoin::Crypto::Roles::Key";
 
@@ -32,7 +32,7 @@ has "parentFingerprint" => (
 
 has "childNumber" => (
     is => "ro",
-    isa => IntMaxBits[4],
+    isa => IntMaxBits[32],
     default => 0
 );
 
@@ -48,12 +48,19 @@ sub _buildArgs
     croak "Invalid arguments passed to key constructor"
         if @params < 2 || @params > 5;
 
-    return
+    my %ret = (
         keyInstance => $class->_createKey($params[0]),
         chainCode => $params[1],
-        childNumber => $params[2],
-        parentFingerprint => $params[3],
-        depth => $params[4];
+    );
+
+    $ret{childNumber} = $params[2]
+        if @params >= 3;
+    $ret{parentFingerprint} = $params[3]
+        if @params >= 4;
+    $ret{depth} = $params[4]
+        if @params >= 5;
+
+    return %ret;
 }
 
 sub toSerialized
@@ -67,13 +74,13 @@ sub toSerialized
         unless defined $version;
 
     # version number (4B)
-    my $serialized = ensure_length pack("C", $version), 4;
+    my $serialized = ensure_length pack("N", $version), 4;
     # depth (1B)
     $serialized .= ensure_length pack("C", $self->depth), 1;
     # parent's fingerprint (4B) - ensured
     $serialized .= $self->parentFingerprint;
     # child number (4B)
-    $serialized .= ensure_length pack("C", $self->childNumber), 4;
+    $serialized .= ensure_length pack("N", $self->childNumber), 4;
     # chain code (32B) - ensured
     $serialized .= $self->chainCode;
     # key entropy (1 + 32B or 33B)
@@ -85,17 +92,17 @@ sub toSerialized
 sub fromSerialized
 {
     my ($class, $serialized, $network) = @_;
-    if ($serialized =~ /^(.{4})(.)(.{4})(.{4})(.{32})(.{33})$/) {
-        my ($version, $depth, $fingerprint, $number, $chain_code, $data) = @{^CAPTURE};
+    if (length $serialized == 78) {
+        my ($version, $depth, $fingerprint, $number, $chain_code, $data) = unpack("a4aa4a4a32a33", $serialized);
 
         my $is_private = pack("x") eq substr $data, 0, 1;
         croak "Invalid class used - key is " . ($is_private ? "private" : "public")
-            if $is_private != $this->_isPrivate;
+            if $is_private != $class->_isPrivate;
         $data = substr $data, 1, $config{key_max_length}
             if $is_private;
 
-        $version = unpack "C", $version;
-        my $network_key = "ext" . ($self->_isPrivate ? "prv" : "pub") . "_version";
+        $version = unpack "N", $version;
+        my $network_key = "ext" . ($class->_isPrivate ? "prv" : "pub") . "_version";
         my @found_networks = find_network($network_key => $version);
         @found_networks = first { $_ eq $network } @found_networks if defined $network;
 
@@ -106,12 +113,12 @@ sub fromSerialized
         croak "Couldn't find network for serialized key version $version"
             if @found_networks == 0;
 
-        $key = $class->new(
+        my $key = $class->new(
             $data,
             $chain_code,
-            unpack "C", $number,
+            unpack("N", $number),
             $fingerprint,
-            unpack "C", $depth
+            unpack("C", $depth)
         );
         $key->setNetwork(@found_networks);
 
@@ -148,9 +155,9 @@ sub getBasicKey
 sub getFingerprint
 {
     my ($self) = @_;
-    my $pubkey = $this-rawKey("public_compressed");
-
+    my $pubkey = $self->rawKey("public_compressed");
     my $identifier = ripemd160(sha256($pubkey));
+
     return substr $identifier, 0, 4;
 }
 
