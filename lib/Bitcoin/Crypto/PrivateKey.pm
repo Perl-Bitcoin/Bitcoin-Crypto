@@ -42,7 +42,7 @@ sub fromWif
     my $private = substr $decoded, 1;
 
     my $compressed = 0;
-    if (length($private) % $config{key_length_step} == 1) {
+    if (length($private) > $config{key_max_length}) {
         chop $private;
         $compressed = 1;
     }

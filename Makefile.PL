@@ -14,6 +14,7 @@ WriteMakefile(
         Math::BigInt => 1.999816,
         Digest::SHA => 6.02,
         Math::EllipticCurve::Prime => 0.003,
+        PBKDF2::Tiny => 0.005,
     },
     ABSTRACT_FROM     => 'lib/Bitcoin/Crypto.pm',
     AUTHOR            => 'Bartosz Jarzyna <brtastic.dev@gmail.com>',

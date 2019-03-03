@@ -6,34 +6,47 @@ use Digest::SHA qw(hmac_sha512);
 use Math::BigInt 1.999816 try => 'GMP';
 use Math::EllipticCurve::Prime;
 use Carp qw(croak);
+use Encode qw(encode decode);
+use Unicode::Normalize;
+use Bitcoin::BIP39 qw(gen_bip39_mnemonic bip39_mnemonic_to_entropy);
+use PBKDF2::Tiny qw(derive);
 
 use Bitcoin::Crypto::ExtPublicKey;
 use Bitcoin::Crypto::Config;
-use Bitcoin::Crypto::Helpers qw(ensure_length);
+use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length);
 
 with "Bitcoin::Crypto::Roles::ExtendedKey";
 
-
 sub _isPrivate { 1 }
 
-sub toBip39Mnemonic
+sub generateMnemonic
 {
-    my ($self) = @_;
-    my ($entropy) = $self->rawKey;
-    return entropy_to_bip39_mnemonic(entropy => $entropy);
+    my ($class, $len, $lang) = @_;
+    my ($min_len, $len_div, $max_len) = (128, 32, 256);
+    $len //= $min_len;
+    $lang //= "en";
+    # bip39 specification values
+    croak "Required entropy of between $min_len and $max_len bits, divisible by $len_div"
+        if $len < $min_len || $len > $max_len || $len % $len_div != 0;
+
+    my $ret = gen_bip39_mnemonic(bits => $len, language => $lang);
+    return $ret->{mnemonic};
 }
 
-sub fromBip39Mnemonic
+sub fromMnemonic
 {
-    my ($class, $mnemonic, $password) = @_;
-    $password = "mnemonic" . ($password // "");
-    my $bytes = bip39_mnemonic_to_entropy(mnemonic => $mnemonic);
-    for (1 .. 2048) {
-        $bytes = hmac_sha512($bytes, $password);
+    my ($class, $mnemonic, $password, $lang) = @_;
+    $mnemonic = encode("UTF-8", NFKD(decode("UTF-8", $mnemonic)));
+    $password = encode("UTF-8", NFKD(decode("UTF-8", "mnemonic" . ($password // ""))));
+
+    if (defined $lang) {
+        # checks validity of seed in given language
+        # requires Wordlist::LANG::BIP39 module for given LANG
+        bip39_mnemonic_to_entropy(mnemonic => $mnemonic, language => $lang);
     }
-    my $key = substr $bytes, 0, 32;
-    my $cc = substr $bytes, 32, 32;
-    return $class->new($key, $cc);
+    my $bytes = derive("SHA-512", $mnemonic, $password, 2048);
+
+    return $class->fromSeed($bytes);
 }
 
 sub fromSeed
@@ -44,6 +57,13 @@ sub fromSeed
     my $cc = substr $bytes, 32, 32;
 
     return $class->new($key, $cc);
+}
+
+sub fromHexSeed
+{
+    my ($class, $seed) = @_;
+
+    return $class->fromSeed(pack "H*", pad_hex $seed);
 }
 
 sub getPublicKey

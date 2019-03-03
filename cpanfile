@@ -7,5 +7,6 @@ requires 'CryptX', '==0.062';
 requires 'Bitcoin::BIP39', '==0.002';
 requires 'Try::Tiny', '==0.30';
 requires 'Math::BigInt', '==1.999816';
-requires 'Digest::SHA', '===6.02';
+requires 'Digest::SHA', '==6.02';
 requires 'Math::EllipticCurve::Prime', '==0.003';
+requires 'PBKDF2::Tiny', '==0.005';
