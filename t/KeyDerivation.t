@@ -72,6 +72,16 @@ my %test_data_private = (
             private => "xprvA2nrNbFZABcdryreWet9Ea4LvTJcGsqrMzxHx98MMrotbir7yrKCEXw7nadnHM8Dq38EGfSh6dqA9QWTyefMLEcBYJUuekgW4BYPJcr9E7j",
             public => "xpub6FnCn6nSzZAw5Tw7cgR9bi15UV96gLZhjDstkXXxvCLsUXBGXPdSnLFbdpq8p9HmGsApME5hQTZ3emM2rnY5agb9rXpVGyy3bdW6EEgAtqt",
         },
+        {
+            path => "m/0/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20",
+            private => "xprvAYbD8i8eLErNc8riuDfzfK2RP4X5LrvzBDymhNadcDW7gbd2JQQZhxYYUCYYpHVA6RXRdeZmWZoW9eYe6Ai6QAaFpAqo8XPw64JrDE78ka1",
+            public => "xpub6maZYDfYAcQfpcwC1FD12Sy9w6MZkKeqYSuNVkzFAZ36ZPxAqwipFks2KTDxS8c926h9Nzmj5RCzd5LXU7YCyoqGjdgkLEmzuBWiCwYpJ5m",
+        },
+        {
+            path => "m/0/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/133'/134'/135'/136'/137'/138'/139'/140/141'/142/143'/144/145'",
+            private => "xprvAyLdMHTCevkkuxcd1oriqGPaDMrpLjY1gUKdj34L9rnRCp7St7a767kXGYFELbKnCrqqRu4Yy331fDQMxXZshXfUctKfquHBh2ydGZnZC4i",
+            public => "xpub7CKyknz6VJK48Sh67qPjCQLJmPhJkCFs3hFEXRTwiCKQ5cSbRetMdv517nY55HZsjFWcUZowJAzKNKNEL9PQsYo8QELXFVgvp7azxdao5H9",
+        }
     ],
     "4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45d239319ac14f863b8d5ab5a0d0c64d2e8a1e7d1457df2e5a3c51c73235be" => [
         {

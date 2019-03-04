@@ -1,4 +1,4 @@
-Bitcoin-Crypto version 0.02
+Bitcoin-Crypto version 0.1
 ================================
 
 This module aims at enabling easy manipulation of Bitcoin
@@ -28,15 +28,7 @@ This module requires these other modules and libraries:
   Try::Tiny
   Math::BigInt
   Math::EllipticCurve::Prime
-
-It is strongly recommended to also install:
-
-  Math::BigInt::GMP
-
-Without this module installing Math::EllipticCurve::Prime will result in
-extremely long testing time. Elliptic Curve operations from this module are needed
-in Child Key Derivation functions. This package requires GMP to be installed,
-for example libgmp10-dev (debian).
+  PBKDF2::Tiny
 
 COPYRIGHT AND LICENCE
 

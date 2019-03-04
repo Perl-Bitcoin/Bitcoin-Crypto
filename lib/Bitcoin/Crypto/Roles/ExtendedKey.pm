@@ -20,7 +20,7 @@ with "Bitcoin::Crypto::Roles::Key";
 
 has "depth" => (
     is => "ro",
-    isa => IntMaxBits[4],
+    isa => IntMaxBits[8],
     default => 0
 );
 
@@ -154,10 +154,11 @@ sub getBasicKey
 
 sub getFingerprint
 {
-    my ($self) = @_;
+    my ($self, $len) = @_;
+    $len //= 4;
+
     my $pubkey = $self->rawKey("public_compressed");
     my $identifier = ripemd160(sha256($pubkey));
-
     return substr $identifier, 0, 4;
 }
 

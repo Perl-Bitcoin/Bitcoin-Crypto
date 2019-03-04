@@ -115,4 +115,17 @@ for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
     };
 }
 
+# test for network in extended keys
+$tests += 5;
+my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic;
+my $key = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($mnemonic);
+$key->setNetwork("testnet");
+is(substr($key->toSerializedBase58, 0, 4), "tprv", "extended key used the new network data in exporting");
+is($key->network->{name}, "Bitcoin Testnet", "extended key uses the new network");
+is($key->getPublicKey()->network->{name}, "Bitcoin Testnet", "extended public key uses the new network");
+$key = $key->deriveKey("m/0'/1");
+is($key->network->{name}, "Bitcoin Testnet", "derived extended key used the new network data");
+my $basic_key = $key->getBasicKey;
+is($basic_key->network->{name}, "Bitcoin Testnet", "basic key inherited extended key's network");
+
 done_testing($tests);

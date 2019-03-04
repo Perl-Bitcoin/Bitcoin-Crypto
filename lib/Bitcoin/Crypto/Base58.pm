@@ -103,41 +103,36 @@ Bitcoin::Crypto::Base58 - Bitcoin's Base58 implementation in Perl
 
 =head1 SYNOPSIS
 
-  use Bitcoin::Crypto::Base58Check qw(:all);
+  use Bitcoin::Crypto::Base58 qw(:all);
 
-  encode_base58check(pack "A*", "hello");
+  my $b58str = encode_base58check(pack "A*", "hello");
+  my $bytestr = decode_base58check($b58str);
 
 =head1 DESCRIPTION
 
-Implementation of Base58Check algorithm with Math::BigInt.
-
-It seems all the existing implementations of the Base58 either:
-
-=over 2
-
-=item * have external dependencies
-
-=item * have alphabets incompatible with Bitcoin
-
-=item * don't do leading zeros perservation
-
-=back
+Implementation of Base58 and Base58Check algorithm with Math::BigInt (GMP).
 
 =head1 FUNCTIONS
 
-=head2 encode_base58($bytestr) / decode_base58($str)
+=head2 encode_base58
+
+=head2 decode_base58
 
 Basic base58 encoding / decoding.
 Encoding takes one argument which is byte string.
-Decoding takes string
+Decoding takes base58-encoded string
 
-=head2 encode_base58_preserve($bytestr) / decode_base58_preserve($str)
+=head2 encode_base58_preserve
 
-Base58 with leading zero perservation.
+=head2 decode_base58_preserve
 
-=head2 encode_base58check($bytestr) / decode_base58check($str)
+Base58 with leading zero preservation.
 
-Base58 with leading zero perservation and checksum validation.
+=head2 encode_base58check
+
+=head2 decode_base58check
+
+Base58 with leading zero preservation and checksum validation.
 
 =head1 SEE ALSO
 

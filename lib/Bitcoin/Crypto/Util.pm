@@ -82,6 +82,8 @@ Bitcoin::Crypto::Util - Basic utilities for working with bitcoin
   use Bitcoin::Crypto::Util qw(
       validate_address
       validate_wif
+      get_key_type
+      get_path_info
   );
 
 =head1 DESCRIPTION
@@ -90,21 +92,49 @@ These are basic utilities for working with bitcoin, used by other packages.
 
 =head1 FUNCTIONS
 
-=head2 validate_address($str)
+=head2 validate_address
+
+  my $bool = validate_address($str);
 
 Ensures Base58 encoded string looks like encoded address.
+Returns undef if $str is not valid base58.
 
-=head2 validate_wif($str)
+=head2 validate_wif
+
+  my $bool = validate_wif($str);
 
 Ensures Base58 encoded string looks like encoded private key in WIF format.
+Returns undef if $str is not valid base58.
+
+=head2 get_key_type
+
+  my $is_private = get_key_type($bytestr);
+
+Tries to import $bytestr as private key entropy or serialized point.
+Returns boolean which can be used to determine if the key is private.
+Returns undef if $bytestr cannot be imported as a key.
+
+=head2 get_path_info
+
+  my $path = "m/1/3'";
+  my $path_data = get_path_info($path);
+
+Tries to get derivation path data from $path.
+Returns undef if $path is not a valid path.
+Otherwise returns the structure:
+  {
+    private => bool, # is path derivation private (lowercase m)
+    path => [
+      # derivation path with 2^31 added to every hardened child number
+      int, int, ..
+    ],
+  }
 
 =head1 SEE ALSO
 
 =over 2
 
-=item L<Bitcoin::Crypto::PrivateKey>
-
-=item L<Bitcoin::Crypto::PublicKey>
+=item L<Bitcoin::Crypto::ExtPrivateKey>
 
 =back
 

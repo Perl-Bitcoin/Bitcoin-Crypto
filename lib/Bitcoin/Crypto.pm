@@ -1,6 +1,6 @@
 package Bitcoin::Crypto;
 
-our $VERSION = "0.02";
+our $VERSION = "0.1";
 
 use Modern::Perl "2010";
 use Exporter qw(import);
@@ -19,11 +19,20 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 
 =head1 SYNOPSIS
 
-  use Bitcoin::Crypto::PrivateKey;
+  use Bitcoin::Crypto::ExtPrivateKey;
 
-  my $priv = Bitcoin::Crypto::PrivateKey->fromWif($wif_string);
+  # extended keys are used for mnemonic generation and key derivation
+  my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic();
+  say "your mnemonic code is: $mnemonic";
+
+  my $master_key = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($mnemonic);
+  my $derived_key = $master_key->deriveKey("m/0'");
+
+  # basic keys are used for signatures and addresses
+  my $priv = $derived_key->getBasicKey();
   my $pub = $priv->getPublicKey();
 
+  say "private key: " . $priv->toWif();
   say "public key: " . $pub->toHex();
   say "address: " . $pub->getAddress();
 
@@ -41,9 +50,11 @@ This package allows you to do basic cryptography tasks for Bitcoin such as:
 
 =over 2
 
+=item * creating extended keys and utilising bip32 key derivation
+
 =item * creating private key / public key pairs
 
-=item * creating Bitcoin addresses (p2pkh)
+=item * creating Bitcoin addresses
 
 =item * creating signatures for messages
 
@@ -57,7 +68,6 @@ This package won't help you with:
 
 =over 2
 
-=item * generating random entropy for private keys
 
 =item * serializing transactions
 
@@ -73,11 +83,9 @@ See child modules for more documentation and examples.
 
 =over 2
 
-=item * P2SH addresses
+=item * P2SH segwit compatible addresses
 
-=item * Bech32 addresses
-
-=item * Extended private keys, key deriviation
+=item * Bech32 segwit native addresses
 
 =back
 
@@ -85,11 +93,11 @@ See child modules for more documentation and examples.
 
 =over 2
 
+=item L<Bitcoin::Crypto::ExtPrivateKey>
+
 =item L<Bitcoin::Crypto::PrivateKey>
 
-=item L<Bitcoin::Crypto::PublicKey>
-
-=item L<Bitcoin::Crypto::Network>
+=item L<Bitcoin::BIP39>
 
 =back
 
