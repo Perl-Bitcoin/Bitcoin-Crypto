@@ -21,14 +21,18 @@ DEPENDENCIES
 This module requires these other modules and libraries:
 
   Modern::Perl
+  Math::BigInt
+  Math::BigInt::GMP
   Moo
   MooX::Types::MooseLike
   CryptX
   Bitcoin::BIP39
   Try::Tiny
-  Math::BigInt
   Math::EllipticCurve::Prime
   PBKDF2::Tiny
+
+This module also requires GMP installed on your system, which should be installed
+automatically by Alien::GMP module if you're installing it via cpan client.
 
 COPYRIGHT AND LICENCE
 
