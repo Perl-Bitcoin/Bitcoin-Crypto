@@ -92,8 +92,10 @@ sub toSerialized
 sub fromSerialized
 {
     my ($class, $serialized, $network) = @_;
+    # exepected length is 78
     if (length $serialized == 78) {
-        my ($version, $depth, $fingerprint, $number, $chain_code, $data) = unpack("a4aa4a4a32a33", $serialized);
+        my $format = "a4aa4a4a32a33";
+        my ($version, $depth, $fingerprint, $number, $chain_code, $data) = unpack($format, $serialized);
 
         my $is_private = pack("x") eq substr $data, 0, 1;
         croak "Invalid class used - key is " . ($is_private ? "private" : "public")

@@ -121,3 +121,146 @@ sub _deriveKeyPartial
 }
 
 1;
+
+__END__
+=head1 NAME
+
+Bitcoin::Crypto::ExtPrivateKey - class for Bitcoin extended private keys
+
+=head1 SYNOPSIS
+
+  use Bitcoin::Crypto::ExtPrivateKey;
+
+  # generate mnemonic words first
+  my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic;
+  print "Your mnemonic is: $mnemonic";
+
+  # create ExtPrivateKey from mnemonic (without password)
+  my $key = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($mnemonic);
+  my $ser_key = $key->toSerializedBase58;
+  print "Your exported master key is: $ser_key";
+
+  # derive child private key
+  my $path = "m/0'";
+  my $child_key = $key->deriveKey($path);
+  my $ser_child_key = $child_key->toSerializedBase58;
+  print "Your exported $path child key is: $ser_child_key";
+
+  # create basic keypair
+  my $basic_private = $child_key->getBasicKey;
+  my $basic_public = $child_key->getPublicKey->getBasicKey;
+
+=head1 DESCRIPTION
+
+This class allows you to create an extended private key instance.
+
+You can use an extended private key to:
+
+=over 2
+
+=item * generate extended public keys
+
+=item * derive extended keys using a path
+
+=item * restore keys from mnemonic codes, seeds and base58 format
+
+=back
+
+see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bitcoin Mainnet.
+
+=head1 METHODS
+
+=head2 generateMnemonic
+
+  sig: generateMnemonic($class, $len = 128, $lang = "en")
+Generates a new valid mnemonic code. Default entropy is 128 bits.
+With $len this can be changed to up to 256 bits with 32 bit step.
+Other languages than english require additional modules for L<Bitcoin::BIP39>.
+Croaks when $len is invalid (under 128, above 256 or not divisible by 32).
+Returns newly generated BIP39 mnemonic string.
+
+=head2 fromMnemonic
+
+  sig: fromMnemonic($class, $mnemonic, $password = "", $lang = undef)
+Creates a new key from given mnemonic and password.
+Note that technically any password is correct and there's no way to tell if it was mistaken.
+If you need to validate if $mnemonic is a valid mnemonic you should specify $lang, e.g. "en".
+If no $lang is given then any string passed as $mnemonic will produce a valid key.
+Returns a new instance of this class.
+
+=head2 fromSeed
+
+  sig: fromSeed($class, $seed)
+Creates and returns a new key from seed, which can be any data of any length.
+$seed is expected to be a byte string.
+
+=head2 fromHexSeed
+
+  sig: fromHexSeed($class, $seed)
+Same as fromSeed, but $seed is treated as hex string.
+
+=head2 toSerialized
+
+  sig: toSerialized($self)
+Returns the key serialized in format specified in BIP32 as byte string.
+
+=head2 toSerializedBase58
+
+  sig: toSerializedBase58($self)
+Behaves the same as toSerialized(), but performs Base58Check encoding
+on the resulting byte string.
+
+=head2 fromSerialized
+
+  sig: fromSerialized($class, $serialized, $network = undef)
+Tries to unserialize byte string $serialized with format specified in BIP32.
+Croaks on errors. If multiple networks match serialized data specify $network
+manually (id of the network) to avoid exception.
+
+=head2 fromSerializedBase58
+
+  sig: fromSerializedBase58($class, $base58, $network)
+Same as fromSerialized, but performs Base58Check decoding on $base58 argument.
+
+=head2 setNetwork
+
+  sig: setNetwork($self, $val)
+Change key's network state to $val. It can be either network name present in
+Bitcoin::Crypto::Network package or a valid network hashref. 
+Returns current key instance.
+
+=head2 getPublicKey
+
+  sig: getPublicKey($self)
+Returns instance of L<Bitcoin::Crypto::ExtPublicKey> generated from the private key.
+
+=head2 getBasicKey
+
+  sig: getBasicKey($self)
+Returns the key in basic format: L<Bitcoin::Crypto::PrivateKey>
+
+=head2 deriveKey
+
+  sig: deriveKey($self, $path)
+Performs extended key deriviation as specified in BIP32 on the current key
+with $path. Croaks on error.
+See BIP32 document for details on deriviation paths and methods.
+Returns a new extended key instance - result of a deriviation.
+
+=head2 getFingerprint
+
+  sig: getFingerprint($self, $len = 4)
+Returns a fingerprint of the extended key of $len length (byte string)
+
+=head1 SEE ALSO
+
+=over 2
+
+=item L<Bitcoin::Crypto::ExtPublicKey>
+
+=item L<Bitcoin::Crypto::Network>
+
+=back
+
+=cut
+

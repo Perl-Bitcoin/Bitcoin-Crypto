@@ -47,62 +47,70 @@ You can use a public key to:
 
 =over 2
 
-=item * read from and export to byte / hexadecimal string
-
 =item * verify messages
 
 =item * create p2pkh address
 
 =back
 
-This class doesn't:
-
-=over 2
-
-=item * create any addresses other than p2pkh (yet)
-
-=back
-
 =head1 METHODS
 
-=head2 fromHex($str) / fromBytes($str)
+=head2 fromBytes
 
-Use these methods to create a PublicKey instance.
-All take single string argument with public key data.
+  sig: fromBytes($class, $data)
+Use this method to create a PublicKey instance from a byte string.
+Data $data will be used as a private key entropy.
 Returns class instance.
 
-=head2 new($instance)
+=head2 new
 
-Takes a single argument which must be instance of L<Crypt::PK::ECC>.
-This allows you to use raw Crypt::PK::ECC methods to create key on your own.
+  sig: new($class, $data)
+This works exactly the same as fromBytes
 
-=head2 setCompressed($val)
+=head2 toBytes
 
-Change key's compression state to $val (1/0). This will change the Address generated
-by public key. If $val is omitted it is set to 1.
+  sig: toBytes($self)
+Does the opposite of fromBytes on a target object
+
+=head2 fromHex
+
+  sig: fromHex($class, $hex)
+Use this method to create a PrivateKey instance from a hexadecimal number.
+Number $hex will be used as a private key entropy.
+Returns class instance.
+
+=head2 toHex
+
+  sig: toHex($self)
+Does the opposite of fromHex on a target object
+
+=head2 setCompressed
+
+  sig: setCompressed($self, $val)
+Change key's compression state to $val (1/0). This will change the address.
+If $val is omitted it is set to 1.
 Returns current key instance.
 
-=head2 setNetwork($val)
+=head2 setNetwork
 
+  sig: setNetwork($self, $val)
 Change key's network state to $val. It can be either network name present in
-Bitcoin::Crypto::Network package or a valid network hashref. This will
-enable generation of this network's addresses.
+Bitcoin::Crypto::Network package or a valid network hashref. This will change 
+the address.
 Returns current key instance.
 
-=head2 getAddress()
+=head2 verifyMessage
 
-Returns string containing Base58Check encoded public key hash (p2pkh address)
-
-=head2 verifyMessage($message, $signature, $algo)
-
+  sig: verifyMessage($self, $message, $signature, $algo = "sha256")
 Verifies $signature against digest of $message (with $algo digest algorithm)
-using public key.
+using private key.
 $algo must be available in Digest package.
 Returns boolean.
 
-=head2 toHex() / toBytes()
+=head2 getAddress
 
-Returns public key representation in specified format.
+  sig: getAddress($self)
+Returns string containing Base58Check encoded public key hash (p2pkh address)
 
 =head1 SEE ALSO
 
