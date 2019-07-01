@@ -226,7 +226,7 @@ Same as fromSerialized, but performs Base58Check decoding on $base58 argument.
 
   sig: setNetwork($self, $val)
 Change key's network state to $val. It can be either network name present in
-Bitcoin::Crypto::Network package or a valid network hashref. 
+Bitcoin::Crypto::Network package or a valid network hashref.
 Returns current key instance.
 
 =head2 getPublicKey

@@ -21,6 +21,8 @@ my %networks = (
     mainnet => {
         name => "Bitcoin Mainnet",
         p2pkh_byte => 0x00,
+        p2sh_byte => 0x05,
+        segwit_hrp => "bc",
         wif_byte => 0x80,
         extprv_version => 0x0488ade4,
         extpub_version => 0x0488b21e,
@@ -28,6 +30,8 @@ my %networks = (
     testnet => {
         name => "Bitcoin Testnet",
         p2pkh_byte => 0x6f,
+        p2sh_byte => 0xc4,
+        segwit_hrp => "tb",
         wif_byte => 0xef,
         extprv_version => 0x04358394,
         extpub_version => 0x043587cf,
@@ -40,6 +44,8 @@ my $default_network = "mainnet";
 my %network_keys = qw(
     name 1
     p2pkh_byte 1
+    p2sh_byte 0
+    segwit_hrp 0
     wif_byte 1
     extprv_version 0
     extpub_version 0
@@ -173,18 +179,20 @@ Bitcoin::Crypto::Network - Management tool for cryptocurrency networks
 
 This package allows you to manage non-bitcoin cryptocurrencies.
 Before you start producing keys and addresses for your favorite crypto
-you have to configure it's network first. Right now networks only use three
-keys, but they may grow in the future (for p2sh, bech32 etc.)
+you have to configure it's network first. Right now networks only require
+three keys, which are marked with *
 
   my $network = (
-      name => "human-readable network name",
-      p2pkh_byte => "p2pkh address prefix byte, eg. 0x00",
-      wif_byte => "WIF private key prefix byte, eg. 0x80",
-      extprv_version => 0x0488ade4,
-      extpub_version => 0x0488b21e,
+      name => "* human-readable network name",
+      p2pkh_byte => "* p2pkh address prefix byte, eg. 0x00",
+      p2sh_byte => "p2sh address prefix byte, eg. 0x05",
+      segwit_hrp => "segwit native address human readable part, eg. 'bc'",
+      wif_byte => "* WIF private key prefix byte, eg. 0x80",
+      extprv_version => "version of extended private keys, eg. 0x0488ade4",
+      extpub_version => "version of extended public keys, eg. 0x0488b21e",
   );
 
-After you add_network your program will be able to import WIF keys for that
+After you add_network your program will be able to import keys for that
 network but all keys created from other sources will be treated as bitcoin.
 You need to set_default_network to make all new keys use it. If you use many
 networks it might be better to set a network with key's setNetwork method:
@@ -194,6 +202,10 @@ networks it might be better to set a network with key's setNetwork method:
 Some things to consider:
 
 =over 2
+
+=item * if you don't specify network field for some feature you won't be able to
+use it. For example the module will complain if you try to generate segwit address
+with custom network without segwit_hrp field set.
 
 =item * it is entirely possible to add a network that already exists. Because of
 this, if you don't need bitcoin in your program you can replace existing
