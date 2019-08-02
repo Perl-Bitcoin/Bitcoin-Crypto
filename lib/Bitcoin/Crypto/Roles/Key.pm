@@ -13,63 +13,63 @@ use Bitcoin::Crypto::Helpers qw(ensure_length);
 with "Bitcoin::Crypto::Roles::Network";
 
 has "keyInstance" => (
-    is => "ro",
-    isa => InstanceOf["Crypt::PK::ECC"]
+	is => "ro",
+	isa => InstanceOf["Crypt::PK::ECC"]
 );
 
 sub _isPrivate { undef }
 
 sub _buildArgs
 {
-    my ($class, @params) = @_;
+	my ($class, @params) = @_;
 
-    croak "Invalid arguments passed to key constructor"
-        unless @params == 1;
+	croak "Invalid arguments passed to key constructor"
+		unless @params == 1;
 
-    return
-        keyInstance => $class->_createKey($params[0]);
+	return
+		keyInstance => $class->_createKey($params[0]);
 }
 
 around BUILDARGS => sub {
-    my ($orig, $class) = @_;
-    my %params = $class->_buildArgs(splice @_, 2);
+	my ($orig, $class) = @_;
+	my %params = $class->_buildArgs(splice @_, 2);
 
-    croak "Trying to create key from unknown key data"
-        unless $params{keyInstance}->is_private() == $class->_isPrivate;
+	croak "Trying to create key from unknown key data"
+		unless $params{keyInstance}->is_private() == $class->_isPrivate;
 
-    return $class->$orig(%params);
+	return $class->$orig(%params);
 };
 
 sub _createKey
 {
-    my ($class, $entropy) = @_;
+	my ($class, $entropy) = @_;
 
-    my $key_type = get_key_type $entropy;
-    unless (defined $key_type) {
-        croak "Invalid entropy data passed to key creation method"
-            if length $entropy > $config{key_max_length};
-        $entropy = ensure_length $entropy, $config{key_max_length};
-    }
+	my $key_type = get_key_type $entropy;
+	unless (defined $key_type) {
+		croak "Invalid entropy data passed to key creation method"
+			if length $entropy > $config{key_max_length};
+		$entropy = ensure_length $entropy, $config{key_max_length};
+	}
 
-    my $key = Crypt::PK::ECC->new();
-    $key->import_key_raw($entropy, $config{curve_name});
+	my $key = Crypt::PK::ECC->new();
+	$key->import_key_raw($entropy, $config{curve_name});
 
-    return $key;
+	return $key;
 }
 
 sub rawKey
 {
-    my ($self, $type) = @_;
+	my ($self, $type) = @_;
 
-    unless (defined $type) {
-        $type = "public_compressed";
-        if ($self->_isPrivate) {
-            $type = "private";
-        } elsif ($self->does("Bitcoin::Crypto::Roles::Compressed") && !$self->compressed) {
-            $type = "public";
-        }
-    }
-    return $self->keyInstance->export_key_raw($type);
+	unless (defined $type) {
+		$type = "public_compressed";
+		if ($self->_isPrivate) {
+			$type = "private";
+		} elsif ($self->does("Bitcoin::Crypto::Roles::Compressed") && !$self->compressed) {
+			$type = "public";
+		}
+	}
+	return $self->keyInstance->export_key_raw($type);
 }
 
 1;

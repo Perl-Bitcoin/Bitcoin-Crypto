@@ -8,8 +8,8 @@ use Digest::SHA qw(sha256);
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 
 our @EXPORT_OK = qw(
-    encode_bech32
-    decode_bech32
+	encode_bech32
+	decode_bech32
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -17,10 +17,10 @@ our %EXPORT_TAGS = (all => [@EXPORT_OK]);
 my $CHECKSUM_SIZE = 6;
 
 my @alphabet = qw(
-    q p z r y 9 x 8
-    g f 2 t v d w 0
-    s 3 j n 5 4 k h
-    c e 6 m u a 7 l
+	q p z r y 9 x 8
+	g f 2 t v d w 0
+	s 3 j n 5 4 k h
+	c e 6 m u a 7 l
 );
 
 my %alphabet_mapped = map { $alphabet[$_] => $_ } 0 .. $#alphabet;
@@ -28,30 +28,30 @@ my %alphabet_mapped = map { $alphabet[$_] => $_ } 0 .. $#alphabet;
 
 sub encode_bech32
 {
-    my ($bytes) = @_;
-    my $number = Math::BigInt->from_bytes($bytes);
-    my $result = "";
-    my $size = scalar @alphabet;
-    while ($number->is_pos()) {
-        my $copy = $number->copy();
-        $result = $alphabet[$copy->bmod($size)] . $result;
-        $number->bdiv($size);
-    }
-    return $result;
+	my ($bytes) = @_;
+	my $number = Math::BigInt->from_bytes($bytes);
+	my $result = "";
+	my $size = scalar @alphabet;
+	while ($number->is_pos()) {
+		my $copy = $number->copy();
+		$result = $alphabet[$copy->bmod($size)] . $result;
+		$number->bdiv($size);
+	}
+	return $result;
 }
 
 sub decode_bech32
 {
-    my ($bech32encoded) = @_;
-    my $result = Math::BigInt->new(0);
-    my @arr = split "", $bech32encoded;
-    while (@arr > 0) {
-        my $current = $alphabet_mapped{shift @arr};
-        return undef unless defined $current;
-        my $step = Math::BigInt->new(scalar @alphabet)->bpow(scalar @arr)->bmul($current);
-        $result->badd($step);
-    }
-    return $result->as_bytes();
+	my ($bech32encoded) = @_;
+	my $result = Math::BigInt->new(0);
+	my @arr = split "", $bech32encoded;
+	while (@arr > 0) {
+		my $current = $alphabet_mapped{shift @arr};
+		return undef unless defined $current;
+		my $step = Math::BigInt->new(scalar @alphabet)->bpow(scalar @arr)->bmul($current);
+		$result->badd($step);
+	}
+	return $result->as_bytes();
 }
 
 1;
@@ -63,10 +63,10 @@ Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl
 
 =head1 SYNOPSIS
 
-  use Bitcoin::Crypto::Base58 qw(:all);
+	use Bitcoin::Crypto::Base58 qw(:all);
 
-  my $b58str = encode_base58check(pack "A*", "hello");
-  my $bytestr = decode_base58check($b58str);
+	my $b58str = encode_base58check(pack "A*", "hello");
+	my $bytestr = decode_base58check($b58str);
 
 =head1 DESCRIPTION
 

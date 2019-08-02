@@ -9,7 +9,7 @@ our @EXPORT_OK = qw(version);
 
 sub version
 {
-    return $VERSION;
+	return $VERSION;
 }
 
 __END__
@@ -19,30 +19,30 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 
 =head1 SYNOPSIS
 
-  use Bitcoin::Crypto::ExtPrivateKey;
+	use Bitcoin::Crypto::ExtPrivateKey;
 
-  # extended keys are used for mnemonic generation and key derivation
-  my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic();
-  say "your mnemonic code is: $mnemonic";
+	# extended keys are used for mnemonic generation and key derivation
+	my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic();
+	say "your mnemonic code is: $mnemonic";
 
-  my $master_key = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($mnemonic);
-  my $derived_key = $master_key->deriveKey("m/0'");
+	my $master_key = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($mnemonic);
+	my $derived_key = $master_key->deriveKey("m/0'");
 
-  # basic keys are used for signatures and addresses
-  my $priv = $derived_key->getBasicKey();
-  my $pub = $priv->getPublicKey();
+	# basic keys are used for signatures and addresses
+	my $priv = $derived_key->getBasicKey();
+	my $pub = $priv->getPublicKey();
 
-  say "private key: " . $priv->toWif();
-  say "public key: " . $pub->toHex();
-  say "address: " . $pub->getAddress();
+	say "private key: " . $priv->toWif();
+	say "public key: " . $pub->toHex();
+	say "address: " . $pub->getAddress();
 
-  my $message = "Hello CPAN";
-  my $signature = $priv->signMessage($message);
+	my $message = "Hello CPAN";
+	my $signature = $priv->signMessage($message);
 
-  if ($pub->verifyMessage($message, $signature)) {
-      say "successfully signed message '$message'";
-      say "signature: " . unpack "H*", $signature;
-  }
+	if ($pub->verifyMessage($message, $signature)) {
+		say "successfully signed message '$message'";
+		say "signature: " . unpack "H*", $signature;
+	}
 
 =head1 DESCRIPTION
 

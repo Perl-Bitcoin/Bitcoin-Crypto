@@ -10,64 +10,64 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Base58 qw(decode_base58check);
 
 our @EXPORT_OK = qw(
-    validate_address
-    validate_wif
-    get_key_type
-    get_path_info
+	validate_address
+	validate_wif
+	get_key_type
+	get_path_info
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
 
 sub validate_address
 {
-    my ($address) = @_;
-    my $byte_address = decode_base58check($address);
-    return $byte_address unless $byte_address;
-    # 20 bytes for RIPEMD160, 1 byte for network
-    return length $byte_address == 21;
+	my ($address) = @_;
+	my $byte_address = decode_base58check($address);
+	return $byte_address unless $byte_address;
+	# 20 bytes for RIPEMD160, 1 byte for network
+	return length $byte_address == 21;
 }
 
 sub validate_wif
 {
-    my ($wif) = @_;
-    my $byte_wif = decode_base58check($wif);
-    return $byte_wif unless $byte_wif;
-    my $last_byte = substr $byte_wif, -1;
-    if (length $byte_wif == $config{key_max_length} + 2) {
-        return ord($last_byte) == $config{wif_compressed_byte};
-    } else {
-        return length $byte_wif == $config{key_max_length} + 1;
-    }
+	my ($wif) = @_;
+	my $byte_wif = decode_base58check($wif);
+	return $byte_wif unless $byte_wif;
+	my $last_byte = substr $byte_wif, -1;
+	if (length $byte_wif == $config{key_max_length} + 2) {
+		return ord($last_byte) == $config{wif_compressed_byte};
+	} else {
+		return length $byte_wif == $config{key_max_length} + 1;
+	}
 }
 
 sub get_key_type
 {
-    my ($entropy) = @_;
-    my $key = Crypt::PK::ECC->new;
-    try {
-        $key->import_key_raw($entropy, $config{curve_name});
-        return $key->is_private;
-    } catch {
-        return undef;
-    };
+	my ($entropy) = @_;
+	my $key = Crypt::PK::ECC->new;
+	try {
+		$key->import_key_raw($entropy, $config{curve_name});
+		return $key->is_private;
+	} catch {
+		return undef;
+	};
 }
 
 sub get_path_info
 {
-    my ($path) = @_;
-    if ($path =~ m#^([mM])((?:/\d+'?)*)$#) {
-        my %info;
-        $info{private} = $1 eq "m";
-        if (defined $2 && length $2 > 0) {
-            $info{path} = [map { s#(\d+)'#$1 + $config{max_child_keys}#er } split "/", substr $2, 1];
-        } else {
-            $info{path} = [];
-        }
-        return undef if first { $_ >= $config{max_child_keys} * 2 } @{$info{path}};
-        return \%info;
-    } else {
-        return undef;
-    }
+	my ($path) = @_;
+	if ($path =~ m#^([mM])((?:/\d+'?)*)$#) {
+		my %info;
+		$info{private} = $1 eq "m";
+		if (defined $2 && length $2 > 0) {
+			$info{path} = [map { s#(\d+)'#$1 + $config{max_child_keys}#er } split "/", substr $2, 1];
+		} else {
+			$info{path} = [];
+		}
+		return undef if first { $_ >= $config{max_child_keys} * 2 } @{$info{path}};
+		return \%info;
+	} else {
+		return undef;
+	}
 }
 
 1;
@@ -79,12 +79,12 @@ Bitcoin::Crypto::Util - Basic utilities for working with bitcoin
 
 =head1 SYNOPSIS
 
-  use Bitcoin::Crypto::Util qw(
-      validate_address
-      validate_wif
-      get_key_type
-      get_path_info
-  );
+	use Bitcoin::Crypto::Util qw(
+		validate_address
+		validate_wif
+		get_key_type
+		get_path_info
+	);
 
 =head1 DESCRIPTION
 
@@ -94,21 +94,21 @@ These are basic utilities for working with bitcoin, used by other packages.
 
 =head2 validate_address
 
-  my $bool = validate_address($str);
+	my $bool = validate_address($str);
 
 Ensures Base58 encoded string looks like encoded address.
 Returns undef if $str is not valid base58.
 
 =head2 validate_wif
 
-  my $bool = validate_wif($str);
+	my $bool = validate_wif($str);
 
 Ensures Base58 encoded string looks like encoded private key in WIF format.
 Returns undef if $str is not valid base58.
 
 =head2 get_key_type
 
-  my $is_private = get_key_type($bytestr);
+	my $is_private = get_key_type($bytestr);
 
 Tries to import $bytestr as private key entropy or serialized point.
 Returns boolean which can be used to determine if the key is private.
@@ -116,19 +116,19 @@ Returns undef if $bytestr cannot be imported as a key.
 
 =head2 get_path_info
 
-  my $path = "m/1/3'";
-  my $path_data = get_path_info($path);
+	my $path = "m/1/3'";
+	my $path_data = get_path_info($path);
 
 Tries to get derivation path data from $path.
 Returns undef if $path is not a valid path.
 Otherwise returns the structure:
-  {
-    private => bool, # is path derivation private (lowercase m)
-    path => [
-      # derivation path with 2^31 added to every hardened child number
-      int, int, ..
-    ],
-  }
+	{
+		private => bool, # is path derivation private (lowercase m)
+		path => [
+			# derivation path with 2^31 added to every hardened child number
+			int, int, ..
+		],
+	}
 
 =head1 SEE ALSO
 

@@ -14,30 +14,30 @@ is($default_networks[1], "testnet", "testnet available");
 note("no more default networks") if @default_networks == 2;
 
 my $litecoin = {
-    name => "Litecoin Mainnet",
-    p2pkh_byte => 0x30,
+	name => "Litecoin Mainnet",
+	p2pkh_byte => 0x30,
 };
 
 # validate_network - 2 test
 
 try {
-    validate_network($litecoin);
-    fail("invalid network validation successfull");
+	validate_network($litecoin);
+	fail("invalid network validation successfull");
 } catch {
-    if (m/wif_byte/) {
-        pass("invalid network validation fails");
-    } else {
-        fail("unknown error during validation");
-    }
+	if (m/wif_byte/) {
+		pass("invalid network validation fails");
+	} else {
+		fail("unknown error during validation");
+	}
 };
 
 $litecoin->{wif_byte} = 0xb0;
 
 try {
-    validate_network($litecoin);
-    pass("network validates");
+	validate_network($litecoin);
+	pass("network validates");
 } catch {
-    fail("unknown error during validation");
+	fail("unknown error during validation");
 };
 
 # add_network - 1 test

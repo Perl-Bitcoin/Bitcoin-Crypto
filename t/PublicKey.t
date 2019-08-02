@@ -13,27 +13,27 @@ BEGIN { use_ok('Bitcoin::Crypto::PublicKey') };
 my $PublicKey = "Bitcoin::Crypto::PublicKey";
 
 my %cases = qw(
-    04394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967c52ad62fe0b27e5acc0992fc8509e5041a06064ce967200b0b7288a4ab889bf22
-    16ixDtpj3JyKJUagRtLdhav76gw1MnrmsK
-    043992aa3f9deda22c02d05ca01a55d8f717d7464bb11ef43b59fc36c32613d0205f34f4ef398da815711d8917b804d429f395af403d52cd4b65b76839c88da442
-    17MscEiRueoN9psHqV6oQGq8UWtdoaezSq
+	04394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967c52ad62fe0b27e5acc0992fc8509e5041a06064ce967200b0b7288a4ab889bf22
+	16ixDtpj3JyKJUagRtLdhav76gw1MnrmsK
+	043992aa3f9deda22c02d05ca01a55d8f717d7464bb11ef43b59fc36c32613d0205f34f4ef398da815711d8917b804d429f395af403d52cd4b65b76839c88da442
+	17MscEiRueoN9psHqV6oQGq8UWtdoaezSq
 );
 
 my %cases_compressed = qw(
-    02394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967c
-    14wc2Jf5WoX1UZuwkb62acVRfNMwczjwDf
-    023992aa3f9deda22c02d05ca01a55d8f717d7464bb11ef43b59fc36c32613d020
-    16e5qefUVTiLxDuwpNTsJ7b3VL7rSmfYdc
+	02394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967c
+	14wc2Jf5WoX1UZuwkb62acVRfNMwczjwDf
+	023992aa3f9deda22c02d05ca01a55d8f717d7464bb11ef43b59fc36c32613d020
+	16e5qefUVTiLxDuwpNTsJ7b3VL7rSmfYdc
 );
 
 # Basic creation of addresses keys - 8 tests
 for my $key (keys %cases) {
-    my $pubkey = $PublicKey->fromHex($key)->setCompressed(0);
-    is($pubkey->toHex(), $key, "imported and exported correctly");
-    is($pubkey->getAddress(), $cases{$key}, "correctly created address");
-    $pubkey->setCompressed(1);
-    ok(defined $cases_compressed{$pubkey->toHex()}, "exported compressed key correctly");
-    is($pubkey->getAddress(), $cases_compressed{$pubkey->toHex()}, "correctly created compressed address");
+	my $pubkey = $PublicKey->fromHex($key)->setCompressed(0);
+	is($pubkey->toHex(), $key, "imported and exported correctly");
+	is($pubkey->getAddress(), $cases{$key}, "correctly created address");
+	$pubkey->setCompressed(1);
+	ok(defined $cases_compressed{$pubkey->toHex()}, "exported compressed key correctly");
+	is($pubkey->getAddress(), $cases_compressed{$pubkey->toHex()}, "correctly created compressed address");
 }
 
 # Verify message without private key - 3 tests
