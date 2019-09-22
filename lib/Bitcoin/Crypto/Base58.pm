@@ -5,8 +5,6 @@ use Exporter qw(import);
 use Math::BigInt 1.999816 try => 'GMP';
 use Digest::SHA qw(sha256);
 
-use Bitcoin::Crypto::Helpers qw(pad_hex);
-
 our @EXPORT_OK = qw(
 	encode_base58
 	encode_base58_preserve
@@ -14,6 +12,7 @@ our @EXPORT_OK = qw(
 	decode_base58
 	decode_base58check
 	decode_base58_preserve
+	verify_base58check
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -64,7 +63,8 @@ sub decode_base58
 	my @arr = split "", $base58encoded;
 	while (@arr > 0) {
 		my $current = $alphabet_mapped{shift @arr};
-		return undef unless defined $current;
+		croak {reason => "base58_input_format", message => "illegal characters in base58 string"}
+			unless defined $current;
 		my $step = Math::BigInt->new(scalar @alphabet)->bpow(scalar @arr)->bmul($current);
 		$result->badd($step);
 	}
@@ -77,21 +77,24 @@ sub decode_base58_preserve
 	my $preserve = 0;
 	++$preserve while substr($base58encoded, $preserve, 1) eq $alphabet[0];
 	my $decoded = decode_base58($base58encoded);
-	return undef unless defined $decoded;
 	return pack("x$preserve") . $decoded;
+}
+
+sub verify_checksum
+{
+	my ($decoded) = @_;
+	my $encoded_val = substr $decoded, 0, -$CHECKSUM_SIZE;
+	my $checksum = substr $decoded, -$CHECKSUM_SIZE;
+	return unpack("a" . $CHECKSUM_SIZE, sha256(sha256($encoded_val))) eq $checksum;
 }
 
 sub decode_base58check
 {
 	my ($base58encoded) = @_;
 	my $decoded = decode_base58_preserve($base58encoded);
-	return undef unless defined $decoded;
-	my $encoded_val = substr $decoded, 0, -$CHECKSUM_SIZE;
-	my $checksum = substr $decoded, -$CHECKSUM_SIZE;
-	if (unpack("a" . $CHECKSUM_SIZE, sha256(sha256($encoded_val))) eq $checksum) {
-		return $encoded_val;
-	}
-	return 0;
+	croak {reason => "base58_input_checksum", message => "incorrect base58check checksum"}
+		unless verify_base58check($decoded, 1);
+	return substr $decoded, 0, -$CHECKSUM_SIZE;
 }
 
 1;
@@ -111,6 +114,7 @@ Bitcoin::Crypto::Base58 - Bitcoin's Base58 implementation in Perl
 =head1 DESCRIPTION
 
 Implementation of Base58 and Base58Check algorithm with Math::BigInt (GMP).
+All the decoding functions return undef in case of invalid data passed in as base58.
 
 =head1 FUNCTIONS
 
@@ -133,6 +137,7 @@ Base58 with leading zero preservation.
 =head2 decode_base58check
 
 Base58 with leading zero preservation and checksum validation.
+Additional errors (other than illegal characters) are croaked.
 
 =head1 SEE ALSO
 

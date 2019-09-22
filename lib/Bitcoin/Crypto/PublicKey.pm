@@ -4,7 +4,6 @@ use Modern::Perl "2010";
 use Moo;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Digest::SHA qw(sha256);
-use Carp qw(croak);
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 

@@ -26,7 +26,7 @@ sub generateMnemonic
 	$len //= $min_len;
 	$lang //= "en";
 	# bip39 specification values
-	croak "Required entropy of between $min_len and $max_len bits, divisible by $len_div"
+	croak {reason => "mnemonic_generate", message => "required entropy of between $min_len and $max_len bits, divisible by $len_div"}
 		if $len < $min_len || $len > $max_len || $len % $len_div != 0;
 
 	my $ret = gen_bip39_mnemonic(bits => $len, language => $lang);
@@ -105,7 +105,7 @@ sub _deriveKeyPartial
 	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
 	my $key_num = Math::BigInt->from_bytes($self->rawKey);
 	my $n_order = Math::EllipticCurve::Prime->from_name($config{curve_name})->n;
-	croak "Key $child_num in sequence was found invalid"
+	croak {reason => "key_derive", message => "key $child_num in sequence was found invalid"}
 		if $number->bge($n_order);
 
 	$number->badd($key_num);

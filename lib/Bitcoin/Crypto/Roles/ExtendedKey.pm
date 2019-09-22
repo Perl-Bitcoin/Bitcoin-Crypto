@@ -45,7 +45,7 @@ sub _buildArgs
 {
 	my ($class, @params) = @_;
 
-	croak "Invalid arguments passed to key constructor"
+	croak {reason => "key_create", message => "invalid arguments passed to key constructor"}
 		if @params < 2 || @params > 5;
 
 	my %ret = (
@@ -70,7 +70,7 @@ sub toSerialized
 	my $network_key = "ext" . ($self->_isPrivate ? "prv" : "pub") . "_version";
 	my $version = $self->network->{$network_key};
 	# network field is not required, lazy check for completeness
-	croak "Incomplete network configuration: No $network_key found"
+	croak {reason => "network_config", message => "no $network_key found in network configuration"}
 		unless defined $version;
 
 	# version number (4B)
@@ -92,13 +92,13 @@ sub toSerialized
 sub fromSerialized
 {
 	my ($class, $serialized, $network) = @_;
-	# exepected length is 78
-	if (length $serialized == 78) {
+	# expected length is 78
+	if (defined $serialized && length $serialized == 78) {
 		my $format = "a4aa4a4a32a33";
 		my ($version, $depth, $fingerprint, $number, $chain_code, $data) = unpack($format, $serialized);
 
 		my $is_private = pack("x") eq substr $data, 0, 1;
-		croak "Invalid class used - key is " . ($is_private ? "private" : "public")
+		croak {reason => "key_create", message => "invalid class used, key is " . ($is_private ? "private" : "public")}
 			if $is_private != $class->_isPrivate;
 		$data = substr $data, 1, $config{key_max_length}
 			if $is_private;
@@ -108,11 +108,11 @@ sub fromSerialized
 		my @found_networks = find_network($network_key => $version);
 		@found_networks = first { $_ eq $network } @found_networks if defined $network;
 
-		croak "Found multiple networks possible for given serialized key. Please specify with third argument"
+		croak {reason => "key_create", message => "found multiple networks possible for given serialized key"}
 			if @found_networks > 1;
-		croak "Network name $network cannot be used for given serialized key"
+		croak {reason => "key_create", message => "network name $network cannot be used for given serialized key"}
 			if @found_networks == 0 && defined $network;
-		croak "Couldn't find network for serialized key version $version"
+		croak {reason => "network_config", message => "couldn't find network for serialized key version $version"}
 			if @found_networks == 0;
 
 		my $key = $class->new(
@@ -126,7 +126,7 @@ sub fromSerialized
 
 		return $key;
 	} else {
-		croak "Input data does not look like a valid serialized extended key";
+		croak {reason => "key_create", message => "input data does not look like a valid serialized extended key"};
 	}
 }
 
@@ -169,9 +169,9 @@ sub deriveKey
 	my ($self, $path) = @_;
 	my $path_info = get_path_info $path;
 
-	croak "Invalid key derivation path supplied"
+	croak {reason => "key_derive", message => "invalid key derivation path supplied"}
 		unless defined $path_info;
-	croak "Cannot derive private key from public key"
+	croak {reason => "key_derive", message => "cannot derive private key from public key"}
 		if !$self->_isPrivate && $path_info->{private};
 
 	my $key = $self;

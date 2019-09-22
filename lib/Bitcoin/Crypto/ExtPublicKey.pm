@@ -19,7 +19,7 @@ sub _deriveKeyPartial
 {
 	my ($self, $child_num, $hardened) = @_;
 
-	croak "Cannot derive hardened key from public key"
+	croak {reason => "key_derive", message => "cannot derive hardened key from public key"}
 		if $hardened;
 
 	# public key data - SEC compressed form
@@ -42,7 +42,7 @@ sub _deriveKeyPartial
 
 	$point->badd($parent_point);
 
-	croak "Key $child_num in sequence was found invalid"
+	croak {reason => "key_derive", message => "key $child_num in sequence was found invalid"}
 		if $number->bge($n_order);
 
 	return __PACKAGE__->new(

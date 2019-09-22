@@ -18,21 +18,11 @@ To install this module type the following:
 
 DEPENDENCIES
 
-This module requires these other modules and libraries:
-
-	Modern::Perl
-	Math::BigInt
-	Math::BigInt::GMP
-	Moo
-	MooX::Types::MooseLike
-	CryptX
-	Bitcoin::BIP39
-	Try::Tiny
-	Math::EllipticCurve::Prime
-	PBKDF2::Tiny
-
-This module also requires GMP installed on your system, which should be installed
-automatically by Alien::GMP module if you're installing it via cpan client.
+This module requires other modules to function, which are listed in Makefile.PL.
+These modules can be installed by running for example:
+	cpanm --installdeps .
+This module also requires development GMP package installed on your system.
+It must be installed before installing other dependencies.
 
 COPYRIGHT AND LICENCE
 

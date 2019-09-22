@@ -2,7 +2,6 @@ Changes
 Makefile.PL
 MANIFEST
 README
-cpanfile
 t/ExtPrivateKey.t
 t/ExtPublicKey.t
 t/PrivateKey.t

@@ -56,7 +56,7 @@ my %network_maps;
 sub set_default_network
 {
 	my ($name) = @_;
-	croak "Trying to set unknown network: $name"
+	croak {reason => "network_config", message => "trying to set unknown network: $name"}
 			unless defined $networks{$name};
 	$default_network = $name;
 }
@@ -73,7 +73,7 @@ sub validate_network
 {
 	my ($args) = @_;
 	for my $el (keys %network_keys) {
-		croak "Incomplete network configuration: missing key $el"
+		croak {reason => "network_config", message => "incomplete network configuration: missing key $el"}
 			if !defined $args->{$el} && $network_keys{$el};
 	}
 }
@@ -81,7 +81,7 @@ sub validate_network
 sub find_network
 {
 	my ($by, $value) = @_;
-	croak "Network key does not exist: $by"
+	croak {reason => "network_config", message => "network key does not exist: $by"}
 		unless defined $network_maps{$by};
 	return grep { $value eq $network_maps{$by}{$_} } keys %{$network_maps{$by}};
 }
@@ -90,7 +90,7 @@ sub get_network
 {
 	my ($name) = @_;
 	$name //= $default_network;
-	croak "Network key does not exist: $name"
+	croak {reason => "network_config", message => "network key does not exist: $name"}
 		unless defined $networks{$name};
 	return dclone($networks{$name});
 }
@@ -197,7 +197,7 @@ network but all keys created from other sources will be treated as bitcoin.
 You need to set_default_network to make all new keys use it. If you use many
 networks it might be better to set a network with key's setNetwork method:
 
-  $priv->setNetwork("your_network");
+	$priv->setNetwork("your_network");
 
 Some things to consider:
 

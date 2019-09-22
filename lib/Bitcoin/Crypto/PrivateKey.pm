@@ -36,7 +36,7 @@ sub toWif
 sub fromWif
 {
 	my ($class, $wif, $network) = @_;
-	return undef if !validate_wif($wif);
+	return undef unless validate_wif($wif);
 
 	my $decoded = decode_base58check($wif);
 	my $private = substr $decoded, 1;
@@ -51,11 +51,11 @@ sub fromWif
 	my @found_networks = find_network(wif_byte => $wif_network_byte);
 	@found_networks = first { $_ eq $network } @found_networks if defined $network;
 
-	croak "Found multiple networks possible for given WIF. Please specify with third argument"
+	croak {reason => "key_create", message => "found multiple networks possible for given WIF"}
 		if @found_networks > 1;
-	croak "Network name $network cannot be used for given WIF"
+	croak {reason => "key_create", message => "network name $network cannot be used for given WIF"}
 		if @found_networks == 0 && defined $network;
-	croak "Couldn't find network for WIF byte $wif_network_byte"
+	croak {reason => "network_config", message => "couldn't find network for WIF byte $wif_network_byte"}
 		if @found_networks == 0;
 
 	my $instance = $class->fromBytes($private);

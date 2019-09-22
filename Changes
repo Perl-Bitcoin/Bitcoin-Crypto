@@ -1,14 +1,15 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
-0.1
-	- Add extended private keys implementation with key derivation
+1.0
+	- add extended private keys implementation with key derivation
+	- add Bech32 segwit native addresses
 	- move mnemonic handling to ExtPrivateKey (from PrivateKey)
 	- rename Base58 functions to fix typo: from "perserve" to "preserve"
 	- add new keys to Network configuration: extprv_version, extpub_version
 	- basic private keys are now always left padded to 256 bit length (with \0)
 
 0.02 Fri Nov 23 22:00:00 2018
-	- Enable package on ealier Perl versions
+	- enable package on ealier Perl versions
 	- remove pack_hex from Bitcoin::Crypto::Util
 	- add pad_hex to Bitoin::Crypto::Helpers
 

@@ -20,7 +20,7 @@ sub ensure_length
 {
 	my ($packed, $bytelen) = @_;
 	my $missing = $bytelen - length $packed;
-	croak "Packed string exceeds maximum number of bytes available ($bytelen)"
+	croak {reason => "format", message => "packed string exceeds maximum number of bytes available ($bytelen)"}
 		if $missing < 0;
 	return pack("x$missing") . $packed;
 }
