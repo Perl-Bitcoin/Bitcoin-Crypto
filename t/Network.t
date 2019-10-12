@@ -24,7 +24,8 @@ try {
 	validate_network($litecoin);
 	fail("invalid network validation successfull");
 } catch {
-	if (m/wif_byte/) {
+	my $ex = $_;
+	if (ref $ex eq ref {} && $ex->{reason} eq "network_config") {
 		pass("invalid network validation fails");
 	} else {
 		fail("unknown error during validation");

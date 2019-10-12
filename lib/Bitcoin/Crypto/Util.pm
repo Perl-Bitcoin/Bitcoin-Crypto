@@ -22,7 +22,6 @@ sub validate_address
 {
 	my ($address) = @_;
 	my $byte_address = decode_base58check($address);
-	return $byte_address unless $byte_address;
 	# 20 bytes for RIPEMD160, 1 byte for network
 	return length $byte_address == 21;
 }
@@ -31,7 +30,6 @@ sub validate_wif
 {
 	my ($wif) = @_;
 	my $byte_wif = decode_base58check($wif);
-	return $byte_wif unless $byte_wif;
 	my $last_byte = substr $byte_wif, -1;
 	if (length $byte_wif == $config{key_max_length} + 2) {
 		return ord($last_byte) == $config{wif_compressed_byte};
@@ -44,12 +42,12 @@ sub get_key_type
 {
 	my ($entropy) = @_;
 	my $key = Crypt::PK::ECC->new;
+	my $ret;
 	try {
 		$key->import_key_raw($entropy, $config{curve_name});
-		return $key->is_private;
-	} catch {
-		return undef;
+		$ret = $key->is_private;
 	};
+	return $ret;
 }
 
 sub get_path_info
@@ -97,14 +95,14 @@ These are basic utilities for working with bitcoin, used by other packages.
 	my $bool = validate_address($str);
 
 Ensures Base58 encoded string looks like encoded address.
-Returns undef if $str is not valid base58.
+Throws an exception if $str is not valid base58.
 
 =head2 validate_wif
 
 	my $bool = validate_wif($str);
 
 Ensures Base58 encoded string looks like encoded private key in WIF format.
-Returns undef if $str is not valid base58.
+Throws an exception if $str is not valid base58.
 
 =head2 get_key_type
 

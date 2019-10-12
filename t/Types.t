@@ -21,42 +21,36 @@ package TestMoo {
 	);
 }
 
-try {
-	TestMoo->new(t1 => 33);
-	fail("types pass for invalid data");
-} catch {
-	pass("types fail for invalid data");
-};
-try {
-	TestMoo->new(t1 => 32);
-	fail("types pass for invalid data");
-} catch {
-	pass("types fail for invalid data");
-};
-try {
-	TestMoo->new(t1 => -1);
-	fail("types pass for invalid data");
-} catch {
-	pass("types fail for invalid data");
-};
-try {
-	TestMoo->new(t2 => "a");
-	fail("types pass for invalid data");
-} catch {
-	pass("types fail for invalid data");
-};
-try {
-	TestMoo->new(t2 => "aaa");
-	fail("types pass for invalid data");
-} catch {
-	pass("types fail for invalid data");
-};
+my %data = (
+	invalid => [
+		{t1 => 32},
+		{t1 => 33},
+		{t1 => -1},
+		{t2 => "a"},
+		{t2 => "abc"},
+	],
+	valid => [
+		{t1 => 0},
+		{t1 => 10},
+		{t1 => 31},
+		{t2 => "ao"},
+	]
+);
+
+foreach my $case (@{$data{invalid}}) {
+	try {
+		TestMoo->new(%$case);
+		fail("types pass for invalid data");
+	} catch {
+		pass("types fail for invalid data");
+	};
+}
 
 try {
-	TestMoo->new(t1 => 25);
-	TestMoo->new(t1 => 31);
-	TestMoo->new(t2 => "aa");
+	foreach my $case (@{$data{valid}}) {
+		TestMoo->new(%$case);
+	}
 	pass("types pass for valid data");
 } catch {
-	fail("types fail for invalid data");
+	fail("types fail for valid data");
 };

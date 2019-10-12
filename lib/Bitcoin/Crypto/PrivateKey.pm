@@ -36,7 +36,8 @@ sub toWif
 sub fromWif
 {
 	my ($class, $wif, $network) = @_;
-	return undef unless validate_wif($wif);
+	croak {reason => "key_create", message => "base58 string is not valid WIF"}
+		unless validate_wif($wif);
 
 	my $decoded = decode_base58check($wif);
 	my $private = substr $decoded, 1;

@@ -4,6 +4,7 @@ use Modern::Perl "2010";
 use Exporter qw(import);
 use Math::BigInt 1.999816 try => 'GMP';
 use Digest::SHA qw(sha256);
+use Carp qw(croak);
 
 our @EXPORT_OK = qw(
 	encode_base58
@@ -12,7 +13,6 @@ our @EXPORT_OK = qw(
 	decode_base58
 	decode_base58check
 	decode_base58_preserve
-	verify_base58check
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -45,7 +45,7 @@ sub encode_base58_preserve
 {
 	my ($bytes) = @_;
 	my $preserve = 0;
-	++$preserve while vec($bytes, $preserve, 8) == 0x00;
+	++$preserve while substr($bytes, $preserve, 1) eq "\x00";
 	return ($alphabet[0] x $preserve) . encode_base58($bytes);
 }
 
@@ -93,7 +93,7 @@ sub decode_base58check
 	my ($base58encoded) = @_;
 	my $decoded = decode_base58_preserve($base58encoded);
 	croak {reason => "base58_input_checksum", message => "incorrect base58check checksum"}
-		unless verify_base58check($decoded, 1);
+		unless verify_checksum($decoded);
 	return substr $decoded, 0, -$CHECKSUM_SIZE;
 }
 
@@ -114,7 +114,6 @@ Bitcoin::Crypto::Base58 - Bitcoin's Base58 implementation in Perl
 =head1 DESCRIPTION
 
 Implementation of Base58 and Base58Check algorithm with Math::BigInt (GMP).
-All the decoding functions return undef in case of invalid data passed in as base58.
 
 =head1 FUNCTIONS
 

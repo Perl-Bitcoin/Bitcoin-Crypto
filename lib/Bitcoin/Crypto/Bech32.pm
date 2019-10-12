@@ -30,10 +30,10 @@ sub polymod
 	my @consts = (0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3);
 	my $chk = 1;
 	for my $val (@$values) {
-		my $b = $chk >> 25;
+		my $b = ($chk >> 25);
 		$chk = ($chk & 0x1ffffff) << 5 ^ $val;
 		for (0 .. 4) {
-			$chk ^= (($b >> $_) & 1) ? $consts[$_] : 0;
+			$chk ^= ((($b >> $_) & 1) ? $consts[$_] : 0);
 		}
 	}
 	return $chk;
@@ -42,22 +42,26 @@ sub polymod
 sub hrp_expand
 {
 	my @hrp = split "", shift;
-	return [ord >> 5 for (@hrp), 0, ord & 31 for (@hrp)];
+	my (@part1, @part2);
+	for (@hrp) {
+		my $val = ord;
+		push @part1, $val >> 5;
+		push @part2, $val & 31;
+	}
+	return [@part1, 0, @part2];
 }
 
 sub to_numarr
 {
 	my ($string) = @_;
 
-	return map { $alphabet_mapped{$_} } split "", $string;
+	return [map { $alphabet_mapped{$_} } split "", $string];
 }
 
 sub create_checksum
 {
 	my ($hrp, $data) = @_;
-	$data = to_numarr $data;
-	my $values = hrp_expand($hrp) + @$data;
-	my $polymod = polymod([@$values, (0) x $CHECKSUM_SIZE]) xor 1;
+	my $polymod = polymod([@{hrp_expand $hrp}, @{to_numarr $data}, (0) x $CHECKSUM_SIZE]) ^ 1;
 	my $checksum;
 	for (0 .. $CHECKSUM_SIZE - 1) {
 		$checksum .= $alphabet[($polymod >> 5 * (5 - $_)) & 31];
@@ -68,9 +72,7 @@ sub create_checksum
 sub verify_checksum
 {
 	my ($hrp, $data) = @_;
-	my $values = hrp_expand $hrp;
-	$data = to_numarr $data;
-	return polymod([@$values, @$data]) == 1;
+	return polymod([@{hrp_expand $hrp}, @{to_numarr $data}]) == 1;
 }
 
 sub split_bech32
@@ -89,7 +91,7 @@ sub split_bech32
 
 	my $data = pop @parts;
 
-	@parts = join("1", @parts), $data;
+	@parts = (join("1", @parts), $data);
 
 	croak {reason => "bech32_input_format", message => "incorrect length of bech32 human readable part"}
 		if length $parts[0] < 1 || length $parts[0] > 83;
@@ -97,7 +99,7 @@ sub split_bech32
 		if $parts[0] !~ /^[\x21-\x7e]+$/;
 	croak {reason => "bech32_input_format", message => "incorrect length of bech32 data part"}
 		if length $parts[1] < 6;
-	my $chars = join "", $alphabet;
+	my $chars = join "", @alphabet;
 	croak {reason => "bech32_input_format", message => "illegal characters in bech32 data part"}
 		if $parts[1] !~ /^[$chars]+$/;
 	croak {reason => "bech32_input_checksum", message => "incorrect bech32 checksum"}
@@ -109,6 +111,8 @@ sub split_bech32
 sub encode_bech32
 {
 	my ($hrp, $bytes) = @_;
+	my $preserve = 0;
+	++$preserve while substr($bytes, $preserve, 1) eq "\x00";
 	my $number = Math::BigInt->from_bytes($bytes);
 	my $result = "";
 	my $size = scalar @alphabet;
@@ -117,7 +121,7 @@ sub encode_bech32
 		$result = $alphabet[$copy->bmod($size)] . $result;
 		$number->bdiv($size);
 	}
-
+	$result = $alphabet[0] x $preserve . $result;
 	my $checksum = create_checksum($hrp, $result);
 	return $hrp . 1 . $result . $checksum;
 }
@@ -126,12 +130,22 @@ sub decode_bech32
 {
 	my ($hrp, $data) = split_bech32 @_;
 
-	my $result = Math::BigInt->new(0);
-	foreach my $current (to_numarr substr $data, 0, -$CHECKSUM_SIZE) {
-		my $step = Math::BigInt->new(scalar @alphabet)->bpow(scalar @arr)->bmul($current);
-		$result->badd($step);
+	return ""
+		if length $data == $CHECKSUM_SIZE;
+	my @arr = @{to_numarr substr $data, 0, -$CHECKSUM_SIZE};
+	my $preserve = 0;
+	++$preserve while @arr > $preserve && $arr[$preserve] == 0;
+	my $ret = pack("x$preserve");
+	if ($preserve < @arr) {
+		my $result = Math::BigInt->new(0);
+		while (@arr) {
+			my $current = shift @arr;
+			my $step = Math::BigInt->new(scalar @alphabet)->bpow(scalar @arr)->bmul($current);
+			$result->badd($step);
+		}
+		$ret .= $result->as_bytes();
 	}
-	return $result->as_bytes();
+	return $ret;
 }
 
 1;
@@ -139,7 +153,7 @@ sub decode_bech32
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl
+Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl (BIP173 compatible)
 
 =head1 SYNOPSIS
 

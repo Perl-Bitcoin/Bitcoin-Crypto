@@ -3,21 +3,60 @@ use warnings;
 
 use Test::More tests => 13;
 use Math::BigInt;
+use Try::Tiny;
 
 BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif validate_address get_path_info)) };
 
 # validate_wif - 3 tests
 
-ok(validate_wif("935hpxoy4BGeuHmmtjURq52SehWtRoSArv6mJVZbVXUWyN9HQ5T"), "wif validation ok");
-ok(!validate_wif("xyz"), "wif validation ok - invalid wif");
-ok(!defined validate_wif("IOU"), "wif validation ok - invalid base58 wif");
+my %cases = (
+	"935hpxoy4BGeuHmmtjURq52SehWtRoSArv6mJVZbVXUWyN9HQ5T" => !!1,
+	"Aammc6SScZZF47CuWe4Wn91kDE" => !!0,
+	"IOU" => undef,
+);
+
+foreach my $case (keys %cases) {
+	try {
+		my $is_valid = validate_wif($case);
+		if (defined $cases{$case}) {
+			is($is_valid, $cases{$case}, "wif validation ok");
+		} else {
+			fail("wif validation should've failed but didn't");
+		}
+	} catch {
+		if (defined $cases{$case}) {
+			fail("wif validation should've passed but didn't");
+		} else {
+			pass("wif validation failed as expected");
+		}
+	};
+}
 
 
 # validate_address - 3 tests
 
-ok(validate_address("mpyspBXHGvDMGiV6RpeWeVvSierBhysfdq"), "address validation ok");
-ok(!validate_address("xyz"), "address validation ok - invalid address");
-ok(!defined validate_address("IOU"), "address validation ok - invalid base58 address");
+%cases = (
+	"mpyspBXHGvDMGiV6RpeWeVvSierBhysfdq" => !!1,
+	"Aammc6SScZZF47CuWe4Wn91kDE" => !!0,
+	"IOU" => undef,
+);
+
+foreach my $case (keys %cases) {
+	try {
+		my $is_valid = validate_address($case);
+		if (defined $cases{$case}) {
+			is($is_valid, $cases{$case}, "address validation ok");
+		} else {
+			fail("address validation should've failed but didn't");
+		}
+	} catch {
+		if (defined $cases{$case}) {
+			fail("address validation should've passed but didn't");
+		} else {
+			pass("address validation failed as expected");
+		}
+	};
+}
 
 my @path_test_data = (
 	[
