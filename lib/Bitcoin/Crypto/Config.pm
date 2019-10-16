@@ -13,8 +13,9 @@ our %config = (
 	curve_name => "secp256k1",
 	max_child_keys => 2 << 30,
 	key_max_length => 32,
-	wif_compressed_byte => 0x01,
-	compress_public_point => 1
+	wif_compressed_byte => "\x01",
+	compress_public_point => 1,
+	witness_version => 0,
 );
 
 1;

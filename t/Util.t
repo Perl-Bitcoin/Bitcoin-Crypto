@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 13;
+use Test::More;
 use Math::BigInt;
 use Try::Tiny;
 
@@ -104,3 +104,5 @@ my @path_test_data = (
 for my $case (@path_test_data) {
 	is_deeply(get_path_info($case->[0]), $case->[1], "test case $case->[0]");
 }
+
+done_testing;

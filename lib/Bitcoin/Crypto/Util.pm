@@ -32,7 +32,7 @@ sub validate_wif
 	my $byte_wif = decode_base58check($wif);
 	my $last_byte = substr $byte_wif, -1;
 	if (length $byte_wif == $config{key_max_length} + 2) {
-		return ord($last_byte) == $config{wif_compressed_byte};
+		return $last_byte eq $config{wif_compressed_byte};
 	} else {
 		return length $byte_wif == $config{key_max_length} + 1;
 	}

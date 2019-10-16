@@ -3,10 +3,14 @@ package Bitcoin::Crypto::Helpers;
 use Modern::Perl "2010";
 use Exporter qw(import);
 use Carp qw(croak);
+use Crypt::Digest::RIPEMD160 qw(ripemd160);
+use Digest::SHA qw(sha256);
 
 our @EXPORT_OK = qw(
 	pad_hex
 	ensure_length
+	hash160
+	hash256
 );
 
 sub pad_hex
@@ -24,5 +28,20 @@ sub ensure_length
 		if $missing < 0;
 	return pack("x$missing") . $packed;
 }
+
+sub hash160
+{
+	my ($data) = @_;
+
+	return ripemd160(sha256($data));
+}
+
+sub hash256
+{
+	my ($data) = @_;
+
+	return sha256(sha256($data));
+}
+
 
 1;

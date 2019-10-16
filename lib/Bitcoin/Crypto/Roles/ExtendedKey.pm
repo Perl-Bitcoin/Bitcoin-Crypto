@@ -2,8 +2,6 @@ package Bitcoin::Crypto::Roles::ExtendedKey;
 
 use Modern::Perl "2010";
 use Moo::Role;
-use Crypt::Digest::RIPEMD160 qw(ripemd160);
-use Digest::SHA qw(sha256);
 use List::Util qw(first);
 use Carp qw(croak);
 
@@ -12,7 +10,7 @@ use Bitcoin::Crypto::Types qw(IntMaxBits StrExactLength);
 use Bitcoin::Crypto::PrivateKey;
 use Bitcoin::Crypto::PublicKey;
 use Bitcoin::Crypto::Util qw(get_path_info);
-use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length);
+use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length hash160);
 use Bitcoin::Crypto::Network qw(find_network get_network);
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 
@@ -160,7 +158,7 @@ sub getFingerprint
 	$len //= 4;
 
 	my $pubkey = $self->rawKey("public_compressed");
-	my $identifier = ripemd160(sha256($pubkey));
+	my $identifier = hash160($pubkey);
 	return substr $identifier, 0, 4;
 }
 

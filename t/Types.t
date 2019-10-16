@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More;
 use Try::Tiny;
 
 BEGIN { use_ok('Bitcoin::Crypto::Types', qw(:all)) };
@@ -54,3 +54,5 @@ try {
 } catch {
 	fail("types fail for valid data");
 };
+
+done_testing;

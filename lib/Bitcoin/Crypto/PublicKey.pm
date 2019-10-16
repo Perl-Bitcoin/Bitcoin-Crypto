@@ -2,21 +2,53 @@ package Bitcoin::Crypto::PublicKey;
 
 use Modern::Perl "2010";
 use Moo;
-use Crypt::Digest::RIPEMD160 qw(ripemd160);
-use Digest::SHA qw(sha256);
 
+use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
+use Bitcoin::Crypto::Bech32 qw(encode_bech32);
+use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto::Helpers qw(hash160);
 
 with "Bitcoin::Crypto::Roles::BasicKey";
 
 sub _isPrivate { 0 }
 
-sub getAddress
+sub keyHash
 {
 	my ($self) = @_;
 	my $pubkey = $self->toBytes();
-	my $pkh = pack("C", $self->network->{p2pkh_byte}) . ripemd160(sha256($pubkey));
+	return hash160($pubkey);
+}
+
+sub witnessProgram
+{
+	my ($self) = @_;
+
+	return pack("C", $config{witness_version}) . $self->keyHash;
+}
+
+sub getLegacyAddress
+{
+	my ($self) = @_;
+	my $pkh = $self->network->{p2pkh_byte} . $self->keyHash;
 	return encode_base58check($pkh);
+}
+
+sub getCompatAddress
+{
+	my ($self) = @_;
+
+	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
+	$program->addOperation("OP_" . $config{witness_version})
+		->pushBytes($self->keyHash);
+	return $program->getLegacyAddress;
+}
+
+sub getSegwitAddress
+{
+	my ($self) = @_;
+
+	return encode_bech32($self->network->{segwit_hrp}, $self->witnessProgram);
 }
 
 1;

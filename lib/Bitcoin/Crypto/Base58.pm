@@ -3,8 +3,9 @@ package Bitcoin::Crypto::Base58;
 use Modern::Perl "2010";
 use Exporter qw(import);
 use Math::BigInt 1.999816 try => 'GMP';
-use Digest::SHA qw(sha256);
 use Carp qw(croak);
+
+use Bitcoin::Crypto::Helpers qw(hash256);
 
 our @EXPORT_OK = qw(
 	encode_base58
@@ -52,7 +53,7 @@ sub encode_base58_preserve
 sub encode_base58check
 {
 	my ($bytes) = @_;
-	my $checksum = pack("a" . $CHECKSUM_SIZE, sha256(sha256($bytes)));
+	my $checksum = pack("a" . $CHECKSUM_SIZE, hash256($bytes));
 	return encode_base58_preserve($bytes . $checksum);
 }
 
@@ -85,7 +86,7 @@ sub verify_checksum
 	my ($decoded) = @_;
 	my $encoded_val = substr $decoded, 0, -$CHECKSUM_SIZE;
 	my $checksum = substr $decoded, -$CHECKSUM_SIZE;
-	return unpack("a" . $CHECKSUM_SIZE, sha256(sha256($encoded_val))) eq $checksum;
+	return unpack("a" . $CHECKSUM_SIZE, hash256($encoded_val)) eq $checksum;
 }
 
 sub decode_base58check

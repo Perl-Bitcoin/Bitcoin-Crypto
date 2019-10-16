@@ -14,15 +14,15 @@ my %tests = (
 	"11qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqc8247j" => pack("x82"),
 	"split1checkupstagehandshakeupstreamerranterredcaperred2y9e3w" => pack("H*", "c5f38b70305f519bf66d85fb6cf03058f3dde463ecd7918f2dc743918f2d"),
 	"?1ezyfcl" => "",
-	chr(0x20) . "1nwldj5" => "bech32_input_format",
-	chr(0x7F) . "1axkwrx" => "bech32_input_format",
-	chr(0x80) . "1eym55h" => "bech32_input_format",
+	"\x201nwldj5" => "bech32_input_format",
+	"\x7f1axkwrx" => "bech32_input_format",
+	"\x801eym55h" => "bech32_input_format",
 	"an84characterslonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio1569pvx" => "bech32_input_format",
 	"pzry9x0s0muk" => "bech32_input_format",
 	"1pzry9x0s0muk" => "bech32_input_format",
 	"x1b4n0q5v" => "bech32_input_format",
 	"li1dgmt3" => "bech32_input_format",
-	"de1lg7wt" . chr(0xFF) => "bech32_input_format",
+	"de1lg7wt\xff" => "bech32_input_format",
 	"A1G7SGD8" => "bech32_input_checksum",
 	"10a06t8" => "bech32_input_format",
 	"1qzzfhee" => "bech32_input_format",
@@ -45,4 +45,4 @@ while (my ($test, $result) = each %tests) {
 	};
 }
 
-done_testing();
+done_testing;

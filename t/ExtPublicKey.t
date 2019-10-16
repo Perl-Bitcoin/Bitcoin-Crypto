@@ -33,7 +33,7 @@ for my $ser_key (keys %test_data) {
 	for my $i (0 .. @$addresses - 1) {
 		$tests += 1;
 		my $derived = $master_pubkey->deriveKey("M/$i");
-		is($derived->getBasicKey()->getAddress(), $addresses->[$i], "address is valid");
+		is($derived->getBasicKey()->getLegacyAddress(), $addresses->[$i], "address is valid");
 	}
 }
 

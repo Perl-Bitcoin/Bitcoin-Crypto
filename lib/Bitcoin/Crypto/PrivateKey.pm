@@ -24,11 +24,11 @@ sub toWif
 	my ($self) = @_;
 	my $bytes = $self->toBytes();
 	# wif network - 1B
-	my $wifdata = pack("C", $self->network->{wif_byte});
+	my $wifdata = $self->network->{wif_byte};
 	# key entropy - 32B
 	$wifdata .= ensure_length $bytes, $config{key_max_length};
 	# additional byte for compressed key - 1B
-	$wifdata .= pack("C", $config{wif_compressed_byte}) if $self->compressed;
+	$wifdata .= $config{wif_compressed_byte} if $self->compressed;
 
 	return encode_base58check($wifdata);
 }
@@ -48,7 +48,7 @@ sub fromWif
 		$compressed = 1;
 	}
 
-	my $wif_network_byte = unpack("C", $decoded);
+	my $wif_network_byte = substr $decoded, 0, 1;
 	my @found_networks = find_network(wif_byte => $wif_network_byte);
 	@found_networks = first { $_ eq $network } @found_networks if defined $network;
 

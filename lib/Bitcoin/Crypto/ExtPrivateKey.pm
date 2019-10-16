@@ -89,7 +89,7 @@ sub _deriveKeyPartial
 	my $hmac_data;
 	if ($hardened) {
 		# zero byte
-		$hmac_data .= pack("x");
+		$hmac_data .= "\x00";
 		# key data - 32 bytes
 		$hmac_data .= ensure_length $self->rawKey, $config{key_max_length};
 	} else {

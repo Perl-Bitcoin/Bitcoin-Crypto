@@ -1,8 +1,8 @@
 use strict;
 use warnings;
 
-use Test::More tests => 14;
-use Bitcoin::Crypto::Util qw(validate_address);
+use Test::More;
+use Try::Tiny;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Config;
 
@@ -26,14 +26,47 @@ my %cases_compressed = qw(
 	16e5qefUVTiLxDuwpNTsJ7b3VL7rSmfYdc
 );
 
+my %cases_segwit_compat = qw(
+	0332984aea6809830debe9f31dcb874b8b98a50b579d418184bf8ae55395c19567
+	38bKkt524L2KTr76kNapMxnnPF3RUt9skS
+	025ac07e3c241a7062f6144815320b86c9557bd4de71f05a37c2c3c8012994ef80
+	34zCHfPoT8tdDuWBYEt7MxQKayDdmjnP1v
+	03d939f548ad09b3f9130b7567d7b27d6862651f3363bc68b15676da56f26c994d
+	35aWDrYGwEokTb22bYw2HbtXxySuAemo92
+	0396aa08d4e14e4fd994f6618a4db40eb1f22b9368c6f4d48b77c43e1d852d6665
+	3MPiebrSnMLCEPr8NsEemwHY1oUrKCCRcL
+);
+
+my %cases_segwit_native = qw(
+	02041cd51a1d0df8fba2dd5a87b1b08bc83cfbd4b2c605334629ed99d14a26c051
+	bc1q8u2wsar26p6z2r9ckh3t8xauhcm8sgzd2jzgkr
+	0367fc07d2a9d6b95305ea1bc33a3b693a5d0f9a6a90c2bac86c67e79808fcc98d
+	bc1qfrxtzat3nutef828dr5ua7seq5d6selpued3dy
+	0332984aea6809830debe9f31dcb874b8b98a50b579d418184bf8ae55395c19567
+	bc1qmhf3n5a06szyvp8yrr6ggcrpm3f7uyxsz62u29
+	03765fd0392d349415328fa40b83b05088d188b54b7b5d7a6a20124b70c17bc129
+	bc1q5v4slm3x0pteg7n7ldefgsn9jpdkkg6e985vek
+);
+
 # Basic creation of addresses keys - 8 tests
 for my $key (keys %cases) {
 	my $pubkey = $PublicKey->fromHex($key)->setCompressed(0);
 	is($pubkey->toHex(), $key, "imported and exported correctly");
-	is($pubkey->getAddress(), $cases{$key}, "correctly created address");
+	is($pubkey->getLegacyAddress(), $cases{$key}, "correctly created address");
 	$pubkey->setCompressed(1);
 	ok(defined $cases_compressed{$pubkey->toHex()}, "exported compressed key correctly");
-	is($pubkey->getAddress(), $cases_compressed{$pubkey->toHex()}, "correctly created compressed address");
+	is($pubkey->getLegacyAddress(), $cases_compressed{$pubkey->toHex()}, "correctly created compressed address");
+}
+
+# SegWit readiness
+for my $key (keys %cases_segwit_compat) {
+	my $pubkey = $PublicKey->fromHex($key);
+	is($pubkey->getCompatAddress(), $cases_segwit_compat{$key}, "correctly created segwit compat address");
+}
+
+for my $key (keys %cases_segwit_native) {
+	my $pubkey = $PublicKey->fromHex($key);
+	is($pubkey->getSegwitAddress(), $cases_segwit_native{$key}, "correctly created segwit native address");
 }
 
 # Verify message without private key - 3 tests
@@ -52,4 +85,6 @@ ok(!$random_pub->verifyMessage($message, $sig), "verification fails with differe
 $pub->setNetwork("testnet");
 my $testnet_addr = "n1raSqPwHRbJ87dC8daiwgLVrQBy9Fj17K";
 is($pub->network->{name}, "Bitcoin Testnet", "changed network to testnet");
-is($pub->getAddress(), $testnet_addr, "created different address correctly when in non-default network");
+is($pub->getLegacyAddress(), $testnet_addr, "created different address correctly when in non-default network");
+
+done_testing;

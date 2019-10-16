@@ -15,7 +15,7 @@ note("no more default networks") if @default_networks == 2;
 
 my $litecoin = {
 	name => "Litecoin Mainnet",
-	p2pkh_byte => 0x30,
+	p2pkh_byte => "\x30",
 };
 
 # validate_network - 2 test
@@ -32,7 +32,7 @@ try {
 	}
 };
 
-$litecoin->{wif_byte} = 0xb0;
+$litecoin->{wif_byte} = "\xb0";
 
 try {
 	validate_network($litecoin);
@@ -54,5 +54,5 @@ is_deeply(get_network(), $litecoin, "get_network() shortcut working");
 
 # find_network - 2 test
 
-is_deeply([find_network(wif_byte => 0xb0)], [qw(litecoin_mainnet)], "network found successfully");
+is_deeply([find_network(wif_byte => "\xb0")], [qw(litecoin_mainnet)], "network found successfully");
 ok(find_network(name => "unexistent") == 0, "non-existent network not found");

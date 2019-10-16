@@ -76,11 +76,8 @@ my @test_data = (
 	},
 );
 
-my $tests = 1;
-
 # testing for compatibility with other bip39 tools
 foreach my $tdata (@test_data) {
-	$tests += 3;
 	my $from_mnemonic = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($tdata->{mnemonic}, $tdata->{passphrase}, $tdata->{lang});
 	my $from_seed = Bitcoin::Crypto::ExtPrivateKey->fromHexSeed($tdata->{seed});
 	my $exported = $from_mnemonic->toSerializedBase58();
@@ -88,7 +85,6 @@ foreach my $tdata (@test_data) {
 	is($exported, $from_seed->toSerializedBase58(), "importing is consistent");
 	is($exported, $tdata->{key}, "valid extended key result");
 
-	$tests += 4;
 	my $from_serialized = Bitcoin::Crypto::ExtPrivateKey->fromSerializedBase58($tdata->{key});
 	my $extpublic = $from_serialized->getPublicKey();
 	my $basic_private = $from_serialized->getBasicKey();
@@ -103,7 +99,6 @@ foreach my $tdata (@test_data) {
 
 # generating english mnemonics
 for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
-	$tests += 2;
 	my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic($bits, "en");
 	my $length = $bits / 8 - 4;
 	ok($mnemonic =~ /^(\w+ ?){$length}$/, "generated mnemonic looks valid ($bits bits)");
@@ -116,7 +111,6 @@ for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
 }
 
 # test for network in extended keys
-$tests += 5;
 my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic;
 my $key = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($mnemonic);
 $key->setNetwork("testnet");
@@ -128,4 +122,4 @@ is($key->network->{name}, "Bitcoin Testnet", "derived extended key used the new 
 my $basic_key = $key->getBasicKey;
 is($basic_key->network->{name}, "Bitcoin Testnet", "basic key inherited extended key's network");
 
-done_testing($tests);
+done_testing;

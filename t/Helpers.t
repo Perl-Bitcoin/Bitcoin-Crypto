@@ -1,15 +1,17 @@
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More;
 use Try::Tiny;
 use Math::BigInt;
+use Crypt::Digest::RIPEMD160 qw(ripemd160);
+use Digest::SHA qw(sha256);
 
-BEGIN { use_ok('Bitcoin::Crypto::Helpers', qw(pad_hex ensure_length)) };
+BEGIN { use_ok('Bitcoin::Crypto::Helpers', qw(pad_hex ensure_length hash160 hash256)) };
 
 # pack_hex - 2 tests
 
-my @hexes = qw(1a3efb 1a3ef);
+my @hexes = qw(1a3efb 1a3ef 0);
 
 for my $hex (@hexes) {
 	my $from_bi = substr Math::BigInt->from_hex("0x$hex")->as_hex(), -length $hex;
@@ -25,3 +27,9 @@ try {
 } catch {
 	pass("packed data that was too long failed as expected");
 };
+
+my $data = pack "u", "packed data...";
+is(hash160($data), ripemd160(sha256($data)), "hash160 ok");
+is(hash256($data), sha256(sha256($data)), "hash256 ok");
+
+done_testing;

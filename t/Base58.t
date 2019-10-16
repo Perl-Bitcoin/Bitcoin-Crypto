@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 19;
+use Test::More;
 use Try::Tiny;
 use Digest::SHA qw(sha256);
 
@@ -59,3 +59,5 @@ foreach my $case (@cases_error) {
 			if ref $ex eq ref {} && $ex->{reason} eq $case->[1];
 	};
 }
+
+done_testing;
