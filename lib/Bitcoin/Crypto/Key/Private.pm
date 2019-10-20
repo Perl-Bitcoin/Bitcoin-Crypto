@@ -5,7 +5,6 @@ use Moo;
 use MooX::Types::MooseLike::Base qw(Str);
 use Crypt::PK::ECC;
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
-use Carp qw(croak);
 use List::Util qw(first);
 
 use Bitcoin::Crypto::Key::Public;
@@ -14,6 +13,7 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Network qw(find_network get_network);
 use Bitcoin::Crypto::Util qw(validate_wif);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
+use Bitcoin::Crypto::Exception;
 
 with "Bitcoin::Crypto::Role::BasicKey";
 
@@ -36,7 +36,7 @@ sub toWif
 sub fromWif
 {
 	my ($class, $wif, $network) = @_;
-	croak {reason => "key_create", message => "base58 string is not valid WIF"}
+	Bitcoin::Crypto::Exception->raise(code => "key_create", message => "base58 string is not valid WIF")
 		unless validate_wif($wif);
 
 	my $decoded = decode_base58check($wif);
@@ -52,11 +52,11 @@ sub fromWif
 	my @found_networks = find_network(wif_byte => $wif_network_byte);
 	@found_networks = first { $_ eq $network } @found_networks if defined $network;
 
-	croak {reason => "key_create", message => "found multiple networks possible for given WIF"}
+	Bitcoin::Crypto::Exception->raise(code => "key_create", message => "found multiple networks possible for given WIF")
 		if @found_networks > 1;
-	croak {reason => "key_create", message => "network name $network cannot be used for given WIF"}
+	Bitcoin::Crypto::Exception->raise(code => "key_create", message => "network name $network cannot be used for given WIF")
 		if @found_networks == 0 && defined $network;
-	croak {reason => "network_config", message => "couldn't find network for WIF byte $wif_network_byte"}
+	Bitcoin::Crypto::Exception->raise(code => "network_config", message => "couldn't find network for WIF byte $wif_network_byte")
 		if @found_networks == 0;
 
 	my $instance = $class->fromBytes($private);

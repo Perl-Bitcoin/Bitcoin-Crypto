@@ -1,7 +1,8 @@
 package Bitcoin::Crypto::SegWit;
 
 use Modern::Perl "2010";
-use Carp qw(croak);
+
+use Bitcoin::Crypto::Exception;
 
 our %segwit_validators = (
 	0 => sub {
@@ -9,3 +10,5 @@ our %segwit_validators = (
 
 	},
 );
+
+1;

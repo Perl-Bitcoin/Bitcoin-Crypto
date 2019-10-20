@@ -4,6 +4,7 @@ use warnings;
 use Test::More;
 use Try::Tiny;
 use Digest::SHA qw(sha256);
+use Scalar::Util qw(blessed);
 
 BEGIN { use_ok('Bitcoin::Crypto::Base58', qw(:all)) };
 
@@ -56,7 +57,7 @@ foreach my $case (@cases_error) {
 	} catch {
 		my $ex = $_;
 		pass("invalid data raises an exception")
-			if ref $ex eq ref {} && $ex->{reason} eq $case->[1];
+			if blessed $ex && $ex->isa("Bitcoin::Crypto::Exception") && $ex->code eq $case->[1];
 	};
 }
 

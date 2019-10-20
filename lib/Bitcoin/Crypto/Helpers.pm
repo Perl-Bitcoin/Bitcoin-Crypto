@@ -2,9 +2,10 @@ package Bitcoin::Crypto::Helpers;
 
 use Modern::Perl "2010";
 use Exporter qw(import);
-use Carp qw(croak);
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Digest::SHA qw(sha256);
+
+use Bitcoin::Crypto::Exception;
 
 our @EXPORT_OK = qw(
 	pad_hex
@@ -24,7 +25,7 @@ sub ensure_length
 {
 	my ($packed, $bytelen) = @_;
 	my $missing = $bytelen - length $packed;
-	croak {reason => "format", message => "packed string exceeds maximum number of bytes available ($bytelen)"}
+	Bitcoin::Crypto::Exception->raise(code => "format", message => "packed string exceeds maximum number of bytes available ($bytelen)")
 		if $missing < 0;
 	return pack("x$missing") . $packed;
 }

@@ -3,9 +3,9 @@ package Bitcoin::Crypto::Base58;
 use Modern::Perl "2010";
 use Exporter qw(import);
 use Math::BigInt 1.999816 try => 'GMP';
-use Carp qw(croak);
 
 use Bitcoin::Crypto::Helpers qw(hash256);
+use Bitcoin::Crypto::Exception;
 
 our @EXPORT_OK = qw(
 	encode_base58
@@ -64,7 +64,7 @@ sub decode_base58
 	my @arr = split "", $base58encoded;
 	while (@arr > 0) {
 		my $current = $alphabet_mapped{shift @arr};
-		croak {reason => "base58_input_format", message => "illegal characters in base58 string"}
+		Bitcoin::Crypto::Exception->raise(code => "base58_input_format", message => "illegal characters in base58 string")
 			unless defined $current;
 		my $step = Math::BigInt->new(scalar @alphabet)->bpow(scalar @arr)->bmul($current);
 		$result->badd($step);
@@ -93,7 +93,7 @@ sub decode_base58check
 {
 	my ($base58encoded) = @_;
 	my $decoded = decode_base58_preserve($base58encoded);
-	croak {reason => "base58_input_checksum", message => "incorrect base58check checksum"}
+	Bitcoin::Crypto::Exception->raise(code => "base58_input_checksum", message => "incorrect base58check checksum")
 		unless verify_checksum($decoded);
 	return substr $decoded, 0, -$CHECKSUM_SIZE;
 }

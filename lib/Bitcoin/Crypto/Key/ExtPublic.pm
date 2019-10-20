@@ -3,13 +3,13 @@ package Bitcoin::Crypto::Key::ExtPublic;
 use Modern::Perl "2010";
 use Moo;
 use Digest::SHA qw(hmac_sha512);
-use Carp qw(croak);
 use Math::BigInt 1.999816 try => 'GMP';
 use Math::EllipticCurve::Prime;
 use Math::EllipticCurve::Prime::Point;
 
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(ensure_length);
+use Bitcoin::Crypto::Exception;
 
 with "Bitcoin::Crypto::Role::ExtendedKey";
 
@@ -19,7 +19,7 @@ sub _deriveKeyPartial
 {
 	my ($self, $child_num, $hardened) = @_;
 
-	croak {reason => "key_derive", message => "cannot derive hardened key from public key"}
+	Bitcoin::Crypto::Exception->raise(code => "key_derive", message => "cannot derive hardened key from public key")
 		if $hardened;
 
 	# public key data - SEC compressed form
@@ -42,7 +42,7 @@ sub _deriveKeyPartial
 
 	$point->badd($parent_point);
 
-	croak {reason => "key_derive", message => "key $child_num in sequence was found invalid"}
+	Bitcoin::Crypto::Exception->raise(code => "key_derive", message => "key $child_num in sequence was found invalid")
 		if $number->bge($n_order);
 
 	return __PACKAGE__->new(

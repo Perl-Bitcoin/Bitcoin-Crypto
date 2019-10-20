@@ -2,9 +2,9 @@ package Bitcoin::Crypto::Role::BasicKey;
 
 use Modern::Perl "2010";
 use Moo::Role;
-use Carp qw(croak);
 
 use Bitcoin::Crypto::Helpers qw(pad_hex);
+use Bitcoin::Crypto::Exception;
 
 with "Bitcoin::Crypto::Role::Key";
 with "Bitcoin::Crypto::Role::Compressed";
@@ -12,7 +12,7 @@ with "Bitcoin::Crypto::Role::Compressed";
 sub signMessage
 {
 	my ($self, $message, $algorithm) = @_;
-	croak {reason => "key_sign", message => "cannot sign a message with a public key"}
+	Bitcoin::Crypto::Exception->raise(code => "key_sign", message => "cannot sign a message with a public key")
 		unless $self->_isPrivate;
 	$algorithm //= "sha256";
 	return $self->keyInstance->sign_message($message, $algorithm);

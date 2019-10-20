@@ -3,7 +3,6 @@ package Bitcoin::Crypto::Role::ExtendedKey;
 use Modern::Perl "2010";
 use Moo::Role;
 use List::Util qw(first);
-use Carp qw(croak);
 
 use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
@@ -13,6 +12,7 @@ use Bitcoin::Crypto::Util qw(get_path_info);
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length hash160);
 use Bitcoin::Crypto::Network qw(find_network get_network);
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
+use Bitcoin::Crypto::Exception;
 
 with "Bitcoin::Crypto::Role::Key";
 
@@ -43,7 +43,7 @@ sub _buildArgs
 {
 	my ($class, @params) = @_;
 
-	croak {reason => "key_create", message => "invalid arguments passed to key constructor"}
+	Bitcoin::Crypto::Exception->raise(code => "key_create", message => "invalid arguments passed to key constructor")
 		if @params < 2 || @params > 5;
 
 	my %ret = (
@@ -68,7 +68,7 @@ sub toSerialized
 	my $network_key = "ext" . ($self->_isPrivate ? "prv" : "pub") . "_version";
 	my $version = $self->network->{$network_key};
 	# network field is not required, lazy check for completeness
-	croak {reason => "network_config", message => "no $network_key found in network configuration"}
+	Bitcoin::Crypto::Exception->raise(code => "network_config", message => "no $network_key found in network configuration")
 		unless defined $version;
 
 	# version number (4B)
@@ -96,7 +96,7 @@ sub fromSerialized
 		my ($version, $depth, $fingerprint, $number, $chain_code, $data) = unpack($format, $serialized);
 
 		my $is_private = pack("x") eq substr $data, 0, 1;
-		croak {reason => "key_create", message => "invalid class used, key is " . ($is_private ? "private" : "public")}
+		Bitcoin::Crypto::Exception->raise(code => "key_create", message => "invalid class used, key is " . ($is_private ? "private" : "public"))
 			if $is_private != $class->_isPrivate;
 		$data = substr $data, 1, $config{key_max_length}
 			if $is_private;
@@ -106,11 +106,11 @@ sub fromSerialized
 		my @found_networks = find_network($network_key => $version);
 		@found_networks = first { $_ eq $network } @found_networks if defined $network;
 
-		croak {reason => "key_create", message => "found multiple networks possible for given serialized key"}
+		Bitcoin::Crypto::Exception->raise(code => "key_create", message => "found multiple networks possible for given serialized key")
 			if @found_networks > 1;
-		croak {reason => "key_create", message => "network name $network cannot be used for given serialized key"}
+		Bitcoin::Crypto::Exception->raise(code => "key_create", message => "network name $network cannot be used for given serialized key")
 			if @found_networks == 0 && defined $network;
-		croak {reason => "network_config", message => "couldn't find network for serialized key version $version"}
+		Bitcoin::Crypto::Exception->raise(code => "network_config", message => "couldn't find network for serialized key version $version")
 			if @found_networks == 0;
 
 		my $key = $class->new(
@@ -124,7 +124,7 @@ sub fromSerialized
 
 		return $key;
 	} else {
-		croak {reason => "key_create", message => "input data does not look like a valid serialized extended key"};
+		Bitcoin::Crypto::Exception->raise(code => "key_create", message => "input data does not look like a valid serialized extended key");
 	}
 }
 
@@ -167,9 +167,9 @@ sub deriveKey
 	my ($self, $path) = @_;
 	my $path_info = get_path_info $path;
 
-	croak {reason => "key_derive", message => "invalid key derivation path supplied"}
+	Bitcoin::Crypto::Exception->raise(code => "key_derive", message => "invalid key derivation path supplied")
 		unless defined $path_info;
-	croak {reason => "key_derive", message => "cannot derive private key from public key"}
+	Bitcoin::Crypto::Exception->raise(code => "key_derive", message => "cannot derive private key from public key")
 		if !$self->_isPrivate && $path_info->{private};
 
 	my $key = $self;

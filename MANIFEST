@@ -12,6 +12,7 @@ t/Base58.t
 t/Bech32.t
 t/Util.t
 t/Script.t
+t/Exception.t
 t/Helpers.t
 t/Crypto.t
 lib/Bitcoin/Crypto.pm
@@ -20,6 +21,7 @@ lib/Bitcoin/Crypto/Key/ExtPublic.pm
 lib/Bitcoin/Crypto/Key/Private.pm
 lib/Bitcoin/Crypto/Key/Public.pm
 lib/Bitcoin/Crypto/Config.pm
+lib/Bitcoin/Crypto/Exception.pm
 lib/Bitcoin/Crypto/Network.pm
 lib/Bitcoin/Crypto/Util.pm
 lib/Bitcoin/Crypto/Base58.pm

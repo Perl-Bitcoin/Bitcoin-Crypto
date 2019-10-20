@@ -3,6 +3,7 @@ use warnings;
 
 use Test::More tests => 10;
 use Try::Tiny;
+use Scalar::Util qw(blessed);
 
 BEGIN { use_ok('Bitcoin::Crypto::Network', qw(:all)) };
 
@@ -25,7 +26,7 @@ try {
 	fail("invalid network validation successfull");
 } catch {
 	my $ex = $_;
-	if (ref $ex eq ref {} && $ex->{reason} eq "network_config") {
+	if (blessed $ex && $ex->isa("Bitcoin::Crypto::Exception") && $ex->code eq "network_config") {
 		pass("invalid network validation fails");
 	} else {
 		fail("unknown error during validation");

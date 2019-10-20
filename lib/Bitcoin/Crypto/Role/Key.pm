@@ -4,11 +4,11 @@ use Modern::Perl "2010";
 use Moo::Role;
 use MooX::Types::MooseLike::Base qw(InstanceOf);
 use Crypt::PK::ECC;
-use Carp qw(croak);
 
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
+use Bitcoin::Crypto::Exception;
 
 with "Bitcoin::Crypto::Role::Network";
 
@@ -23,7 +23,7 @@ sub _buildArgs
 {
 	my ($class, @params) = @_;
 
-	croak {reason => "key_create", message => "invalid arguments passed to key constructor"}
+	Bitcoin::Crypto::Exception->raise(code => "key_create", message => "invalid arguments passed to key constructor")
 		unless @params == 1;
 
 	return
@@ -34,7 +34,7 @@ around BUILDARGS => sub {
 	my ($orig, $class) = @_;
 	my %params = $class->_buildArgs(splice @_, 2);
 
-	croak {reason => "key_create", message => "trying to create key from unknown key data"}
+	Bitcoin::Crypto::Exception->raise(code => "key_create", message => "trying to create key from unknown key data")
 		unless $params{keyInstance}->is_private() == $class->_isPrivate;
 
 	return $class->$orig(%params);
@@ -46,7 +46,7 @@ sub _createKey
 
 	my $key_type = get_key_type $entropy;
 	unless (defined $key_type) {
-		croak {reason => "key_create", message => "invalid entropy data passed to key creation method"}
+		Bitcoin::Crypto::Exception->raise(code => "key_create", message => "invalid entropy data passed to key creation method")
 			if length $entropy > $config{key_max_length};
 		$entropy = ensure_length $entropy, $config{key_max_length};
 	}

@@ -1,11 +1,11 @@
 package Bitcoin::Crypto::Key::ExtPrivate;
 
+
 use Modern::Perl "2010";
 use Moo;
 use Digest::SHA qw(hmac_sha512);
 use Math::BigInt 1.999816 try => 'GMP';
 use Math::EllipticCurve::Prime;
-use Carp qw(croak);
 use Encode qw(encode decode);
 use Unicode::Normalize;
 use Bitcoin::BIP39 qw(gen_bip39_mnemonic bip39_mnemonic_to_entropy);
@@ -14,6 +14,7 @@ use PBKDF2::Tiny qw(derive);
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length);
+use Bitcoin::Crypto::Exception;
 
 with "Bitcoin::Crypto::Role::ExtendedKey";
 
@@ -26,7 +27,7 @@ sub generateMnemonic
 	$len //= $min_len;
 	$lang //= "en";
 	# bip39 specification values
-	croak {reason => "mnemonic_generate", message => "required entropy of between $min_len and $max_len bits, divisible by $len_div"}
+	Bitcoin::Crypto::Exception->raise(code => "mnemonic_generate", message => "required entropy of between $min_len and $max_len bits, divisible by $len_div")
 		if $len < $min_len || $len > $max_len || $len % $len_div != 0;
 
 	my $ret = gen_bip39_mnemonic(bits => $len, language => $lang);
@@ -105,7 +106,7 @@ sub _deriveKeyPartial
 	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
 	my $key_num = Math::BigInt->from_bytes($self->rawKey);
 	my $n_order = Math::EllipticCurve::Prime->from_name($config{curve_name})->n;
-	croak {reason => "key_derive", message => "key $child_num in sequence was found invalid"}
+	Bitcoin::Crypto::Exception->raise(code => "key_derive", message => "key $child_num in sequence was found invalid")
 		if $number->bge($n_order);
 
 	$number->badd($key_num);

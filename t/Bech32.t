@@ -3,6 +3,7 @@ use warnings;
 
 use Test::More;
 use Try::Tiny;
+use Scalar::Util qw(blessed);
 
 BEGIN { use_ok('Bitcoin::Crypto::Bech32', qw(:all)) };
 
@@ -177,11 +178,11 @@ while (my ($test, $tdata) = each %tests) {
 		}
 	} catch {
 		my $err = $_;
-		if (ref $err) {
+		if (blessed $err && $err->isa("Bitcoin::Crypto::Exception")) {
 			if (defined $tdata->{exception}) {
-				is($err->{reason}, $tdata->{exception}, "$tdata->{type} error code ok: $err->{message}");
+				is($err->code, $tdata->{exception}, "$tdata->{type} error code ok: " . $err->message);
 			} else {
-				fail("unexpected error: $err->{reason} ($err->{message}): $test");
+				fail("unexpected error: `$err`, $test");
 			}
 		} else {
 			fail("unknown error `$err`: $test");
