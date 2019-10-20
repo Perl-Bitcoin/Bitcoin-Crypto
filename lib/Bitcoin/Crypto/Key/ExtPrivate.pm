@@ -1,4 +1,4 @@
-package Bitcoin::Crypto::ExtPrivateKey;
+package Bitcoin::Crypto::Key::ExtPrivate;
 
 use Modern::Perl "2010";
 use Moo;
@@ -11,11 +11,11 @@ use Unicode::Normalize;
 use Bitcoin::BIP39 qw(gen_bip39_mnemonic bip39_mnemonic_to_entropy);
 use PBKDF2::Tiny qw(derive);
 
-use Bitcoin::Crypto::ExtPublicKey;
+use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length);
 
-with "Bitcoin::Crypto::Roles::ExtendedKey";
+with "Bitcoin::Crypto::Role::ExtendedKey";
 
 sub _isPrivate { 1 }
 
@@ -70,7 +70,7 @@ sub getPublicKey
 {
 	my ($self) = @_;
 
-	my $public = Bitcoin::Crypto::ExtPublicKey->new(
+	my $public = Bitcoin::Crypto::Key::ExtPublic->new(
 		$self->rawKey("public"),
 		$self->chainCode,
 		$self->childNumber,
@@ -125,18 +125,18 @@ sub _deriveKeyPartial
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::ExtPrivateKey - class for Bitcoin extended private keys
+Bitcoin::Crypto::Key::ExtPrivate - class for Bitcoin extended private keys
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto::ExtPrivateKey;
+	use Bitcoin::Crypto::Key::ExtPrivate;
 
 	# generate mnemonic words first
-	my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic;
+	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generateMnemonic;
 	print "Your mnemonic is: $mnemonic";
 
 	# create ExtPrivateKey from mnemonic (without password)
-	my $key = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($mnemonic);
+	my $key = Bitcoin::Crypto::Key::ExtPrivate->fromMnemonic($mnemonic);
 	my $ser_key = $key->toSerializedBase58;
 	print "Your exported master key is: $ser_key";
 
@@ -232,12 +232,12 @@ Returns current key instance.
 =head2 getPublicKey
 
 	sig: getPublicKey($self)
-Returns instance of L<Bitcoin::Crypto::ExtPublicKey> generated from the private key.
+Returns instance of L<Bitcoin::Crypto::Key::ExtPublic> generated from the private key.
 
 =head2 getBasicKey
 
 	sig: getBasicKey($self)
-Returns the key in basic format: L<Bitcoin::Crypto::PrivateKey>
+Returns the key in basic format: L<Bitcoin::Crypto::Key::Private>
 
 =head2 deriveKey
 
@@ -256,7 +256,7 @@ Returns a fingerprint of the extended key of $len length (byte string)
 
 =over 2
 
-=item L<Bitcoin::Crypto::ExtPublicKey>
+=item L<Bitcoin::Crypto::Key::ExtPublic>
 
 =item L<Bitcoin::Crypto::Network>
 

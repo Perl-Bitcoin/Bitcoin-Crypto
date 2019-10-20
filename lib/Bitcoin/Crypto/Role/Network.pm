@@ -1,4 +1,4 @@
-package Bitcoin::Crypto::Roles::Network;
+package Bitcoin::Crypto::Role::Network;
 
 use Modern::Perl "2010";
 use Moo::Role;

@@ -5,10 +5,14 @@ use Exporter qw(import);
 use Math::BigInt 1.999816 try => 'GMP';
 use Carp qw(croak);
 
+use Bitcoin::Crypto::Config;
+
 our @EXPORT_OK = qw(
 	encode_bech32
 	decode_bech32
 	split_bech32
+	encode_segwit
+	decode_segwit
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -83,6 +87,8 @@ sub split_bech32
 
 	croak {reason => "bech32_input_format", message => "bech32 string too long"}
 		if length $bech32enc > 90;
+	croak {reason => "bech32_input_format", message => "bech32 string contains mixed case"}
+		if lc $bech32enc ne $bech32enc;
 
 	my @parts = split "1", $bech32enc;
 
@@ -108,20 +114,62 @@ sub split_bech32
 	return @parts;
 }
 
+sub encode_base32
+{
+	my ($bytes) = @_;
+
+	my @data = unpack "(a5)*", unpack "B*", $bytes;
+	my $result = "";
+	for my $bitstr (@data) {
+		my $pad = 5 - length $bitstr;
+		my $num = unpack "C", pack "B*", "000$bitstr" . 0 x $pad;
+		$result .= $alphabet[$num];
+	}
+
+	return $result;
+}
+
+sub decode_base32
+{
+	my ($encoded) = @_;
+
+	return ""
+		unless length $encoded;
+	my @enc_values = map { $alphabet_mapped{$_} } split "", $encoded;
+	my $bits = unpack "B*", pack "C*", @enc_values;
+	$bits = join "", map { substr $_, 3 } unpack "(a8)*", $bits;
+
+	my $length_padded = length $bits;
+	my $padding = $length_padded % 8;
+	$bits =~ s/0{$padding}$//;
+	croak {reason => "bech32_input_data", message => "incorrrect padding encoded in bech32"}
+		if length($bits) % 8 != 0 || length($bits) < $length_padded - 4;
+
+	my @data = unpack "(a8)*", $bits;
+	my $result = "";
+	for my $bitstr (@data) {
+		$result .= pack "B8", $bitstr;
+	}
+	return $result;
+}
+
 sub encode_bech32
 {
 	my ($hrp, $bytes) = @_;
-	my $preserve = 0;
-	++$preserve while substr($bytes, $preserve, 1) eq "\x00";
-	my $number = Math::BigInt->from_bytes($bytes);
-	my $result = "";
-	my $size = scalar @alphabet;
-	while ($number->is_pos()) {
-		my $copy = $number->copy();
-		$result = $alphabet[$copy->bmod($size)] . $result;
-		$number->bdiv($size);
-	}
-	$result = $alphabet[0] x $preserve . $result;
+
+	my $result = encode_base32($bytes);
+	my $checksum = create_checksum($hrp, $result);
+	return $hrp . 1 . $result . $checksum;
+}
+
+sub encode_segwit
+{
+	my ($hrp, $bytes) = @_;
+
+	my $version = unpack "C", $bytes;
+	croak {reason => "bech32_input_data", message => "incorrect witness program version $version"}
+		unless defined $version && $version >= 0 && $version <= $config{max_witness_version};
+	my $result = $alphabet[$version] . encode_base32(substr $bytes, 1);
 	my $checksum = create_checksum($hrp, $result);
 	return $hrp . 1 . $result . $checksum;
 }
@@ -130,22 +178,17 @@ sub decode_bech32
 {
 	my ($hrp, $data) = split_bech32 @_;
 
-	return ""
-		if length $data == $CHECKSUM_SIZE;
-	my @arr = @{to_numarr substr $data, 0, -$CHECKSUM_SIZE};
-	my $preserve = 0;
-	++$preserve while @arr > $preserve && $arr[$preserve] == 0;
-	my $ret = pack("x$preserve");
-	if ($preserve < @arr) {
-		my $result = Math::BigInt->new(0);
-		while (@arr) {
-			my $current = shift @arr;
-			my $step = Math::BigInt->new(scalar @alphabet)->bpow(scalar @arr)->bmul($current);
-			$result->badd($step);
-		}
-		$ret .= $result->as_bytes();
-	}
-	return $ret;
+	return decode_base32(substr $data, 0, -$CHECKSUM_SIZE);
+}
+
+sub decode_segwit
+{
+	my ($hrp, $data) = split_bech32 @_;
+
+	my $version = $alphabet_mapped{substr $data, 0, 1};
+	croak {reason => "bech32_input_data", message => "incorrect witness program version $version"}
+		unless defined $version && $version >= 0 && $version <= $config{max_witness_version};
+	return pack("C", $version) . decode_base32(substr $data, 1, -$CHECKSUM_SIZE);
 }
 
 1;
@@ -185,9 +228,9 @@ Performs all validity checks on the input. Croaks on every error.
 
 =over 2
 
-=item L<Bitcoin::Crypto::PrivateKey>
+=item L<Bitcoin::Crypto::Key::Private>
 
-=item L<Bitcoin::Crypto::PublicKey>
+=item L<Bitcoin::Crypto::Key::Public>
 
 =back
 

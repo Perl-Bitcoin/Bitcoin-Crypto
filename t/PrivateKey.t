@@ -5,7 +5,7 @@ use Test::More tests => 17;
 use Try::Tiny;
 use Bitcoin::Crypto::Config;
 
-BEGIN { use_ok('Bitcoin::Crypto::PrivateKey') };
+BEGIN { use_ok('Bitcoin::Crypto::Key::Private') };
 
 my %cases = qw(
 	641ce7ab9a2ec7697f32d3ade425d9785e8f23bea3501524852cda3ca05fae28
@@ -14,7 +14,7 @@ my %cases = qw(
 	043992aa3f9deda22c02d05ca01a55d8f717d7464bb11ef43b59fc36c32613d0205f34f4ef398da815711d8917b804d429f395af403d52cd4b65b76839c88da442
 );
 
-my $PrivateKey = "Bitcoin::Crypto::PrivateKey";
+my $PrivateKey = "Bitcoin::Crypto::Key::Private";
 
 # Basic creation of public keys - 4 tests
 for my $key (keys %cases) {

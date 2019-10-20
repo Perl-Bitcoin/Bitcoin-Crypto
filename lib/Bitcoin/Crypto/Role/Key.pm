@@ -1,4 +1,4 @@
-package Bitcoin::Crypto::Roles::Key;
+package Bitcoin::Crypto::Role::Key;
 
 use Modern::Perl "2010";
 use Moo::Role;
@@ -10,7 +10,7 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 
-with "Bitcoin::Crypto::Roles::Network";
+with "Bitcoin::Crypto::Role::Network";
 
 has "keyInstance" => (
 	is => "ro",
@@ -65,7 +65,7 @@ sub rawKey
 		$type = "public_compressed";
 		if ($self->_isPrivate) {
 			$type = "private";
-		} elsif ($self->does("Bitcoin::Crypto::Roles::Compressed") && !$self->compressed) {
+		} elsif ($self->does("Bitcoin::Crypto::Role::Compressed") && !$self->compressed) {
 			$type = "public";
 		}
 	}

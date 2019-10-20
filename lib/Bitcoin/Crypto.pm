@@ -19,13 +19,13 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto::ExtPrivateKey;
+	use Bitcoin::Crypto::Key::ExtPrivate;
 
 	# extended keys are used for mnemonic generation and key derivation
-	my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic();
+	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generateMnemonic();
 	say "your mnemonic code is: $mnemonic";
 
-	my $master_key = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($mnemonic);
+	my $master_key = Bitcoin::Crypto::Key::ExtPrivate->fromMnemonic($mnemonic);
 	my $derived_key = $master_key->deriveKey("m/0'");
 
 	# basic keys are used for signatures and addresses
@@ -93,9 +93,9 @@ See child modules for more documentation and examples.
 
 =over 2
 
-=item L<Bitcoin::Crypto::ExtPrivateKey>
+=item L<Bitcoin::Crypto::Key::ExtPrivate>
 
-=item L<Bitcoin::Crypto::PrivateKey>
+=item L<Bitcoin::Crypto::Key::Private>
 
 =item L<Bitcoin::BIP39>
 

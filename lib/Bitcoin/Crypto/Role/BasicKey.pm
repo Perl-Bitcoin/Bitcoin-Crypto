@@ -1,4 +1,4 @@
-package Bitcoin::Crypto::Roles::BasicKey;
+package Bitcoin::Crypto::Role::BasicKey;
 
 use Modern::Perl "2010";
 use Moo::Role;
@@ -6,8 +6,8 @@ use Carp qw(croak);
 
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 
-with "Bitcoin::Crypto::Roles::Key";
-with "Bitcoin::Crypto::Roles::Compressed";
+with "Bitcoin::Crypto::Role::Key";
+with "Bitcoin::Crypto::Role::Compressed";
 
 sub signMessage
 {

@@ -1,4 +1,4 @@
-package Bitcoin::Crypto::ExtPublicKey;
+package Bitcoin::Crypto::Key::ExtPublic;
 
 use Modern::Perl "2010";
 use Moo;
@@ -11,7 +11,7 @@ use Math::EllipticCurve::Prime::Point;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 
-with "Bitcoin::Crypto::Roles::ExtendedKey";
+with "Bitcoin::Crypto::Role::ExtendedKey";
 
 sub _isPrivate { 0 }
 
@@ -60,14 +60,14 @@ sub _deriveKeyPartial
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::ExtPublicKey - class for Bitcoin extended public keys
+Bitcoin::Crypto::Key::ExtPublic - class for Bitcoin extended public keys
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto::ExtPrivateKey;
+	use Bitcoin::Crypto::Key::ExtPrivate;
 
-	my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic;
-	my $key = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($mnemonic);
+	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generateMnemonic;
+	my $key = Bitcoin::Crypto::Key::ExtPrivate->fromMnemonic($mnemonic);
 
 	# derive child public key
 	my $path = "M/0";
@@ -129,7 +129,7 @@ Returns current key instance.
 =head2 getBasicKey
 
 	sig: getBasicKey($self)
-Returns the key in basic format: L<Bitcoin::Crypto::PrivateKey>
+Returns the key in basic format: L<Bitcoin::Crypto::Key::Public>
 
 =head2 deriveKey
 
@@ -150,7 +150,7 @@ Returns a fingerprint of the extended key of $len length (byte string)
 
 =over 2
 
-=item L<Bitcoin::Crypto::ExtPrivateKey>
+=item L<Bitcoin::Crypto::Key::ExtPrivate>
 
 =item L<Bitcoin::Crypto::Network>
 

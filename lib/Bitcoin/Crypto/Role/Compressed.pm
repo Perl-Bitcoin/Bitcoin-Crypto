@@ -1,4 +1,4 @@
-package Bitcoin::Crypto::Roles::Compressed;
+package Bitcoin::Crypto::Role::Compressed;
 
 use Modern::Perl "2010";
 use Moo::Role;

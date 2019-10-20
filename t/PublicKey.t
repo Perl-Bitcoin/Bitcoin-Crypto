@@ -8,9 +8,9 @@ use Bitcoin::Crypto::Config;
 
 $config{compress_public_point} = 0;
 
-BEGIN { use_ok('Bitcoin::Crypto::PublicKey') };
+BEGIN { use_ok('Bitcoin::Crypto::Key::Public') };
 
-my $PublicKey = "Bitcoin::Crypto::PublicKey";
+my $PublicKey = "Bitcoin::Crypto::Key::Public";
 
 my %cases = qw(
 	04394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967c52ad62fe0b27e5acc0992fc8509e5041a06064ce967200b0b7288a4ab889bf22

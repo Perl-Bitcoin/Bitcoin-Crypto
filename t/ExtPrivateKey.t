@@ -5,7 +5,7 @@ use Test::More;
 use Try::Tiny;
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
-BEGIN { use_ok('Bitcoin::Crypto::ExtPrivateKey') };
+BEGIN { use_ok('Bitcoin::Crypto::Key::ExtPrivate') };
 
 my @test_data = (
 	{
@@ -78,19 +78,19 @@ my @test_data = (
 
 # testing for compatibility with other bip39 tools
 foreach my $tdata (@test_data) {
-	my $from_mnemonic = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($tdata->{mnemonic}, $tdata->{passphrase}, $tdata->{lang});
-	my $from_seed = Bitcoin::Crypto::ExtPrivateKey->fromHexSeed($tdata->{seed});
+	my $from_mnemonic = Bitcoin::Crypto::Key::ExtPrivate->fromMnemonic($tdata->{mnemonic}, $tdata->{passphrase}, $tdata->{lang});
+	my $from_seed = Bitcoin::Crypto::Key::ExtPrivate->fromHexSeed($tdata->{seed});
 	my $exported = $from_mnemonic->toSerializedBase58();
 	is($exported, encode_base58check($from_mnemonic->toSerialized()), "serialization is consistent");
 	is($exported, $from_seed->toSerializedBase58(), "importing is consistent");
 	is($exported, $tdata->{key}, "valid extended key result");
 
-	my $from_serialized = Bitcoin::Crypto::ExtPrivateKey->fromSerializedBase58($tdata->{key});
+	my $from_serialized = Bitcoin::Crypto::Key::ExtPrivate->fromSerializedBase58($tdata->{key});
 	my $extpublic = $from_serialized->getPublicKey();
 	my $basic_private = $from_serialized->getBasicKey();
 	my $basic_public = $extpublic->getBasicKey();
-	is(ref $basic_private, "Bitcoin::Crypto::PrivateKey", "basic private key created");
-	is(ref $basic_public, "Bitcoin::Crypto::PublicKey", "basic public key created");
+	is(ref $basic_private, "Bitcoin::Crypto::Key::Private", "basic private key created");
+	is(ref $basic_public, "Bitcoin::Crypto::Key::Public", "basic public key created");
 	is($basic_private->getPublicKey()->toBytes(), $basic_public->toBytes(), "keys match");
 
 	my $basic_derived = $from_serialized->deriveKey("m/0")->getBasicKey();
@@ -99,11 +99,11 @@ foreach my $tdata (@test_data) {
 
 # generating english mnemonics
 for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
-	my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic($bits, "en");
+	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generateMnemonic($bits, "en");
 	my $length = $bits / 8 - 4;
 	ok($mnemonic =~ /^(\w+ ?){$length}$/, "generated mnemonic looks valid ($bits bits)");
 	try {
-		Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($mnemonic, "", "en");
+		Bitcoin::Crypto::Key::ExtPrivate->fromMnemonic($mnemonic, "", "en");
 		pass("generated mnemonic can be imported");
 	} catch {
 		fail("generated mnemonic is not importable");
@@ -111,8 +111,8 @@ for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
 }
 
 # test for network in extended keys
-my $mnemonic = Bitcoin::Crypto::ExtPrivateKey->generateMnemonic;
-my $key = Bitcoin::Crypto::ExtPrivateKey->fromMnemonic($mnemonic);
+my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generateMnemonic;
+my $key = Bitcoin::Crypto::Key::ExtPrivate->fromMnemonic($mnemonic);
 $key->setNetwork("testnet");
 is(substr($key->toSerializedBase58, 0, 4), "tprv", "extended key used the new network data in exporting");
 is($key->network->{name}, "Bitcoin Testnet", "extended key uses the new network");

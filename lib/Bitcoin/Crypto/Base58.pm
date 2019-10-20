@@ -143,9 +143,9 @@ Additional errors (other than illegal characters) are croaked.
 
 =over 2
 
-=item L<Bitcoin::Crypto::PrivateKey>
+=item L<Bitcoin::Crypto::Key::Private>
 
-=item L<Bitcoin::Crypto::PublicKey>
+=item L<Bitcoin::Crypto::Key::Public>
 
 =back
 

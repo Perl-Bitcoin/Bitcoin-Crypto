@@ -4,8 +4,8 @@ use warnings;
 use Test::More;
 use Try::Tiny;
 
-use Bitcoin::Crypto::ExtPrivateKey;
-use Bitcoin::Crypto::ExtPublicKey;
+use Bitcoin::Crypto::Key::ExtPrivate;
+use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 
 my %test_data_private = (
@@ -137,7 +137,7 @@ my $tests = 0;
 
 for my $seed (keys %test_data_private) {
 	my $test_vector = $test_data_private{$seed};
-	my $base_key = Bitcoin::Crypto::ExtPrivateKey->fromSeed(pack "H*", pad_hex $seed);
+	my $base_key = Bitcoin::Crypto::Key::ExtPrivate->fromSeed(pack "H*", pad_hex $seed);
 	for my $tdata (@$test_vector) {
 		$tests += 3;
 		my $key = $base_key->deriveKey($tdata->{path});
@@ -153,7 +153,7 @@ for my $seed (keys %test_data_private) {
 
 for my $tdata (@test_data_public) {
 	$tests += 1;
-	my $base_key = Bitcoin::Crypto::ExtPublicKey->fromSerializedBase58($tdata->{parent});
+	my $base_key = Bitcoin::Crypto::Key::ExtPublic->fromSerializedBase58($tdata->{parent});
 	my $key = $base_key->deriveKey($tdata->{path});
 	is($key->toSerializedBase58(), $tdata->{child}, "key derivation ok");
 }
@@ -161,7 +161,7 @@ for my $tdata (@test_data_public) {
 for my $tdata (@test_data_error) {
 	$tests += 1;
 	try {
-		my $base_key = Bitcoin::Crypto::ExtPublicKey->fromSerializedBase58($tdata->[0]);
+		my $base_key = Bitcoin::Crypto::Key::ExtPublic->fromSerializedBase58($tdata->[0]);
 		$base_key->deriveKey($tdata->[1]);
 		fail("incorrect derivation was successful");
 	} catch {

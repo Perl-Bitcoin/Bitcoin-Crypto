@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 use Try::Tiny;
 
-BEGIN { use_ok('Bitcoin::Crypto::ExtPublicKey') };
+BEGIN { use_ok('Bitcoin::Crypto::Key::ExtPublic') };
 
 my %test_data = (
 	"xpub661MyMwAqRbcFFM2R7nJTBxJ5SDygTLXPLFweie6ZaoskrEg4HPubXmNuHKtmoQrW1WyA67xtVTM5MsHzL2YHj7UYAMUWUKVawE6jtSCUNN" => [
@@ -29,7 +29,7 @@ my $tests = 1;
 
 for my $ser_key (keys %test_data) {
 	my $addresses = $test_data{$ser_key};
-	my $master_pubkey = Bitcoin::Crypto::ExtPublicKey->fromSerializedBase58($ser_key);
+	my $master_pubkey = Bitcoin::Crypto::Key::ExtPublic->fromSerializedBase58($ser_key);
 	for my $i (0 .. @$addresses - 1) {
 		$tests += 1;
 		my $derived = $master_pubkey->deriveKey("M/$i");

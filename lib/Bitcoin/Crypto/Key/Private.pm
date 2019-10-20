@@ -1,4 +1,4 @@
-package Bitcoin::Crypto::PrivateKey;
+package Bitcoin::Crypto::Key::Private;
 
 use Modern::Perl "2010";
 use Moo;
@@ -8,14 +8,14 @@ use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
 use Carp qw(croak);
 use List::Util qw(first);
 
-use Bitcoin::Crypto::PublicKey;
+use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Network qw(find_network get_network);
 use Bitcoin::Crypto::Util qw(validate_wif);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 
-with "Bitcoin::Crypto::Roles::BasicKey";
+with "Bitcoin::Crypto::Role::BasicKey";
 
 sub _isPrivate { 1 }
 
@@ -69,7 +69,7 @@ sub getPublicKey
 {
 	my ($self) = @_;
 
-	my $public = Bitcoin::Crypto::PublicKey->new($self->rawKey("public"));
+	my $public = Bitcoin::Crypto::Key::Public->new($self->rawKey("public"));
 	$public->setCompressed($self->compressed);
 	$public->setNetwork($self->network);
 	return $public;
@@ -80,13 +80,13 @@ sub getPublicKey
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::PrivateKey - class for Bitcoin private keys
+Bitcoin::Crypto::Key::Private - class for Bitcoin private keys
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto::PrivateKey;
+	use Bitcoin::Crypto::Key::Private;
 
-	# get Bitcoin::Crypto::PublicKey instance from private key
+	# get Bitcoin::Crypto::Key::Public instance from private key
 
 	my $pub = $priv->getPublicKey();
 
@@ -210,7 +210,7 @@ Returns boolean.
 
 =over 2
 
-=item L<Bitcoin::Crypto::PublicKey>
+=item L<Bitcoin::Crypto::Key::Public>
 
 =item L<Bitcoin::Crypto::Network>
 

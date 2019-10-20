@@ -276,9 +276,9 @@ Returns all available network names.
 
 =over 2
 
-=item L<Bitcoin::Crypto::ExtPrivateKey>
+=item L<Bitcoin::Crypto::Key::ExtPrivate>
 
-=item L<Bitcoin::Crypto::PrivateKey>
+=item L<Bitcoin::Crypto::Key::Private>
 
 =back
 

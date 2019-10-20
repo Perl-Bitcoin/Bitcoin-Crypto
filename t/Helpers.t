@@ -9,7 +9,6 @@ use Digest::SHA qw(sha256);
 
 BEGIN { use_ok('Bitcoin::Crypto::Helpers', qw(pad_hex ensure_length hash160 hash256)) };
 
-# pack_hex - 2 tests
 
 my @hexes = qw(1a3efb 1a3ef 0);
 

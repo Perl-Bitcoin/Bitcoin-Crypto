@@ -132,7 +132,7 @@ Otherwise returns the structure:
 
 =over 2
 
-=item L<Bitcoin::Crypto::ExtPrivateKey>
+=item L<Bitcoin::Crypto::Key::ExtPrivate>
 
 =back
 

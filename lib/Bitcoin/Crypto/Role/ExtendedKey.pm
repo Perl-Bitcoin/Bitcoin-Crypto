@@ -1,20 +1,20 @@
-package Bitcoin::Crypto::Roles::ExtendedKey;
+package Bitcoin::Crypto::Role::ExtendedKey;
 
 use Modern::Perl "2010";
 use Moo::Role;
 use List::Util qw(first);
 use Carp qw(croak);
 
+use Bitcoin::Crypto::Key::Private;
+use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Types qw(IntMaxBits StrExactLength);
-use Bitcoin::Crypto::PrivateKey;
-use Bitcoin::Crypto::PublicKey;
 use Bitcoin::Crypto::Util qw(get_path_info);
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length hash160);
 use Bitcoin::Crypto::Network qw(find_network get_network);
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 
-with "Bitcoin::Crypto::Roles::Key";
+with "Bitcoin::Crypto::Role::Key";
 
 has "depth" => (
 	is => "ro",
@@ -145,7 +145,7 @@ sub getBasicKey
 {
 	my ($self) = @_;
 	my $entropy = $self->rawKey;
-	my $base_class = "Bitcoin::Crypto::" . ($self->_isPrivate ? "PrivateKey" : "PublicKey");
+	my $base_class = "Bitcoin::Crypto::Key::" . ($self->_isPrivate ? "Private" : "Public");
 	my $basic_key =  $base_class->fromBytes($entropy);
 	$basic_key->setNetwork($self->network);
 

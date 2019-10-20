@@ -1,4 +1,4 @@
-package Bitcoin::Crypto::PublicKey;
+package Bitcoin::Crypto::Key::Public;
 
 use Modern::Perl "2010";
 use Moo;
@@ -9,7 +9,7 @@ use Bitcoin::Crypto::Bech32 qw(encode_bech32);
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(hash160);
 
-with "Bitcoin::Crypto::Roles::BasicKey";
+with "Bitcoin::Crypto::Role::BasicKey";
 
 sub _isPrivate { 0 }
 
@@ -56,11 +56,11 @@ sub getSegwitAddress
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::PublicKey - class for Bitcoin public keys
+Bitcoin::Crypto::Key::Public - class for Bitcoin public keys
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto::PublicKey;
+	use Bitcoin::Crypto::Key::Public;
 
 	# verify signature (it has to be byte string, see perlpacktut)
 
@@ -147,7 +147,7 @@ Returns string containing Base58Check encoded public key hash (p2pkh address)
 
 =over 2
 
-=item L<Bitcoin::Crypto::PrivateKey>
+=item L<Bitcoin::Crypto::Key::Private>
 
 =item L<Bitcoin::Crypto::Network>
 

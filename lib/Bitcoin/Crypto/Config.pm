@@ -16,6 +16,7 @@ our %config = (
 	wif_compressed_byte => "\x01",
 	compress_public_point => 1,
 	witness_version => 0,
+	max_witness_version => 16,
 );
 
 1;
