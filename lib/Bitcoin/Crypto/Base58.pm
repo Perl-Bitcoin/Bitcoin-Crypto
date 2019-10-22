@@ -64,8 +64,10 @@ sub decode_base58
 	my @arr = split "", $base58encoded;
 	while (@arr > 0) {
 		my $current = $alphabet_mapped{shift @arr};
-		Bitcoin::Crypto::Exception->raise(code => "base58_input_format", message => "illegal characters in base58 string")
-			unless defined $current;
+		Bitcoin::Crypto::Exception->raise(
+			code => "base58_input_format",
+			message => "illegal characters in base58 string"
+		) unless defined $current;
 		my $step = Math::BigInt->new(scalar @alphabet)->bpow(scalar @arr)->bmul($current);
 		$result->badd($step);
 	}
@@ -93,8 +95,10 @@ sub decode_base58check
 {
 	my ($base58encoded) = @_;
 	my $decoded = decode_base58_preserve($base58encoded);
-	Bitcoin::Crypto::Exception->raise(code => "base58_input_checksum", message => "incorrect base58check checksum")
-		unless verify_checksum($decoded);
+	Bitcoin::Crypto::Exception->raise(
+		code => "base58_input_checksum",
+		message => "incorrect base58check checksum"
+	) unless verify_checksum($decoded);
 	return substr $decoded, 0, -$CHECKSUM_SIZE;
 }
 

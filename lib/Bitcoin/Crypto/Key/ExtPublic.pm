@@ -19,8 +19,10 @@ sub _deriveKeyPartial
 {
 	my ($self, $child_num, $hardened) = @_;
 
-	Bitcoin::Crypto::Exception->raise(code => "key_derive", message => "cannot derive hardened key from public key")
-		if $hardened;
+	Bitcoin::Crypto::Exception->raise(
+		code => "key_derive",
+		message => "cannot derive hardened key from public key"
+	) if $hardened;
 
 	# public key data - SEC compressed form
 	my $hmac_data = $self->rawKey("public_compressed");
@@ -42,8 +44,10 @@ sub _deriveKeyPartial
 
 	$point->badd($parent_point);
 
-	Bitcoin::Crypto::Exception->raise(code => "key_derive", message => "key $child_num in sequence was found invalid")
-		if $number->bge($n_order);
+	Bitcoin::Crypto::Exception->raise(
+		code => "key_derive",
+		message => "key $child_num in sequence was found invalid"
+	) if $number->bge($n_order);
 
 	return __PACKAGE__->new(
 		$point->to_bytes,

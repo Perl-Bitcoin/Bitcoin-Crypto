@@ -130,7 +130,10 @@ sub getOpCode
 		# standard data push - 0x01 up to 0x4b
 		return pack("C", 0x00 + $op_code);
 	} else {
-		Bitcoin::Crypto::Exception->raise(code => "script_opcode", message => "unknown opcode $op_code");
+		Bitcoin::Crypto::Exception->raise(
+			code => "script_opcode",
+			message => "unknown opcode $op_code"
+		);
 	}
 }
 
@@ -169,7 +172,10 @@ sub pushBytes
 			$self->addOperation("PUSHDATA4")
 				->pushRaw(pack "L", $len);
 		} else {
-			Bitcoin::Crypto::Exception->raise(code => "script_push", message => "too much data to push onto stack in one operation");
+			Bitcoin::Crypto::Exception->raise(
+				code => "script_push",
+				message => "too much data to push onto stack in one operation"
+			);
 		}
 		$self->pushRaw($bytes);
 	}

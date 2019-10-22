@@ -26,9 +26,12 @@ sub generateMnemonic
 	my ($min_len, $len_div, $max_len) = (128, 32, 256);
 	$len //= $min_len;
 	$lang //= "en";
+
 	# bip39 specification values
-	Bitcoin::Crypto::Exception->raise(code => "mnemonic_generate", message => "required entropy of between $min_len and $max_len bits, divisible by $len_div")
-		if $len < $min_len || $len > $max_len || $len % $len_div != 0;
+	Bitcoin::Crypto::Exception->raise(
+		code => "mnemonic_generate",
+		message => "required entropy of between $min_len and $max_len bits, divisible by $len_div"
+	) if $len < $min_len || $len > $max_len || $len % $len_div != 0;
 
 	my $ret = gen_bip39_mnemonic(bits => $len, language => $lang);
 	return $ret->{mnemonic};
@@ -106,8 +109,11 @@ sub _deriveKeyPartial
 	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
 	my $key_num = Math::BigInt->from_bytes($self->rawKey);
 	my $n_order = Math::EllipticCurve::Prime->from_name($config{curve_name})->n;
-	Bitcoin::Crypto::Exception->raise(code => "key_derive", message => "key $child_num in sequence was found invalid")
-		if $number->bge($n_order);
+
+	Bitcoin::Crypto::Exception->raise(
+		code => "key_derive",
+		message => "key $child_num in sequence was found invalid"
+	) if $number->bge($n_order);
 
 	$number->badd($key_num);
 	$number->bmod($n_order);

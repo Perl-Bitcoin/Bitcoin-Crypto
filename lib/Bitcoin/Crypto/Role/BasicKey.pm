@@ -12,8 +12,12 @@ with "Bitcoin::Crypto::Role::Compressed";
 sub signMessage
 {
 	my ($self, $message, $algorithm) = @_;
-	Bitcoin::Crypto::Exception->raise(code => "key_sign", message => "cannot sign a message with a public key")
-		unless $self->_isPrivate;
+
+	Bitcoin::Crypto::Exception->raise(
+		code => "key_sign",
+		message => "cannot sign a message with a public key"
+	) unless $self->_isPrivate;
+
 	$algorithm //= "sha256";
 	return $self->keyInstance->sign_message($message, $algorithm);
 }

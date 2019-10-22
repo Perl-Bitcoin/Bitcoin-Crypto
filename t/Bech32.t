@@ -128,15 +128,15 @@ my %tests = (
 	}, # Invalid checksum
 	"BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2" => {
 		type => "segwit",
-		exception => "bech32_input_data"
+		exception => "segwit_program"
 	}, # Invalid witness version
 	"bc1rw5uspcuh" => {
 		type => "segwit",
-		exception => "bech32_input_data"
+		exception => "segwit_program"
 	}, # Invalid program length
 	"bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90" => {
 		type => "segwit",
-		exception => "bech32_input_data"
+		exception => "segwit_program"
 	}, # Invalid program length
 	"tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7" => {
 		type => "segwit",
@@ -152,7 +152,7 @@ my %tests = (
 	}, # Non-zero padding in 8-to-5 conversion
 	"bc1gmk9yu" => {
 		type => "segwit",
-		exception => "bech32_input_data"
+		exception => "segwit_program"
 	}, # Empty data section
 );
 

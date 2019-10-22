@@ -5,7 +5,7 @@ use Moo;
 
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
-use Bitcoin::Crypto::Bech32 qw(encode_bech32);
+use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(hash160);
 
@@ -48,7 +48,7 @@ sub getSegwitAddress
 {
 	my ($self) = @_;
 
-	return encode_bech32($self->network->{segwit_hrp}, $self->witnessProgram);
+	return encode_segwit($self->network->{segwit_hrp}, $self->witnessProgram);
 }
 
 1;

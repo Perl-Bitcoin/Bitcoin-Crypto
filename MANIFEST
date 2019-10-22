@@ -28,7 +28,7 @@ lib/Bitcoin/Crypto/Base58.pm
 lib/Bitcoin/Crypto/Bech32.pm
 lib/Bitcoin/Crypto/Helpers.pm
 lib/Bitcoin/Crypto/Script.pm
-lib/Bitcoin/Crypto/SegWit.pm
+lib/Bitcoin/Crypto/Segwit.pm
 lib/Bitcoin/Crypto/Role/Key.pm
 lib/Bitcoin/Crypto/Role/BasicKey.pm
 lib/Bitcoin/Crypto/Role/ExtendedKey.pm

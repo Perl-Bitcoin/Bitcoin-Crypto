@@ -4,8 +4,8 @@ use Modern::Perl "2010";
 use Exporter qw(import);
 use Math::BigInt 1.999816 try => 'GMP';
 
-use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Segwit qw(validate_program);
 
 our @EXPORT_OK = qw(
 	encode_bech32
@@ -85,31 +85,52 @@ sub split_bech32
 	$bech32enc = lc $bech32enc
 		if uc $bech32enc eq $bech32enc;
 
-	Bitcoin::Crypto::Exception->raise(code => "bech32_input_format", message => "bech32 string too long")
-		if length $bech32enc > 90;
-	Bitcoin::Crypto::Exception->raise(code => "bech32_input_format", message => "bech32 string contains mixed case")
-		if lc $bech32enc ne $bech32enc;
+	Bitcoin::Crypto::Exception->raise(
+		code => "bech32_input_format",
+		message => "bech32 string too long"
+	) if length $bech32enc > 90;
+
+	Bitcoin::Crypto::Exception->raise(
+		code => "bech32_input_format",
+		message => "bech32 string contains mixed case"
+	) if lc $bech32enc ne $bech32enc;
 
 	my @parts = split "1", $bech32enc;
 
-	Bitcoin::Crypto::Exception->raise(code => "bech32_input_format", message => "bech32 separator character missing")
-		if @parts < 2;
+	Bitcoin::Crypto::Exception->raise(
+		code => "bech32_input_format",
+		message => "bech32 separator character missing"
+	) if @parts < 2;
 
 	my $data = pop @parts;
 
 	@parts = (join("1", @parts), $data);
 
-	Bitcoin::Crypto::Exception->raise(code => "bech32_input_format", message => "incorrect length of bech32 human readable part")
-		if length $parts[0] < 1 || length $parts[0] > 83;
-	Bitcoin::Crypto::Exception->raise(code => "bech32_input_format", message => "illegal characters in bech32 human readable part")
-		if $parts[0] !~ /^[\x21-\x7e]+$/;
-	Bitcoin::Crypto::Exception->raise(code => "bech32_input_format", message => "incorrect length of bech32 data part")
-		if length $parts[1] < 6;
+	Bitcoin::Crypto::Exception->raise(
+		code => "bech32_input_format",
+		message => "incorrect length of bech32 human readable part"
+	) if length $parts[0] < 1 || length $parts[0] > 83;
+
+	Bitcoin::Crypto::Exception->raise(
+		code => "bech32_input_format",
+		message => "illegal characters in bech32 human readable part"
+	) if $parts[0] !~ /^[\x21-\x7e]+$/;
+
+	Bitcoin::Crypto::Exception->raise(
+		code => "bech32_input_format",
+		message => "incorrect length of bech32 data part"
+	) if length $parts[1] < 6;
+
 	my $chars = join "", @alphabet;
-	Bitcoin::Crypto::Exception->raise(code => "bech32_input_format", message => "illegal characters in bech32 data part")
-		if $parts[1] !~ /^[$chars]+$/;
-	Bitcoin::Crypto::Exception->raise(code => "bech32_input_checksum", message => "incorrect bech32 checksum")
-		unless verify_checksum(@parts);
+	Bitcoin::Crypto::Exception->raise(
+		code => "bech32_input_format",
+		message => "illegal characters in bech32 data part"
+	) if $parts[1] !~ /^[$chars]+$/;
+
+	Bitcoin::Crypto::Exception->raise(
+		code => "bech32_input_checksum",
+		message => "incorrect bech32 checksum"
+	) unless verify_checksum(@parts);
 
 	return @parts;
 }
@@ -142,8 +163,11 @@ sub decode_base32
 	my $length_padded = length $bits;
 	my $padding = $length_padded % 8;
 	$bits =~ s/0{$padding}$//;
-	Bitcoin::Crypto::Exception->raise(code => "bech32_input_data", message => "incorrrect padding encoded in bech32")
-		if length($bits) % 8 != 0 || length($bits) < $length_padded - 4;
+
+	Bitcoin::Crypto::Exception->raise(
+		code => "bech32_input_data",
+		message => "incorrrect padding encoded in bech32"
+	) if length($bits) % 8 != 0 || length($bits) < $length_padded - 4;
 
 	my @data = unpack "(a8)*", $bits;
 	my $result = "";
@@ -166,9 +190,7 @@ sub encode_segwit
 {
 	my ($hrp, $bytes) = @_;
 
-	my $version = unpack "C", $bytes;
-	Bitcoin::Crypto::Exception->raise(code => "bech32_input_data", message => "incorrect witness program version $version")
-		unless defined $version && $version >= 0 && $version <= $config{max_witness_version};
+	my $version = validate_program($bytes);
 	my $result = $alphabet[$version] . encode_base32(substr $bytes, 1);
 	my $checksum = create_checksum($hrp, $result);
 	return $hrp . 1 . $result . $checksum;
@@ -185,10 +207,11 @@ sub decode_segwit
 {
 	my ($hrp, $data) = split_bech32 @_;
 
-	my $version = $alphabet_mapped{substr $data, 0, 1};
-	Bitcoin::Crypto::Exception->raise(code => "bech32_input_data", message => "incorrect witness program version $version")
-		unless defined $version && $version >= 0 && $version <= $config{max_witness_version};
-	return pack("C", $version) . decode_base32(substr $data, 1, -$CHECKSUM_SIZE);
+	my $ver = $alphabet_mapped{substr $data, 0, 1};
+	my $bytes = pack("C", $ver) . decode_base32(substr $data, 1, -$CHECKSUM_SIZE);
+	validate_program($bytes);
+
+	return $bytes;
 }
 
 1;

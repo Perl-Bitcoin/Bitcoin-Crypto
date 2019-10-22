@@ -57,8 +57,12 @@ my %network_maps;
 sub set_default_network
 {
 	my ($name) = @_;
-	Bitcoin::Crypto::Exception->raise(code => "network_config", message => "trying to set unknown network: $name")
-			unless defined $networks{$name};
+
+	Bitcoin::Crypto::Exception->raise(
+		code => "network_config",
+		message => "trying to set unknown network: $name"
+	) unless defined $networks{$name};
+
 	$default_network = $name;
 }
 
@@ -74,16 +78,22 @@ sub validate_network
 {
 	my ($args) = @_;
 	for my $el (keys %network_keys) {
-		Bitcoin::Crypto::Exception->raise(code => "network_config", message => "incomplete network configuration: missing key $el")
-			if !defined $args->{$el} && $network_keys{$el};
+		Bitcoin::Crypto::Exception->raise(
+			code => "network_config",
+			message => "incomplete network configuration: missing key $el"
+		) if !defined $args->{$el} && $network_keys{$el};
 	}
 }
 
 sub find_network
 {
 	my ($by, $value) = @_;
-	Bitcoin::Crypto::Exception->raise(code => "network_config", message => "network key does not exist: $by")
-		unless defined $network_maps{$by};
+
+	Bitcoin::Crypto::Exception->raise(
+		code => "network_config",
+		message => "network key does not exist: $by"
+	) unless defined $network_maps{$by};
+
 	return grep { $value eq $network_maps{$by}{$_} } keys %{$network_maps{$by}};
 }
 
@@ -91,8 +101,12 @@ sub get_network
 {
 	my ($name) = @_;
 	$name //= $default_network;
-	Bitcoin::Crypto::Exception->raise(code => "network_config", message => "network key does not exist: $name")
-		unless defined $networks{$name};
+
+	Bitcoin::Crypto::Exception->raise(
+		code => "network_config",
+		message => "network key does not exist: $name"
+	) unless defined $networks{$name};
+
 	return dclone($networks{$name});
 }
 

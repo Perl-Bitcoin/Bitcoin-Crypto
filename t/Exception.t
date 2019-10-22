@@ -18,5 +18,14 @@ try {
 	note("$err");
 };
 
+try {
+	Bitcoin::Crypto::Exception->raise();
+	fail("exception wasn't raised");
+} catch {
+	my $err = $_;
+	ok(!$err->isa("Bitcoin::Crypto::Exception"), "different exception was raised");
+	note("$err");
+};
+
 done_testing;
 
