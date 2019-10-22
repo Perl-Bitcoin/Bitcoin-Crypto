@@ -208,6 +208,7 @@ Returns instance of L<Bitcoin::Crypto::PublicKey> generated from the private key
 Signs a digest of $message (using $algo digest algorithm) with a private key.
 $algo must be available in L<Digest> package.
 Returns a byte string containing signature.
+Caution: libtomcrypt cryptographic package that is generating signatures does not currently offer a deterministic mechanism. For this reason the signMessage method will always complain with a warning until the RFC6797 document is implemented. Non-deterministic signatures can lead to leaking private keys if the random number generator's entropy is insufficient.
 
 =head2 verifyMessage
 
