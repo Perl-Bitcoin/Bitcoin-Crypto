@@ -13,100 +13,526 @@ with "Bitcoin::Crypto::Roles::Network";
 
 # list of significant opcodes
 my %op_codes = (
-	0 => "\x00",
-	FALSE => "\x00",
-	PUSHDATA1 => "\x4c",
-	PUSHDATA2 => "\x4c",
-	PUSHDATA4 => "\x4e",
-	"1NEGATE" => "\x4f",
-	RESERVED => "\x50",
-	TRUE => "\x51",
-	NOP => "\x61",
-	VER => "\x62",
-	IF => "\x63",
-	NOTIF => "\x64",
-	VERIF => "\x65",
-	VERNOTIF => "\x66",
-	ELSE => "\x67",
-	ENDIF => "\x68",
-	VERIFY => "\x69",
-	RETURN => "\x6a",
-	CHECKLOCKTIMEVERIFY => "\xb1",
-	CHECKSEQUENCEVERIFY => "\xb2",
-	TOALTSTACK => "\x6b",
-	FROMALTSTACK => "\x6c",
-	"2DROP" => "\x6d",
-	"2DUP" => "\x6e",
-	"3DUP" => "\x6f",
-	"2OVER" => "\x70",
-	"2ROT" => "\x71",
-	"2SWAP" => "\x72",
-	IFDUP => "\x73",
-	DEPTH => "\x74",
-	DROP => "\x75",
-	DUP => "\x76",
-	NIP => "\x77",
-	OVER => "\x78",
-	PICK => "\x79",
-	ROLL => "\x7a",
-	ROT => "\x7b",
-	SWAP => "\x7c",
-	TUCK => "\x7d",
-	# CAT => "\x7e",
-	# SUBSTR => "\x7f",
-	# LEFT => "\x80",
-	# RIGHT => "\x81",
-	SIZE => "\x82",
-	# INVERT => "\x83",
-	# AND => "\x84",
-	# OR => "\x85",
-	# XOR => "\x86",
-	EQUAL => "\x87",
-	EQUALVERIFY => "\x88",
-	RESERVED1 => "\x89",
-	RESERVED2 => "\x8a",
-	"1ADD" => "\x8b",
-	"1SUB" => "\x8c",
-	# "2MUL" => "\x8d",
-	# "2DIV" => "\x8e",
-	NEGATE => "\x8f",
-	ABS => "\x90",
-	NOT => "\x91",
-	ONOTEQUAL => "\x92",
-	ADD => "\x93",
-	SUB => "\x94",
-	# MUL => "\x95",
-	# DIV => "\x96",
-	# MOD => "\x97",
-	# LSHIFT => "\x98",
-	# RSHIFT => "\x99",
-	BOOLAND => "\x9a",
-	BOOLOR => "\x9b",
-	NUMEQUAL => "\x9c",
-	NUMEQUALVERIFY => "\x9d",
-	NUMNOTEQUAL => "\x9e",
-	LESSTHAN => "\x9f",
-	GREATERTHAN => "\xa0",
-	LESSTHANOREQUAL => "\xa1",
-	GREATERTHANOREQUAL => "\xa2",
-	MIN => "\xa3",
-	MAX => "\xa4",
-	WITHIN => "\xa5",
-	RIPEMD160 => "\xa6",
-	SHA1 => "\xa7",
-	SHA256 => "\xa8",
-	HASH160 => "\xa9",
-	HASH256 => "\xaa",
-	CODESEPARATOR => "\xab",
-	CHECKSIG => "\xac",
-	CHECKSIGVERIFY => "\xad",
-	CHECKMULTISIG => "\xae",
-	CHECKMULTISIGVERIFY => "\xaf",
-	CHECKLOCKTIMEVERFIY => "\xb1",
-	CHECKSEQUENCEVERIFY => "\xb2",
-	# PUBKEYHASH => "\xfd",
-	# PUBKEY => "\xfe",
-	# INVALIDOPCODE => "\xff",
+	0 => {
+		code => "\x00",
+		func => sub {
+			my ($stack, $ops) = @_;
+
+			push @$stack, 0x00;
+		}
+	},
+	FALSE => {
+		code => "\x00",
+		func => sub {
+			my ($stack, $ops) = @_;
+
+			push @$stack, 0x00;
+		}
+	},
+	PUSHDATA1 => {
+		code => "\x4c",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	PUSHDATA2 => {
+		code => "\x4d",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	PUSHDATA4 => {
+		code => "\x4e",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	"1NEGATE" => {
+		code => "\x4f",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	RESERVED => {
+		code => "\x50",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	TRUE => {
+		code => "\x51",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	NOP => {
+		code => "\x61",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	VER => {
+		code => "\x62",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	IF => {
+		code => "\x63",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	NOTIF => {
+		code => "\x64",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	VERIF => {
+		code => "\x65",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	VERNOTIF => {
+		code => "\x66",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	ELSE => {
+		code => "\x67",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	ENDIF => {
+		code => "\x68",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	VERIFY => {
+		code => "\x69",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	RETURN => {
+		code => "\x6a",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	TOALTSTACK => {
+		code => "\x6b",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	FROMALTSTACK => {
+		code => "\x6c",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	"2DROP" => {
+		code => "\x6d",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	"2DUP" => {
+		code => "\x6e",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	"3DUP" => {
+		code => "\x6f",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	"2OVER" => {
+		code => "\x70",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	"2ROT" => {
+		code => "\x71",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	"2SWAP" => {
+		code => "\x72",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	IFDUP => {
+		code => "\x73",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	DEPTH => {
+		code => "\x74",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	DROP => {
+		code => "\x75",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	DUP => {
+		code => "\x76",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	NIP => {
+		code => "\x77",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	OVER => {
+		code => "\x78",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	PICK => {
+		code => "\x79",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	ROLL => {
+		code => "\x7a",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	ROT => {
+		code => "\x7b",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	SWAP => {
+		code => "\x7c",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	TUCK => {
+		code => "\x7d",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	SIZE => {
+		code => "\x82",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	EQUAL => {
+		code => "\x87",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	EQUALVERIFY => {
+		code => "\x88",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	RESERVED1 => {
+		code => "\x89",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	RESERVED2 => {
+		code => "\x8a",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	"1ADD" => {
+		code => "\x8b",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	"1SUB" => {
+		code => "\x8c",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	NEGATE => {
+		code => "\x8f",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	ABS => {
+		code => "\x90",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	NOT => {
+		code => "\x91",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	ONOTEQUAL => {
+		code => "\x92",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	ADD => {
+		code => "\x93",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	SUB => {
+		code => "\x94",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	BOOLAND => {
+		code => "\x9a",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	BOOLOR => {
+		code => "\x9b",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	NUMEQUAL => {
+		code => "\x9c",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	NUMEQUALVERIFY => {
+		code => "\x9d",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	NUMNOTEQUAL => {
+		code => "\x9e",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	LESSTHAN => {
+		code => "\x9f",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	GREATERTHAN => {
+		code => "\xa0",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	LESSTHANOREQUAL => {
+		code => "\xa1",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	GREATERTHANOREQUAL => {
+		code => "\xa2",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	MIN => {
+		code => "\xa3",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	MAX => {
+		code => "\xa4",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	WITHIN => {
+		code => "\xa5",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	RIPEMD160 => {
+		code => "\xa6",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	SHA1 => {
+		code => "\xa7",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	SHA256 => {
+		code => "\xa8",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	HASH160 => {
+		code => "\xa9",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	HASH256 => {
+		code => "\xaa",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	CODESEPARATOR => {
+		code => "\xab",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	CHECKSIG => {
+		code => "\xac",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	CHECKSIGVERIFY => {
+		code => "\xad",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	CHECKMULTISIG => {
+		code => "\xae",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	CHECKMULTISIGVERIFY => {
+		code => "\xaf",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	CHECKLOCKTIMEVERFIY => {
+		code => "\xb1",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
+	CHECKSEQUENCEVERIFY => {
+		code => "\xb2",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
 );
 
 has "operations" => (
@@ -125,7 +551,7 @@ sub getOpCode
 			# OP_N - starts with 0x52, up to 0x60
 			return pack("C", 0x52 + $op_code);
 		}
-		return $op_codes{$op_code};
+		return $op_codes{$op_code}{code};
 	} elsif ($op_code =~ /^[0-9]+$/ && $op_code >= 1 && $op_code <= 75) {
 		# standard data push - 0x01 up to 0x4b
 		return pack("C", 0x00 + $op_code);
