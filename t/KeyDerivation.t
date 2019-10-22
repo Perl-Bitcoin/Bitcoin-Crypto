@@ -133,13 +133,11 @@ my @test_data_error = (
 	["xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7AANYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4", "m/1'/1"],
 );
 
-my $tests = 0;
 
 for my $seed (keys %test_data_private) {
 	my $test_vector = $test_data_private{$seed};
 	my $base_key = Bitcoin::Crypto::Key::ExtPrivate->fromSeed(pack "H*", pad_hex $seed);
 	for my $tdata (@$test_vector) {
-		$tests += 3;
 		my $key = $base_key->deriveKey($tdata->{path});
 		my $pubkey = $key->getPublicKey();
 		is($key->toSerializedBase58(), $tdata->{private}, "private key ok");
@@ -152,14 +150,12 @@ for my $seed (keys %test_data_private) {
 }
 
 for my $tdata (@test_data_public) {
-	$tests += 1;
 	my $base_key = Bitcoin::Crypto::Key::ExtPublic->fromSerializedBase58($tdata->{parent});
 	my $key = $base_key->deriveKey($tdata->{path});
 	is($key->toSerializedBase58(), $tdata->{child}, "key derivation ok");
 }
 
 for my $tdata (@test_data_error) {
-	$tests += 1;
 	try {
 		my $base_key = Bitcoin::Crypto::Key::ExtPublic->fromSerializedBase58($tdata->[0]);
 		$base_key->deriveKey($tdata->[1]);
@@ -169,4 +165,4 @@ for my $tdata (@test_data_error) {
 	};
 }
 
-done_testing($tests);
+done_testing;

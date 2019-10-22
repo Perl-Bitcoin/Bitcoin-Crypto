@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 
@@ -57,3 +57,5 @@ is_deeply(get_network(), $litecoin, "get_network() shortcut working");
 
 is_deeply([find_network(wif_byte => "\xb0")], [qw(litecoin_mainnet)], "network found successfully");
 ok(find_network(name => "unexistent") == 0, "non-existent network not found");
+
+done_testing;
