@@ -34,7 +34,7 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 
 	say "private key: " . $priv->to_wif();
 	say "public key: " . $pub->to_hex();
-	say "address: " . $pub->getAddress();
+	say "address: " . $pub->get_segwit_address();
 
 	my $message = "Hello CPAN";
 	my $signature = $priv->sign_message($message);
@@ -83,9 +83,9 @@ See child modules for more documentation and examples.
 
 =over 2
 
-=item * P2SH segwit compatible addresses
+=item * Bitcoin script execution (maybe?)
 
-=item * Bech32 segwit native addresses
+=item * Better test coverage
 
 =back
 

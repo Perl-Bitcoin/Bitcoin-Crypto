@@ -39,6 +39,14 @@ my %tests = (
 		type => "bech32",
 		data => ""
 	},
+	"asd1nyvqgdr08nh7p9r4kwjtrgjt685c7wggd8fhr3gtap3sasj0egcs500w9e" => {
+		type => "bech32",
+		data => "991804346f3cefe09475b3a4b1a24bd1e98f390869d371c50be8630ec24fca31"
+	},
+	"qq1rgyr56nk7ag7kyyfr4y3ec2vt98qh6h9l46e45thq6spgw6gr5k5gzs0v90mv" => {
+		type => "bech32",
+		data => "1a083a6a76f751eb10891d491ce14c594e0beae5fd759ad17706a0143b481d2d440a"
+	},
 	"\x201nwldj5" => {
 		type => "bech32",
 		exception => "bech32_input_format"

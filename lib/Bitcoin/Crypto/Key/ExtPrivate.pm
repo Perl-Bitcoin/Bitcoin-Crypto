@@ -1,6 +1,5 @@
 package Bitcoin::Crypto::Key::ExtPrivate;
 
-
 use Modern::Perl "2010";
 use Moo;
 use Digest::SHA qw(hmac_sha512);
@@ -180,83 +179,101 @@ see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bit
 =head2 generate_mnemonic
 
 	sig: generate_mnemonic($class, $len = 128, $lang = "en")
-Generates a new valid mnemonic code. Default entropy is 128 bits.
+
+Generates a new mnemonic code. Default entropy is 128 bits.
 With $len this can be changed to up to 256 bits with 32 bit step.
+
 Other languages than english require additional modules for L<Bitcoin::BIP39>.
+
 Croaks when $len is invalid (under 128, above 256 or not divisible by 32).
 Returns newly generated BIP39 mnemonic string.
 
 =head2 from_mnemonic
 
 	sig: from_mnemonic($class, $mnemonic, $password = "", $lang = undef)
+
 Creates a new key from given mnemonic and password.
+
 Note that technically any password is correct and there's no way to tell if it was mistaken.
+
 If you need to validate if $mnemonic is a valid mnemonic you should specify $lang, e.g. "en".
+
 If no $lang is given then any string passed as $mnemonic will produce a valid key.
+
 Returns a new instance of this class.
 
 =head2 from_seed
 
 	sig: from_seed($class, $seed)
-Creates and returns a new key from seed, which can be any data of any length.
-$seed is expected to be a byte string.
+
+Creates and returns a new key from seed, which can be any data of any length.  $seed is expected to be a byte string.
 
 =head2 from_hex_seed
 
 	sig: from_hex_seed($class, $seed)
+
 Same as from_seed, but $seed is treated as hex string.
 
 =head2 to_serialized
 
 	sig: to_serialized($self)
+
 Returns the key serialized in format specified in BIP32 as byte string.
 
 =head2 to_serialized_base58
 
 	sig: to_serialized_base58($self)
-Behaves the same as to_serialized(), but performs Base58Check encoding
-on the resulting byte string.
+
+Behaves the same as to_serialized(), but performs Base58Check encoding on the resulting byte string.
 
 =head2 from_serialized
 
 	sig: from_serialized($class, $serialized, $network = undef)
+
 Tries to unserialize byte string $serialized with format specified in BIP32.
-Croaks on errors. If multiple networks match serialized data specify $network
-manually (id of the network) to avoid exception.
+
+Croaks on errors. If multiple networks match serialized data specify $network manually (id of the network) to avoid exception.
 
 =head2 from_serialized_base58
 
 	sig: from_serialized_base58($class, $base58, $network)
+
 Same as from_serialized, but performs Base58Check decoding on $base58 argument.
 
 =head2 set_network
 
 	sig: set_network($self, $val)
-Change key's network state to $val. It can be either network name present in
-Bitcoin::Crypto::Network package or a valid network hashref.
+
+Change key's network state to $val. It can be either network name present in Bitcoin::Crypto::Network package or a valid network hashref.
+
 Returns current key instance.
 
 =head2 get_public_key
 
 	sig: get_public_key($self)
+
 Returns instance of L<Bitcoin::Crypto::Key::ExtPublic> generated from the private key.
 
 =head2 get_basic_key
 
 	sig: get_basic_key($self)
+
 Returns the key in basic format: L<Bitcoin::Crypto::Key::Private>
 
 =head2 derive_key
 
 	sig: derive_key($self, $path)
-Performs extended key deriviation as specified in BIP32 on the current key
-with $path. Croaks on error.
+
+Performs extended key deriviation as specified in BIP32 on the current key with $path. Croaks on error.
+
 See BIP32 document for details on deriviation paths and methods.
+
 Returns a new extended key instance - result of a deriviation.
 
 =head2 get_fingerprint
 
 	sig: get_fingerprint($self, $len = 4)
+
 Returns a fingerprint of the extended key of $len length (byte string)
 
 =head1 EXCEPTIONS

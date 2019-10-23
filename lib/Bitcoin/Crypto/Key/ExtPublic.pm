@@ -60,7 +60,6 @@ sub _derive_key_partial
 
 1;
 
-
 __END__
 =head1 NAME
 
@@ -103,51 +102,59 @@ see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bit
 =head2 to_serialized
 
 	sig: to_serialized($self)
+
 Returns the key serialized in format specified in BIP32 as byte string.
 
 =head2 to_serialized_base58
 
 	sig: to_serialized_base58($self)
-Behaves the same as to_serialized(), but performs Base58Check encoding
-on the resulting byte string.
+
+Behaves the same as to_serialized(), but performs Base58Check encoding on the resulting byte string.
 
 =head2 from_serialized
 
 	sig: from_serialized($class, $serialized, $network = undef)
+
 Tries to unserialize byte string $serialized with format specified in BIP32.
-Croaks on errors. If multiple networks match serialized data specify $network
-manually (id of the network) to avoid exception.
+
+Croaks on errors. If multiple networks match serialized data specify $network manually (id of the network) to avoid exception.
 
 =head2 from_serialized_base58
 
 	sig: from_serialized_base58($class, $base58, $network)
+
 Same as from_serialized, but performs Base58Check decoding on $base58 argument.
 
 =head2 set_network
 
 	sig: set_network($self, $val)
-Change key's network state to $val. It can be either network name present in
-Bitcoin::Crypto::Network package or a valid network hashref.
+
+Change key's network state to $val. It can be either network name present in Bitcoin::Crypto::Network package or a valid network hashref.
+
 Returns current key instance.
 
 =head2 get_basic_key
 
 	sig: get_basic_key($self)
+
 Returns the key in basic format: L<Bitcoin::Crypto::Key::Public>
 
 =head2 derive_key
 
 	sig: derive_key($self, $path)
-Performs extended key deriviation as specified in BIP32 on the current key
-with $path. Croaks on error.
+
+Performs extended key deriviation as specified in BIP32 on the current key with $path. Croaks on error.
+
 See BIP32 document for details on deriviation paths and methods.
-Note that public keys cannot derive private keys and your deriviation
-path must start with M (capital m).
+
+Note that public keys cannot derive private keys and your deriviation path must start with M (capital m).
+
 Returns a new extended key instance - result of a deriviation.
 
 =head2 get_fingerprint
 
 	sig: get_fingerprint($self, $len = 4)
+
 Returns a fingerprint of the extended key of $len length (byte string)
 
 =head1 EXCEPTIONS

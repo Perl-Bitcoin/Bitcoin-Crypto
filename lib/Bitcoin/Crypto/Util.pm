@@ -10,21 +10,12 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Base58 qw(decode_base58check);
 
 our @EXPORT_OK = qw(
-	validate_address
 	validate_wif
 	get_key_type
 	get_path_info
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
-
-sub validate_address
-{
-	my ($address) = @_;
-	my $byte_address = decode_base58check($address);
-	# 20 bytes for RIPEMD160, 1 byte for network
-	return length $byte_address == 21;
-}
 
 sub validate_wif
 {
@@ -78,7 +69,6 @@ Bitcoin::Crypto::Util - Basic utilities for working with bitcoin
 =head1 SYNOPSIS
 
 	use Bitcoin::Crypto::Util qw(
-		validate_address
 		validate_wif
 		get_key_type
 		get_path_info
@@ -89,13 +79,6 @@ Bitcoin::Crypto::Util - Basic utilities for working with bitcoin
 These are basic utilities for working with bitcoin, used by other packages.
 
 =head1 FUNCTIONS
-
-=head2 validate_address
-
-	my $bool = validate_address($str);
-
-Ensures Base58 encoded string looks like encoded address.
-Throws an exception if $str is not valid base58.
 
 =head2 validate_wif
 
@@ -120,6 +103,7 @@ Returns undef if $bytestr cannot be imported as a key.
 Tries to get derivation path data from $path.
 Returns undef if $path is not a valid path.
 Otherwise returns the structure:
+
 	{
 		private => bool, # is path derivation private (lowercase m)
 		path => [

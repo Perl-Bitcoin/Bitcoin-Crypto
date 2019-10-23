@@ -50,3 +50,46 @@ sub warn
 }
 
 1;
+
+__END__
+=head1 NAME
+
+Bitcoin::Crypto::Exception - Exception class for Bitcoin::Crypto purposes
+
+=head1 SYNOPSIS
+
+	try {
+		decode_segwit("Not a segwit address");
+	} catch {
+		my $error = $_;
+
+		# $error is an instance of Bitcoin::Crypto::Exception and stringifies automatically
+		warn "$error";
+
+		# but also has some information about the problem
+		if ($error->code eq "bech32_input_format") {
+			log $error->message;
+		}
+	};
+
+=head1 DESCRIPTION
+
+A wrapper class with automatic stringification and standarized raising.
+Has two properties - a code, which is a machine readable hint about what went wrong and message, which is a human readable description of an error.
+Uses croak for errors and carp for warnings.
+
+=head1 FUNCTIONS
+
+=head2 raise
+
+	Bitcoin::Crypto::Exception->raise(code => "fatal", message => "error");
+
+Creates a new instance and croaks it. If used on an object, croaks it right away.
+
+=head2 warn
+
+	Bitcoin::Crypto::Exception->warn(code => "fatal", message => "error");
+
+Creates a new instance and carps it. If used on an object, carps it right away.
+
+=cut

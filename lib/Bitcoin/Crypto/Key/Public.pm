@@ -48,6 +48,12 @@ sub get_segwit_address
 {
 	my ($self) = @_;
 
+	# network field is not required, lazy check for completeness
+	Bitcoin::Crypto::Exception->raise(
+		code => "network_config",
+		message => "no segwit_hrp found in network configuration"
+	) unless defined $self->network->{segwit_hrp};
+
 	return encode_segwit($self->network->{segwit_hrp}, $self->witness_program);
 }
 
@@ -64,11 +70,11 @@ Bitcoin::Crypto::Key::Public - class for Bitcoin public keys
 
 	# verify signature (it has to be byte string, see perlpacktut)
 
-	$pub->verify_message("Hello world", $sig);
+	$pub->verify_message(pack("a*", "Hello world"), $sig);
 
-	# getting address from public key (p2pkh)
+	# getting address from public key (p2wpkh)
 
-	my $address = $pub->getAddress();
+	my $address = $pub->get_segwit_address();
 
 =head1 DESCRIPTION
 
@@ -80,7 +86,7 @@ You can use a public key to:
 
 =item * verify messages
 
-=item * create p2pkh address
+=item * create addresses: legacy, compatibility and segwit
 
 =back
 
@@ -89,68 +95,80 @@ You can use a public key to:
 =head2 from_bytes
 
 	sig: from_bytes($class, $data)
+
 Use this method to create a PublicKey instance from a byte string.
-Data $data will be used as a private key entropy.
+Data $data must represent a public key in ASN X9.62 format.
+
 Returns class instance.
 
 =head2 new
 
 	sig: new($class, $data)
+
 This works exactly the same as from_bytes
 
 =head2 to_bytes
 
 	sig: to_bytes($self)
+
 Does the opposite of from_bytes on a target object
 
 =head2 from_hex
 
 	sig: from_hex($class, $hex)
-Use this method to create a PrivateKey instance from a hexadecimal number.
-Number $hex will be used as a private key entropy.
+
+Use this method to create a public key instance from a hexadecimal number.
+
 Returns class instance.
 
 =head2 to_hex
 
 	sig: to_hex($self)
+
 Does the opposite of from_hex on a target object
 
 =head2 set_compressed
 
 	sig: set_compressed($self, $val)
+
 Change key's compression state to $val (1/0). This will change the address.
 If $val is omitted it is set to 1.
+
 Returns current key instance.
 
 =head2 set_network
 
 	sig: set_network($self, $val)
-Change key's network state to $val. It can be either network name present in
-Bitcoin::Crypto::Network package or a valid network hashref. This will change
-the address.
+
+Change key's network state to $val. It can be either network name present in Bitcoin::Crypto::Network package or a valid network hashref. This will change the address.
+
 Returns current key instance.
 
 =head2 verify_message
 
 	sig: verify_message($self, $message, $signature, $algo = "sha256")
-Verifies $signature against digest of $message (with $algo digest algorithm)
-using private key.
+
+Verifies $signature against digest of $message (with $algo digest algorithm) using public key.
 $algo must be available in Digest package.
+
 Returns boolean.
 
 =head2 get_legacy_address
 
 	sig: get_legacy_address($self)
+
 Returns string containing Base58Check encoded public key hash (p2pkh address)
 
 =head2 get_compat_address
 
 	sig: get_compat_address($self)
+
 Returns string containing Base58Check encoded script hash containing a witness program for compatibility purposes (p2sh(p2wpkh) address)
 
 =head2 get_segwit_address
 
 	sig: get_segwit_address($self)
+
 Returns string containing Bech32 encoded witness program (p2wpkh address)
 
 =head1 EXCEPTIONS
@@ -172,6 +190,10 @@ This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters
 =item L<Bitcoin::Crypto::Key::Private>
 
 =item L<Bitcoin::Crypto::Network>
+
+=item L<Bitcoin::Crypto::Base58>
+
+=item L<Bitcoin::Crypto::Bech32>
 
 =back
 
