@@ -138,10 +138,32 @@ using private key.
 $algo must be available in Digest package.
 Returns boolean.
 
-=head2 getAddress
+=head2 get_legacy_address
 
-	sig: getAddress($self)
+	sig: get_legacy_address($self)
 Returns string containing Base58Check encoded public key hash (p2pkh address)
+
+=head2 get_compat_address
+
+	sig: get_compat_address($self)
+Returns string containing Base58Check encoded script hash containing a witness program for compatibility purposes (p2sh(p2wpkh) address)
+
+=head2 get_segwit_address
+
+	sig: get_segwit_address($self)
+Returns string containing Bech32 encoded witness program (p2wpkh address)
+
+=head1 EXCEPTIONS
+
+This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+
+=over 2
+
+=item key_create - key couldn't be created correctly
+
+=item network_config - incomplete or corrupted network configuration
+
+=back
 
 =head1 SEE ALSO
 

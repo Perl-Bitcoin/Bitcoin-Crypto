@@ -150,6 +150,20 @@ Returns a new extended key instance - result of a deriviation.
 	sig: get_fingerprint($self, $len = 4)
 Returns a fingerprint of the extended key of $len length (byte string)
 
+=head1 EXCEPTIONS
+
+This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+
+=over 2
+
+=item key_derive - key couldn't be derived correctly
+
+=item key_create - key couldn't be created correctly
+
+=item network_config - incomplete or corrupted network configuration
+
+=back
+
 =head1 SEE ALSO
 
 =over 2

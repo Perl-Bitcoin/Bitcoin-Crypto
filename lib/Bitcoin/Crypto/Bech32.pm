@@ -2,7 +2,6 @@ package Bitcoin::Crypto::Bech32;
 
 use Modern::Perl "2010";
 use Exporter qw(import);
-use Math::BigInt 1.999816 try => 'GMP';
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Segwit qw(validate_program);
@@ -219,18 +218,22 @@ sub decode_segwit
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl (BIP173 compatible)
+Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl
 
 =head1 SYNOPSIS
 
 	use Bitcoin::Crypto::Bech32 qw(:all);
 
-	my $bech32str = encode_bech32(pack "A*", "hello");
+	my $bech32str = encode_bech32("hello", pack "A*", "world"); # should start with hello1
 	my $bytestr = decode_bech32($bech32str);
+
+	my $segwit_address = encode_segwit($network_hrp, $version . $pubkeyhash);
+	my $data = decode_segwit($segwit_address);
+
 
 =head1 DESCRIPTION
 
-Implementation of Bech32 algorithm with Math::BigInt (GMP).
+Implementation of Bech32 algorithm (BIP173 compatible)
 
 =head1 FUNCTIONS
 
@@ -239,19 +242,44 @@ Implementation of Bech32 algorithm with Math::BigInt (GMP).
 =head2 decode_bech32
 
 Basic bech32 encoding / decoding.
-Encoding takes one argument which is byte string.
-Decoding takes bech32-encoded string and croaks on errors.
+Encoding takes two arguments which are a human readable part and a byte string.
+Decoding takes bech32-encoded string.
+
+=head2 encode_segwit
+
+=head2 decode_segwit
+
+Bech32 encoding / decoding valid for SegWit addresses. Does not validate the human readable part.
+These functions also perform segwit program validation, see L<Bitcoin::Crypto::Segwit>.
+Encoding takes two arguments which are a human readable part and a byte string.
+Decoding takes bech32-encoded string. Returns the entire encoded data along with the segwit program version byte.
 
 =head2 split_bech32
 
 Splits a bech32-encoded string into human-readable part and data part. Returns a list containing the two.
 Performs all validity checks on the input. Croaks on every error.
 
+=head1 EXCEPTIONS
+
+This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+
+=over 2
+
+=item bech32_input_format - input was not suitable for bech32 operations due to invalid format
+
+=item bech32_input_data - input was parsed with bech32 operations but contained invalid data
+
+=item bech32_input_checksum - checksum validation has failed
+
+=back
+
 =head1 SEE ALSO
 
 =over 2
 
-=item L<Bitcoin::Crypto::Key::Private>
+=item L<Bitcoin::Crypto::Base58>
+
+=item L<Bitcoin::Crypto::Segwit>
 
 =item L<Bitcoin::Crypto::Key::Public>
 

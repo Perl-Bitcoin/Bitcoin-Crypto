@@ -218,6 +218,20 @@ using private key.
 $algo must be available in Digest package.
 Returns boolean.
 
+=head1 EXCEPTIONS
+
+This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+
+=over 2
+
+=item key_sign - couldn't sign the message corretcly
+
+=item key_create - key couldn't be created correctly
+
+=item network_config - incomplete or corrupted network configuration
+
+=back
+
 =head1 SEE ALSO
 
 =over 2

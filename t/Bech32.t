@@ -117,6 +117,10 @@ my %tests = (
 		type => "segwit",
 		data => "00000000c4a5cad46221b2a187905e5266362b99d5e91c6ce24d165dab93e86433"
 	},
+	"bc1qtxl7x889mkneu8fum3q0645eph4fctewa83trd" => {
+		type => "segwit",
+		data => "0059bfe31ce5dda79e1d3cdc40fd56990dea9c2f2e",
+	},
 	"tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7" => {
 		type => "segwit",
 		exception => "bech32_input_format"

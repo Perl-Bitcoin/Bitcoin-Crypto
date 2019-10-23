@@ -143,6 +143,18 @@ Base58 with leading zero preservation.
 Base58 with leading zero preservation and checksum validation.
 Additional errors (other than illegal characters) are croaked.
 
+=head1 EXCEPTIONS
+
+This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+
+=over 2
+
+=item base58_input_format - input was not suitable for base58 operations due to invalid format
+
+=item base58_input_checksum - checksum validation has failed
+
+=back
+
 =head1 SEE ALSO
 
 =over 2
