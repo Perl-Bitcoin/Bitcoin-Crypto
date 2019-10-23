@@ -541,7 +541,7 @@ has "operations" => (
 	default => sub { [] },
 );
 
-sub getOpCode
+sub get_op_code
 {
 	my ($context, $op_code) = @_;
 	if ($op_code =~ /^OP_(.+)/) {
@@ -563,93 +563,93 @@ sub getOpCode
 	}
 }
 
-sub pushRaw
+sub push_raw
 {
 	my ($self, $bytes) = @_;
 	push @{$self->operations}, $bytes;
 	return $self;
 }
 
-sub addOperation
+sub add_operation
 {
 	my ($self, $op_code) = @_;
-	my $val = $self->getOpCode($op_code);
-	$self->pushRaw($val);
+	my $val = $self->get_op_code($op_code);
+	$self->push_raw($val);
 	return $self;
 }
 
-sub pushBytes
+sub push_bytes
 {
 	my ($self, $bytes) = @_;
 	my $len = length $bytes;
 	if ($bytes =~ /[\x00-\x16]/ && $len == 1) {
 		my $num = unpack "C", $bytes;
-		$self->addOperation("OP_$num");
+		$self->add_operation("OP_$num");
 	} else {
 		if ($len <= 75) {
-			$self->addOperation($len);
+			$self->add_operation($len);
 		} elsif ($len < (2 << 7)) {
-			$self->addOperation("PUSHDATA1")
-				->pushRaw(pack "C", $len);
+			$self->add_operation("PUSHDATA1")
+				->push_raw(pack "C", $len);
 		} elsif ($len < (2 << 15)) {
-			$self->addOperation("PUSHDATA2")
-				->pushRaw(pack "S", $len);
+			$self->add_operation("PUSHDATA2")
+				->push_raw(pack "S", $len);
 		} elsif ($len < (2 << 31)) {
-			$self->addOperation("PUSHDATA4")
-				->pushRaw(pack "L", $len);
+			$self->add_operation("PUSHDATA4")
+				->push_raw(pack "L", $len);
 		} else {
 			Bitcoin::Crypto::Exception->raise(
 				code => "script_push",
 				message => "too much data to push onto stack in one operation"
 			);
 		}
-		$self->pushRaw($bytes);
+		$self->push_raw($bytes);
 	}
 	return $self;
 }
 
-sub getScript
+sub get_script
 {
 	my ($self) = @_;
 	return join "", @{$self->operations};
 }
 
-sub getScriptHash
+sub get_script_hash
 {
 	my ($self) = @_;
-	return hash160($self->getScript);
+	return hash160($self->get_script);
 }
 
-sub witnessProgram
+sub witness_program
 {
 	my ($self) = @_;
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
-	$program->addOperation($config{witness_version});
-	$program->pushBytes(hash256($self->getScript));
-	return $program->getScript;
+	$program->add_operation($config{witness_version});
+	$program->push_bytes(hash256($self->get_script));
+	return $program->get_script;
 }
 
-sub getLegacyAddress
+sub get_legacy_address
 {
 	my ($self) = @_;
-	return encode_base58check($self->network->{p2sh_byte} . $self->getScriptHash);
+	return encode_base58check($self->network->{p2sh_byte} . $self->get_script_hash);
 }
 
-sub getCompatAddress
+sub get_compat_address
 {
 	my ($self) = @_;
 
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
-	$program->addOperation("OP_" . $config{witness_version})
-		->pushBytes(hash256($self->getScript));
-	return $program->getLegacyAddress;
+	$program->add_operation("OP_" . $config{witness_version})
+		->push_bytes(hash256($self->get_script));
+	return $program->get_legacy_address;
 }
 
-sub getSegwitAddress
+sub get_segwit_address
 {
 	my ($self) = @_;
 
-	return encode_bech32($self->network->{segwit_hrp}, $self->witnessProgram);
+	return encode_bech32($self->network->{segwit_hrp}, $self->witness_program);
 }
 
 1;
@@ -664,7 +664,7 @@ Bitcoin::Crypto::Script - class for Bitcoin public keys
 
 	# verify signature (it has to be byte string, see perlpacktut)
 
-	$pub->verifyMessage("Hello world", $sig);
+	$pub->verify_message("Hello world", $sig);
 
 	# getting address from public key (p2pkh)
 
@@ -686,9 +686,9 @@ You can use a public key to:
 
 =head1 METHODS
 
-=head2 fromBytes
+=head2 from_bytes
 
-	sig: fromBytes($class, $data)
+	sig: from_bytes($class, $data)
 Use this method to create a PublicKey instance from a byte string.
 Data $data will be used as a private key entropy.
 Returns class instance.
@@ -696,43 +696,43 @@ Returns class instance.
 =head2 new
 
 	sig: new($class, $data)
-This works exactly the same as fromBytes
+This works exactly the same as from_bytes
 
-=head2 toBytes
+=head2 to_bytes
 
-	sig: toBytes($self)
-Does the opposite of fromBytes on a target object
+	sig: to_bytes($self)
+Does the opposite of from_bytes on a target object
 
-=head2 fromHex
+=head2 from_hex
 
-	sig: fromHex($class, $hex)
+	sig: from_hex($class, $hex)
 Use this method to create a PrivateKey instance from a hexadecimal number.
 Number $hex will be used as a private key entropy.
 Returns class instance.
 
-=head2 toHex
+=head2 to_hex
 
-	sig: toHex($self)
-Does the opposite of fromHex on a target object
+	sig: to_hex($self)
+Does the opposite of from_hex on a target object
 
-=head2 setCompressed
+=head2 set_compressed
 
-	sig: setCompressed($self, $val)
+	sig: set_compressed($self, $val)
 Change key's compression state to $val (1/0). This will change the address.
 If $val is omitted it is set to 1.
 Returns current key instance.
 
-=head2 setNetwork
+=head2 set_network
 
-	sig: setNetwork($self, $val)
+	sig: set_network($self, $val)
 Change key's network state to $val. It can be either network name present in
 Bitcoin::Crypto::Network package or a valid network hashref. This will change
 the address.
 Returns current key instance.
 
-=head2 verifyMessage
+=head2 verify_message
 
-	sig: verifyMessage($self, $message, $signature, $algo = "sha256")
+	sig: verify_message($self, $message, $signature, $algo = "sha256")
 Verifies $signature against digest of $message (with $algo digest algorithm)
 using private key.
 $algo must be available in Digest package.

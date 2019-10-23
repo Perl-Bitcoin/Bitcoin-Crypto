@@ -13,9 +13,9 @@ use Bitcoin::Crypto::Exception;
 
 with "Bitcoin::Crypto::Role::ExtendedKey";
 
-sub _isPrivate { 0 }
+sub _is_private { 0 }
 
-sub _deriveKeyPartial
+sub _derive_key_partial
 {
 	my ($self, $child_num, $hardened) = @_;
 
@@ -25,20 +25,20 @@ sub _deriveKeyPartial
 	) if $hardened;
 
 	# public key data - SEC compressed form
-	my $hmac_data = $self->rawKey("public_compressed");
+	my $hmac_data = $self->raw_key("public_compressed");
 	# child number - 4 bytes
 	$hmac_data .= ensure_length pack("N", $child_num), 4;
 
-	my $data = hmac_sha512($hmac_data, $self->chainCode);
+	my $data = hmac_sha512($hmac_data, $self->chain_code);
 	my $chain_code = substr $data, 32, 32;
 
 	my $el_curve = Math::EllipticCurve::Prime->from_name($config{curve_name});
 	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
-	my $key = $self->_createKey(substr $data, 0, 32);
+	my $key = $self->_create_key(substr $data, 0, 32);
 	my $point = Math::EllipticCurve::Prime::Point->from_bytes($key->export_key_raw("public"));
 	$point->curve($el_curve);
 	my $point_cpy = $point->copy();
-	my $parent_point = Math::EllipticCurve::Prime::Point->from_bytes($self->rawKey("public"));
+	my $parent_point = Math::EllipticCurve::Prime::Point->from_bytes($self->raw_key("public"));
 	$parent_point->curve($el_curve);
 	my $n_order = $el_curve->n;
 
@@ -53,7 +53,7 @@ sub _deriveKeyPartial
 		$point->to_bytes,
 		$chain_code,
 		$child_num,
-		$self->getFingerprint,
+		$self->get_fingerprint,
 		$self->depth + 1
 	);
 }
@@ -70,17 +70,17 @@ Bitcoin::Crypto::Key::ExtPublic - class for Bitcoin extended public keys
 
 	use Bitcoin::Crypto::Key::ExtPrivate;
 
-	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generateMnemonic;
-	my $key = Bitcoin::Crypto::Key::ExtPrivate->fromMnemonic($mnemonic);
+	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic;
+	my $key = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic);
 
 	# derive child public key
 	my $path = "M/0";
-	my $child_key = $key->deriveKey($path);
-	my $ser_child_key = $child_key->toSerializedBase58;
+	my $child_key = $key->derive_key($path);
+	my $ser_child_key = $child_key->to_serialized_base58;
 	print "Your exported $path child key is: $ser_child_key";
 
 	# create basic public key
-	my $basic_public = $child_key->getBasicKey;
+	my $basic_public = $child_key->get_basic_key;
 
 =head1 DESCRIPTION
 
@@ -100,44 +100,44 @@ see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bit
 
 =head1 METHODS
 
-=head2 toSerialized
+=head2 to_serialized
 
-	sig: toSerialized($self)
+	sig: to_serialized($self)
 Returns the key serialized in format specified in BIP32 as byte string.
 
-=head2 toSerializedBase58
+=head2 to_serialized_base58
 
-	sig: toSerializedBase58($self)
-Behaves the same as toSerialized(), but performs Base58Check encoding
+	sig: to_serialized_base58($self)
+Behaves the same as to_serialized(), but performs Base58Check encoding
 on the resulting byte string.
 
-=head2 fromSerialized
+=head2 from_serialized
 
-	sig: fromSerialized($class, $serialized, $network = undef)
+	sig: from_serialized($class, $serialized, $network = undef)
 Tries to unserialize byte string $serialized with format specified in BIP32.
 Croaks on errors. If multiple networks match serialized data specify $network
 manually (id of the network) to avoid exception.
 
-=head2 fromSerializedBase58
+=head2 from_serialized_base58
 
-	sig: fromSerializedBase58($class, $base58, $network)
-Same as fromSerialized, but performs Base58Check decoding on $base58 argument.
+	sig: from_serialized_base58($class, $base58, $network)
+Same as from_serialized, but performs Base58Check decoding on $base58 argument.
 
-=head2 setNetwork
+=head2 set_network
 
-	sig: setNetwork($self, $val)
+	sig: set_network($self, $val)
 Change key's network state to $val. It can be either network name present in
 Bitcoin::Crypto::Network package or a valid network hashref.
 Returns current key instance.
 
-=head2 getBasicKey
+=head2 get_basic_key
 
-	sig: getBasicKey($self)
+	sig: get_basic_key($self)
 Returns the key in basic format: L<Bitcoin::Crypto::Key::Public>
 
-=head2 deriveKey
+=head2 derive_key
 
-	sig: deriveKey($self, $path)
+	sig: derive_key($self, $path)
 Performs extended key deriviation as specified in BIP32 on the current key
 with $path. Croaks on error.
 See BIP32 document for details on deriviation paths and methods.
@@ -145,9 +145,9 @@ Note that public keys cannot derive private keys and your deriviation
 path must start with M (capital m).
 Returns a new extended key instance - result of a deriviation.
 
-=head2 getFingerprint
+=head2 get_fingerprint
 
-	sig: getFingerprint($self, $len = 4)
+	sig: get_fingerprint($self, $len = 4)
 Returns a fingerprint of the extended key of $len length (byte string)
 
 =head1 SEE ALSO

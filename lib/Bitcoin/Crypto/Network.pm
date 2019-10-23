@@ -210,9 +210,9 @@ three keys, which are marked with *
 After you add_network your program will be able to import keys for that
 network but all keys created from other sources will be treated as bitcoin.
 You need to set_default_network to make all new keys use it. If you use many
-networks it might be better to set a network with key's setNetwork method:
+networks it might be better to set a network with key's set_network method:
 
-	$priv->setNetwork("your_network");
+	$priv->set_network("your_network");
 
 Some things to consider:
 
@@ -230,7 +230,7 @@ networks with custom ones.
 of creation, so  changing configuration after you've created your keys
 may not bring the results you're expecting. You probably shouldn't be doing
 this anyway, but if for some reason you need to update your configuration
-then you need to either re-create all private and public keys or use setNetwork
+then you need to either re-create all private and public keys or use set_network
 method on them all.
 
 =back

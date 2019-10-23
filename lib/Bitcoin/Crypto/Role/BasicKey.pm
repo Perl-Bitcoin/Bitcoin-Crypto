@@ -9,14 +9,14 @@ use Bitcoin::Crypto::Exception;
 with "Bitcoin::Crypto::Role::Key";
 with "Bitcoin::Crypto::Role::Compressed";
 
-sub signMessage
+sub sign_message
 {
 	my ($self, $message, $algorithm) = @_;
 
 	Bitcoin::Crypto::Exception->raise(
 		code => "key_sign",
 		message => "cannot sign a message with a public key"
-	) unless $self->_isPrivate;
+	) unless $self->_is_private;
 
 	Bitcoin::Crypto::Exception->warn(
 		code => "key_sign",
@@ -24,39 +24,39 @@ sub signMessage
 	);
 
 	$algorithm //= "sha256";
-	return $self->keyInstance->sign_message($message, $algorithm);
+	return $self->key_instance->sign_message($message, $algorithm);
 }
 
-sub verifyMessage
+sub verify_message
 {
 	my ($self, $message, $signature, $algorithm) = @_;
 	$algorithm //= "sha256";
-	return $self->keyInstance->verify_message($signature, $message, $algorithm);
+	return $self->key_instance->verify_message($signature, $message, $algorithm);
 }
 
-sub fromHex
+sub from_hex
 {
 	my ($class, $val) = @_;
-	return $class->fromBytes(pack "H*", pad_hex($val));
+	return $class->from_bytes(pack "H*", pad_hex($val));
 }
 
-sub toHex
+sub to_hex
 {
 	my ($self) = @_;
-	return unpack "H*", $self->toBytes();
+	return unpack "H*", $self->to_bytes();
 }
 
-sub fromBytes
+sub from_bytes
 {
 	my ($class, $bytes) = @_;
 
 	return $class->new($bytes);
 }
 
-sub toBytes
+sub to_bytes
 {
 	my ($self) = @_;
-	return $self->rawKey;
+	return $self->raw_key;
 }
 
 1;

@@ -18,9 +18,9 @@ use Bitcoin::Crypto::Exception;
 
 with "Bitcoin::Crypto::Role::ExtendedKey";
 
-sub _isPrivate { 1 }
+sub _is_private { 1 }
 
-sub generateMnemonic
+sub generate_mnemonic
 {
 	my ($class, $len, $lang) = @_;
 	my ($min_len, $len_div, $max_len) = (128, 32, 256);
@@ -37,7 +37,7 @@ sub generateMnemonic
 	return $ret->{mnemonic};
 }
 
-sub fromMnemonic
+sub from_mnemonic
 {
 	my ($class, $mnemonic, $password, $lang) = @_;
 	$mnemonic = encode("UTF-8", NFKD(decode("UTF-8", $mnemonic)));
@@ -50,10 +50,10 @@ sub fromMnemonic
 	}
 	my $bytes = derive("SHA-512", $mnemonic, $password, 2048);
 
-	return $class->fromSeed($bytes);
+	return $class->from_seed($bytes);
 }
 
-sub fromSeed
+sub from_seed
 {
 	my ($class, $seed) = @_;
 	my $bytes = hmac_sha512($seed, "Bitcoin seed");
@@ -63,30 +63,30 @@ sub fromSeed
 	return $class->new($key, $cc);
 }
 
-sub fromHexSeed
+sub from_hex_seed
 {
 	my ($class, $seed) = @_;
 
-	return $class->fromSeed(pack "H*", pad_hex $seed);
+	return $class->from_seed(pack "H*", pad_hex $seed);
 }
 
-sub getPublicKey
+sub get_public_key
 {
 	my ($self) = @_;
 
 	my $public = Bitcoin::Crypto::Key::ExtPublic->new(
-		$self->rawKey("public"),
-		$self->chainCode,
-		$self->childNumber,
-		$self->parentFingerprint,
+		$self->raw_key("public"),
+		$self->chain_code,
+		$self->child_number,
+		$self->parent_fingerprint,
 		$self->depth
 	);
-	$public->setNetwork($self->network);
+	$public->set_network($self->network);
 
 	return $public;
 }
 
-sub _deriveKeyPartial
+sub _derive_key_partial
 {
 	my ($self, $child_num, $hardened) = @_;
 
@@ -95,19 +95,19 @@ sub _deriveKeyPartial
 		# zero byte
 		$hmac_data .= "\x00";
 		# key data - 32 bytes
-		$hmac_data .= ensure_length $self->rawKey, $config{key_max_length};
+		$hmac_data .= ensure_length $self->raw_key, $config{key_max_length};
 	} else {
 		# public key data - SEC compressed form
-		$hmac_data .= $self->rawKey("public_compressed");
+		$hmac_data .= $self->raw_key("public_compressed");
 	}
 	# child number - 4 bytes
 	$hmac_data .= ensure_length pack("N", $child_num), 4;
 
-	my $data = hmac_sha512($hmac_data, $self->chainCode);
+	my $data = hmac_sha512($hmac_data, $self->chain_code);
 	my $chain_code = substr $data, 32, 32;
 
 	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
-	my $key_num = Math::BigInt->from_bytes($self->rawKey);
+	my $key_num = Math::BigInt->from_bytes($self->raw_key);
 	my $n_order = Math::EllipticCurve::Prime->from_name($config{curve_name})->n;
 
 	Bitcoin::Crypto::Exception->raise(
@@ -122,7 +122,7 @@ sub _deriveKeyPartial
 		$number->as_bytes,
 		$chain_code,
 		$child_num,
-		$self->getFingerprint,
+		$self->get_fingerprint,
 		$self->depth + 1
 	);
 }
@@ -139,23 +139,23 @@ Bitcoin::Crypto::Key::ExtPrivate - class for Bitcoin extended private keys
 	use Bitcoin::Crypto::Key::ExtPrivate;
 
 	# generate mnemonic words first
-	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generateMnemonic;
+	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic;
 	print "Your mnemonic is: $mnemonic";
 
 	# create ExtPrivateKey from mnemonic (without password)
-	my $key = Bitcoin::Crypto::Key::ExtPrivate->fromMnemonic($mnemonic);
-	my $ser_key = $key->toSerializedBase58;
+	my $key = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic);
+	my $ser_key = $key->to_serialized_base58;
 	print "Your exported master key is: $ser_key";
 
 	# derive child private key
 	my $path = "m/0'";
-	my $child_key = $key->deriveKey($path);
-	my $ser_child_key = $child_key->toSerializedBase58;
+	my $child_key = $key->derive_key($path);
+	my $ser_child_key = $child_key->to_serialized_base58;
 	print "Your exported $path child key is: $ser_child_key";
 
 	# create basic keypair
-	my $basic_private = $child_key->getBasicKey;
-	my $basic_public = $child_key->getPublicKey->getBasicKey;
+	my $basic_private = $child_key->get_basic_key;
+	my $basic_public = $child_key->get_public_key->get_basic_key;
 
 =head1 DESCRIPTION
 
@@ -177,86 +177,86 @@ see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bit
 
 =head1 METHODS
 
-=head2 generateMnemonic
+=head2 generate_mnemonic
 
-	sig: generateMnemonic($class, $len = 128, $lang = "en")
+	sig: generate_mnemonic($class, $len = 128, $lang = "en")
 Generates a new valid mnemonic code. Default entropy is 128 bits.
 With $len this can be changed to up to 256 bits with 32 bit step.
 Other languages than english require additional modules for L<Bitcoin::BIP39>.
 Croaks when $len is invalid (under 128, above 256 or not divisible by 32).
 Returns newly generated BIP39 mnemonic string.
 
-=head2 fromMnemonic
+=head2 from_mnemonic
 
-	sig: fromMnemonic($class, $mnemonic, $password = "", $lang = undef)
+	sig: from_mnemonic($class, $mnemonic, $password = "", $lang = undef)
 Creates a new key from given mnemonic and password.
 Note that technically any password is correct and there's no way to tell if it was mistaken.
 If you need to validate if $mnemonic is a valid mnemonic you should specify $lang, e.g. "en".
 If no $lang is given then any string passed as $mnemonic will produce a valid key.
 Returns a new instance of this class.
 
-=head2 fromSeed
+=head2 from_seed
 
-	sig: fromSeed($class, $seed)
+	sig: from_seed($class, $seed)
 Creates and returns a new key from seed, which can be any data of any length.
 $seed is expected to be a byte string.
 
-=head2 fromHexSeed
+=head2 from_hex_seed
 
-	sig: fromHexSeed($class, $seed)
-Same as fromSeed, but $seed is treated as hex string.
+	sig: from_hex_seed($class, $seed)
+Same as from_seed, but $seed is treated as hex string.
 
-=head2 toSerialized
+=head2 to_serialized
 
-	sig: toSerialized($self)
+	sig: to_serialized($self)
 Returns the key serialized in format specified in BIP32 as byte string.
 
-=head2 toSerializedBase58
+=head2 to_serialized_base58
 
-	sig: toSerializedBase58($self)
-Behaves the same as toSerialized(), but performs Base58Check encoding
+	sig: to_serialized_base58($self)
+Behaves the same as to_serialized(), but performs Base58Check encoding
 on the resulting byte string.
 
-=head2 fromSerialized
+=head2 from_serialized
 
-	sig: fromSerialized($class, $serialized, $network = undef)
+	sig: from_serialized($class, $serialized, $network = undef)
 Tries to unserialize byte string $serialized with format specified in BIP32.
 Croaks on errors. If multiple networks match serialized data specify $network
 manually (id of the network) to avoid exception.
 
-=head2 fromSerializedBase58
+=head2 from_serialized_base58
 
-	sig: fromSerializedBase58($class, $base58, $network)
-Same as fromSerialized, but performs Base58Check decoding on $base58 argument.
+	sig: from_serialized_base58($class, $base58, $network)
+Same as from_serialized, but performs Base58Check decoding on $base58 argument.
 
-=head2 setNetwork
+=head2 set_network
 
-	sig: setNetwork($self, $val)
+	sig: set_network($self, $val)
 Change key's network state to $val. It can be either network name present in
 Bitcoin::Crypto::Network package or a valid network hashref.
 Returns current key instance.
 
-=head2 getPublicKey
+=head2 get_public_key
 
-	sig: getPublicKey($self)
+	sig: get_public_key($self)
 Returns instance of L<Bitcoin::Crypto::Key::ExtPublic> generated from the private key.
 
-=head2 getBasicKey
+=head2 get_basic_key
 
-	sig: getBasicKey($self)
+	sig: get_basic_key($self)
 Returns the key in basic format: L<Bitcoin::Crypto::Key::Private>
 
-=head2 deriveKey
+=head2 derive_key
 
-	sig: deriveKey($self, $path)
+	sig: derive_key($self, $path)
 Performs extended key deriviation as specified in BIP32 on the current key
 with $path. Croaks on error.
 See BIP32 document for details on deriviation paths and methods.
 Returns a new extended key instance - result of a deriviation.
 
-=head2 getFingerprint
+=head2 get_fingerprint
 
-	sig: getFingerprint($self, $len = 4)
+	sig: get_fingerprint($self, $len = 4)
 Returns a fingerprint of the extended key of $len length (byte string)
 
 =head1 SEE ALSO

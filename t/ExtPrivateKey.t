@@ -78,32 +78,32 @@ my @test_data = (
 
 # testing for compatibility with other bip39 tools
 foreach my $tdata (@test_data) {
-	my $from_mnemonic = Bitcoin::Crypto::Key::ExtPrivate->fromMnemonic($tdata->{mnemonic}, $tdata->{passphrase}, $tdata->{lang});
-	my $from_seed = Bitcoin::Crypto::Key::ExtPrivate->fromHexSeed($tdata->{seed});
-	my $exported = $from_mnemonic->toSerializedBase58();
-	is($exported, encode_base58check($from_mnemonic->toSerialized()), "serialization is consistent");
-	is($exported, $from_seed->toSerializedBase58(), "importing is consistent");
+	my $from_mnemonic = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($tdata->{mnemonic}, $tdata->{passphrase}, $tdata->{lang});
+	my $from_seed = Bitcoin::Crypto::Key::ExtPrivate->from_hex_seed($tdata->{seed});
+	my $exported = $from_mnemonic->to_serialized_base58();
+	is($exported, encode_base58check($from_mnemonic->to_serialized()), "serialization is consistent");
+	is($exported, $from_seed->to_serialized_base58(), "importing is consistent");
 	is($exported, $tdata->{key}, "valid extended key result");
 
-	my $from_serialized = Bitcoin::Crypto::Key::ExtPrivate->fromSerializedBase58($tdata->{key});
-	my $extpublic = $from_serialized->getPublicKey();
-	my $basic_private = $from_serialized->getBasicKey();
-	my $basic_public = $extpublic->getBasicKey();
+	my $from_serialized = Bitcoin::Crypto::Key::ExtPrivate->from_serialized_base58($tdata->{key});
+	my $extpublic = $from_serialized->get_public_key();
+	my $basic_private = $from_serialized->get_basic_key();
+	my $basic_public = $extpublic->get_basic_key();
 	is(ref $basic_private, "Bitcoin::Crypto::Key::Private", "basic private key created");
 	is(ref $basic_public, "Bitcoin::Crypto::Key::Public", "basic public key created");
-	is($basic_private->getPublicKey()->toBytes(), $basic_public->toBytes(), "keys match");
+	is($basic_private->get_public_key()->to_bytes(), $basic_public->to_bytes(), "keys match");
 
-	my $basic_derived = $from_serialized->deriveKey("m/0")->getBasicKey();
-	is($basic_derived->toWif(), $tdata->{basic}, "derived basic private key ok");
+	my $basic_derived = $from_serialized->derive_key("m/0")->get_basic_key();
+	is($basic_derived->to_wif(), $tdata->{basic}, "derived basic private key ok");
 }
 
 # generating english mnemonics
 for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
-	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generateMnemonic($bits, "en");
+	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic($bits, "en");
 	my $length = $bits / 8 - 4;
 	ok($mnemonic =~ /^(\w+ ?){$length}$/, "generated mnemonic looks valid ($bits bits)");
 	try {
-		Bitcoin::Crypto::Key::ExtPrivate->fromMnemonic($mnemonic, "", "en");
+		Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic, "", "en");
 		pass("generated mnemonic can be imported");
 	} catch {
 		fail("generated mnemonic is not importable");
@@ -111,15 +111,15 @@ for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
 }
 
 # test for network in extended keys
-my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generateMnemonic;
-my $key = Bitcoin::Crypto::Key::ExtPrivate->fromMnemonic($mnemonic);
-$key->setNetwork("testnet");
-is(substr($key->toSerializedBase58, 0, 4), "tprv", "extended key used the new network data in exporting");
+my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic;
+my $key = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic);
+$key->set_network("testnet");
+is(substr($key->to_serialized_base58, 0, 4), "tprv", "extended key used the new network data in exporting");
 is($key->network->{name}, "Bitcoin Testnet", "extended key uses the new network");
-is($key->getPublicKey()->network->{name}, "Bitcoin Testnet", "extended public key uses the new network");
-$key = $key->deriveKey("m/0'/1");
+is($key->get_public_key()->network->{name}, "Bitcoin Testnet", "extended public key uses the new network");
+$key = $key->derive_key("m/0'/1");
 is($key->network->{name}, "Bitcoin Testnet", "derived extended key used the new network data");
-my $basic_key = $key->getBasicKey;
+my $basic_key = $key->get_basic_key;
 is($basic_key->network->{name}, "Bitcoin Testnet", "basic key inherited extended key's network");
 
 done_testing;

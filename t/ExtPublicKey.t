@@ -28,10 +28,10 @@ my %test_data = (
 
 for my $ser_key (keys %test_data) {
 	my $addresses = $test_data{$ser_key};
-	my $master_pubkey = Bitcoin::Crypto::Key::ExtPublic->fromSerializedBase58($ser_key);
+	my $master_pubkey = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($ser_key);
 	for my $i (0 .. @$addresses - 1) {
-		my $derived = $master_pubkey->deriveKey("M/$i");
-		is($derived->getBasicKey()->getLegacyAddress(), $addresses->[$i], "address is valid");
+		my $derived = $master_pubkey->derive_key("M/$i");
+		is($derived->get_basic_key()->get_legacy_address(), $addresses->[$i], "address is valid");
 	}
 }
 

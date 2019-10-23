@@ -12,14 +12,14 @@ use Bitcoin::Crypto::Exception;
 
 with "Bitcoin::Crypto::Role::Network";
 
-has "keyInstance" => (
+has "key_instance" => (
 	is => "ro",
 	isa => InstanceOf["Crypt::PK::ECC"]
 );
 
-sub _isPrivate { undef }
+sub _is_private { undef }
 
-sub _buildArgs
+sub _build_args
 {
 	my ($class, @params) = @_;
 
@@ -29,22 +29,22 @@ sub _buildArgs
 	) unless @params == 1;
 
 	return
-		keyInstance => $class->_createKey($params[0]);
+		key_instance => $class->_create_key($params[0]);
 }
 
 around BUILDARGS => sub {
 	my ($orig, $class) = @_;
-	my %params = $class->_buildArgs(splice @_, 2);
+	my %params = $class->_build_args(splice @_, 2);
 
 	Bitcoin::Crypto::Exception->raise(
 		code => "key_create",
 		message => "trying to create key from unknown key data"
-	) unless $params{keyInstance}->is_private() == $class->_isPrivate;
+	) unless $params{key_instance}->is_private() == $class->_is_private;
 
 	return $class->$orig(%params);
 };
 
-sub _createKey
+sub _create_key
 {
 	my ($class, $entropy) = @_;
 
@@ -64,19 +64,19 @@ sub _createKey
 	return $key;
 }
 
-sub rawKey
+sub raw_key
 {
 	my ($self, $type) = @_;
 
 	unless (defined $type) {
 		$type = "public_compressed";
-		if ($self->_isPrivate) {
+		if ($self->_is_private) {
 			$type = "private";
 		} elsif ($self->does("Bitcoin::Crypto::Role::Compressed") && !$self->compressed) {
 			$type = "public";
 		}
 	}
-	return $self->keyInstance->export_key_raw($type);
+	return $self->key_instance->export_key_raw($type);
 }
 
 1;

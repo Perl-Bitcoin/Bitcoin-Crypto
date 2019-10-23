@@ -12,10 +12,10 @@ has "network" => (
 	default => sub {
 		return get_default_network();
 	},
-	writer => "_setNetwork"
+	writer => "_set_network"
 );
 
-sub setNetwork
+sub set_network
 {
 	my ($self, $network) = @_;
 	if (ref $network eq ref {}) {
@@ -23,7 +23,7 @@ sub setNetwork
 	} else {
 		$network = get_network($network);
 	}
-	$self->_setNetwork($network);
+	$self->_set_network($network);
 	return $self;
 }
 

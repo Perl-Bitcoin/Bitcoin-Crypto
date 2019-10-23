@@ -18,50 +18,50 @@ my $PrivateKey = "Bitcoin::Crypto::Key::Private";
 
 # Basic creation of public keys - 4 tests
 for my $key (keys %cases) {
-	my $privkey = $PrivateKey->fromHex($key)->setCompressed(0);
-	is($privkey->toHex(), $key, "imported and exported correctly");
-	is($privkey->getPublicKey()->toHex(), $cases{$key}, "correctly created public key");
+	my $privkey = $PrivateKey->from_hex($key)->set_compressed(0);
+	is($privkey->to_hex(), $key, "imported and exported correctly");
+	is($privkey->get_public_key()->to_hex(), $cases{$key}, "correctly created public key");
 }
 
 my @keylist = keys %cases;
-my $privkey = $PrivateKey->fromHex($keylist[0])->setCompressed(0);
-my $pubkey = $privkey->getPublicKey();
+my $privkey = $PrivateKey->from_hex($keylist[0])->set_compressed(0);
+my $pubkey = $privkey->get_public_key();
 
 # Message signing - 3 tests
 my $message = "Perl test script";
-my $signature = $privkey->signMessage($message);
+my $signature = $privkey->sign_message($message);
 
-# ok($privkey->signMessage($message) eq $signature, "Signatures generation should be deterministic")
+# ok($privkey->sign_message($message) eq $signature, "Signatures generation should be deterministic")
 # 	or diag("Signatures generation seems to be nondeterministic, which is a possible private key security threat");
 
-ok($privkey->verifyMessage($message, $signature), "Valid signature");
-ok($pubkey->verifyMessage($message, $signature), "Pubkey recognizes signature");
+ok($privkey->verify_message($message, $signature), "Valid signature");
+ok($pubkey->verify_message($message, $signature), "Pubkey recognizes signature");
 
-my $privkey2 = $PrivateKey->fromHex($keylist[1]);
-my $pubkey2 = $privkey2->getPublicKey();
+my $privkey2 = $PrivateKey->from_hex($keylist[1]);
+my $pubkey2 = $privkey2->get_public_key();
 
-ok(!$pubkey2->verifyMessage($message, $signature), "Different pubkey doesn't recognize signature");
+ok(!$pubkey2->verify_message($message, $signature), "Different pubkey doesn't recognize signature");
 
 # WIF import / export - 4 tests
 my $wif_raw_key = "972e85e7e3345cb7e6a5f812aa5f5bea82005e3ded7b32d9d56f5ab2504f1648";
 my $wif = "5JxsKGzCoJwaWEjQvfNqD4qPEoUQ696BUEq68Y68WQ2GNR6zrxW";
 my $testnet_wif = "92jVu1okPY1iUJEhZ1Gk5fPLtTq7FJdNpBh3DASdr8mK9SZXqy3";
-is($PrivateKey->fromWif($wif)->toHex(), $wif_raw_key, "imported WIF correctly");
-is($PrivateKey->fromHex($wif_raw_key)->setCompressed(0)->toWif(), $wif, "exported WIF correctly");
-is($PrivateKey->fromWif($testnet_wif)->network->{name}, "Bitcoin Testnet", "Recognized non-default network");
-is($PrivateKey->fromWif($testnet_wif)->toHex(), $wif_raw_key, "imported non-default network WIF correctly");
-is($PrivateKey->fromWif($testnet_wif)->getPublicKey()->network->{name}, "Bitcoin Testnet", "Passed network to public key");
+is($PrivateKey->from_wif($wif)->to_hex(), $wif_raw_key, "imported WIF correctly");
+is($PrivateKey->from_hex($wif_raw_key)->set_compressed(0)->to_wif(), $wif, "exported WIF correctly");
+is($PrivateKey->from_wif($testnet_wif)->network->{name}, "Bitcoin Testnet", "Recognized non-default network");
+is($PrivateKey->from_wif($testnet_wif)->to_hex(), $wif_raw_key, "imported non-default network WIF correctly");
+is($PrivateKey->from_wif($testnet_wif)->get_public_key()->network->{name}, "Bitcoin Testnet", "Passed network to public key");
 
 # Key length testing - 3 tests
 my $short_key = "e8d964843cc55a91d";
 my $longer_key = "d0a08067d186ffd9d14e8d964843cc55a91d";
 my $too_long_key = "a3bc641ce7ab9a2ec7697f32d3ade425d9785e8f23bea3501524852cda3ca05fae28";
 
-is(length $PrivateKey->fromHex($short_key)->toBytes(), $config{key_max_length}, "Short key length OK");
-is(length $PrivateKey->fromHex($longer_key)->toBytes(), $config{key_max_length}, "Longer key length OK");
+is(length $PrivateKey->from_hex($short_key)->to_bytes(), $config{key_max_length}, "Short key length OK");
+is(length $PrivateKey->from_hex($longer_key)->to_bytes(), $config{key_max_length}, "Longer key length OK");
 
 try {
-	$PrivateKey->fromHex($too_long_key);
+	$PrivateKey->from_hex($too_long_key);
 	fail("Too long key was accepted");
 } catch {
 	pass("Too long key got rejected");

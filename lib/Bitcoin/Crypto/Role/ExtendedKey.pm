@@ -22,24 +22,24 @@ has "depth" => (
 	default => 0
 );
 
-has "parentFingerprint" => (
+has "parent_fingerprint" => (
 	is => "ro",
 	isa => StrExactLength[4],
 	default => sub { pack "x4" }
 );
 
-has "childNumber" => (
+has "child_number" => (
 	is => "ro",
 	isa => IntMaxBits[32],
 	default => 0
 );
 
-has "chainCode" => (
+has "chain_code" => (
 	is => "ro",
 	isa => StrExactLength[32]
 );
 
-sub _buildArgs
+sub _build_args
 {
 	my ($class, @params) = @_;
 
@@ -49,13 +49,13 @@ sub _buildArgs
 	) if @params < 2 || @params > 5;
 
 	my %ret = (
-		keyInstance => $class->_createKey($params[0]),
-		chainCode => $params[1],
+		key_instance => $class->_create_key($params[0]),
+		chain_code => $params[1],
 	);
 
-	$ret{childNumber} = $params[2]
+	$ret{child_number} = $params[2]
 		if @params >= 3;
-	$ret{parentFingerprint} = $params[3]
+	$ret{parent_fingerprint} = $params[3]
 		if @params >= 4;
 	$ret{depth} = $params[4]
 		if @params >= 5;
@@ -63,11 +63,11 @@ sub _buildArgs
 	return %ret;
 }
 
-sub toSerialized
+sub to_serialized
 {
 	my ($self) = @_;
 
-	my $network_key = "ext" . ($self->_isPrivate ? "prv" : "pub") . "_version";
+	my $network_key = "ext" . ($self->_is_private ? "prv" : "pub") . "_version";
 	my $version = $self->network->{$network_key};
 
 	# network field is not required, lazy check for completeness
@@ -81,18 +81,18 @@ sub toSerialized
 	# depth (1B)
 	$serialized .= ensure_length pack("C", $self->depth), 1;
 	# parent's fingerprint (4B) - ensured
-	$serialized .= $self->parentFingerprint;
+	$serialized .= $self->parent_fingerprint;
 	# child number (4B)
-	$serialized .= ensure_length pack("N", $self->childNumber), 4;
+	$serialized .= ensure_length pack("N", $self->child_number), 4;
 	# chain code (32B) - ensured
-	$serialized .= $self->chainCode;
+	$serialized .= $self->chain_code;
 	# key entropy (1 + 32B or 33B)
-	$serialized .= ensure_length $self->rawKey, $config{key_max_length} + 1;
+	$serialized .= ensure_length $self->raw_key, $config{key_max_length} + 1;
 
 	return $serialized;
 }
 
-sub fromSerialized
+sub from_serialized
 {
 	my ($class, $serialized, $network) = @_;
 	# expected length is 78
@@ -105,13 +105,13 @@ sub fromSerialized
 		Bitcoin::Crypto::Exception->raise(
 			code => "key_create",
 			message => "invalid class used, key is " . ($is_private ? "private" : "public")
-		) if $is_private != $class->_isPrivate;
+		) if $is_private != $class->_is_private;
 
 		$data = substr $data, 1, $config{key_max_length}
 			if $is_private;
 
 		$version = unpack "N", $version;
-		my $network_key = "ext" . ($class->_isPrivate ? "prv" : "pub") . "_version";
+		my $network_key = "ext" . ($class->_is_private ? "prv" : "pub") . "_version";
 		my @found_networks = find_network($network_key => $version);
 		@found_networks = first { $_ eq $network } @found_networks if defined $network;
 
@@ -137,7 +137,7 @@ sub fromSerialized
 			$fingerprint,
 			unpack("C", $depth)
 		);
-		$key->setNetwork(@found_networks);
+		$key->set_network(@found_networks);
 
 		return $key;
 	} else {
@@ -148,41 +148,41 @@ sub fromSerialized
 	}
 }
 
-sub toSerializedBase58
+sub to_serialized_base58
 {
 	my ($self) = @_;
-	my $serialized = $self->toSerialized();
+	my $serialized = $self->to_serialized();
 	return encode_base58check $serialized;
 }
 
-sub fromSerializedBase58
+sub from_serialized_base58
 {
 	my ($class, $base58, $network) = @_;
-	return $class->fromSerialized(decode_base58check($base58), $network);
+	return $class->from_serialized(decode_base58check($base58), $network);
 }
 
-sub getBasicKey
+sub get_basic_key
 {
 	my ($self) = @_;
-	my $entropy = $self->rawKey;
-	my $base_class = "Bitcoin::Crypto::Key::" . ($self->_isPrivate ? "Private" : "Public");
-	my $basic_key =  $base_class->fromBytes($entropy);
-	$basic_key->setNetwork($self->network);
+	my $entropy = $self->raw_key;
+	my $base_class = "Bitcoin::Crypto::Key::" . ($self->_is_private ? "Private" : "Public");
+	my $basic_key =  $base_class->from_bytes($entropy);
+	$basic_key->set_network($self->network);
 
 	return $basic_key;
 }
 
-sub getFingerprint
+sub get_fingerprint
 {
 	my ($self, $len) = @_;
 	$len //= 4;
 
-	my $pubkey = $self->rawKey("public_compressed");
+	my $pubkey = $self->raw_key("public_compressed");
 	my $identifier = hash160($pubkey);
 	return substr $identifier, 0, 4;
 }
 
-sub deriveKey
+sub derive_key
 {
 	my ($self, $path) = @_;
 	my $path_info = get_path_info $path;
@@ -195,19 +195,19 @@ sub deriveKey
 	Bitcoin::Crypto::Exception->raise(
 		code => "key_derive",
 		message => "cannot derive private key from public key"
-	) if !$self->_isPrivate && $path_info->{private};
+	) if !$self->_is_private && $path_info->{private};
 
 	my $key = $self;
 	for my $child_num (@{$path_info->{path}}) {
 		my $hardened = $child_num >= $config{max_child_keys};
 		# croaks if hardened-from-public requested
 		# croaks if key is invalid
-		$key = $key->_deriveKeyPartial($child_num, $hardened);
+		$key = $key->_derive_key_partial($child_num, $hardened);
 	}
 
-	$key->setNetwork($self->network);
-	$key = $key->getPublicKey()
-		if $self->_isPrivate && !$path_info->{private};
+	$key->set_network($self->network);
+	$key = $key->get_public_key()
+		if $self->_is_private && !$path_info->{private};
 
 	return $key;
 }

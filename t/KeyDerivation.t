@@ -136,29 +136,29 @@ my @test_data_error = (
 
 for my $seed (keys %test_data_private) {
 	my $test_vector = $test_data_private{$seed};
-	my $base_key = Bitcoin::Crypto::Key::ExtPrivate->fromSeed(pack "H*", pad_hex $seed);
+	my $base_key = Bitcoin::Crypto::Key::ExtPrivate->from_seed(pack "H*", pad_hex $seed);
 	for my $tdata (@$test_vector) {
-		my $key = $base_key->deriveKey($tdata->{path});
-		my $pubkey = $key->getPublicKey();
-		is($key->toSerializedBase58(), $tdata->{private}, "private key ok");
-		is($pubkey->toSerializedBase58(), $tdata->{public}, "public key ok");
+		my $key = $base_key->derive_key($tdata->{path});
+		my $pubkey = $key->get_public_key();
+		is($key->to_serialized_base58(), $tdata->{private}, "private key ok");
+		is($pubkey->to_serialized_base58(), $tdata->{public}, "public key ok");
 
 		(my $path_public = $tdata->{path}) =~ s/m/M/;
-		$key = $base_key->deriveKey($path_public);
-		is($key->toSerializedBase58(), $tdata->{public}, "private to public derivation ok");
+		$key = $base_key->derive_key($path_public);
+		is($key->to_serialized_base58(), $tdata->{public}, "private to public derivation ok");
 	}
 }
 
 for my $tdata (@test_data_public) {
-	my $base_key = Bitcoin::Crypto::Key::ExtPublic->fromSerializedBase58($tdata->{parent});
-	my $key = $base_key->deriveKey($tdata->{path});
-	is($key->toSerializedBase58(), $tdata->{child}, "key derivation ok");
+	my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($tdata->{parent});
+	my $key = $base_key->derive_key($tdata->{path});
+	is($key->to_serialized_base58(), $tdata->{child}, "key derivation ok");
 }
 
 for my $tdata (@test_data_error) {
 	try {
-		my $base_key = Bitcoin::Crypto::Key::ExtPublic->fromSerializedBase58($tdata->[0]);
-		$base_key->deriveKey($tdata->[1]);
+		my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($tdata->[0]);
+		$base_key->derive_key($tdata->[1]);
 		fail("incorrect derivation was successful");
 	} catch {
 		pass("incorrect derivation failed with exception");
