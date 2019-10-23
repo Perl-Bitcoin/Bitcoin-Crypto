@@ -15,6 +15,8 @@ my %cases = qw(
 );
 
 my $PrivateKey = "Bitcoin::Crypto::Key::Private";
+# silence warnings
+local $SIG{__WARN__} = sub {};
 
 # Basic creation of public keys - 4 tests
 for my $key (keys %cases) {

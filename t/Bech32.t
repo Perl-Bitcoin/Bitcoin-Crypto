@@ -7,6 +7,9 @@ use Scalar::Util qw(blessed);
 
 BEGIN { use_ok('Bitcoin::Crypto::Bech32', qw(:all)) };
 
+# silence warnings
+local $SIG{__WARN__} = sub {};
+
 my %tests = (
 	"A12UEL5L" => {
 		type => "bech32",
