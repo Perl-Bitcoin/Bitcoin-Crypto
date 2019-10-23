@@ -9,7 +9,7 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(hash160 hash256);
 use Bitcoin::Crypto::Exception;
 
-with "Bitcoin::Crypto::Roles::Network";
+with "Bitcoin::Crypto::Role::Network";
 
 # list of significant opcodes
 my %op_codes = (
