@@ -2,10 +2,17 @@ package Bitcoin::Crypto::Exception;
 
 use Modern::Perl "2010";
 use Moo;
-use MooX::Types::MooseLike::Base qw(Str);
-use Carp qw(croak cluck);
+use MooX::Types::MooseLike::Base qw(Str Bool);
+use Carp;
+use Scalar::Util qw(blessed);
 
 use overload q("") => \&stringify;
+
+has "is_exception" => (
+	is => "ro",
+	isa => Bool,
+	default => 1,
+);
 
 has "code" => (
 	is => "ro",
@@ -27,14 +34,19 @@ sub stringify
 
 sub raise
 {
-	my ($class, %args) = @_;
-	croak $class->new(%args);
+	my ($subj, %args) = @_;
+	my $obj = blessed($subj) ? $subj : $subj->new(%args);
+
+	croak $obj;
 }
 
 sub warn
 {
-	my ($class, %args) = @_;
-	cluck $class->new(%args);
+	my ($subj, %args) = @_;
+	$args{is_exception} = 0;
+	my $obj = blessed($subj) ? $subj : $subj->new(%args);
+
+	carp $obj;
 }
 
 1;

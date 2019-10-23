@@ -15,6 +15,7 @@ t/Script.t
 t/Exception.t
 t/Helpers.t
 t/Crypto.t
+t/Segwit.t
 lib/Bitcoin/Crypto.pm
 lib/Bitcoin/Crypto/Key/ExtPrivate.pm
 lib/Bitcoin/Crypto/Key/ExtPublic.pm
