@@ -3,6 +3,7 @@ use warnings;
 
 use Test::More;
 use Try::Tiny;
+use Scalar::Util qw(blessed);
 
 BEGIN { use_ok('Bitcoin::Crypto::Exception')};
 
@@ -13,7 +14,8 @@ try {
 	fail("exception wasn't raised");
 } catch {
 	my $err = $_;
-	ok($err->isa("Bitcoin::Crypto::Exception"), "object was created");
+	ok(blessed $err, "object was created");
+	ok($err->isa("Bitcoin::Crypto::Exception"), "object type ok");
 	ok($err->is_exception, "it's an exception");
 	is($err->code, "test_code", "code ok");
 	is($err->message, "test_message", "message ok");
@@ -26,7 +28,7 @@ try {
 	fail("exception wasn't raised");
 } catch {
 	my $err = $_;
-	ok(!$err->isa("Bitcoin::Crypto::Exception"), "different exception was raised");
+	ok(!blessed $err || !$err->isa("Bitcoin::Crypto::Exception"), "different exception was raised");
 	note("$err");
 };
 
@@ -35,7 +37,8 @@ try {
 	fail("warning wasn't raised");
 } catch {
 	my $err = $_;
-	ok($err->isa("Bitcoin::Crypto::Exception"), "different warning was raised");
+	ok(blessed $err, "object was created");
+	ok($err->isa("Bitcoin::Crypto::Exception"), "object type ok");
 	ok(!$err->is_exception, "it's a warning");
 	note("$err");
 };

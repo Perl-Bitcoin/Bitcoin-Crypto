@@ -68,6 +68,8 @@ Bitcoin::Crypto::Key::Public - class for Bitcoin public keys
 
 	use Bitcoin::Crypto::Key::Public;
 
+	$pub = Bitcoin::Crypto::Key::Public->from_hex($asn_hex);
+
 	# verify signature (it has to be byte string, see perlpacktut)
 
 	$pub->verify_message(pack("a*", "Hello world"), $sig);
@@ -86,7 +88,7 @@ You can use a public key to:
 
 =item * verify messages
 
-=item * create addresses: legacy, compatibility and segwit
+=item * create addresses: legacy (p2pkh), compatibility (p2sh(p2wpkh)) and segwit (p2wpkh).
 
 =back
 
@@ -117,7 +119,7 @@ Does the opposite of from_bytes on a target object
 
 	sig: from_hex($class, $hex)
 
-Use this method to create a public key instance from a hexadecimal number.
+Use this method to create a public key instance from a hexadecimal number. Packs the number and runs it through from_bytes.
 
 Returns class instance.
 

@@ -64,6 +64,13 @@ my %op_codes = (
 			# TODO
 		}
 	},
+	1 => {
+		code => "\x51",
+		func => sub {
+			my ($stack, $ops) = @_;
+			# TODO
+		}
+	},
 	TRUE => {
 		code => "\x51",
 		func => sub {
@@ -549,7 +556,7 @@ sub get_op_code
 
 		if (!defined $op_codes{$op_code} && $op_code =~ /^[0-9]+$/ && $op_code >= 2 && $op_code <= 16) {
 			# OP_N - starts with 0x52, up to 0x60
-			return pack("C", 0x52 + $op_code);
+			return pack("C", 0x50 + $op_code);
 		}
 		return $op_codes{$op_code}{code};
 	} elsif ($op_code =~ /^[0-9]+$/ && $op_code >= 1 && $op_code <= 75) {
@@ -582,7 +589,7 @@ sub push_bytes
 {
 	my ($self, $bytes) = @_;
 	my $len = length $bytes;
-	if ($bytes =~ /[\x00-\x16]/ && $len == 1) {
+	if ($bytes =~ /[\x00-\x10]/ && $len == 1) {
 		my $num = unpack "C", $bytes;
 		$self->add_operation("OP_$num");
 	} else {
@@ -656,15 +663,11 @@ sub get_segwit_address
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Script - class for Bitcoin public keys
+Bitcoin::Crypto::Script - class for Bitcoin script representations
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto::PublicKey;
-
-	# verify signature (it has to be byte string, see perlpacktut)
-
-	$pub->verify_message("Hello world", $sig);
+	use Bitcoin::Crypto::Script;
 
 	# getting address from public key (p2pkh)
 
@@ -672,55 +675,41 @@ Bitcoin::Crypto::Script - class for Bitcoin public keys
 
 =head1 DESCRIPTION
 
-This class allows you to create a public key instance.
+This class allows you to create a bitcoin script representation
 
-You can use a public key to:
+You can use a script object to:
 
 =over 2
 
-=item * verify messages
+=item * create a script from opcodes
 
-=item * create p2pkh address
+=item * serialize script into byte string
+
+=item * create legacy (p2sh), compat (p2sh(p2wsh)) and segwit (p2wsh) adresses
+
+=item * (work in progress) run script and get resulting stack
 
 =back
 
 =head1 METHODS
-
-=head2 from_bytes
-
-	sig: from_bytes($class, $data)
-Use this method to create a PublicKey instance from a byte string.
-Data $data will be used as a private key entropy.
-Returns class instance.
 
 =head2 new
 
 	sig: new($class, $data)
 This works exactly the same as from_bytes
 
-=head2 to_bytes
 
-	sig: to_bytes($self)
-Does the opposite of from_bytes on a target object
+=head2 get_script
 
-=head2 from_hex
+	sig: get_script($self)
 
-	sig: from_hex($class, $hex)
-Use this method to create a PrivateKey instance from a hexadecimal number.
-Number $hex will be used as a private key entropy.
-Returns class instance.
+Returns a serialized script as byte string.
 
-=head2 to_hex
+=head2 get_script_hash
 
-	sig: to_hex($self)
-Does the opposite of from_hex on a target object
+	sig: get_script_hash($self)
 
-=head2 set_compressed
-
-	sig: set_compressed($self, $val)
-Change key's compression state to $val (1/0). This will change the address.
-If $val is omitted it is set to 1.
-Returns current key instance.
+Returns a serialized script parsed with HASH160 (ripemd160 of sha256).
 
 =head2 set_network
 
@@ -730,18 +719,23 @@ Bitcoin::Crypto::Network package or a valid network hashref. This will change
 the address.
 Returns current key instance.
 
-=head2 verify_message
+=head2 get_legacy_address
 
-	sig: verify_message($self, $message, $signature, $algo = "sha256")
-Verifies $signature against digest of $message (with $algo digest algorithm)
-using private key.
-$algo must be available in Digest package.
-Returns boolean.
+	sig: get_legacy_address($self)
 
-=head2 getAddress
+Returns string containing Base58Check encoded script hash (p2sh address)
 
-	sig: getAddress($self)
-Returns string containing Base58Check encoded public key hash (p2pkh address)
+=head2 get_compat_address
+
+	sig: get_compat_address($self)
+
+Returns string containing Base58Check encoded script hash containing a witness program for compatibility purposes (p2sh(p2wsh) address)
+
+=head2 get_segwit_address
+
+	sig: get_segwit_address($self)
+
+Returns string containing Bech32 encoded witness program (p2wsh address)
 
 =head1 SEE ALSO
 
