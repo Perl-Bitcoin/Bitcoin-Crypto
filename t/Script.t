@@ -5,16 +5,29 @@ use Test::More;
 
 BEGIN { use_ok('Bitcoin::Crypto::Script') };
 
-my $script = new Bitcoin::Crypto::Script;
+my %data = (
+	"00" => sub {
+		shift
+			->push_bytes("\x00");
+	},
+	"4c4c" . "01" x 76 => sub {
+		shift
+			->push_bytes("\x01" x 76);
+	},
+	"51609301119c" => sub {
+		shift
+			->add_operation("OP_1")
+			->add_operation("OP_16")
+			->add_operation("OP_ADD")
+			->push_bytes("\x11")
+			->add_operation("OP_NUMEQUAL");
+	},
+);
 
-$script
-	->add_operation("OP_1")
-	->add_operation("OP_16")
-	->add_operation("OP_ADD")
-	->push_bytes("\x11")
-	->add_operation("OP_NUMEQUAL");
-
-my $script_expected = unpack "H*", "\x51\x60\x93\x01\x11\x9c";
-is(unpack("H*", $script->get_script), $script_expected, "script created correctly");
+while (my ($expected, $sub) = each %data) {
+	my $script = new Bitcoin::Crypto::Script;
+	$sub->($script);
+	is(lc unpack("H*", $script->get_script), $expected, "script created correctly");
+}
 
 done_testing;

@@ -1,7 +1,8 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
-1.0
+0.99
 	- almost complete rewrite of the module
+	- beta relase - yet to be tested in realistic environment
 
 0.02 Fri Nov 23 22:00:00 2018
 	- enable package on ealier Perl versions

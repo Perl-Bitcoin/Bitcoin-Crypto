@@ -596,13 +596,13 @@ sub push_bytes
 		if ($len <= 75) {
 			$self->add_operation($len);
 		} elsif ($len < (2 << 7)) {
-			$self->add_operation("PUSHDATA1")
+			$self->add_operation("OP_PUSHDATA1")
 				->push_raw(pack "C", $len);
 		} elsif ($len < (2 << 15)) {
-			$self->add_operation("PUSHDATA2")
+			$self->add_operation("OP_PUSHDATA2")
 				->push_raw(pack "S", $len);
 		} elsif ($len < (2 << 31)) {
-			$self->add_operation("PUSHDATA4")
+			$self->add_operation("OP_PUSHDATA4")
 				->push_raw(pack "L", $len);
 		} else {
 			Bitcoin::Crypto::Exception->raise(
