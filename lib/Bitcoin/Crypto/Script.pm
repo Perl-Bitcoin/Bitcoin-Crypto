@@ -656,6 +656,12 @@ sub get_segwit_address
 {
 	my ($self) = @_;
 
+	# network field is not required, lazy check for completeness
+	Bitcoin::Crypto::Exception->raise(
+		code => "network_config",
+		message => "no segwit_hrp found in network configuration"
+	) unless defined $self->network->{segwit_hrp};
+
 	return encode_bech32($self->network->{segwit_hrp}, $self->witness_program);
 }
 

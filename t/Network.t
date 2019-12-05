@@ -56,6 +56,6 @@ is_deeply(get_network(), $litecoin, "get_network() shortcut working");
 # find_network - 2 test
 
 is_deeply([find_network(wif_byte => "\xb0")], [qw(litecoin_mainnet)], "network found successfully");
-ok(find_network(name => "unexistent") == 0, "non-existent network not found");
+ok(!find_network(name => "unexistent"), "non-existent network not found");
 
 done_testing;
