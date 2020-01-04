@@ -550,7 +550,7 @@ has "operations" => (
 	default => sub { [] },
 );
 
-sub get_op_code
+sub _get_op_code
 {
 	my ($context, $op_code) = @_;
 	if ($op_code =~ /^OP_(.+)/) {
@@ -567,12 +567,12 @@ sub get_op_code
 	} else {
 		Bitcoin::Crypto::Exception->raise(
 			code => "script_opcode",
-			message => "unknown opcode $op_code"
+			message => (defined $op_code ? "unknown opcode $op_code" : "undefined opcode variable")
 		);
 	}
 }
 
-sub push_raw
+sub add_raw
 {
 	my ($self, $bytes) = @_;
 	push @{$self->operations}, $bytes;
@@ -582,8 +582,8 @@ sub push_raw
 sub add_operation
 {
 	my ($self, $op_code) = @_;
-	my $val = $self->get_op_code($op_code);
-	$self->push_raw($val);
+	my $val = $self->_get_op_code($op_code);
+	$self->add_raw($val);
 	return $self;
 }
 
@@ -591,6 +591,11 @@ sub push_bytes
 {
 	my ($self, $bytes) = @_;
 	my $len = length $bytes;
+	Bitcoin::Crypto::Exception->raise(
+		code => "script_push",
+		message => "empty data variable"
+	) unless $len;
+
 	if ($bytes =~ /[\x00-\x10]/ && $len == 1) {
 		my $num = unpack "C", $bytes;
 		$self->add_operation("OP_$num");
@@ -599,20 +604,20 @@ sub push_bytes
 			$self->add_operation($len);
 		} elsif ($len < (2 << 7)) {
 			$self->add_operation("OP_PUSHDATA1")
-				->push_raw(pack "C", $len);
+				->add_raw(pack "C", $len);
 		} elsif ($len < (2 << 15)) {
 			$self->add_operation("OP_PUSHDATA2")
-				->push_raw(pack "S", $len);
+				->add_raw(pack "S", $len);
 		} elsif ($len < (2 << 31)) {
 			$self->add_operation("OP_PUSHDATA4")
-				->push_raw(pack "L", $len);
+				->add_raw(pack "L", $len);
 		} else {
 			Bitcoin::Crypto::Exception->raise(
 				code => "script_push",
 				message => "too much data to push onto stack in one operation"
 			);
 		}
-		$self->push_raw($bytes);
+		$self->add_raw($bytes);
 	}
 	return $self;
 }
@@ -675,13 +680,18 @@ Bitcoin::Crypto::Script - class for Bitcoin script representations
 
 	use Bitcoin::Crypto::Script;
 
-	# getting address from public key (p2pkh)
-
-	my $address = $pub->getAddress();
+	my $script = Bitcoin::Crypto::Script->new
+		->add_operation("OP_1")
+		->add_operation("OP_TRUE")
+		->add_operation("OP_EQUAL");
+	# getting serialized script
+	my $serialized = $script->get_script();
+	# getting address from script (p2wsh)
+	my $address = $script->get_segwit_adress();
 
 =head1 DESCRIPTION
 
-This class allows you to create a bitcoin script representation
+This class allows you to create a bitcoin script representations
 
 You can use a script object to:
 
@@ -702,8 +712,32 @@ You can use a script object to:
 =head2 new
 
 	sig: new($class, $data)
+
 This works exactly the same as from_bytes
 
+=head2 add_operation
+
+	sig: add_operation($self, $opcode)
+
+Adds a new opcode at the end of a script. Returns $self for chaining.
+Throws an exception for unknown opcodes.
+
+=head2 add_raw
+
+	sig: add_raw($self, $bytes)
+
+Adds $bytes at the end of a script.
+Useful when you need a value in a script that shouldn't be pushed to the execution stack, like the first four bytes after PUSHDATA4.
+Returns $self for chaining.
+
+=head2 push_bytes
+
+	sig: push_bytes($self, $bytes)
+
+Pushes $bytes to the execution stack at the end of a script, using a minimal push opcode.
+For example, running C<$script->push_bytes("\x03")> will have the same effect as C<$script->add_operation("OP_3")>.
+Throws an exception for data exceeding a 4 byte number in length.
+Returns $self for chaining.
 
 =head2 get_script
 
@@ -742,6 +776,20 @@ Returns string containing Base58Check encoded script hash containing a witness p
 	sig: get_segwit_address($self)
 
 Returns string containing Bech32 encoded witness program (p2wsh address)
+
+=head1 EXCEPTIONS
+
+This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+
+=over 2
+
+=item script_opcode - unknown opcode was specified
+
+=item script_push - data pushed to the execution stack is invalid
+
+=item network_config - incomplete or corrupted network configuration
+
+=back
 
 =head1 SEE ALSO
 

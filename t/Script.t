@@ -2,7 +2,6 @@ use strict;
 use warnings;
 
 use Test::More;
-use Bitcoin::Crypto::Base58 qw(encode_base58check);
 
 BEGIN { use_ok('Bitcoin::Crypto::Script') };
 
