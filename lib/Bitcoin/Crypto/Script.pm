@@ -5,8 +5,10 @@ use Moo;
 use MooX::Types::MooseLike::Base qw(ArrayRef Str);
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
+use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(hash160 hash256);
+use Digest::SHA qw(sha256);
 use Bitcoin::Crypto::Exception;
 
 with "Bitcoin::Crypto::Role::Network";
@@ -630,10 +632,8 @@ sub get_script_hash
 sub witness_program
 {
 	my ($self) = @_;
-	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
-	$program->add_operation($config{witness_version});
-	$program->push_bytes(hash256($self->get_script));
-	return $program->get_script;
+
+	return pack("C", $config{witness_version}) . sha256($self->get_script);
 }
 
 sub get_legacy_address
@@ -648,7 +648,7 @@ sub get_compat_address
 
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
 	$program->add_operation("OP_" . $config{witness_version})
-		->push_bytes(hash256($self->get_script));
+		->push_bytes(sha256($self->get_script));
 	return $program->get_legacy_address;
 }
 
@@ -662,7 +662,7 @@ sub get_segwit_address
 		message => "no segwit_hrp found in network configuration"
 	) unless defined $self->network->{segwit_hrp};
 
-	return encode_bech32($self->network->{segwit_hrp}, $self->witness_program);
+	return encode_segwit($self->network->{segwit_hrp}, $self->witness_program);
 }
 
 1;
