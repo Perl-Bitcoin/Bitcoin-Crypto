@@ -1,8 +1,5 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
-use Try::Tiny;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Config;
 

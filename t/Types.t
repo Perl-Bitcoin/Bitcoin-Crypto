@@ -1,8 +1,6 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
-use Try::Tiny;
+use Test::Exception;
 
 BEGIN { use_ok('Bitcoin::Crypto::Types', qw(:all)) };
 
@@ -28,6 +26,7 @@ my %data = (
 		{t1 => -1},
 		{t2 => "a"},
 		{t2 => "abc"},
+		{t2 => "aś"},
 	],
 	valid => [
 		{t1 => 0},
@@ -38,21 +37,15 @@ my %data = (
 );
 
 foreach my $case (@{$data{invalid}}) {
-	try {
+	dies_ok {
 		TestMoo->new(%$case);
-		fail("types pass for invalid data");
-	} catch {
-		pass("types fail for invalid data");
-	};
+	} "types fail for invalid data";
 }
 
-try {
-	foreach my $case (@{$data{valid}}) {
+foreach my $case (@{$data{valid}}) {
+	lives_ok {
 		TestMoo->new(%$case);
-	}
-	pass("types pass for valid data");
-} catch {
-	fail("types fail for valid data");
-};
+	} "types pass for valid data";
+}
 
 done_testing;

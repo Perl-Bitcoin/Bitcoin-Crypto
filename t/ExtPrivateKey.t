@@ -1,8 +1,6 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
-use Try::Tiny;
+use Test::Exception;
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 BEGIN { use_ok('Bitcoin::Crypto::Key::ExtPrivate') };
@@ -102,12 +100,9 @@ for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
 	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic($bits, "en");
 	my $length = $bits / 8 - 4;
 	ok($mnemonic =~ /^(\w+ ?){$length}$/, "generated mnemonic looks valid ($bits bits)");
-	try {
+	lives_ok {
 		Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic, "", "en");
-		pass("generated mnemonic can be imported");
-	} catch {
-		fail("generated mnemonic is not importable");
-	};
+	} "generated mnemonic can be imported";
 }
 
 # test for network in extended keys

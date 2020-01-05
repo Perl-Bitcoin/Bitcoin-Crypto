@@ -1,10 +1,7 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
-use Try::Tiny;
+use Test::Exception;
 use Digest::SHA qw(sha256);
-use Scalar::Util qw(blessed);
 
 BEGIN { use_ok('Bitcoin::Crypto::Base58', qw(:all)) };
 
@@ -55,14 +52,11 @@ foreach my $case (@cases) {
 }
 
 foreach my $case (@cases_error) {
-	try {
+	throws_ok {
 		decode_base58check($case->[0]);
-		fail("invalid data pass silently");
-	} catch {
-		my $ex = $_;
-		pass("invalid data raises an exception")
-			if blessed $ex && $ex->isa("Bitcoin::Crypto::Exception") && $ex->code eq $case->[1];
-	};
+	} "Bitcoin::Crypto::Exception", "invalid data raises an exception";
+
+	is($@->code ,$case->[1], "wrong exception code");
 }
 
 done_testing;

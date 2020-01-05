@@ -1,9 +1,6 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
-use Try::Tiny;
-use Scalar::Util qw(blessed);
+use Test::Exception;
 
 BEGIN { use_ok('Bitcoin::Crypto::Bech32', qw(:all)) };
 
@@ -181,28 +178,24 @@ while (my ($test, $tdata) = each %tests) {
 		$decoder = \&decode_bech32;
 	}
 
-	try {
-		my ($hrp, $data) = split_bech32($test);
-		if (defined $tdata->{data}) {
-			my $result = $tdata->{data};
-			is(unpack("H*", $decoder->($test)), $result, "$tdata->{type} decode result ok");
-			is($encoder->($hrp, pack "H*", $result), lc $test, "$tdata->{type} encoding ok");
-		} elsif (defined $tdata->{exception}) {
+	if (defined $tdata->{data}) {
+		my ($result, $hrp, $data) = $tdata->{data};
+		lives_ok {
+			($hrp, $data) = split_bech32($test);
+		} "general validation passed";
+		lives_and {
+			is(unpack("H*", $decoder->($test)), $result)
+		} "$tdata->{type} decode result ok";
+		lives_and {
+			is($encoder->($hrp, pack "H*", $result), lc $test)
+		} "$tdata->{type} encoding ok";
+	} elsif (defined $tdata->{exception}) {
+		throws_ok {
+			my ($hrp, $data) = split_bech32($test);
 			$decoder->($test);
-			fail("decoding should've failed but didn't: $test");
-		}
-	} catch {
-		my $err = $_;
-		if (blessed $err && $err->isa("Bitcoin::Crypto::Exception")) {
-			if (defined $tdata->{exception}) {
-				is($err->code, $tdata->{exception}, "$tdata->{type} error code ok: " . $err->message);
-			} else {
-				fail("unexpected error: `$err`, $test");
-			}
-		} else {
-			fail("unknown error `$err`: $test");
-		}
-	};
+		} "Bitcoin::Crypto::Exception", "decoding fails";
+		is($@->code, $tdata->{exception}, "$tdata->{type} error code ok: " . $@->message);
+	}
 }
 
 done_testing;

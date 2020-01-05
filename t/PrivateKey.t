@@ -1,8 +1,6 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
-use Try::Tiny;
+use Test::Exception;
 use Bitcoin::Crypto::Config;
 
 BEGIN { use_ok('Bitcoin::Crypto::Key::Private') };
@@ -62,11 +60,8 @@ my $too_long_key = "a3bc641ce7ab9a2ec7697f32d3ade425d9785e8f23bea3501524852cda3c
 is(length $PrivateKey->from_hex($short_key)->to_bytes(), $config{key_max_length}, "Short key length OK");
 is(length $PrivateKey->from_hex($longer_key)->to_bytes(), $config{key_max_length}, "Longer key length OK");
 
-try {
+throws_ok {
 	$PrivateKey->from_hex($too_long_key);
-	fail("Too long key was accepted");
-} catch {
-	pass("Too long key got rejected");
-};
+} "Bitcoin::Crypto::Exception", "Too long key got rejected";
 
 done_testing;

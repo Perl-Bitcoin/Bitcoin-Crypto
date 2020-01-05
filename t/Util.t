@@ -1,9 +1,7 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
+use Test::Exception;
 use Math::BigInt;
-use Try::Tiny;
 
 BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info)) };
 
@@ -16,20 +14,15 @@ my %cases = (
 );
 
 foreach my $case (keys %cases) {
-	try {
-		my $is_valid = validate_wif($case);
-		if (defined $cases{$case}) {
-			is($is_valid, $cases{$case}, "wif validation ok");
-		} else {
-			fail("wif validation should've failed but didn't");
-		}
-	} catch {
-		if (defined $cases{$case}) {
-			fail("wif validation should've passed but didn't");
-		} else {
-			pass("wif validation failed as expected");
-		}
-	};
+	if (defined $cases{$case}) {
+		lives_and {
+			is(validate_wif($case), $cases{$case})
+		}  "wif validation ok";
+	} else {
+		throws_ok {
+			validate_wif($case);
+		} "Bitcoin::Crypto::Exception", "wif validation failed as expected";
+	}
 }
 
 my @path_test_data = (

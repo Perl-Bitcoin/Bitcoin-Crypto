@@ -1,6 +1,4 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
 
 BEGIN { use_ok('Bitcoin::Crypto::Script') };

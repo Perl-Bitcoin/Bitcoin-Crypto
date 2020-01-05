@@ -1,8 +1,5 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
-use Try::Tiny;
 
 BEGIN { use_ok('Bitcoin::Crypto::Key::ExtPublic') };
 
@@ -24,7 +21,6 @@ my %test_data = (
 		"18YvBL76LjpJwdJ88Z6DDH8FcPcR1Mbzaa",
 	]
 );
-
 
 for my $ser_key (keys %test_data) {
 	my $addresses = $test_data{$ser_key};

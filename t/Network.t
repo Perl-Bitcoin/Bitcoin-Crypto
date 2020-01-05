@@ -1,8 +1,6 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
-use Try::Tiny;
+use Test::Exception;
 use Scalar::Util qw(blessed);
 
 BEGIN { use_ok('Bitcoin::Crypto::Network', qw(:all)) };
@@ -21,26 +19,16 @@ my $litecoin = {
 
 # validate_network - 2 test
 
-try {
+throws_ok {
 	validate_network($litecoin);
-	fail("invalid network validation successfull");
-} catch {
-	my $ex = $_;
-	if (blessed $ex && $ex->isa("Bitcoin::Crypto::Exception") && $ex->code eq "network_config") {
-		pass("invalid network validation fails");
-	} else {
-		fail("unknown error during validation");
-	}
-};
+} "Bitcoin::Crypto::Exception", "invalid network validation fails";
+is($@->code ,"network_config", "exception code is valid");
 
 $litecoin->{wif_byte} = "\xb0";
 
-try {
+lives_ok {
 	validate_network($litecoin);
-	pass("network validates");
-} catch {
-	fail("unknown error during validation");
-};
+} "network validates";
 
 # add_network - 1 test
 

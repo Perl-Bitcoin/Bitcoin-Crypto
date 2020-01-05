@@ -1,14 +1,11 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
-use Try::Tiny;
+use Test::Exception;
 use Math::BigInt;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Digest::SHA qw(sha256);
 
 BEGIN { use_ok('Bitcoin::Crypto::Helpers', qw(pad_hex ensure_length hash160 hash256)) };
-
 
 my @hexes = qw(1a3efb 1a3ef 0);
 
@@ -20,12 +17,9 @@ for my $hex (@hexes) {
 
 is(ensure_length(pack("x4"), 4), pack("x4"), "ensuring length does not change data for equal length");
 is(ensure_length(pack("x30"), 32), pack("x32"), "ensuring length adds missing zero bytes");
-try {
+dies_ok {
 	ensure_length pack("x5"), 4;
-	fail("packed data was too long and should've had failed");
-} catch {
-	pass("packed data that was too long failed as expected");
-};
+} "packed data that was too long failed as expected";
 
 my $data = pack "u", "packed data...";
 is(hash160($data), ripemd160(sha256($data)), "hash160 ok");

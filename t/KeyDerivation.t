@@ -1,8 +1,6 @@
-use strict;
-use warnings;
-
+use Modern::Perl "2010";
 use Test::More;
-use Try::Tiny;
+use Test::Exception;
 
 use Bitcoin::Crypto::Key::ExtPrivate;
 use Bitcoin::Crypto::Key::ExtPublic;
@@ -156,13 +154,10 @@ for my $tdata (@test_data_public) {
 }
 
 for my $tdata (@test_data_error) {
-	try {
+	throws_ok {
 		my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($tdata->[0]);
 		$base_key->derive_key($tdata->[1]);
-		fail("incorrect derivation was successful");
-	} catch {
-		pass("incorrect derivation failed with exception");
-	};
+	} "Bitcoin::Crypto::Exception", "incorrect derivation failed with exception";
 }
 
 done_testing;
