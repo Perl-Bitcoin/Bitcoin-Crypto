@@ -4,7 +4,8 @@ use Test::Exception;
 
 BEGIN { use_ok('Bitcoin::Crypto::Types', qw(:all)) };
 
-package TestMoo {
+{
+	package TestMoo;
 	use Moo;
 	use Bitcoin::Crypto::Types qw(:all);
 

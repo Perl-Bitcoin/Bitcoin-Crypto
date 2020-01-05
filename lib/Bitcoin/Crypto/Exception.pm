@@ -29,7 +29,7 @@ has "message" => (
 sub stringify
 {
 	my ($self) = @_;
-	return  $self->message . "(" . $self->code . ")";
+	return  $self->message . " (" . $self->code . ")";
 }
 
 sub raise

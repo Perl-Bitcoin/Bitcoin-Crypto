@@ -48,7 +48,7 @@ sub get_path_info
 		my %info;
 		$info{private} = $1 eq "m";
 		if (defined $2 && length $2 > 0) {
-			$info{path} = [map { s#(\d+)'#$1 + $config{max_child_keys}#er } split "/", substr $2, 1];
+			$info{path} = [map { s#(\d+)'#$1 + $config{max_child_keys}#e; $_ } split "/", substr $2, 1];
 		} else {
 			$info{path} = [];
 		}

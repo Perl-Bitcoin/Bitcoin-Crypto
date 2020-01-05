@@ -4,8 +4,6 @@ use Test::Exception;
 
 BEGIN { use_ok('Bitcoin::Crypto::Exception')};
 
-local $SIG{__WARN__} = sub { die shift };
-
 {
 	throws_ok {
 		Bitcoin::Crypto::Exception->raise(code => "test_code", message => "test_message");
@@ -28,12 +26,12 @@ local $SIG{__WARN__} = sub { die shift };
 }
 
 {
+	local $SIG{__WARN__} = sub { die shift . " - warning" };
 	throws_ok {
 		Bitcoin::Crypto::Exception->warn(code => "test_code", message => "test_message");
-	} "Bitcoin::Crypto::Exception", "exception was raised";
+	} qr/\(test_code\) - warning/, "warning was raised as exception";
 	my $err = $@;
 
-	ok(!$err->is_exception, "it's a warning");
 	note("$err");
 }
 

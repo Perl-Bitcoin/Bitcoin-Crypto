@@ -7,7 +7,7 @@ use Bitcoin::Crypto::Exception;
 BEGIN { use_ok('Bitcoin::Crypto::Segwit', qw(validate_program)) };
 
 # make warnings critical
-local $SIG{__WARN__} = sub { die shift };
+local $SIG{__WARN__} = sub { die shift . " - warning" };
 
 # segwit version 1 program passing common length valiadion
 my $program = "\x01\x00\xff";
@@ -15,12 +15,10 @@ my $program = "\x01\x00\xff";
 {
 	throws_ok {
 		validate_program($program);
-	} "Bitcoin::Crypto::Exception", "exception was raised";
+	} qr/\(segwit_program\) - warning/, "warning was raised as exception";
 	my $err = $@;
 
-	ok(!$err->is_exception, "it's a warning");
-	is($err->code, "segwit_program", "warning code ok");
-	note($err->message);
+	note($err);
 }
 
 # use slightly changed validator from the documentation
