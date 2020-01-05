@@ -4,9 +4,23 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-	NAME              => 'Bitcoin::Crypto',
-	VERSION_FROM      => 'lib/Bitcoin/Crypto.pm',
-	PREREQ_PM         => {
+	NAME => 'Bitcoin::Crypto',
+	VERSION_FROM => 'lib/Bitcoin/Crypto.pm',
+	MIN_PERL_VERSION => '5.010',
+
+	CONFIGURE_REQUIRES => {
+		'ExtUtils::MakeMaker' => '>=6.55_03',
+	},
+	BUILD_REQUIRES => {
+		'ExtUtils::MakeMaker' => '>=6.55_03',
+		'Math::BigInt' => '>= 1.999816',
+		'Math::BigInt::GMP' => '>= 1.6006',
+	},
+	TEST_REQUIRES => {
+		'Test::More' => '>= 0.88',
+		'Test::Exception' => 0,
+	},
+	PREREQ_PM => {
 		'Modern::Perl' => '>= 1.20181021',
 		'Math::EllipticCurve::Prime' => '>= 0.003',
 		'Math::BigInt' => '>= 1.999816',
@@ -19,7 +33,17 @@ WriteMakefile(
 		'Digest::SHA' => '>= 6.02',
 		'PBKDF2::Tiny' => '>= 0.005',
 	},
-	ABSTRACT_FROM     => 'lib/Bitcoin/Crypto.pm',
-	AUTHOR            => 'Bartosz Jarzyna <brtastic.dev@gmail.com>',
-	LICENSE           => 'perl',
+
+	META_MERGE => {
+		resources => {
+			license => 'https://dev.perl.org/licenses',
+			homepage => 'https://metacpan.org/release/Bitcoin-Crypto',
+			bugtracker => 'https://github.com/brtastic/perl-bitcoin-crypto/issues',
+			repository => 'https://github.com/brtastic/perl-bitcoin-crypto',
+		},
+	},
+
+	ABSTRACT_FROM => 'lib/Bitcoin/Crypto.pm',
+	AUTHOR => 'Bartosz Jarzyna <brtastic.dev@gmail.com>',
+	LICENSE => 'perl',
 );
