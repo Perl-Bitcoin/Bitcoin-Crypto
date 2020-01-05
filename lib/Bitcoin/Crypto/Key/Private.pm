@@ -37,9 +37,8 @@ sub from_wif
 {
 	my ($class, $wif, $network) = @_;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_create",
-		message => "base58 string is not valid WIF"
+	Bitcoin::Crypto::Exception::KeyCreate->raise(
+		"base58 string is not valid WIF"
 	) unless validate_wif($wif);
 
 	my $decoded = decode_base58check($wif);
@@ -55,19 +54,16 @@ sub from_wif
 	my @found_networks = find_network(wif_byte => $wif_network_byte);
 	@found_networks = first { $_ eq $network } @found_networks if defined $network;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_create",
-		message => "found multiple networks possible for given WIF"
+	Bitcoin::Crypto::Exception::KeyCreate->raise(
+		"found multiple networks possible for given WIF"
 	) if @found_networks > 1;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_create",
-		message => "network name $network cannot be used for given WIF"
+	Bitcoin::Crypto::Exception::KeyCreate->raise(
+		"network name $network cannot be used for given WIF"
 	) if @found_networks == 0 && defined $network;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "network_config",
-		message => "couldn't find network for WIF byte $wif_network_byte"
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		"couldn't find network for WIF byte $wif_network_byte"
 	) if @found_networks == 0;
 
 	my $instance = $class->from_bytes($private);
@@ -222,7 +218,7 @@ $algo must be available in L<Digest> package.
 
 Returns a byte string containing signature.
 
-Caution: libtomcrypt cryptographic package that is generating signatures does not currently offer a deterministic mechanism. For this reason the sign_message method will always complain with a warning until the RFC6797 document is implemented. Non-deterministic signatures can lead to leaking private keys if the random number generator's entropy is insufficient.
+Caution: libtomcrypt cryptographic package that is generating signatures does not currently offer a deterministic mechanism. For this reason the sign_message method will always complain with a warning until the RFC6797 procedure is implemented. Non-deterministic signatures can lead to leaking private keys if the random number generator's entropy is insufficient.
 
 =head2 verify_message
 
@@ -234,15 +230,15 @@ Returns boolean.
 
 =head1 EXCEPTIONS
 
-This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
 
 =over 2
 
-=item key_sign - couldn't sign the message corretcly
+=item KeySign - couldn't sign the message corretcly
 
-=item key_create - key couldn't be created correctly
+=item KeyCreate - key couldn't be created correctly
 
-=item network_config - incomplete or corrupted network configuration
+=item NetworkConfig - incomplete or corrupted network configuration
 
 =back
 

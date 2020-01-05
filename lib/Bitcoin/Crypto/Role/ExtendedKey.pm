@@ -43,9 +43,8 @@ sub _build_args
 {
 	my ($class, @params) = @_;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_create",
-		message => "invalid arguments passed to key constructor"
+	Bitcoin::Crypto::Exception::KeyCreate->raise(
+		"invalid arguments passed to key constructor"
 	) if @params < 2 || @params > 5;
 
 	my %ret = (
@@ -71,9 +70,8 @@ sub to_serialized
 	my $version = $self->network->{$network_key};
 
 	# network field is not required, lazy check for completeness
-	Bitcoin::Crypto::Exception->raise(
-		code => "network_config",
-		message => "no $network_key found in network configuration"
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		"no $network_key found in network configuration"
 	) unless defined $version;
 
 	# version number (4B)
@@ -102,9 +100,8 @@ sub from_serialized
 
 		my $is_private = pack("x") eq substr $data, 0, 1;
 
-		Bitcoin::Crypto::Exception->raise(
-			code => "key_create",
-			message => "invalid class used, key is " . ($is_private ? "private" : "public")
+		Bitcoin::Crypto::Exception::KeyCreate->raise(
+			"invalid class used, key is " . ($is_private ? "private" : "public")
 		) if $is_private != $class->_is_private;
 
 		$data = substr $data, 1, $config{key_max_length}
@@ -115,19 +112,16 @@ sub from_serialized
 		my @found_networks = find_network($network_key => $version);
 		@found_networks = first { $_ eq $network } @found_networks if defined $network;
 
-		Bitcoin::Crypto::Exception->raise(
-			code => "key_create",
-			message => "found multiple networks possible for given serialized key"
+		Bitcoin::Crypto::Exception::KeyCreate->raise(
+			"found multiple networks possible for given serialized key"
 		) if @found_networks > 1;
 
-		Bitcoin::Crypto::Exception->raise(
-			code => "key_create",
-			message => "network name $network cannot be used for given serialized key"
+		Bitcoin::Crypto::Exception::KeyCreate->raise(
+			"network name $network cannot be used for given serialized key"
 		) if @found_networks == 0 && defined $network;
 
-		Bitcoin::Crypto::Exception->raise(
-			code => "network_config",
-			message => "couldn't find network for serialized key version $version"
+		Bitcoin::Crypto::Exception::NetworkConfig->raise(
+			"couldn't find network for serialized key version $version"
 		) if @found_networks == 0;
 
 		my $key = $class->new(
@@ -141,9 +135,8 @@ sub from_serialized
 
 		return $key;
 	} else {
-		Bitcoin::Crypto::Exception->raise(
-			code => "key_create",
-			message => "input data does not look like a valid serialized extended key"
+		Bitcoin::Crypto::Exception::KeyCreate->raise(
+			"input data does not look like a valid serialized extended key"
 		);
 	}
 }
@@ -187,21 +180,19 @@ sub derive_key
 	my ($self, $path) = @_;
 	my $path_info = get_path_info $path;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_derive",
-		message => "invalid key derivation path supplied"
+	Bitcoin::Crypto::Exception::KeyDerive->raise(
+		"invalid key derivation path supplied"
 	) unless defined $path_info;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_derive",
-		message => "cannot derive private key from public key"
+	Bitcoin::Crypto::Exception::KeyDerive->raise(
+		"cannot derive private key from public key"
 	) if !$self->_is_private && $path_info->{private};
 
 	my $key = $self;
 	for my $child_num (@{$path_info->{path}}) {
 		my $hardened = $child_num >= $config{max_child_keys};
-		# croaks if hardened-from-public requested
-		# croaks if key is invalid
+		# dies if hardened-from-public requested
+		# dies if key is invalid
 		$key = $key->_derive_key_partial($child_num, $hardened);
 	}
 

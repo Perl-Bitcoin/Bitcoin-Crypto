@@ -565,9 +565,8 @@ sub _get_op_code
 		# standard data push - 0x01 up to 0x4b
 		return pack("C", 0x00 + $op_code);
 	} else {
-		Bitcoin::Crypto::Exception->raise(
-			code => "script_opcode",
-			message => (defined $op_code ? "unknown opcode $op_code" : "undefined opcode variable")
+		Bitcoin::Crypto::Exception::ScriptOpcode->raise(
+			defined $op_code ? "unknown opcode $op_code" : "undefined opcode variable"
 		);
 	}
 }
@@ -591,9 +590,8 @@ sub push_bytes
 {
 	my ($self, $bytes) = @_;
 	my $len = length $bytes;
-	Bitcoin::Crypto::Exception->raise(
-		code => "script_push",
-		message => "empty data variable"
+	Bitcoin::Crypto::Exception::ScriptPush->raise(
+		"empty data variable"
 	) unless $len;
 
 	if ($bytes =~ /[\x00-\x10]/ && $len == 1) {
@@ -612,9 +610,8 @@ sub push_bytes
 			$self->add_operation("OP_PUSHDATA4")
 				->add_raw(pack "L", $len);
 		} else {
-			Bitcoin::Crypto::Exception->raise(
-				code => "script_push",
-				message => "too much data to push onto stack in one operation"
+			Bitcoin::Crypto::Exception::ScriptPush->raise(
+				"too much data to push onto stack in one operation"
 			);
 		}
 		$self->add_raw($bytes);
@@ -662,9 +659,8 @@ sub get_segwit_address
 	my ($self) = @_;
 
 	# network field is not required, lazy check for completeness
-	Bitcoin::Crypto::Exception->raise(
-		code => "network_config",
-		message => "no segwit_hrp found in network configuration"
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		"no segwit_hrp found in network configuration"
 	) unless defined $self->network->{segwit_hrp};
 
 	return encode_segwit($self->network->{segwit_hrp}, $self->witness_program);
@@ -779,15 +775,15 @@ Returns string containing Bech32 encoded witness program (p2wsh address)
 
 =head1 EXCEPTIONS
 
-This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
 
 =over 2
 
-=item script_opcode - unknown opcode was specified
+=item ScriptOpcode - unknown opcode was specified
 
-=item script_push - data pushed to the execution stack is invalid
+=item ScriptPush - data pushed to the execution stack is invalid
 
-=item network_config - incomplete or corrupted network configuration
+=item NetworkConfig - incomplete or corrupted network configuration
 
 =back
 

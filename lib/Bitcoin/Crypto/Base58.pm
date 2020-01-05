@@ -64,9 +64,8 @@ sub decode_base58
 	my @arr = split "", $base58encoded;
 	while (@arr > 0) {
 		my $current = $alphabet_mapped{shift @arr};
-		Bitcoin::Crypto::Exception->raise(
-			code => "base58_input_format",
-			message => "illegal characters in base58 string"
+		Bitcoin::Crypto::Exception::Base58InputFormat->raise(
+			"illegal characters in base58 string"
 		) unless defined $current;
 		my $step = Math::BigInt->new(scalar @alphabet)->bpow(scalar @arr)->bmul($current);
 		$result->badd($step);
@@ -95,9 +94,8 @@ sub decode_base58check
 {
 	my ($base58encoded) = @_;
 	my $decoded = decode_base58_preserve($base58encoded);
-	Bitcoin::Crypto::Exception->raise(
-		code => "base58_input_checksum",
-		message => "incorrect base58check checksum"
+	Bitcoin::Crypto::Exception::Base58InputChecksum->raise(
+		"incorrect base58check checksum"
 	) unless verify_checksum($decoded);
 	return substr $decoded, 0, -$CHECKSUM_SIZE;
 }
@@ -141,17 +139,17 @@ Base58 with leading zero preservation.
 =head2 decode_base58check
 
 Base58 with leading zero preservation and checksum validation.
-Additional errors (other than illegal characters) are croaked.
+Additional errors (other than illegal characters) are thrown.
 
 =head1 EXCEPTIONS
 
-This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
 
 =over 2
 
-=item base58_input_format - input was not suitable for base58 operations due to invalid format
+=item Base58InputFormat - input was not suitable for base58 operations due to invalid format
 
-=item base58_input_checksum - checksum validation has failed
+=item Base58InputChecksum - checksum validation has failed
 
 =back
 

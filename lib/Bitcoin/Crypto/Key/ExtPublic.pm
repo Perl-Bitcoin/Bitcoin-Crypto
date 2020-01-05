@@ -19,9 +19,8 @@ sub _derive_key_partial
 {
 	my ($self, $child_num, $hardened) = @_;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_derive",
-		message => "cannot derive hardened key from public key"
+	Bitcoin::Crypto::Exception::KeyDerive->raise(
+		"cannot derive hardened key from public key"
 	) if $hardened;
 
 	# public key data - SEC compressed form
@@ -44,9 +43,8 @@ sub _derive_key_partial
 
 	$point->badd($parent_point);
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_derive",
-		message => "key $child_num in sequence was found invalid"
+	Bitcoin::Crypto::Exception::KeyDerive->raise(
+		"key $child_num in sequence was found invalid"
 	) if $number->bge($n_order);
 
 	return __PACKAGE__->new(
@@ -117,7 +115,7 @@ Behaves the same as to_serialized(), but performs Base58Check encoding on the re
 
 Tries to unserialize byte string $serialized with format specified in BIP32.
 
-Croaks on errors. If multiple networks match serialized data specify $network manually (id of the network) to avoid exception.
+Dies on errors. If multiple networks match serialized data specify $network manually (id of the network) to avoid exception.
 
 =head2 from_serialized_base58
 
@@ -143,7 +141,7 @@ Returns the key in basic format: L<Bitcoin::Crypto::Key::Public>
 
 	sig: derive_key($self, $path)
 
-Performs extended key deriviation as specified in BIP32 on the current key with $path. Croaks on error.
+Performs extended key deriviation as specified in BIP32 on the current key with $path. Dies on error.
 
 See BIP32 document for details on deriviation paths and methods.
 
@@ -159,15 +157,15 @@ Returns a fingerprint of the extended key of $len length (byte string)
 
 =head1 EXCEPTIONS
 
-This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
 
 =over 2
 
-=item key_derive - key couldn't be derived correctly
+=item KeyDerive - key couldn't be derived correctly
 
-=item key_create - key couldn't be created correctly
+=item KeyCreate - key couldn't be created correctly
 
-=item network_config - incomplete or corrupted network configuration
+=item NetworkConfig - incomplete or corrupted network configuration
 
 =back
 

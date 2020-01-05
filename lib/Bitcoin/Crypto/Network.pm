@@ -58,9 +58,8 @@ sub set_default_network
 {
 	my ($name) = @_;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "network_config",
-		message => "trying to set unknown network: $name"
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		"trying to set unknown network: $name"
 	) unless defined $networks{$name};
 
 	$default_network = $name;
@@ -78,9 +77,8 @@ sub validate_network
 {
 	my ($args) = @_;
 	for my $el (keys %network_keys) {
-		Bitcoin::Crypto::Exception->raise(
-			code => "network_config",
-			message => "incomplete network configuration: missing key $el"
+		Bitcoin::Crypto::Exception::NetworkConfig->raise(
+			"incomplete network configuration: missing key $el"
 		) if !defined $args->{$el} && $network_keys{$el};
 	}
 }
@@ -89,9 +87,8 @@ sub find_network
 {
 	my ($by, $value) = @_;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "network_config",
-		message => "network key does not exist: $by"
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		"network key does not exist: $by"
 	) unless defined $network_maps{$by};
 
 	return grep { $value eq $network_maps{$by}{$_} } keys %{$network_maps{$by}};
@@ -102,9 +99,8 @@ sub get_network
 	my ($name) = @_;
 	$name //= $default_network;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "network_config",
-		message => "network key does not exist: $name"
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		"network key does not exist: $name"
 	) unless defined $networks{$name};
 
 	return dclone($networks{$name});
@@ -243,7 +239,7 @@ method on them all.
 
 Sets the network with $name as default one. All newly created private and public
 keys will be bound to this network.
-Croaks if network doesn't exist
+Dies if network doesn't exist
 
 =head2 get_default_network
 
@@ -263,7 +259,7 @@ Performs $hashref validation (same as validate_network)
 	validate_network($hashref);
 
 Validates network configuration under $hashref.
-Croaks if configuration is invalid.
+Dies if configuration is invalid.
 
 =head2 find_network
 
@@ -271,7 +267,7 @@ Croaks if configuration is invalid.
 
 Searches for all networks that have configuration "key" set to $value.
 Returns list.
-Croaks if key doesn't exist.
+Dies if key doesn't exist.
 
 =head2 get_network
 
@@ -279,7 +275,7 @@ Croaks if key doesn't exist.
 
 Returns network $name configuration. If $name is omitted behaves like
 get_default_network().
-Croaks if network $name doesn't exist.
+Dies if network $name doesn't exist.
 
 =head2 get_available_networks
 

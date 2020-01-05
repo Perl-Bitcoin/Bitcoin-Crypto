@@ -38,7 +38,11 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 
 =head1 DESCRIPTION
 
-This package allows you to do basic cryptography tasks for Bitcoin such as:
+Cryptographic package for common Bitcoin-related tasks and key pair management.
+
+=head1 SCOPE
+
+This package allows you to do basic tasks for Bitcoin such as:
 
 =over 2
 
@@ -52,7 +56,7 @@ This package allows you to do basic cryptography tasks for Bitcoin such as:
 
 =item * importing / exporting using popular mediums (WIF, mnemonic, hex)
 
-=item * creating custom (non-Bitcoin) networks
+=item * using custom (non-Bitcoin) networks
 
 =back
 

@@ -46,55 +46,55 @@ my %tests = (
 	},
 	"\x201nwldj5" => {
 		type => "bech32",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	}, # Invalid character in HRP
 	"\x7f1axkwrx" => {
 		type => "bech32",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	}, # Invalid character in HRP
 	"\x801eym55h" => {
 		type => "bech32",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	}, # Invalid character in HRP
 	"an84characterslonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio1569pvx" => {
 		type => "bech32",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	},
 	"pzry9x0s0muk" => {
 		type => "bech32",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	},
 	"1pzry9x0s0muk" => {
 		type => "bech32",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	},
 	"x1b4n0q5v" => {
 		type => "bech32",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	},
 	"li1dgmt3" => {
 		type => "bech32",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	}, # Too short data part
 	"de1lg7wt\xff" => {
 		type => "bech32",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	}, # Invalid character in data part
 	"A1G7SGD8" => {
 		type => "bech32",
-		exception => "bech32_input_checksum"
+		exception => "Bech32InputChecksum"
 	}, # Invalid checksum
 	"10a06t8" => {
 		type => "bech32",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	}, # Empty HRP
 	"1qzzfhee" => {
 		type => "bech32",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	}, # Empty HRP
 	"checksum1qazjduhr" => {
 		type => "bech32",
-		exception => "bech32_input_checksum"
+		exception => "Bech32InputChecksum"
 	}, # Invalid checksum
 
 	# SEGREGATED WITNESS
@@ -128,43 +128,43 @@ my %tests = (
 	},
 	"tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7" => {
 		type => "segwit",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	},
 	"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5" => {
 		type => "segwit",
-		exception => "bech32_input_checksum"
+		exception => "Bech32InputChecksum"
 	},
 	"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5" => {
 		type => "segwit",
-		exception => "bech32_input_checksum"
+		exception => "Bech32InputChecksum"
 	}, # Invalid checksum
 	"BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2" => {
 		type => "segwit",
-		exception => "segwit_program"
+		exception => "SegwitProgram"
 	}, # Invalid witness version
 	"bc1rw5uspcuh" => {
 		type => "segwit",
-		exception => "segwit_program"
+		exception => "SegwitProgram"
 	}, # Invalid program length
 	"bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90" => {
 		type => "segwit",
-		exception => "segwit_program"
+		exception => "SegwitProgram"
 	}, # Invalid program length
 	"tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7" => {
 		type => "segwit",
-		exception => "bech32_input_format"
+		exception => "Bech32InputFormat"
 	}, # Mixed case
 	"bc1zw508d6qejxtdg4y5r3zarvaryvqyzf3du" => {
 		type => "segwit",
-		exception => "bech32_input_data"
+		exception => "Bech32InputData"
 	}, # zero padding of more than 4 bits
 	"tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv" => {
 		type => "segwit",
-		exception => "bech32_input_data"
+		exception => "Bech32InputData"
 	}, # Non-zero padding in 8-to-5 conversion
 	"bc1gmk9yu" => {
 		type => "segwit",
-		exception => "segwit_program"
+		exception => "SegwitProgram"
 	}, # Empty data section
 );
 
@@ -193,8 +193,8 @@ while (my ($test, $tdata) = each %tests) {
 		throws_ok {
 			my ($hrp, $data) = split_bech32($test);
 			$decoder->($test);
-		} "Bitcoin::Crypto::Exception", "decoding fails";
-		is($@->code, $tdata->{exception}, "$tdata->{type} error code ok: " . $@->message);
+		} "Bitcoin::Crypto::Exception::" . $tdata->{exception}, "decoding fails";
+		note($@->message);
 	}
 }
 

@@ -2,52 +2,33 @@ package Bitcoin::Crypto::Exception;
 
 use Modern::Perl "2010";
 use Moo;
-use MooX::Types::MooseLike::Base qw(Str Bool);
-use Carp;
-use Scalar::Util qw(blessed);
+use Throwable::Error;
 
-use overload q("") => \&stringify;
-
-has "is_exception" => (
-	is => "ro",
-	isa => Bool,
-	default => 1,
-);
-
-has "code" => (
-	is => "ro",
-	isa => Str,
-	required => 1,
-);
-
-has "message" => (
-	is => "ro",
-	isa => Str,
-	required => 1,
-);
-
-sub stringify
-{
-	my ($self) = @_;
-	return  $self->message . " (" . $self->code . ")";
-}
+extends "Throwable::Error";
 
 sub raise
 {
-	my ($subj, %args) = @_;
-	my $obj = blessed($subj) ? $subj : $subj->new(%args);
-
-	croak $obj;
+	shift->throw(@_);
 }
 
-sub warn
-{
-	my ($subj, %args) = @_;
-	$args{is_exception} = 0;
-	my $obj = blessed($subj) ? $subj : $subj->new(%args);
+{ package Bitcoin::Crypto::Exception::KeySign; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::KeyCreate; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::KeyDerive; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::MnemonicGenerate; use parent "Bitcoin::Crypto::Exception"; }
 
-	carp $obj;
-}
+{ package Bitcoin::Crypto::Exception::Base58InputFormat; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::Base58InputChecksum; use parent "Bitcoin::Crypto::Exception"; }
+
+{ package Bitcoin::Crypto::Exception::Bech32InputFormat; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::Bech32InputData; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::Bech32InputChecksum; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::SegwitProgram; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::ValidationTest; use parent "Bitcoin::Crypto::Exception"; }
+
+{ package Bitcoin::Crypto::Exception::ScriptOpcode; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::ScriptPush; use parent "Bitcoin::Crypto::Exception"; }
+
+{ package Bitcoin::Crypto::Exception::NetworkConfig; use parent "Bitcoin::Crypto::Exception"; }
 
 1;
 
@@ -69,29 +50,27 @@ Bitcoin::Crypto::Exception - Exception class for Bitcoin::Crypto purposes
 		warn "$error";
 
 		# but also contains some information about the problem to avoid regex matching
-		if ($error->code eq "bech32_input_format") {
+		if ($error->isa("Bitcoin::Crypto::Exception::Bech32InputFormat")) {
 			log $error->message;
 		}
 	};
 
 =head1 DESCRIPTION
 
-A wrapper class with automatic stringification and standarized raising.
-Has two properties - B<code>, which is a machine readable hint about what went wrong and B<message>, which is a human readable description of an error. If you make your warnings into exceptions, you might find B<is_exception> useful, which holds the information about the original type of error.
-Uses croak for errors and carp for warnings.
+A wrapper class with automatic stringification and standarized raising using Throwable::Error.
+Contains many other inline packages that identify parts that went wrong (like Bitcoin::Crypto::Exception::KeySign for errors in signature generation).
+See individual Bitcoin::Crypto packages documentation to see the exception classes to check for extra control flow when needed.
 
 =head1 FUNCTIONS
 
 =head2 raise
 
-	Bitcoin::Crypto::Exception->raise(code => "fatal", message => "error");
+	Bitcoin::Crypto::Exception->raise("error message");
 
-Creates a new instance and croaks it. If used on an object, croaks it right away.
+Creates a new instance and throws it. If used on an object, throws it right away.
 
-=head2 warn
+=head2 throw
 
-	Bitcoin::Crypto::Exception->warn(code => "fatal", message => "error");
-
-Creates a new instance and carps it. If used on an object, carps it right away.
+Same as raise.
 
 =cut

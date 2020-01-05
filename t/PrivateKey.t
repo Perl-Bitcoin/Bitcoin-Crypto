@@ -62,6 +62,6 @@ is(length $PrivateKey->from_hex($longer_key)->to_bytes(), $config{key_max_length
 
 throws_ok {
 	$PrivateKey->from_hex($too_long_key);
-} "Bitcoin::Crypto::Exception", "Too long key got rejected";
+} "Bitcoin::Crypto::Exception::KeyCreate", "Too long key got rejected";
 
 done_testing;

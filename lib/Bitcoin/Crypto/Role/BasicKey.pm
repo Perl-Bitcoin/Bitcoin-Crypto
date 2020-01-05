@@ -13,15 +13,11 @@ sub sign_message
 {
 	my ($self, $message, $algorithm) = @_;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_sign",
-		message => "cannot sign a message with a public key"
+	Bitcoin::Crypto::Exception::KeySign->raise(
+		"cannot sign a message with a public key"
 	) unless $self->_is_private;
 
-	Bitcoin::Crypto::Exception->warn(
-		code => "key_sign",
-		message => "Current implementation of signature generation mechanisms does not produce deterministic result. This is a security flaw that is currently being worked on. Please use with caution."
-	);
+	warn("Current implementation of signature generation mechanisms does not produce deterministic result. This is a security flaw that is currently being worked on. Please use with caution.");
 
 	$algorithm //= "sha256";
 	return $self->key_instance->sign_message($message, $algorithm);

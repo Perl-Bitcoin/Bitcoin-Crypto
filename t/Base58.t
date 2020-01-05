@@ -31,11 +31,11 @@ my @cases = (
 my @cases_error = (
 	[
 		"oa4.#1Q9",
-		"base58_input_format",
+		"Base58InputFormat",
 	],
 	[
 		"oa4Az1Q9",
-		"base58_input_checksum",
+		"Base58InputChecksum",
 	],
 );
 
@@ -54,9 +54,7 @@ foreach my $case (@cases) {
 foreach my $case (@cases_error) {
 	throws_ok {
 		decode_base58check($case->[0]);
-	} "Bitcoin::Crypto::Exception", "invalid data raises an exception";
-
-	is($@->code ,$case->[1], "wrong exception code");
+	} "Bitcoin::Crypto::Exception::" . $case->[1], "invalid data raises an exception";
 }
 
 done_testing;

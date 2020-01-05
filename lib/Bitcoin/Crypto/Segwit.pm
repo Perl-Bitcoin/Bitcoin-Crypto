@@ -16,9 +16,8 @@ our %validators = (
 	0 => sub {
 		my ($data) = @_;
 
-		Bitcoin::Crypto::Exception->raise(
-			code => "segwit_program",
-			message => "incorrect witness program length"
+		Bitcoin::Crypto::Exception::SegwitProgram->raise(
+			"incorrect witness program length"
 		) unless length $data == 20 || length $data == 32;
 		return;
 	},
@@ -28,9 +27,8 @@ sub common_validator
 {
 	my ($data) = @_;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "segwit_program",
-		message => "incorrect witness program length"
+	Bitcoin::Crypto::Exception::SegwitProgram->raise(
+		"incorrect witness program length"
 	) unless length $data >= 2 && length $data <= 40;
 	return;
 }
@@ -40,9 +38,8 @@ sub validate_program
 	my ($program) = @_;
 
 	my $version = unpack "C", $program;
-	Bitcoin::Crypto::Exception->raise(
-		code => "segwit_program",
-		message => "incorrect witness program version $version"
+	Bitcoin::Crypto::Exception::SegwitProgram->raise(
+		"incorrect witness program version $version"
 	) unless defined $version && $version >= 0 && $version <= $config{max_witness_version};
 
 	$program = substr $program, 1;
@@ -51,10 +48,7 @@ sub validate_program
 	if (defined $validator && ref $validator eq ref sub{}) {
 		$validator->($program);
 	} else {
-		Bitcoin::Crypto::Exception->warn(
-			code => "segwit_program",
-			message => "No validator for segwit program version $version is declared"
-		);
+		warn("No validator for segwit program version $version is declared");
 	}
 
 	return $version;
@@ -93,9 +87,8 @@ The current implementation defines a validator for segwit version 0. In the futu
 		my ($data) = @_;
 
 		# perform validation
-		Bitcoin::Crypto::Exception->raise(
-			code => "segwit_program",
-			message => "validation of program version 1 failed"
+		Bitcoin::Crypto::Exception::SegwitProgram->raise(
+			"validation of program version 1 failed"
 		) if ...;
 
 		# if validation is successful just do nothing
@@ -105,11 +98,11 @@ The current implementation defines a validator for segwit version 0. In the futu
 
 =head1 EXCEPTIONS
 
-This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
 
 =over 2
 
-=item segwit_program - a validation of a segwit program has failed
+=item SegwitProgram - a validation of a segwit program has failed
 
 =back
 

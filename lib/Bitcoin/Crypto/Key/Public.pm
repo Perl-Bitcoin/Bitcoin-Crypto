@@ -49,9 +49,8 @@ sub get_segwit_address
 	my ($self) = @_;
 
 	# network field is not required, lazy check for completeness
-	Bitcoin::Crypto::Exception->raise(
-		code => "network_config",
-		message => "no segwit_hrp found in network configuration"
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		"no segwit_hrp found in network configuration"
 	) unless defined $self->network->{segwit_hrp};
 
 	return encode_segwit($self->network->{segwit_hrp}, $self->witness_program);
@@ -175,13 +174,13 @@ Returns string containing Bech32 encoded witness program (p2wpkh address)
 
 =head1 EXCEPTIONS
 
-This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
 
 =over 2
 
-=item key_create - key couldn't be created correctly
+=item KeyCreate - key couldn't be created correctly
 
-=item network_config - incomplete or corrupted network configuration
+=item NetworkConfig - incomplete or corrupted network configuration
 
 =back
 

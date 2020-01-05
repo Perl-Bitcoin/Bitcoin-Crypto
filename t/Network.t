@@ -21,8 +21,7 @@ my $litecoin = {
 
 throws_ok {
 	validate_network($litecoin);
-} "Bitcoin::Crypto::Exception", "invalid network validation fails";
-is($@->code ,"network_config", "exception code is valid");
+} "Bitcoin::Crypto::Exception::NetworkConfig", "invalid network validation fails";
 
 $litecoin->{wif_byte} = "\xb0";
 

@@ -27,9 +27,8 @@ sub ensure_length
 	my $missing = $bytelen - length $packed;
 
 	Bitcoin::Crypto::Exception->raise(
-		code => "format",
-		message => "packed string exceeds maximum number of bytes available ($bytelen
-	)") if $missing < 0;
+		"packed string exceeds maximum number of bytes available ($bytelen)
+	") if $missing < 0;
 
 	return pack("x$missing") . $packed;
 }

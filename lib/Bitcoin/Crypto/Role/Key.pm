@@ -23,9 +23,8 @@ sub _build_args
 {
 	my ($class, @params) = @_;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_create",
-		message => "invalid arguments passed to key constructor"
+	Bitcoin::Crypto::Exception::KeyCreate->raise(
+		"invalid arguments passed to key constructor"
 	) unless @params == 1;
 
 	return
@@ -36,9 +35,8 @@ around BUILDARGS => sub {
 	my ($orig, $class) = @_;
 	my %params = $class->_build_args(splice @_, 2);
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_create",
-		message => "trying to create key from unknown key data"
+	Bitcoin::Crypto::Exception::KeyCreate->raise(
+		"trying to create key from unknown key data"
 	) unless $params{key_instance}->is_private() == $class->_is_private;
 
 	return $class->$orig(%params);
@@ -50,9 +48,8 @@ sub _create_key
 
 	my $key_type = get_key_type $entropy;
 	unless (defined $key_type) {
-		Bitcoin::Crypto::Exception->raise(
-			code => "key_create",
-			message => "invalid entropy data passed to key creation method"
+		Bitcoin::Crypto::Exception::KeyCreate->raise(
+			"invalid entropy data passed to key creation method"
 		) if length $entropy > $config{key_max_length};
 
 		$entropy = ensure_length $entropy, $config{key_max_length};

@@ -6,33 +6,24 @@ BEGIN { use_ok('Bitcoin::Crypto::Exception')};
 
 {
 	throws_ok {
-		Bitcoin::Crypto::Exception->raise(code => "test_code", message => "test_message");
+		Bitcoin::Crypto::Exception->raise("test_message");
+	} "Bitcoin::Crypto::Exception", "exception was raised";
+	throws_ok {
+		Bitcoin::Crypto::Exception->throw("test_message");
 	} "Bitcoin::Crypto::Exception", "exception was raised";
 	my $err = $@;
 
-	ok($err->is_exception, "it's an exception");
-	is($err->code, "test_code", "code ok");
 	is($err->message, "test_message", "message ok");
 	ok("$err" =~ /test_message/, "class stringified");
 	note("$err");
 }
 
 {
-	dies_ok {
-		Bitcoin::Crypto::Exception->raise();
-	} "error was raised";
+	throws_ok {
+		Bitcoin::Crypto::Exception::KeyCreate->raise("message");
+	} "Bitcoin::Crypto::Exception::KeyCreate", "exception was raised";
 
 	note("$@");
-}
-
-{
-	local $SIG{__WARN__} = sub { die shift . " - warning" };
-	throws_ok {
-		Bitcoin::Crypto::Exception->warn(code => "test_code", message => "test_message");
-	} qr/\(test_code\) - warning/, "warning was raised as exception";
-	my $err = $@;
-
-	note("$err");
 }
 
 done_testing;

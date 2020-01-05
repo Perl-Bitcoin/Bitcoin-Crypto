@@ -27,9 +27,8 @@ sub generate_mnemonic
 	$lang //= "en";
 
 	# bip39 specification values
-	Bitcoin::Crypto::Exception->raise(
-		code => "mnemonic_generate",
-		message => "required entropy of between $min_len and $max_len bits, divisible by $len_div"
+	Bitcoin::Crypto::Exception::MnemonicGenerate->raise(
+		"required entropy of between $min_len and $max_len bits, divisible by $len_div"
 	) if $len < $min_len || $len > $max_len || $len % $len_div != 0;
 
 	my $ret = gen_bip39_mnemonic(bits => $len, language => $lang);
@@ -109,9 +108,8 @@ sub _derive_key_partial
 	my $key_num = Math::BigInt->from_bytes($self->raw_key);
 	my $n_order = Math::EllipticCurve::Prime->from_name($config{curve_name})->n;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "key_derive",
-		message => "key $child_num in sequence was found invalid"
+	Bitcoin::Crypto::Exception::KeyDerive->raise(
+		"key $child_num in sequence was found invalid"
 	) if $number->bge($n_order);
 
 	$number->badd($key_num);
@@ -185,7 +183,7 @@ With $len this can be changed to up to 256 bits with 32 bit step.
 
 Other languages than english require additional modules for L<Bitcoin::BIP39>.
 
-Croaks when $len is invalid (under 128, above 256 or not divisible by 32).
+Dies when $len is invalid (under 128, above 256 or not divisible by 32).
 Returns newly generated BIP39 mnemonic string.
 
 =head2 from_mnemonic
@@ -232,7 +230,7 @@ Behaves the same as to_serialized(), but performs Base58Check encoding on the re
 
 Tries to unserialize byte string $serialized with format specified in BIP32.
 
-Croaks on errors. If multiple networks match serialized data specify $network manually (id of the network) to avoid exception.
+Dies on errors. If multiple networks match serialized data specify $network manually (id of the network) to avoid exception.
 
 =head2 from_serialized_base58
 
@@ -264,7 +262,7 @@ Returns the key in basic format: L<Bitcoin::Crypto::Key::Private>
 
 	sig: derive_key($self, $path)
 
-Performs extended key deriviation as specified in BIP32 on the current key with $path. Croaks on error.
+Performs extended key deriviation as specified in BIP32 on the current key with $path. Dies on error.
 
 See BIP32 document for details on deriviation paths and methods.
 
@@ -278,17 +276,17 @@ Returns a fingerprint of the extended key of $len length (byte string)
 
 =head1 EXCEPTIONS
 
-This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
 
 =over 2
 
-=item mnemonic_generate - mnemonic couldn't be generated correctly
+=item MnemonicGenerate - mnemonic couldn't be generated correctly
 
-=item key_derive - key couldn't be derived correctly
+=item KeyDerive - key couldn't be derived correctly
 
-=item key_create - key couldn't be created correctly
+=item KeyCreate - key couldn't be created correctly
 
-=item network_config - incomplete or corrupted network configuration
+=item NetworkConfig - incomplete or corrupted network configuration
 
 =back
 

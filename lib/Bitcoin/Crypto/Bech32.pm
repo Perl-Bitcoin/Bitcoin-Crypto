@@ -84,51 +84,43 @@ sub split_bech32
 	$bech32enc = lc $bech32enc
 		if uc $bech32enc eq $bech32enc;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "bech32_input_format",
-		message => "bech32 string too long"
+	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
+		"bech32 string too long"
 	) if length $bech32enc > 90;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "bech32_input_format",
-		message => "bech32 string contains mixed case"
+	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
+		"bech32 string contains mixed case"
 	) if lc $bech32enc ne $bech32enc;
 
 	my @parts = split "1", $bech32enc;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "bech32_input_format",
-		message => "bech32 separator character missing"
+	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
+		"bech32 separator character missing"
 	) if @parts < 2;
 
 	my $data = pop @parts;
 
 	@parts = (join("1", @parts), $data);
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "bech32_input_format",
-		message => "incorrect length of bech32 human readable part"
+	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
+		"incorrect length of bech32 human readable part"
 	) if length $parts[0] < 1 || length $parts[0] > 83;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "bech32_input_format",
-		message => "illegal characters in bech32 human readable part"
+	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
+		"illegal characters in bech32 human readable part"
 	) if $parts[0] !~ /^[\x21-\x7e]+$/;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "bech32_input_format",
-		message => "incorrect length of bech32 data part"
+	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
+		"incorrect length of bech32 data part"
 	) if length $parts[1] < 6;
 
 	my $chars = join "", @alphabet;
-	Bitcoin::Crypto::Exception->raise(
-		code => "bech32_input_format",
-		message => "illegal characters in bech32 data part"
+	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
+		"illegal characters in bech32 data part"
 	) if $parts[1] !~ /^[$chars]+$/;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "bech32_input_checksum",
-		message => "incorrect bech32 checksum"
+	Bitcoin::Crypto::Exception::Bech32InputChecksum->raise(
+		"incorrect bech32 checksum"
 	) unless verify_checksum(@parts);
 
 	return @parts;
@@ -163,9 +155,8 @@ sub decode_base32
 	my $padding = $length_padded % 8;
 	$bits =~ s/0{$padding}$//;
 
-	Bitcoin::Crypto::Exception->raise(
-		code => "bech32_input_data",
-		message => "incorrrect padding encoded in bech32"
+	Bitcoin::Crypto::Exception::Bech32InputData->raise(
+		"incorrrect padding encoded in bech32"
 	) if length($bits) % 8 != 0 || length($bits) < $length_padded - 4;
 
 	my @data = unpack "(a8)*", $bits;
@@ -257,19 +248,19 @@ Decoding takes bech32-encoded string. Returns the entire encoded data along with
 =head2 split_bech32
 
 Splits a bech32-encoded string into human-readable part and data part. Returns a list containing the two.
-Performs all validity checks on the input. Croaks on every error.
+Performs all validity checks on the input. Dies on every error.
 
 =head1 EXCEPTIONS
 
-This module croaks an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error codes:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
 
 =over 2
 
-=item bech32_input_format - input was not suitable for bech32 operations due to invalid format
+=item Bech32InputFormat - input was not suitable for bech32 operations due to invalid format
 
-=item bech32_input_data - input was parsed with bech32 operations but contained invalid data
+=item Bech32InputData - input was parsed with bech32 operations but contained invalid data
 
-=item bech32_input_checksum - checksum validation has failed
+=item Bech32InputChecksum - checksum validation has failed
 
 =back
 
