@@ -29,7 +29,7 @@ has "message" => (
 sub stringify
 {
 	my ($self) = @_;
-	return $self->code . ": " . $self->message;
+	return  $self->message . "(" . $self->code . ")";
 }
 
 sub raise
@@ -58,6 +58,8 @@ Bitcoin::Crypto::Exception - Exception class for Bitcoin::Crypto purposes
 
 =head1 SYNOPSIS
 
+	use Try::Tiny;
+
 	try {
 		decode_segwit("Not a segwit address");
 	} catch {
@@ -66,7 +68,7 @@ Bitcoin::Crypto::Exception - Exception class for Bitcoin::Crypto purposes
 		# $error is an instance of Bitcoin::Crypto::Exception and stringifies automatically
 		warn "$error";
 
-		# but also has some information about the problem
+		# but also contains some information about the problem to avoid regex matching
 		if ($error->code eq "bech32_input_format") {
 			log $error->message;
 		}
@@ -75,7 +77,7 @@ Bitcoin::Crypto::Exception - Exception class for Bitcoin::Crypto purposes
 =head1 DESCRIPTION
 
 A wrapper class with automatic stringification and standarized raising.
-Has two properties - a code, which is a machine readable hint about what went wrong and message, which is a human readable description of an error.
+Has two properties - B<code>, which is a machine readable hint about what went wrong and B<message>, which is a human readable description of an error. If you make your warnings into exceptions, you might find B<is_exception> useful, which holds the information about the original type of error.
 Uses croak for errors and carp for warnings.
 
 =head1 FUNCTIONS

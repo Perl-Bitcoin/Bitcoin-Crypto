@@ -1,6 +1,5 @@
 package Bitcoin::Crypto::Config;
 
-
 use Modern::Perl "2010";
 use Exporter qw(import);
 

@@ -3,14 +3,6 @@ package Bitcoin::Crypto;
 our $VERSION = "0.99";
 
 use Modern::Perl "2010";
-use Exporter qw(import);
-
-our @EXPORT_OK = qw(version);
-
-sub version
-{
-	return $VERSION;
-}
 
 __END__
 =head1 NAME
@@ -78,6 +70,10 @@ This package won't help you with:
 =back
 
 See child modules for more documentation and examples.
+
+=head1 DISCLAIMER
+
+Although the module was written with an extra care and appropriate tests are in place asserting compatibility with many Bitcoin standards, due to complexity of the subject some bugs may still be present. In the world of digital money, a single bug may lead to losing funds. I encourage anyone to test the module themselves, review the test cases and use the module with care, espetially in the beta phase. Suggestions for improvements and more edge cases to test will be gladly accepted, but there is no warranty on your funds being manipulated by this module.
 
 =head1 TODO
 
