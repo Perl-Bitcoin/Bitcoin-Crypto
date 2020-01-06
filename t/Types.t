@@ -18,6 +18,11 @@ BEGIN { use_ok('Bitcoin::Crypto::Types', qw(:all)) };
 		is => "ro",
 		isa => StrExactLength[2]
 	);
+
+	has "t3" => (
+		is => "ro",
+		isa => IntMaxBits[128]
+	);
 }
 
 my %data = (
@@ -34,6 +39,7 @@ my %data = (
 		{t1 => 10},
 		{t1 => 31},
 		{t2 => "ao"},
+		{t3 => do { use bigint; 2 << 70 }},
 	]
 );
 

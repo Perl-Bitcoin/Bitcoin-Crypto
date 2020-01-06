@@ -598,6 +598,7 @@ sub push_bytes
 		my $num = unpack "C", $bytes;
 		$self->add_operation("OP_$num");
 	} else {
+		use bigint;
 		if ($len <= 75) {
 			$self->add_operation($len);
 		} elsif ($len < (2 << 7)) {

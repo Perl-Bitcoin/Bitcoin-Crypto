@@ -3,6 +3,7 @@ package Bitcoin::Crypto::Types;
 use Modern::Perl "2010";
 use Exporter qw(import);
 use MooX::Types::MooseLike;
+use bigint;
 
 our @EXPORT_OK;
 
