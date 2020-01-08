@@ -13,8 +13,6 @@ WriteMakefile(
 	},
 	BUILD_REQUIRES => {
 		'ExtUtils::MakeMaker' => '>=6.55_03',
-		'Math::BigInt' => '>= 1.999816',
-		'Math::BigInt::GMP' => '>= 1.6006',
 	},
 	TEST_REQUIRES => {
 		'Test::More' => '>= 0.88',
