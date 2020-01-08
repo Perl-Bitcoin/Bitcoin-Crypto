@@ -1,5 +1,11 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+0.991 Wed Jan 08 22:00:00 2020
+	- rewrite Bitcoin::Crypto::Network to Moo (changed interface)
+	- add examples directory and bip44 implementation example
+	- 32 bit compatibility attempt
+	- add the missing test to distribution
+
 0.99 Sun Jan 05 20:00:00 2020
 	- almost complete rewrite of the module
 	- added extended keys
