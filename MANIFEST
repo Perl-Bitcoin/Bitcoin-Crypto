@@ -2,6 +2,7 @@ Changes
 Makefile.PL
 MANIFEST
 README
+examples/bip44.pl
 t/ExtPrivateKey.t
 t/ExtPublicKey.t
 t/PrivateKey.t

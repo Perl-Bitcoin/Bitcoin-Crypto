@@ -99,6 +99,8 @@ Although the module was written with an extra care and appropriate tests are in 
 
 =item L<Bitcoin::BIP39>
 
+=item The examples directory
+
 =back
 
 =head1 AUTHOR
