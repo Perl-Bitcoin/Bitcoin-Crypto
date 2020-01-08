@@ -1,7 +1,7 @@
 Changes
 Makefile.PL
 MANIFEST
-README
+README.md
 examples/bip44.pl
 t/ExtPrivateKey.t
 t/ExtPublicKey.t
