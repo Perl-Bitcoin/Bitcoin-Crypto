@@ -19,6 +19,7 @@ t/Crypto.t
 t/Segwit.t
 lib/Bitcoin/Crypto.pm
 lib/Bitcoin/Crypto/Key/ExtPrivate.pm
+lib/Bitcoin/Crypto/Key/KeyDerivation.pm
 lib/Bitcoin/Crypto/Key/ExtPublic.pm
 lib/Bitcoin/Crypto/Key/Private.pm
 lib/Bitcoin/Crypto/Key/Public.pm
