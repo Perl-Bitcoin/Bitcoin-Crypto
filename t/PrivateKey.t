@@ -48,9 +48,9 @@ my $wif = "5JxsKGzCoJwaWEjQvfNqD4qPEoUQ696BUEq68Y68WQ2GNR6zrxW";
 my $testnet_wif = "92jVu1okPY1iUJEhZ1Gk5fPLtTq7FJdNpBh3DASdr8mK9SZXqy3";
 is($PrivateKey->from_wif($wif)->to_hex(), $wif_raw_key, "imported WIF correctly");
 is($PrivateKey->from_hex($wif_raw_key)->set_compressed(0)->to_wif(), $wif, "exported WIF correctly");
-is($PrivateKey->from_wif($testnet_wif)->network->{name}, "Bitcoin Testnet", "Recognized non-default network");
+is($PrivateKey->from_wif($testnet_wif)->network->name, "Bitcoin Testnet", "Recognized non-default network");
 is($PrivateKey->from_wif($testnet_wif)->to_hex(), $wif_raw_key, "imported non-default network WIF correctly");
-is($PrivateKey->from_wif($testnet_wif)->get_public_key()->network->{name}, "Bitcoin Testnet", "Passed network to public key");
+is($PrivateKey->from_wif($testnet_wif)->get_public_key()->network->name, "Bitcoin Testnet", "Passed network to public key");
 
 # Key length testing - 3 tests
 my $short_key = "e8d964843cc55a91d";

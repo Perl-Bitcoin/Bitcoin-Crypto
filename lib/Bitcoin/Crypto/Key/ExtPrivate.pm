@@ -234,7 +234,7 @@ Dies on errors. If multiple networks match serialized data specify $network manu
 
 =head2 from_serialized_base58
 
-	sig: from_serialized_base58($class, $base58, $network)
+	sig: from_serialized_base58($class, $base58, $network = undef)
 
 Same as from_serialized, but performs Base58Check decoding on $base58 argument.
 
@@ -242,7 +242,7 @@ Same as from_serialized, but performs Base58Check decoding on $base58 argument.
 
 	sig: set_network($self, $val)
 
-Change key's network state to $val. It can be either network name present in Bitcoin::Crypto::Network package or a valid network hashref.
+Change key's network state to $val. It can be either network name present in Bitcoin::Crypto::Network package or an instance of this class.
 
 Returns current key instance.
 

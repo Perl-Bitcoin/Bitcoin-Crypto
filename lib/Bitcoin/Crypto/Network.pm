@@ -1,134 +1,145 @@
 package Bitcoin::Crypto::Network;
 
 use Modern::Perl "2010";
-use Exporter qw(import);
-use Storable qw(dclone);
+use Moo;
+use Scalar::Util qw(blessed);
+use MooX::Types::MooseLike::Base qw(Str Int);
 
+use Bitcoin::Crypto::Types qw(StrExactLength);
 use Bitcoin::Crypto::Exception;
 
-our @EXPORT_OK = qw(
-	set_default_network
-	add_network
-	find_network
-	get_network
-	get_default_network
-	get_available_networks
-	validate_network
+my %networks;
+my $default_network;
+
+has "id" => (
+	is => "ro",
+	isa => Str,
+	required => 1,
 );
 
-our %EXPORT_TAGS = (all => [@EXPORT_OK]);
-
-my %networks = (
-	mainnet => {
-		name => "Bitcoin Mainnet",
-		p2pkh_byte => "\x00",
-		p2sh_byte => "\x05",
-		segwit_hrp => "bc",
-		wif_byte => "\x80",
-		extprv_version => 0x0488ade4,
-		extpub_version => 0x0488b21e,
-	},
-	testnet => {
-		name => "Bitcoin Testnet",
-		p2pkh_byte => "\x6f",
-		p2sh_byte => "\xc4",
-		segwit_hrp => "tb",
-		wif_byte => "\xef",
-		extprv_version => 0x04358394,
-		extpub_version => 0x043587cf,
-	},
+has "name" => (
+	is => "ro",
+	isa => Str,
+	required => 1,
 );
 
-my $default_network = "mainnet";
-
-# name => required
-my %network_keys = qw(
-	name 1
-	p2pkh_byte 1
-	p2sh_byte 0
-	segwit_hrp 0
-	wif_byte 1
-	extprv_version 0
-	extpub_version 0
+has "p2pkh_byte" => (
+	is => "ro",
+	isa => StrExactLength[1],
+	required => 1,
 );
 
-my %network_maps;
+has "wif_byte" => (
+	is => "ro",
+	isa => StrExactLength[1],
+	required => 1,
+);
 
-sub set_default_network
+has "p2sh_byte" => (
+	is => "ro",
+	isa => StrExactLength[1],
+	required => 0,
+);
+
+has "segwit_hrp" => (
+	is => "ro",
+	isa => Str,
+	required => 0,
+);
+
+has "extprv_version" => (
+	is => "ro",
+	isa => Int,
+	required => 0,
+);
+
+has "extpub_version" => (
+	is => "ro",
+	isa => Int,
+	required => 0,
+);
+
+has "bip44_coin" => (
+	is => "ro",
+	isa => Int,
+	required => 0,
+);
+
+sub register
 {
-	my ($name) = @_;
-
-	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"trying to set unknown network: $name"
-	) unless defined $networks{$name};
-
-	$default_network = $name;
-}
-
-sub add_network
-{
-	my ($name, $args) = @_;
-	validate_network($args);
-	$networks{$name} = $args;
-	_map_networks();
-}
-
-sub validate_network
-{
-	my ($args) = @_;
-	for my $el (keys %network_keys) {
-		Bitcoin::Crypto::Exception::NetworkConfig->raise(
-			"incomplete network configuration: missing key $el"
-		) if !defined $args->{$el} && $network_keys{$el};
+	my ($self, $params) = @_;
+	if (!blessed $self) {
+		$self = $self->new(%$params);
 	}
+	$networks{$self->id} = $self;
+	return $self;
 }
 
-sub find_network
+sub set_default
 {
-	my ($by, $value) = @_;
+	my ($self) = @_;
 
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"network key does not exist: $by"
-	) unless defined $network_maps{$by};
-
-	return grep { $value eq $network_maps{$by}{$_} } keys %{$network_maps{$by}};
-}
-
-sub get_network
-{
-	my ($name) = @_;
-	$name //= $default_network;
+		"network must be an instance of Bitcoin::Crypto::Network"
+	) unless blessed($self);
 
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"network key does not exist: $name"
-	) unless defined $networks{$name};
+		"the network needs to be registered before becoming the default one"
+	) unless defined $networks{$self->id};
 
-	return dclone($networks{$name});
+	$default_network = $self->id;
+	return $self;
 }
 
-sub get_default_network
+sub find
 {
-	return get_network();
+	my ($class, $sub) = @_;
+
+	return keys %networks
+		unless defined $sub;
+
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		"argument passed to Bitcoin::Crypto::Network->find must be a coderef returning boolean"
+	) unless ref $sub eq "CODE";
+
+	return grep { $sub->($networks{$_}) } keys %networks;
 }
 
-sub get_available_networks
+sub get
 {
-	return keys %networks;
+	my ($class, $id) = @_;
+
+	my $network = $networks{$id // $default_network};
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		"network $id is not registered"
+	) unless defined $network;
+
+	return $network;
 }
 
-sub _map_networks
-{
-	%network_maps = ();
-	for my $el (keys %network_keys) {
-		my %el_map;
-		$network_maps{$el} = \%el_map;
-		for my $network (keys %networks) {
-			$el_map{$network} = $networks{$network}{$el};
-		}
-	}
-}
+__PACKAGE__->register({
+	id => "bitcoin",
+	name => "Bitcoin Mainnet",
+	p2pkh_byte => "\x00",
+	p2sh_byte => "\x05",
+	segwit_hrp => "bc",
+	wif_byte => "\x80",
+	extprv_version => 0x0488ade4,
+	extpub_version => 0x0488b21e,
+	bip44_coin => 0,
+})->set_default;
 
-_map_networks();
+__PACKAGE__->register({
+	id => "bitcoin_testnet",
+	name => "Bitcoin Testnet",
+	p2pkh_byte => "\x6f",
+	p2sh_byte => "\xc4",
+	segwit_hrp => "tb",
+	wif_byte => "\xef",
+	extprv_version => 0x04358394,
+	extpub_version => 0x043587cf,
+	bip44_coin => 1,
+});
 
 1;
 
@@ -139,61 +150,64 @@ Bitcoin::Crypto::Network - Management tool for cryptocurrency networks
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto::Network qw(:all);
+	use Bitcoin::Crypto::Network;
 
 	# by default network is set to bitcoin
+	# get() without arguments returns default network
 
-	get_default_network()->{name}; # Bitcoin Mainnet
+	Bitcoin::Crypto::Network->get->name; # Bitcoin Mainnet
 
 	# by default there are two networks specified
-	# these are identified with keys which you can get with
+	# find() without arguments returns a list of all network ids
 
-	get_available_networks(); # (mainnet, testnet)
+	Bitcoin::Crypto::Network->find; # (mainnet, testnet)
 
-	# you can get other network configuration
+	# you can get full network configuration with get() using network id
 
-	get_network("testnet")->{name}; # Bitcoin Testnet
+	Bitcoin::Crypto::Network->get("bitcoin_testnet")->name; # Bitcoin Testnet
 
-	# search for the network and get array of keys in return
-	# there will be multiple results if your search can be matched
+	# search for network and get array of keys in return
+	# there will be multiple results if your search is matched
 	# by multiple networks
 
-	find_network(name => "Bitcoin Mainnet"); # (mainnet)
-	find_network(p2pkh_byte => 0x6f); # (testnet)
+	Bitcoin::Crypto::Network->find(sub { shift->name eq "Bitcoin Mainnet" }); # (mainnet)
+	Bitcoin::Crypto::Network->find(sub { shift->p2pkh_byte eq "\x6f" }); # (testnet)
 
-	# if you're working with different cryptocurrency you need to add a new network
+	# if you're working with cryptocurrency other than Bitcoin you need to add a new network
 
 	# network configuration is important for importing WIF private keys (network
 	# recognition), generating addresses and serializing extended keys.
-	# Don't use addresses without validating your configuration first!
+	# It may also hold other data specific to a network
 
-	# I suggest creating networks by changing values in Bitcoin network
-	# this way some of the rather default values will be inherited
-	# configuration keys shown below are required
+	# register() can be used to create a network
 
-	my $litecoin = get_network("mainnet");
-	$litecoin->{name} = "Litecoin Mainnet";
-	$litecoin->{p2pkh_byte} = 0x30;
-	$litecoin->{wif_byte} = 0xb0;
-
-	add_network(litecoin_mainnet => $litecoin);
+	my $litecoin = Bitcoin::Crypto::Network->register({
+		id => "litecoin",
+		name => "Litecoin Mainnet",
+		p2pkh_byte => "\x30",
+		wif_byte => "\xb0",
+	});
 
 	# after you've added your network you can set it as default. This means that
 	# all extended keys generated by other means than importing serialized key and
-	# all private keys generated by other means than importing WIF will use that
-	# configuration.
+	# all private keys generated by other means than importing WIF / extended keys
+	# will use that configuration.
 
-	set_default_network("litecoin_mainnet");
+	$litecoin->set_default;
 
 
 =head1 DESCRIPTION
 
 This package allows you to manage non-bitcoin cryptocurrencies.
 Before you start producing keys and addresses for your favorite crypto
-you have to configure it's network first. Right now networks only require
-three keys, which are marked with *
+you have to configure it's network first.
 
-	my $network = (
+=head1 CONFIGURATION
+
+Right now networks only require four keys, which are marked with *
+
+	my $config = {
+		id => "* identifier for the network",
 		name => "* human-readable network name",
 		p2pkh_byte => "* p2pkh address prefix byte, eg. 0x00",
 		p2sh_byte => "p2sh address prefix byte, eg. 0x05",
@@ -201,87 +215,63 @@ three keys, which are marked with *
 		wif_byte => "* WIF private key prefix byte, eg. 0x80",
 		extprv_version => "version of extended private keys, eg. 0x0488ade4",
 		extpub_version => "version of extended public keys, eg. 0x0488b21e",
-	);
+		bip44_coin => "bip44 coin number, eg. 0",
+	};
 
-After you add_network your program will be able to import keys for that
-network but all keys created from other sources will be treated as bitcoin.
-You need to set_default_network to make all new keys use it. If you use many
+After you register a network with this hashref your program will be able to import keys for that
+network but all keys created from other sources will be treated as Bitcoin.
+You need to set_default to make all new keys use it. If you use many
 networks it might be better to set a network with key's set_network method:
 
-	$priv->set_network("your_network");
+	$priv->set_network("network_id");
 
-Some things to consider:
-
-=over 2
-
-=item * if you don't specify network field for some feature you won't be able to
+Remember that if you don't specify network field for some feature you won't be able to
 use it. For example the module will complain if you try to generate segwit address
 with custom network without segwit_hrp field set.
 
-=item * it is entirely possible to add a network that already exists. Because of
-this, if you don't need bitcoin in your program you can replace existing
-networks with custom ones.
+=head1 METHODS
 
-=item * get_network functions make clones of network configuration at the time
-of creation, so  changing configuration after you've created your keys
-may not bring the results you're expecting. You probably shouldn't be doing
-this anyway, but if for some reason you need to update your configuration
-then you need to either re-create all private and public keys or use set_network
-method on them all.
+=head2 register
 
-=back
+	sig: register($self, $config = undef)
 
-=head1 FUNCTIONS
+Calls Moose's new with keys present in $config hashref when called in static context.
+Adds the newly created network instance or the one that the method was called on to a list of known networks.
+The second argument is ignored in object context.
 
-=head2 set_default_network
+=head2 set_default
 
-	set_default_network("network_key");
+	sig: set_default($self)
 
-Sets the network with $name as default one. All newly created private and public
+Sets the network as default one. All newly created private and public
 keys will be bound to this network.
-Dies if network doesn't exist
 
-=head2 get_default_network
+=head1 STATIC METHODS
 
-	$hashref = get_default_network();
+=head2 get
 
-Returns deep clone of currently active network's configuration.
+	sig: get($class, $id = undef)
 
-=head2 add_network
+Without arguments, returns default network configuration, the Bitcoin::Crypto::Network instance
+With the $id argument (string), returns the instance of a configuration matching the id.
+Throws an exception if network doesn't exist.
 
-	add_network(name => $hashref);
+=head2 find
 
-Adds network "name" with configuration from $hashref.
-Performs $hashref validation (same as validate_network)
+	sig: find($class, $sub = undef)
 
-=head2 validate_network
-
-	validate_network($hashref);
-
-Validates network configuration under $hashref.
-Dies if configuration is invalid.
-
-=head2 find_network
-
-	my @found = find_network(key => $value)
-
-Searches for all networks that have configuration "key" set to $value.
+Without arguments, returns a list of all registered network ids.
+With the $sub argument (coderef), searches for all networks that pass the criteria and returns their ids.
 Returns list.
-Dies if key doesn't exist.
 
-=head2 get_network
+The $sub will be passed all the instances of registered networks, one at a time.
+If must perform required checks and return a boolean value. All the networks that pass this
+test will be returned. Example:
 
-	my $hashref = get_network($name);
-
-Returns network $name configuration. If $name is omitted behaves like
-get_default_network().
-Dies if network $name doesn't exist.
-
-=head2 get_available_networks
-
-	my @names = get_available_networks();
-
-Returns all available network names.
+	sub {
+		my $instance = shift;
+		return $instance->name eq "Some name";
+	}
 
 =head1 SEE ALSO
 

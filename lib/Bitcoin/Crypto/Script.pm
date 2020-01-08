@@ -642,7 +642,7 @@ sub witness_program
 sub get_legacy_address
 {
 	my ($self) = @_;
-	return encode_base58check($self->network->{p2sh_byte} . $self->get_script_hash);
+	return encode_base58check($self->network->p2sh_byte . $self->get_script_hash);
 }
 
 sub get_compat_address
@@ -662,9 +662,9 @@ sub get_segwit_address
 	# network field is not required, lazy check for completeness
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
 		"no segwit_hrp found in network configuration"
-	) unless defined $self->network->{segwit_hrp};
+	) unless defined $self->network->segwit_hrp;
 
-	return encode_segwit($self->network->{segwit_hrp}, $self->witness_program);
+	return encode_segwit($self->network->segwit_hrp, $self->witness_program);
 }
 
 1;
@@ -751,9 +751,9 @@ Returns a serialized script parsed with HASH160 (ripemd160 of sha256).
 =head2 set_network
 
 	sig: set_network($self, $val)
-Change key's network state to $val. It can be either network name present in
-Bitcoin::Crypto::Network package or a valid network hashref. This will change
-the address.
+
+Change key's network state to $val. It can be either network name present in Bitcoin::Crypto::Network package or an instance of this class.
+
 Returns current key instance.
 
 =head2 get_legacy_address

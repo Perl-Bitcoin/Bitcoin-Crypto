@@ -30,7 +30,7 @@ sub witness_program
 sub get_legacy_address
 {
 	my ($self) = @_;
-	my $pkh = $self->network->{p2pkh_byte} . $self->key_hash;
+	my $pkh = $self->network->p2pkh_byte . $self->key_hash;
 	return encode_base58check($pkh);
 }
 
@@ -51,9 +51,9 @@ sub get_segwit_address
 	# network field is not required, lazy check for completeness
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
 		"no segwit_hrp found in network configuration"
-	) unless defined $self->network->{segwit_hrp};
+	) unless defined $self->network->segwit_hrp;
 
-	return encode_segwit($self->network->{segwit_hrp}, $self->witness_program);
+	return encode_segwit($self->network->segwit_hrp, $self->witness_program);
 }
 
 1;
@@ -141,7 +141,7 @@ Returns current key instance.
 
 	sig: set_network($self, $val)
 
-Change key's network state to $val. It can be either network name present in Bitcoin::Crypto::Network package or a valid network hashref. This will change the address.
+Change key's network state to $val. It can be either network name present in Bitcoin::Crypto::Network package or an instance of this class.
 
 Returns current key instance.
 

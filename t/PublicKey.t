@@ -79,9 +79,9 @@ ok(!$random_pub->verify_message($message, $sig), "verification fails with differ
 
 # Generate address for different network - 2 tests
 
-$pub->set_network("testnet");
+$pub->set_network("bitcoin_testnet");
 my $testnet_addr = "n1raSqPwHRbJ87dC8daiwgLVrQBy9Fj17K";
-is($pub->network->{name}, "Bitcoin Testnet", "changed network to testnet");
+is($pub->network->name, "Bitcoin Testnet", "changed network to testnet");
 is($pub->get_legacy_address(), $testnet_addr, "created different address correctly when in non-default network");
 
 done_testing;

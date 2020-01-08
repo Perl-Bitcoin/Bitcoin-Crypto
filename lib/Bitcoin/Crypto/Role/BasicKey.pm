@@ -6,8 +6,8 @@ use Moo::Role;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Exception;
 
-with "Bitcoin::Crypto::Role::Key";
-with "Bitcoin::Crypto::Role::Compressed";
+with "Bitcoin::Crypto::Role::Key",
+	"Bitcoin::Crypto::Role::Compressed";
 
 sub sign_message
 {

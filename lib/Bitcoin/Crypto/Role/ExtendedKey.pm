@@ -10,7 +10,7 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Types qw(IntMaxBits StrExactLength);
 use Bitcoin::Crypto::Util qw(get_path_info);
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length hash160);
-use Bitcoin::Crypto::Network qw(find_network get_network);
+use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Exception;
 
@@ -66,12 +66,11 @@ sub to_serialized
 {
 	my ($self) = @_;
 
-	my $network_key = "ext" . ($self->_is_private ? "prv" : "pub") . "_version";
-	my $version = $self->network->{$network_key};
+	my $version = $self->_is_private ? $self->network->extprv_version : $self->network->extpub_version;
 
 	# network field is not required, lazy check for completeness
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"no $network_key found in network configuration"
+		"no extended key version found in network configuration"
 	) unless defined $version;
 
 	# version number (4B)
@@ -108,8 +107,10 @@ sub from_serialized
 			if $is_private;
 
 		$version = unpack "N", $version;
-		my $network_key = "ext" . ($class->_is_private ? "prv" : "pub") . "_version";
-		my @found_networks = find_network($network_key => $version);
+		my @found_networks = Bitcoin::Crypto::Network->find(sub {
+			my ($inst) = @_;
+			return ($class->_is_private ? $inst->extprv_version : $inst->extpub_version) eq $version;
+		});
 		@found_networks = first { $_ eq $network } @found_networks if defined $network;
 
 		Bitcoin::Crypto::Exception::KeyCreate->raise(

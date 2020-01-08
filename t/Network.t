@@ -1,48 +1,52 @@
 use Modern::Perl "2010";
 use Test::More;
 use Test::Exception;
-use Scalar::Util qw(blessed);
 
-BEGIN { use_ok('Bitcoin::Crypto::Network', qw(:all)) };
+BEGIN { use_ok 'Bitcoin::Crypto::Network' };
 
-# get_available_networks - 2 tests
+# default networks
 
-my @default_networks = sort { $a cmp $b } get_available_networks();
-is($default_networks[0], "mainnet", "mainnet available");
-is($default_networks[1], "testnet", "testnet available");
-note("no more default networks") if @default_networks == 2;
+my %default_mapped = map { $_ => 1 } Bitcoin::Crypto::Network->find;
+my $count = scalar keys %default_mapped;
+ok defined $default_mapped{bitcoin},
+	"mainnet available";
+ok defined $default_mapped{bitcoin_testnet},
+	"testnet available";
 
 my $litecoin = {
+	id => "litecoin",
 	name => "Litecoin Mainnet",
 	p2pkh_byte => "\x30",
 };
 
-# validate_network - 2 test
+# network validation
 
-throws_ok {
-	validate_network($litecoin);
-} "Bitcoin::Crypto::Exception::NetworkConfig", "invalid network validation fails";
+dies_ok {
+	Bitcoin::Crypto::Network->register($litecoin);
+} "invalid network validation fails";
+
+cmp_ok(Bitcoin::Crypto::Network->find, "==", $count,
+	"network list unchanged");
 
 $litecoin->{wif_byte} = "\xb0";
 
-lives_ok {
-	validate_network($litecoin);
-} "network validates";
+lives_and {
+	$litecoin = Bitcoin::Crypto::Network->register($litecoin);
+	isa_ok $litecoin, "Bitcoin::Crypto::Network";
+	is(Bitcoin::Crypto::Network->get($litecoin->id)->id, $litecoin->id);
+} "network validates and gets registered";
 
-# add_network - 1 test
+# default network
 
-add_network(litecoin_mainnet => $litecoin);
-is_deeply(get_network("litecoin_mainnet"), $litecoin, "network added successfully");
+$litecoin->set_default;
+is(Bitcoin::Crypto::Network->get->id, $litecoin->id,
+	"network successfully flagged as default");
 
-# set_default_network - 2 tests
+# finding the network
 
-set_default_network("litecoin_mainnet");
-is_deeply(get_default_network(), $litecoin, "network successfully flagged as default");
-is_deeply(get_network(), $litecoin, "get_network() shortcut working");
-
-# find_network - 2 test
-
-is_deeply([find_network(wif_byte => "\xb0")], [qw(litecoin_mainnet)], "network found successfully");
-ok(!find_network(name => "unexistent"), "non-existent network not found");
+is_deeply [Bitcoin::Crypto::Network->find(sub { shift->wif_byte eq "\xb0" })], [$litecoin->id],
+	"network found successfully";
+ok !Bitcoin::Crypto::Network->find(sub { shift->name eq "unexistent" }),
+	"non-existent network not found";
 
 done_testing;
