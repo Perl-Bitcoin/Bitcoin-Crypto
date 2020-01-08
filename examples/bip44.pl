@@ -20,7 +20,7 @@ sub bip44_get_derived_key_from_mnemonic
 	my $extkey = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic, $password);
 
 	# set a network for newly imported extended key, if specified
-	# can be either a hashref or an existing network name
+	# can be either an instance of Bitcoin::Crypto::Network or an existing network name
 	$extkey->set_network($network)
 		if defined $network;
 
