@@ -30,7 +30,7 @@ WriteMakefile(
 		'Try::Tiny' => '>= 0.30',
 		'Digest::SHA' => '>= 6.02',
 		'PBKDF2::Tiny' => '>= 0.005',
-		'Throwable' => '>= 0.007',
+		'Throwable' => '>= 0.2',
 	},
 
 	META_MERGE => {
