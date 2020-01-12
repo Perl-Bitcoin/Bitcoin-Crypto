@@ -1,5 +1,9 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+0.992 Sun Jan 12 10:00:00 2020
+	- change Bitcoin::Crypto::Network register method to accept a plain hash (instead of a hashref)
+	- run examples during tests
+
 0.991 Wed Jan 08 22:00:00 2020
 	- rewrite Bitcoin::Crypto::Network to Moo (changed interface)
 	- add examples directory and bip44 implementation example
