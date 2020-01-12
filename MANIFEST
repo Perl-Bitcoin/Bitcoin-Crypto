@@ -28,6 +28,7 @@ t/Base58.t
 t/Bech32.t
 t/Config.t
 t/Crypto.t
+t/examples.t
 t/Exception.t
 t/ExtPrivateKey.t
 t/ExtPublicKey.t
