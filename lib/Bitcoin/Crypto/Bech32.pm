@@ -256,11 +256,11 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =over 2
 
-=item Bech32InputFormat - input was not suitable for bech32 operations due to invalid format
+=item * Bech32InputFormat - input was not suitable for bech32 operations due to invalid format
 
-=item Bech32InputData - input was parsed with bech32 operations but contained invalid data
+=item * Bech32InputData - input was parsed with bech32 operations but contained invalid data
 
-=item Bech32InputChecksum - checksum validation has failed
+=item * Bech32InputChecksum - checksum validation has failed
 
 =back
 

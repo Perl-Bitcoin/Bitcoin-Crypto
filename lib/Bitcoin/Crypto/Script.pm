@@ -780,11 +780,11 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =over 2
 
-=item ScriptOpcode - unknown opcode was specified
+=item * ScriptOpcode - unknown opcode was specified
 
-=item ScriptPush - data pushed to the execution stack is invalid
+=item * ScriptPush - data pushed to the execution stack is invalid
 
-=item NetworkConfig - incomplete or corrupted network configuration
+=item * NetworkConfig - incomplete or corrupted network configuration
 
 =back
 

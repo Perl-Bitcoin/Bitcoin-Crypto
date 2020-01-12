@@ -234,11 +234,11 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =over 2
 
-=item KeySign - couldn't sign the message corretcly
+=item * KeySign - couldn't sign the message corretcly
 
-=item KeyCreate - key couldn't be created correctly
+=item * KeyCreate - key couldn't be created correctly
 
-=item NetworkConfig - incomplete or corrupted network configuration
+=item * NetworkConfig - incomplete or corrupted network configuration
 
 =back
 

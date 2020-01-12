@@ -161,11 +161,11 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =over 2
 
-=item KeyDerive - key couldn't be derived correctly
+=item * KeyDerive - key couldn't be derived correctly
 
-=item KeyCreate - key couldn't be created correctly
+=item * KeyCreate - key couldn't be created correctly
 
-=item NetworkConfig - incomplete or corrupted network configuration
+=item * NetworkConfig - incomplete or corrupted network configuration
 
 =back
 

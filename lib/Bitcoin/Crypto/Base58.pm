@@ -147,9 +147,9 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =over 2
 
-=item Base58InputFormat - input was not suitable for base58 operations due to invalid format
+=item * Base58InputFormat - input was not suitable for base58 operations due to invalid format
 
-=item Base58InputChecksum - checksum validation has failed
+=item * Base58InputChecksum - checksum validation has failed
 
 =back
 

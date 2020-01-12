@@ -102,7 +102,7 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =over 2
 
-=item SegwitProgram - a validation of a segwit program has failed
+=item * SegwitProgram - a validation of a segwit program has failed
 
 =back
 
