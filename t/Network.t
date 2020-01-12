@@ -22,7 +22,7 @@ my $litecoin = {
 # network validation
 
 dies_ok {
-	Bitcoin::Crypto::Network->register($litecoin);
+	Bitcoin::Crypto::Network->register(%$litecoin);
 } "invalid network validation fails";
 
 cmp_ok(Bitcoin::Crypto::Network->find, "==", $count,
@@ -31,7 +31,7 @@ cmp_ok(Bitcoin::Crypto::Network->find, "==", $count,
 $litecoin->{wif_byte} = "\xb0";
 
 lives_and {
-	$litecoin = Bitcoin::Crypto::Network->register($litecoin);
+	$litecoin = Bitcoin::Crypto::Network->register(%$litecoin);
 	isa_ok $litecoin, "Bitcoin::Crypto::Network";
 	is(Bitcoin::Crypto::Network->get($litecoin->id)->id, $litecoin->id);
 } "network validates and gets registered";
