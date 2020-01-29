@@ -8,7 +8,7 @@ use Math::EllipticCurve::Prime;
 use Encode qw(encode decode);
 use Unicode::Normalize;
 use Bitcoin::BIP39 qw(gen_bip39_mnemonic bip39_mnemonic_to_entropy);
-use PBKDF2::Tiny qw(derive);
+use Crypt::KeyDerivation qw(pbkdf2);
 
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Config;
@@ -46,7 +46,7 @@ sub from_mnemonic
 		# requires Wordlist::LANG::BIP39 module for given LANG
 		bip39_mnemonic_to_entropy(mnemonic => $mnemonic, language => $lang);
 	}
-	my $bytes = derive("SHA-512", $mnemonic, $password, 2048);
+	my $bytes = pbkdf2($mnemonic, $password, 2048, "SHA512", 64);
 
 	return $class->from_seed($bytes);
 }
