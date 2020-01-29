@@ -3,7 +3,7 @@ package Bitcoin::Crypto::Helpers;
 use Modern::Perl "2010";
 use Exporter qw(import);
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
-use Digest::SHA qw(sha256);
+use Crypt::Digest::SHA256 qw(sha256);
 
 use Bitcoin::Crypto::Exception;
 

@@ -2,7 +2,7 @@ package Bitcoin::Crypto::Key::ExtPublic;
 
 use Modern::Perl "2010";
 use Moo;
-use Digest::SHA qw(hmac_sha512);
+use Crypt::Mac::HMAC qw(hmac);
 use Math::BigInt 1.999816 try => 'GMP';
 use Math::EllipticCurve::Prime;
 use Math::EllipticCurve::Prime::Point;
@@ -28,7 +28,7 @@ sub _derive_key_partial
 	# child number - 4 bytes
 	$hmac_data .= ensure_length pack("N", $child_num), 4;
 
-	my $data = hmac_sha512($hmac_data, $self->chain_code);
+	my $data = hmac("SHA512", $self->chain_code, $hmac_data);
 	my $chain_code = substr $data, 32, 32;
 
 	my $el_curve = Math::EllipticCurve::Prime->from_name($config{curve_name});

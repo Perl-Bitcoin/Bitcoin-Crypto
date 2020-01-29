@@ -3,12 +3,12 @@ package Bitcoin::Crypto::Script;
 use Modern::Perl "2010";
 use Moo;
 use MooX::Types::MooseLike::Base qw(ArrayRef Str);
+use Crypt::Digest::SHA256 qw(sha256);
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(hash160 hash256);
-use Digest::SHA qw(sha256);
 use Bitcoin::Crypto::Exception;
 
 with "Bitcoin::Crypto::Role::Network";

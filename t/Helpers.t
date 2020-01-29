@@ -3,7 +3,7 @@ use Test::More;
 use Test::Exception;
 use Math::BigInt;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
-use Digest::SHA qw(sha256);
+use Crypt::Digest::SHA256 qw(sha256);
 
 BEGIN { use_ok('Bitcoin::Crypto::Helpers', qw(pad_hex ensure_length hash160 hash256)) };
 

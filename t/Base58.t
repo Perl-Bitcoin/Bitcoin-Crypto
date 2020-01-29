@@ -1,7 +1,7 @@
 use Modern::Perl "2010";
 use Test::More;
 use Test::Exception;
-use Digest::SHA qw(sha256);
+use Crypt::Digest::SHA256 qw(sha256);
 
 BEGIN { use_ok('Bitcoin::Crypto::Base58', qw(:all)) };
 
