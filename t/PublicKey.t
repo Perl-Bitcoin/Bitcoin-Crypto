@@ -66,7 +66,7 @@ for my $key (keys %cases_segwit_native) {
 	is($pubkey->get_segwit_address(), $cases_segwit_native{$key}, "correctly created segwit native address");
 }
 
-# Verify message without private key - 3 tests
+# Verify message without private key
 my $message = "Perl test script";
 my $pub = $PublicKey->from_hex("04b55965ca968e6e14d9175fb3fc3dc35f68b67b7e69cc2d1fa8c27f2406889c0f77cc2c39331735990bc67ccbf63c67642ff7b8ffd3794a4d76e0b78d9797a347")->set_compressed(0);
 my $pub_compressed = $PublicKey->from_hex("03b55965ca968e6e14d9175fb3fc3dc35f68b67b7e69cc2d1fa8c27f2406889c0f");
@@ -77,7 +77,7 @@ ok($pub->verify_message($message, $sig), "verified message correctly");
 ok($pub_compressed->verify_message($message, $sig), "verified message correctly with compressed key");
 ok(!$random_pub->verify_message($message, $sig), "verification fails with different pubkey");
 
-# Generate address for different network - 2 tests
+# Generate address for different network
 
 $pub->set_network("bitcoin_testnet");
 my $testnet_addr = "n1raSqPwHRbJ87dC8daiwgLVrQBy9Fj17K";

@@ -27,20 +27,22 @@ my @keylist = keys %cases;
 my $privkey = $PrivateKey->from_hex($keylist[0])->set_compressed(0);
 my $pubkey = $privkey->get_public_key();
 
-# Message signing - 3 tests
-my $message = "Perl test script";
-my $signature = $privkey->sign_message($message);
+# Message signing
+my @messages = ("Perl test script", "", "a", "_ś\x1f " x 250);
+for my $message (@messages) {
+	my $signature = $privkey->sign_message($message);
 
-# ok($privkey->sign_message($message) eq $signature, "Signatures generation should be deterministic")
-# 	or diag("Signatures generation seems to be nondeterministic, which is a possible private key security threat");
+	# ok($privkey->sign_message($message) eq $signature, "Signatures generation should be deterministic")
+	# 	or diag("Signatures generation seems to be nondeterministic, which is a possible private key security threat");
 
-ok($privkey->verify_message($message, $signature), "Valid signature");
-ok($pubkey->verify_message($message, $signature), "Pubkey recognizes signature");
+	ok($privkey->verify_message($message, $signature), "Valid signature");
+	ok($pubkey->verify_message($message, $signature), "Pubkey recognizes signature");
 
-my $privkey2 = $PrivateKey->from_hex($keylist[1]);
-my $pubkey2 = $privkey2->get_public_key();
+	my $privkey2 = $PrivateKey->from_hex($keylist[1]);
+	my $pubkey2 = $privkey2->get_public_key();
 
-ok(!$pubkey2->verify_message($message, $signature), "Different pubkey doesn't recognize signature");
+	ok(!$pubkey2->verify_message($message, $signature), "Different pubkey doesn't recognize signature");
+}
 
 # WIF import / export - 4 tests
 my $wif_raw_key = "972e85e7e3345cb7e6a5f812aa5f5bea82005e3ded7b32d9d56f5ab2504f1648";
