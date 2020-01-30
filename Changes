@@ -1,5 +1,11 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+0.993 Thu Jan 30 23:00:00 2020
+	- replace some dependencies with CryptX functions
+	- add shortcut functions in Bitcoin::Crypto package (autoloading of important classes)
+	- more tests and docs
+	- repo cleanup
+
 0.992 Sun Jan 12 10:00:00 2020
 	- change Bitcoin::Crypto::Network register method to accept a plain hash (instead of a hashref)
 	- run examples during tests
