@@ -1,5 +1,5 @@
 use Modern::Perl "2010";
-use Bitcoin::Crypto::Key::ExtPrivate;
+use Bitcoin::Crypto qw(:all);
 use Test::More;
 use Test::Exception;
 
@@ -17,7 +17,7 @@ sub bip44_get_derived_key_from_mnemonic
 	$change //= 0;
 
 	# recover from the mnemonic with an optional password
-	my $extkey = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic, $password);
+	my $extkey = btc_extprv->from_mnemonic($mnemonic, $password);
 
 	# set a network for newly imported extended key, if specified
 	# can be either an instance of Bitcoin::Crypto::Network or an existing network name

@@ -3,6 +3,45 @@ package Bitcoin::Crypto;
 our $VERSION = "0.992";
 
 use Modern::Perl "2010";
+use Exporter qw(import);
+
+our @EXPORT_OK = qw(btc_extprv btc_prv btc_extpub btc_pub btc_script);
+our %EXPORT_TAGS = (all => [@EXPORT_OK]);
+
+sub btc_extprv
+{
+	my $package = "Bitcoin::Crypto::Key::ExtPrivate";
+	eval "require $package";
+	return $package;
+}
+
+sub btc_prv
+{
+	my $package = "Bitcoin::Crypto::Key::Private";
+	eval "require $package";
+	return $package;
+}
+
+sub btc_extpub
+{
+	my $package = "Bitcoin::Crypto::Key::ExtPublic";
+	eval "require $package";
+	return $package;
+}
+
+sub btc_pub
+{
+	my $package = "Bitcoin::Crypto::Key::Public";
+	eval "require $package";
+	return $package;
+}
+
+sub btc_script
+{
+	my $package = "Bitcoin::Crypto::Script";
+	eval "require $package";
+	return $package;
+}
 
 __END__
 =head1 NAME
@@ -74,6 +113,30 @@ This package won't help you with:
 
 See child modules for more documentation and examples.
 
+=head1 SHORTCUT FUNCTIONS
+
+This package exports the following function when asked for them. They are shourtcut functions and will load needed packages and return their names. You can then use names of loaded packages to instantiate them however you want. You can also load all of them with the I<:all> tag in import.
+
+=head2 btc_extprv
+
+Loads L<Bitcoin::Crypto::Key::ExtPrivate>
+
+=head2 btc_prv
+
+Loads L<Bitcoin::Crypto::Key::Private>
+
+=head2 btc_extpub
+
+Loads L<Bitcoin::Crypto::Key::ExtPublic>
+
+=head2 btc_pub
+
+Loads L<Bitcoin::Crypto::Key::Public>
+
+=head2 btc_script
+
+Loads L<Bitcoin::Crypto::Script>
+
 =head1 DISCLAIMER
 
 Although the module was written with an extra care and appropriate tests are in place asserting compatibility with many Bitcoin standards, due to complexity of the subject some bugs may still be present. In the world of digital money, a single bug may lead to losing funds. I encourage anyone to test the module themselves, review the test cases and use the module with care, espetially in the beta phase. Suggestions for improvements and more edge cases to test will be gladly accepted, but there is no warranty on your funds being manipulated by this module.
@@ -91,20 +154,6 @@ For the best performance during dependencies installation ensure that you have M
 =item * Bitcoin script execution (maybe?)
 
 =item * Better test coverage
-
-=back
-
-=head1 SEE ALSO
-
-=over 2
-
-=item * L<Bitcoin::Crypto::Key::ExtPrivate>
-
-=item * L<Bitcoin::Crypto::Key::Private>
-
-=item * L<Bitcoin::BIP39>
-
-=item * The examples directory
 
 =back
 
