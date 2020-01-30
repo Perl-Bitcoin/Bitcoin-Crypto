@@ -33,19 +33,17 @@ sub _derive_key_partial
 
 	my $el_curve = Math::EllipticCurve::Prime->from_name($config{curve_name});
 	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
+	Bitcoin::Crypto::Exception::KeyDerive->raise(
+		"key $child_num in sequence was found invalid"
+	) if $number->bge($el_curve->n);
+
 	my $key = $self->_create_key(substr $data, 0, 32);
 	my $point = Math::EllipticCurve::Prime::Point->from_bytes($key->export_key_raw("public"));
 	$point->curve($el_curve);
 	my $point_cpy = $point->copy();
 	my $parent_point = Math::EllipticCurve::Prime::Point->from_bytes($self->raw_key("public"));
 	$parent_point->curve($el_curve);
-	my $n_order = $el_curve->n;
-
 	$point->badd($parent_point);
-
-	Bitcoin::Crypto::Exception::KeyDerive->raise(
-		"key $child_num in sequence was found invalid"
-	) if $number->bge($n_order);
 
 	return __PACKAGE__->new(
 		$point->to_bytes,
