@@ -39,17 +39,15 @@ sub bip44_get_derived_key_from_mnemonic
 	return $extkey->derive_key($bip44_path)->get_basic_key;
 }
 
-lives_and {
-	my $key = bip44_get_derived_key_from_mnemonic({
-		mnemonic => "bachelor taxi wrong egg range weasel submit bless clutch liberty hip cloth guitar debate vibrant",
-		password => "qwerty",
-		network => "bitcoin",
-		account => 0,
-		change => 0,
-		index => 7,
-	});
-	is $key->to_wif(), "L2Xpy9ST9bT9531yAjjLfXGxeXQJfnpVsvnuo4eRwBzDFNpeTzR7";
-};
+my $key = bip44_get_derived_key_from_mnemonic({
+	mnemonic => "bachelor taxi wrong egg range weasel submit bless clutch liberty hip cloth guitar debate vibrant",
+	password => "qwerty",
+	network => "bitcoin",
+	account => 0,
+	change => 0,
+	index => 7,
+});
+is $key->to_wif(), "L2Xpy9ST9bT9531yAjjLfXGxeXQJfnpVsvnuo4eRwBzDFNpeTzR7";
 
 done_testing;
 
