@@ -3,7 +3,7 @@ package Bitcoin::Crypto::Key::ExtPrivate;
 use Modern::Perl "2010";
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
-use Math::BigInt 1.999816 try => 'GMP';
+use Math::BigInt 1.999818 try => 'GMP';
 use Math::EllipticCurve::Prime;
 use Encode qw(encode decode);
 use Unicode::Normalize;

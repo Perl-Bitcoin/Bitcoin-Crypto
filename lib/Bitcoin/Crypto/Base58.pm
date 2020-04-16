@@ -2,7 +2,7 @@ package Bitcoin::Crypto::Base58;
 
 use Modern::Perl "2010";
 use Exporter qw(import);
-use Math::BigInt 1.999816 try => 'GMP';
+use Math::BigInt 1.999818 try => 'GMP';
 
 use Bitcoin::Crypto::Helpers qw(hash256);
 use Bitcoin::Crypto::Exception;
