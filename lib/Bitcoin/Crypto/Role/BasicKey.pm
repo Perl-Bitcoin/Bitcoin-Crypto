@@ -55,4 +55,5 @@ sub to_bytes
 	return $self->raw_key;
 }
 
+no Moo::Role;
 1;

@@ -124,6 +124,7 @@ sub _derive_key_partial
 	);
 }
 
+no Moo;
 1;
 
 __END__

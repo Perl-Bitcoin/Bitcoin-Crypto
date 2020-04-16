@@ -207,4 +207,5 @@ sub derive_key
 	return $key;
 }
 
+no Moo::Role;
 1;

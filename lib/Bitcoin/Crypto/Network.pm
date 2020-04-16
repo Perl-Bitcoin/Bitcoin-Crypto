@@ -141,6 +141,7 @@ __PACKAGE__->register(
 	bip44_coin => 1,
 );
 
+no Moo;
 1;
 
 __END__

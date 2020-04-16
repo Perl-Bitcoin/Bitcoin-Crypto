@@ -82,6 +82,7 @@ sub get_public_key
 	return $public;
 }
 
+no Moo;
 1;
 
 __END__

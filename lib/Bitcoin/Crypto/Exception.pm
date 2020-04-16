@@ -30,6 +30,7 @@ sub raise
 
 { package Bitcoin::Crypto::Exception::NetworkConfig; use parent "Bitcoin::Crypto::Exception"; }
 
+no Moo;
 1;
 
 __END__

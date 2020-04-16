@@ -32,4 +32,5 @@ sub set_network
 	return $self;
 }
 
+no Moo::Role;
 1;

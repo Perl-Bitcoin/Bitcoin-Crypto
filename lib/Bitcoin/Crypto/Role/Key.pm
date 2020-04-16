@@ -76,4 +76,5 @@ sub raw_key
 	return $self->key_instance->export_key_raw($type);
 }
 
+no Moo::Role;
 1;

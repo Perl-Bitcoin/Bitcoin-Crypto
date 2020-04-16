@@ -667,7 +667,9 @@ sub get_segwit_address
 	return encode_segwit($self->network->segwit_hrp, $self->witness_program);
 }
 
+no Moo;
 1;
+
 __END__
 =head1 NAME
 

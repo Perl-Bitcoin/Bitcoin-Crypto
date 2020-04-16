@@ -21,4 +21,5 @@ sub set_compressed
 	return $self;
 }
 
+no Moo::Role;
 1;
