@@ -1,6 +1,6 @@
 package Bitcoin::Crypto;
 
-our $VERSION = "0.993";
+our $VERSION = "0.994";
 
 use Modern::Perl "2010";
 use Exporter qw(import);
