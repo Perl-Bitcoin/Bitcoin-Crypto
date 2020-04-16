@@ -3,11 +3,12 @@ package Bitcoin::Crypto::Role::ExtendedKey;
 use Modern::Perl "2010";
 use Moo::Role;
 use List::Util qw(first);
+use Types::Common::String qw(StrLength);
 
 use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Config;
-use Bitcoin::Crypto::Types qw(IntMaxBits StrExactLength);
+use Bitcoin::Crypto::Types qw(IntMaxBits);
 use Bitcoin::Crypto::Util qw(get_path_info);
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length hash160);
 use Bitcoin::Crypto::Network;
@@ -19,24 +20,26 @@ with "Bitcoin::Crypto::Role::Key";
 has "depth" => (
 	is => "ro",
 	isa => IntMaxBits[8],
+	coerce => 1,
 	default => 0
 );
 
 has "parent_fingerprint" => (
 	is => "ro",
-	isa => StrExactLength[4],
+	isa => StrLength[4, 4],
 	default => sub { pack "x4" }
 );
 
 has "child_number" => (
 	is => "ro",
 	isa => IntMaxBits[32],
+	coerce => 1,
 	default => 0
 );
 
 has "chain_code" => (
 	is => "ro",
-	isa => StrExactLength[32]
+	isa => StrLength[32, 32]
 );
 
 sub _build_args

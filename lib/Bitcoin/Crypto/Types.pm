@@ -1,24 +1,36 @@
 package Bitcoin::Crypto::Types;
 
 use Modern::Perl "2010";
-use Exporter qw(import);
-use MooX::Types::MooseLike;
-use bigint;
+use Type::Library -base;
+use Type::Coercion;
+use Types::Common::Numeric qw (assert_PositiveInt);
+use Types::Standard qw(Int InstanceOf);
+use Math::BigInt 1.999816 try => 'GMP';
 
-our @EXPORT_OK;
-
-MooX::Types::MooseLike::register_types([{
+__PACKAGE__->add_type(
 	name => "IntMaxBits",
-	test => sub { defined $_[0] && $_[0] =~ /^\d+$/ && $_[0] >= 0 && $_[0] < (2 << $_[1] - 1) },
-	message => sub { "Value is not in between 0 and " . ((2 << $_[1] - 1) - 1) },
-}], __PACKAGE__);
+	parent => InstanceOf->of("Math::BigInt"),
 
-MooX::Types::MooseLike::register_types([{
-	name => "StrExactLength",
-	test => sub { defined $_[0] && length $_[0] == $_[1] },
-	message => sub { "String's length is not equal $_[1]" },
-}], __PACKAGE__);
+	constraint_generator => sub {
+		my $bits = assert_PositiveInt(shift) - 1;
+		my $limit = Math::BigInt->new(2)->blsft($bits);
+		return sub {
+			return $_->bge(0) && $_->blt($limit);
+		};
+	},
 
-our %EXPORT_TAGS = (all => [@EXPORT_OK]);
+	coercion_generator => sub {
+		return Type::Coercion->new(
+			type_coercion_map => [
+				Int, q{Math::BigInt->new($_)},
+			],
+		);
+	},
+
+	message => sub {
+		my $bits = shift;
+		return "Value does not fit in $bits bits";
+	},
+);
 
 1;

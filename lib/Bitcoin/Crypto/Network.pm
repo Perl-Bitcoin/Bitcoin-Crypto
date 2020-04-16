@@ -3,9 +3,9 @@ package Bitcoin::Crypto::Network;
 use Modern::Perl "2010";
 use Moo;
 use Scalar::Util qw(blessed);
-use MooX::Types::MooseLike::Base qw(Str Int);
+use Types::Standard qw(Str Int Str);
+use Types::Common::String qw(StrLength);
 
-use Bitcoin::Crypto::Types qw(StrExactLength);
 use Bitcoin::Crypto::Exception;
 
 my %networks;
@@ -25,19 +25,19 @@ has "name" => (
 
 has "p2pkh_byte" => (
 	is => "ro",
-	isa => StrExactLength[1],
+	isa => StrLength[1, 1],
 	required => 1,
 );
 
 has "wif_byte" => (
 	is => "ro",
-	isa => StrExactLength[1],
+	isa => StrLength[1, 1],
 	required => 1,
 );
 
 has "p2sh_byte" => (
 	is => "ro",
-	isa => StrExactLength[1],
+	isa => StrLength[1, 1],
 	required => 0,
 );
 

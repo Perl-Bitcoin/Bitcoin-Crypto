@@ -24,7 +24,7 @@ WriteMakefile(
 		'Math::BigInt' => '>= 1.999816',
 		'Math::BigInt::GMP' => '>= 1.6006',
 		'Moo' => '>= 2.003004',
-		'MooX::Types::MooseLike' => '>= 0.29',
+		'Type::Tiny' => '>= 1.010001',
 		'CryptX' => '>= 0.062',
 		'Bitcoin::BIP39' => '>= 0.002',
 		'Try::Tiny' => '>= 0.30',

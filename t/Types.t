@@ -7,21 +7,18 @@ BEGIN { use_ok('Bitcoin::Crypto::Types', qw(:all)) };
 {
 	package TestMoo;
 	use Moo;
-	use Bitcoin::Crypto::Types qw(:all);
+	use Bitcoin::Crypto::Types -types;
 
 	has "t1" => (
 		is => "ro",
-		isa => IntMaxBits[5]
-	);
-
-	has "t2" => (
-		is => "ro",
-		isa => StrExactLength[2]
+		isa => IntMaxBits[5],
+		coerce => 1,
 	);
 
 	has "t3" => (
 		is => "ro",
-		isa => IntMaxBits[128]
+		isa => IntMaxBits[128],
+		coerce => 1,
 	);
 }
 
@@ -30,9 +27,6 @@ my %data = (
 		{t1 => 32},
 		{t1 => 33},
 		{t1 => -1},
-		{t2 => "a"},
-		{t2 => "abc"},
-		{t2 => "aś"},
 		{t3 => do { use bigint; 2 << 127 }},
 		{t3 => -1},
 	],
@@ -40,7 +34,6 @@ my %data = (
 		{t1 => 0},
 		{t1 => 10},
 		{t1 => 31},
-		{t2 => "ao"},
 		{t3 => do { use bigint; 2 << 70 }},
 		{t3 => do { use bigint; (2 << 127) - 1 }},
 		{t3 => 0},
