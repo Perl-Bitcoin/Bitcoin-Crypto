@@ -2,7 +2,7 @@ package Bitcoin::Crypto::Script;
 
 use Modern::Perl "2010";
 use Moo;
-use MooX::Types::MooseLike::Base qw(ArrayRef Str);
+use Types::Standard qw(ArrayRef Str);
 use Crypt::Digest::SHA256 qw(sha256);
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check);

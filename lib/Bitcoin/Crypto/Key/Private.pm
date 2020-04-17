@@ -2,7 +2,7 @@ package Bitcoin::Crypto::Key::Private;
 
 use Modern::Perl "2010";
 use Moo;
-use MooX::Types::MooseLike::Base qw(Str);
+use Types::Standard qw(Str);
 use Crypt::PK::ECC;
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
 use List::Util qw(first);

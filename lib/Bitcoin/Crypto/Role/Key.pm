@@ -2,7 +2,7 @@ package Bitcoin::Crypto::Role::Key;
 
 use Modern::Perl "2010";
 use Moo::Role;
-use MooX::Types::MooseLike::Base qw(InstanceOf);
+use Types::Standard qw(InstanceOf);
 use Crypt::PK::ECC;
 
 use Bitcoin::Crypto::Config;

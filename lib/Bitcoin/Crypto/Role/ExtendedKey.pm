@@ -3,7 +3,7 @@ package Bitcoin::Crypto::Role::ExtendedKey;
 use Modern::Perl "2010";
 use Moo::Role;
 use List::Util qw(first);
-use Types::Common::String qw(StrLength);
+use Types::Standard qw(Str);
 
 use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
@@ -26,7 +26,7 @@ has "depth" => (
 
 has "parent_fingerprint" => (
 	is => "ro",
-	isa => StrLength[4, 4],
+	isa => Str->where(q{ length $_ == 4 }),
 	default => sub { pack "x4" }
 );
 
@@ -39,7 +39,7 @@ has "child_number" => (
 
 has "chain_code" => (
 	is => "ro",
-	isa => StrLength[32, 32]
+	isa => Str->where(q{ length $_ == 32 }),
 );
 
 sub _build_args
