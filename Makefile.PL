@@ -29,6 +29,7 @@ WriteMakefile(
 		'Bitcoin::BIP39' => '>= 0.002',
 		'Try::Tiny' => '>= 0.30',
 		'Throwable' => '>= 0.2',
+		'namespace::clean' => '>= 0.27',
 	},
 
 	META_MERGE => {

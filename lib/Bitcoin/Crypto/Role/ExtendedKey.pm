@@ -15,6 +15,8 @@ use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 with "Bitcoin::Crypto::Role::Key";
 
 has "depth" => (
@@ -207,5 +209,4 @@ sub derive_key
 	return $key;
 }
 
-no Moo::Role;
 1;

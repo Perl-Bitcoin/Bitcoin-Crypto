@@ -11,6 +11,8 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(hash160 hash256);
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 with "Bitcoin::Crypto::Role::Network";
 
 # list of significant opcodes
@@ -667,7 +669,6 @@ sub get_segwit_address
 	return encode_segwit($self->network->segwit_hrp, $self->witness_program);
 }
 
-no Moo;
 1;
 
 __END__

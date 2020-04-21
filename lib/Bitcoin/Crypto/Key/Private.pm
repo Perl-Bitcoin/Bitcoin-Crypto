@@ -15,6 +15,8 @@ use Bitcoin::Crypto::Util qw(validate_wif);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 with "Bitcoin::Crypto::Role::BasicKey";
 
 sub _is_private { 1 }
@@ -82,7 +84,6 @@ sub get_public_key
 	return $public;
 }
 
-no Moo;
 1;
 
 __END__

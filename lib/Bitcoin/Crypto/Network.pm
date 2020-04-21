@@ -8,6 +8,8 @@ use Types::Common::String qw(StrLength);
 
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 my %networks;
 my $default_network;
 
@@ -141,7 +143,6 @@ __PACKAGE__->register(
 	bip44_coin => 1,
 );
 
-no Moo;
 1;
 
 __END__

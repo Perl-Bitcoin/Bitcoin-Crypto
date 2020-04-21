@@ -6,6 +6,8 @@ use Types::Standard qw(Bool);
 
 use Bitcoin::Crypto::Config;
 
+use namespace::clean;
+
 has "compressed" => (
 	is => "rw",
 	isa => Bool,
@@ -22,5 +24,4 @@ sub set_compressed
 	return $self;
 }
 
-no Moo::Role;
 1;

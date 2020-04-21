@@ -6,6 +6,8 @@ use Moo::Role;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 with "Bitcoin::Crypto::Role::Key",
 	"Bitcoin::Crypto::Role::Compressed";
 
@@ -55,5 +57,4 @@ sub to_bytes
 	return $self->raw_key;
 }
 
-no Moo::Role;
 1;

@@ -4,6 +4,8 @@ use Modern::Perl "2010";
 use Moo;
 use Throwable::Error;
 
+use namespace::clean;
+
 extends "Throwable::Error";
 
 sub raise
@@ -30,7 +32,6 @@ sub raise
 
 { package Bitcoin::Crypto::Exception::NetworkConfig; use parent "Bitcoin::Crypto::Exception"; }
 
-no Moo;
 1;
 
 __END__

@@ -10,6 +10,8 @@ use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 with "Bitcoin::Crypto::Role::Network";
 
 has "key_instance" => (
@@ -76,5 +78,4 @@ sub raw_key
 	return $self->key_instance->export_key_raw($type);
 }
 
-no Moo::Role;
 1;

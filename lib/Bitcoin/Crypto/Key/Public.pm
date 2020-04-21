@@ -9,6 +9,8 @@ use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(hash160);
 
+use namespace::clean;
+
 with "Bitcoin::Crypto::Role::BasicKey";
 
 sub _is_private { 0 }
@@ -56,7 +58,6 @@ sub get_segwit_address
 	return encode_segwit($self->network->segwit_hrp, $self->witness_program);
 }
 
-no Moo;
 1;
 
 __END__

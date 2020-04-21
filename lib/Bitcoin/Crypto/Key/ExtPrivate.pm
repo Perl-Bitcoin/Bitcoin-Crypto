@@ -15,6 +15,8 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length);
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 with "Bitcoin::Crypto::Role::ExtendedKey";
 
 sub _is_private { 1 }
@@ -124,7 +126,6 @@ sub _derive_key_partial
 	);
 }
 
-no Moo;
 1;
 
 __END__

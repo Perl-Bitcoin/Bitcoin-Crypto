@@ -8,6 +8,8 @@ use Scalar::Util qw(blessed);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 has "network" => (
 	is => "rw",
 	isa => InstanceOf["Bitcoin::Crypto::Network"],
@@ -32,5 +34,4 @@ sub set_network
 	return $self;
 }
 
-no Moo::Role;
 1;
