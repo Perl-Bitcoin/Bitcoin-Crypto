@@ -1,12 +1,10 @@
 package Bitcoin::Crypto::Role::BasicKey;
 
 use Modern::Perl "2010";
-use Moo::Role;
 
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
+use Moo::Role;
 
 with "Bitcoin::Crypto::Role::Key",
 	"Bitcoin::Crypto::Role::Compressed";

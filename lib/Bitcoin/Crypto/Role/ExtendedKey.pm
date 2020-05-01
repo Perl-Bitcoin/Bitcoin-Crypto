@@ -1,7 +1,6 @@
 package Bitcoin::Crypto::Role::ExtendedKey;
 
 use Modern::Perl "2010";
-use Moo::Role;
 use List::Util qw(first);
 use Types::Standard qw(Str);
 
@@ -14,8 +13,7 @@ use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length hash160);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
+use Moo::Role;
 
 with "Bitcoin::Crypto::Role::Key";
 
@@ -163,9 +161,8 @@ sub from_serialized_base58
 sub get_basic_key
 {
 	my ($self) = @_;
-	my $entropy = $self->raw_key;
 	my $base_class = "Bitcoin::Crypto::Key::" . ($self->_is_private ? "Private" : "Public");
-	my $basic_key =  $base_class->from_bytes($entropy);
+	my $basic_key =  $base_class->new($self->key_instance);
 	$basic_key->set_network($self->network);
 
 	return $basic_key;

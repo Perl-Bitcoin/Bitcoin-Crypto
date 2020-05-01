@@ -1,16 +1,15 @@
 package Bitcoin::Crypto::Role::Key;
 
 use Modern::Perl "2010";
-use Moo::Role;
 use Types::Standard qw(InstanceOf);
 use Crypt::PK::ECC;
+use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
+use Moo::Role;
 
 with "Bitcoin::Crypto::Role::Network";
 
@@ -48,14 +47,18 @@ sub _create_key
 {
 	my ($class, $entropy) = @_;
 
-	my $key_type = get_key_type $entropy;
-	unless (defined $key_type) {
+	return $entropy
+		if blessed($entropy) && $entropy->isa("Crypt::PK::ECC");
+
+	my $is_private = get_key_type $entropy;
+	unless (defined $is_private) {
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
 			"invalid entropy data passed to key creation method"
-		) if length $entropy > $config{key_max_length};
-
-		$entropy = ensure_length $entropy, $config{key_max_length};
+		);
 	}
+
+	$entropy = ensure_length $entropy, $config{key_max_length}
+		if $is_private;
 
 	my $key = Crypt::PK::ECC->new();
 	$key->import_key_raw($entropy, $config{curve_name});

@@ -1,12 +1,10 @@
 package Bitcoin::Crypto::Role::Compressed;
 
 use Modern::Perl "2010";
-use Moo::Role;
 use Types::Standard qw(Bool);
 
 use Bitcoin::Crypto::Config;
-
-use namespace::clean;
+use Moo::Role;
 
 has "compressed" => (
 	is => "rw",

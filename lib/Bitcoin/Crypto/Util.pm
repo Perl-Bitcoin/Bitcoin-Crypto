@@ -32,13 +32,21 @@ sub validate_wif
 sub get_key_type
 {
 	my ($entropy) = @_;
-	my $key = Crypt::PK::ECC->new;
-	my $ret;
-	try {
-		$key->import_key_raw($entropy, $config{curve_name});
-		$ret = $key->is_private;
-	};
-	return $ret;
+
+	my $curve_size = $config{key_max_length};
+	my $octet = substr $entropy, 0, 1;
+
+	my $has_unc_oc = $octet eq "\x04" || $octet eq "\x06" || $octet eq "\x07";
+	my $is_unc = $has_unc_oc && length $entropy == 2 * $curve_size + 1;
+
+	my $has_com_oc = $octet eq "\x02" || $octet eq "\x03";
+	my $is_com = $has_com_oc && length $entropy == $curve_size + 1;
+
+	return 0
+		if $is_com || $is_unc;
+	return 1
+		if length $entropy <= $curve_size;
+	return;
 }
 
 sub get_path_info
@@ -91,9 +99,9 @@ Throws an exception if $str is not valid base58.
 
 	my $is_private = get_key_type($bytestr);
 
-Tries to import $bytestr as private key entropy or serialized point.
+Checks if the $bytestr looks like a valid ASN X9.62 format (compressed / uncompressed / hybrid public key or private key entropy up to curve size bits).
 Returns boolean which can be used to determine if the key is private.
-Returns undef if $bytestr cannot be imported as a key.
+Returns undef if $bytestr does not look like a valid key entropy.
 
 =head2 get_path_info
 

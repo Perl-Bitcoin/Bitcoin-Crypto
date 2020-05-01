@@ -1,14 +1,12 @@
 package Bitcoin::Crypto::Role::Network;
 
 use Modern::Perl "2010";
-use Moo::Role;
 use Types::Standard qw(InstanceOf);
 use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
+use Moo::Role;
 
 has "network" => (
 	is => "rw",
