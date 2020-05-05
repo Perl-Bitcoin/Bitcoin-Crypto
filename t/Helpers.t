@@ -5,7 +5,15 @@ use Math::BigInt;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 
-BEGIN { use_ok('Bitcoin::Crypto::Helpers', qw(pad_hex ensure_length hash160 hash256)) };
+BEGIN { use_ok('Bitcoin::Crypto::Helpers', qw(new_bigint pad_hex ensure_length hash160 hash256)) };
+
+my @bytes = ("\x00\x11", "\x01", "\xff" x 21, "\x00");
+
+for my $case (@bytes) {
+	my $from_bi = Math::BigInt->from_bytes($case);
+	my $from_helpers = new_bigint($case);
+	is($from_helpers, $from_bi, "BigInt construction ok");
+}
 
 my @hexes = qw(1a3efb 1a3ef 0);
 

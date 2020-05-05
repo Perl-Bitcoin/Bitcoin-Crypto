@@ -3,7 +3,6 @@ package Bitcoin::Crypto::Key::ExtPrivate;
 use Modern::Perl "2010";
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
-use Math::BigInt 1.999818 try => 'GMP';
 use Math::EllipticCurve::Prime;
 use Encode qw(encode decode);
 use Unicode::Normalize;
@@ -12,7 +11,7 @@ use Crypt::KeyDerivation qw(pbkdf2);
 
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Config;
-use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length);
+use Bitcoin::Crypto::Helpers qw(new_bigint pad_hex ensure_length);
 use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
@@ -106,8 +105,8 @@ sub _derive_key_partial
 	my $data = hmac("SHA512", $self->chain_code, $hmac_data);
 	my $chain_code = substr $data, 32, 32;
 
-	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
-	my $key_num = Math::BigInt->from_bytes($self->raw_key);
+	my $number = new_bigint(substr $data, 0, 32);
+	my $key_num = new_bigint($self->raw_key);
 	my $n_order = Math::EllipticCurve::Prime->from_name($config{curve_name})->n;
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(

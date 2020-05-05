@@ -4,15 +4,24 @@ use Modern::Perl "2010";
 use Exporter qw(import);
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
+use Math::BigInt 1.999818 try => 'GMP';
 
 use Bitcoin::Crypto::Exception;
 
 our @EXPORT_OK = qw(
+	new_bigint
 	pad_hex
 	ensure_length
 	hash160
 	hash256
 );
+
+sub new_bigint
+{
+	my ($bytes) = @_;
+	return Math::BigInt->from_hex(unpack "H*", $bytes);
+	# return Math::BigInt->from_bytes($bytes);
+}
 
 sub pad_hex
 {

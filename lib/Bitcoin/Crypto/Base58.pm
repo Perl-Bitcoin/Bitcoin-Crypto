@@ -4,7 +4,7 @@ use Modern::Perl "2010";
 use Exporter qw(import);
 use Math::BigInt 1.999818 try => 'GMP';
 
-use Bitcoin::Crypto::Helpers qw(hash256);
+use Bitcoin::Crypto::Helpers qw(new_bigint hash256);
 use Bitcoin::Crypto::Exception;
 
 our @EXPORT_OK = qw(
@@ -31,7 +31,7 @@ my %alphabet_mapped = map { $alphabet[$_] => $_ } 0 .. $#alphabet;
 sub encode_base58
 {
 	my ($bytes) = @_;
-	my $number = Math::BigInt->from_bytes($bytes);
+	my $number = new_bigint($bytes);
 	my $result = "";
 	my $size = scalar @alphabet;
 	while ($number->is_pos()) {

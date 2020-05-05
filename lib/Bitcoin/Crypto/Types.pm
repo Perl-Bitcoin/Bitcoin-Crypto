@@ -3,7 +3,7 @@ package Bitcoin::Crypto::Types;
 use Modern::Perl "2010";
 use Type::Library -base;
 use Type::Coercion;
-use Types::Common::Numeric qw (assert_PositiveInt);
+use Types::Common::Numeric qw(assert_PositiveInt);
 use Types::Standard qw(Int InstanceOf);
 use Math::BigInt 1.999818 try => 'GMP';
 
