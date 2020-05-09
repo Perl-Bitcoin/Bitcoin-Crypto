@@ -1,12 +1,8 @@
 package Bitcoin::Crypto::Exception;
 
 use Modern::Perl "2010";
-use Moo;
-use Throwable::Error;
-
+use parent "Throwable::Error";
 use namespace::clean;
-
-extends "Throwable::Error";
 
 sub raise
 {

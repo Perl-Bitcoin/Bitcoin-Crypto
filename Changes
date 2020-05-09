@@ -3,7 +3,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 0.994
 	- update dependencies
 	- replace type checks with Type::Tiny
-	- remove Moo symbols from classes
+	- remove trash methods from classes (namespace::clean)
+	- performance improvements
 
 0.993 Thu Jan 30 23:00:00 2020
 	- replace some dependencies with CryptX functions
