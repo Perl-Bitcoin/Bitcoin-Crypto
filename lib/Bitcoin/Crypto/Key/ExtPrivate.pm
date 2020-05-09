@@ -8,6 +8,7 @@ use Encode qw(encode decode);
 use Unicode::Normalize;
 use Bitcoin::BIP39 qw(gen_bip39_mnemonic bip39_mnemonic_to_entropy);
 use Crypt::KeyDerivation qw(pbkdf2);
+use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Config;
@@ -116,7 +117,7 @@ sub _derive_key_partial
 	$number->badd($key_num);
 	$number->bmod($n_order);
 
-	return __PACKAGE__->new(
+	return (blessed $self)->new(
 		$number->as_bytes,
 		$chain_code,
 		$child_num,

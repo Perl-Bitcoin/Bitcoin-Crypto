@@ -5,6 +5,7 @@ use Moo;
 use Crypt::Mac::HMAC qw(hmac);
 use Math::EllipticCurve::Prime;
 use Math::EllipticCurve::Prime::Point;
+use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(new_bigint ensure_length);
@@ -45,7 +46,7 @@ sub _derive_key_partial
 	$parent_point->curve($el_curve);
 	$point->badd($parent_point);
 
-	return __PACKAGE__->new(
+	return (blessed $self)->new(
 		$point->to_bytes,
 		$chain_code,
 		$child_num,
