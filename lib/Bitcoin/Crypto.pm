@@ -77,11 +77,11 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 
 =head1 DESCRIPTION
 
-Cryptographic package for common Bitcoin-related tasks and key pair management.
+Cryptographic module for common Bitcoin-related tasks and key pair management.
 
 =head1 SCOPE
 
-This package allows you to do basic tasks for Bitcoin such as:
+This module allows you to do basic tasks for Bitcoin such as:
 
 =over 2
 
@@ -111,7 +111,37 @@ This package won't help you with:
 
 =back
 
-See child modules for more documentation and examples.
+=head1 WHERE TO START?
+
+Documentation and examples in this module assump that you're already familiar with the basics of Bitcoin protocol and assymetric cryptography. If that's not the case, start with wikipedia pages for those topics.
+
+If you like to learn by example, dive right into the examples directory.
+
+There are many things that you may want to achieve with this module. Common topics include:
+
+=over 2
+
+=item * create a keypair for signature or address generation
+
+Start with L<Bitcoin::Crypto::Key::Private> if you already have some data you want to use as a private key entropy (like Bitcoin's WIF format or hex data). If you'd like to generate a key and get a list of words, L<Bitcoin::Crypto::Key::ExtPrivate> is what you want.
+
+=item * generate many keys at once
+
+L<Bitcoin::Crypto::Key::ExtPrivate> will allow you to derive as many keys as you want from a master key (so you won't have to store multiple private key seeds). L<Bitcoin::Crypto::Key::ExtPublic> can be stored in a "hot" storage and used to derive public keys lazily.
+
+=item * work with other cryptocurrencies
+
+You can work with any cryptocurrency as long as it is based on the same fundamentals as Bitcoin. You have to register a network in L<Bitcoin::Crypto::Network> first, with the protocol data valid for your cryptocurrency.
+
+=item * serialize a Bitcoin script
+
+L<Bitcoin::Crypto::Script> will help you build and serialize a script, but not (yet) run it.
+
+=item * work with Bitcoin-related encodings
+
+See L<Bitcoin::Crypto::Base58> and L<Bitcoin::Crypto::Bech32>.
+
+=back
 
 =head1 SHORTCUT FUNCTIONS
 
