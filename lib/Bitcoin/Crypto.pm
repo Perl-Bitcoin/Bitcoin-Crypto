@@ -85,13 +85,13 @@ This package allows you to do basic tasks for Bitcoin such as:
 
 =over 2
 
-=item * creating extended keys and utilising bip32 key derivation
+=item * creating extended keys and utilizing bip32 key derivation
 
 =item * creating private key / public key pairs
 
-=item * creating Bitcoin addresses
+=item * address generation (in legacy, compatibility and segwit formats)
 
-=item * creating signatures for messages
+=item * signature generation and verification
 
 =item * importing / exporting using popular mediums (WIF, mnemonic, hex)
 
@@ -141,9 +141,14 @@ Loads L<Bitcoin::Crypto::Script>
 
 Although the module was written with an extra care and appropriate tests are in place asserting compatibility with many Bitcoin standards, due to complexity of the subject some bugs may still be present. In the world of digital money, a single bug may lead to losing funds. I encourage anyone to test the module themselves, review the test cases and use the module with care, espetially in the beta phase. Suggestions for improvements and more edge cases to test will be gladly accepted, but there is no warranty on your funds being manipulated by this module.
 
+=head1 SPEED
+
+Since most of the calculations are delegated to the XS (and further to libtomcrypt and GMP) most tasks should be fairly quick to finish, in Perl definition of quick.
+The module have a little bit of startup time because of Moo and Type::Tiny, measured in miliseconds. The biggest runtime bottleneck seem to be the key derivation mechanism, which imports a key once for every derivation path part. Some tasks, like signature generation and verification, should be very fast thanks to libtomcrypt doing all the heavy lifting. All in all, the module should be able to handle any task which does not require brute forcing (like vanity address generation).
+
 =head1 INSTALLATION
 
-This module requires development GMP package installed on your system. It must be installed before installing other dependencies.
+This module requires GMP library installed on your system in development flavour (with C header files). It must be installed before installing other dependencies.
 
 For the best performance during dependencies installation ensure that you have Math::BigInt::GMP package installed. Some of the dependencies can run their test suites orders of magnitude faster with GMP available.
 
@@ -151,9 +156,11 @@ For the best performance during dependencies installation ensure that you have M
 
 =over 2
 
-=item * Bitcoin script execution (maybe?)
+=item * Bitcoin script execution
 
 =item * Better test coverage
+
+=item * Further performance improvements
 
 =back
 

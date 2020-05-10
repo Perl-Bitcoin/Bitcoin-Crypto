@@ -48,7 +48,7 @@ ok !check_default_network $pkey_basic;
 
 
 # Same private key can be used with different cryptocurrencies,
-# although this is usually done with bip44 spec deriviation paths
+# although this is usually done with bip44 spec derivation paths
 # (see bip44.pl example)
 my $address_testnet = $pkey_basic
 	->get_public_key

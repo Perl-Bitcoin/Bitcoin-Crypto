@@ -264,11 +264,11 @@ Returns the key in basic format: L<Bitcoin::Crypto::Key::Private>
 
 	sig: derive_key($self, $path)
 
-Performs extended key deriviation as specified in BIP32 on the current key with $path. Dies on error.
+Performs extended key derivation as specified in BIP32 on the current key with $path. Dies on error.
 
-See BIP32 document for details on deriviation paths and methods.
+See BIP32 document for details on derivation paths and methods.
 
-Returns a new extended key instance - result of a deriviation.
+Returns a new extended key instance - result of a derivation.
 
 =head2 get_fingerprint
 
