@@ -2,9 +2,12 @@ use Modern::Perl "2010";
 use Test::More;
 use Test::Exception;
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto;
 
 # partly tested by Bech32 tests
 BEGIN { use_ok('Bitcoin::Crypto::Segwit', qw(validate_program)) };
+
+is(Bitcoin::Crypto::Segwit->VERSION, Bitcoin::Crypto->VERSION);
 
 # make warnings critical
 local $SIG{__WARN__} = sub { die shift() . " - warning" };

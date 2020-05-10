@@ -5,6 +5,9 @@ use Exporter qw(import);
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto;
+
+our $VERSION = Bitcoin::Crypto->VERSION;
 
 our @EXPORT_OK = qw(
 	validate_program

@@ -1,7 +1,10 @@
 use Modern::Perl "2010";
 use Test::More;
+use Bitcoin::Crypto;
 
 BEGIN { use_ok('Bitcoin::Crypto::Script') };
+
+is(Bitcoin::Crypto::Script->VERSION, Bitcoin::Crypto->VERSION);
 
 my %data = (
 	"00" => {

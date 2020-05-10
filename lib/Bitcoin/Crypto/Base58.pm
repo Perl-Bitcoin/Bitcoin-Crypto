@@ -4,8 +4,11 @@ use Modern::Perl "2010";
 use Exporter qw(import);
 use Math::BigInt 1.999818 try => 'GMP';
 
+use Bitcoin::Crypto;
 use Bitcoin::Crypto::Helpers qw(new_bigint hash256);
 use Bitcoin::Crypto::Exception;
+
+our $VERSION = Bitcoin::Crypto->VERSION;
 
 our @EXPORT_OK = qw(
 	encode_base58

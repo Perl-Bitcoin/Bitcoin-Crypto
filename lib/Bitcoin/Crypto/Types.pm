@@ -6,6 +6,9 @@ use Type::Coercion;
 use Types::Common::Numeric qw(assert_PositiveInt);
 use Types::Standard qw(Int InstanceOf);
 use Math::BigInt 1.999818 try => 'GMP';
+use Bitcoin::Crypto;
+
+our $VERSION = Bitcoin::Crypto->VERSION;
 
 __PACKAGE__->add_type(
 	name => "IntMaxBits",

@@ -7,8 +7,10 @@ use Types::Standard qw(Str Int Str);
 use Types::Common::String qw(StrLength);
 
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto;
 
 use namespace::clean;
+our $VERSION = Bitcoin::Crypto->VERSION;
 
 my %networks;
 my $default_network;

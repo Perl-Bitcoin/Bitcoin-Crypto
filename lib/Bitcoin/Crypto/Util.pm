@@ -6,8 +6,11 @@ use List::Util qw(first);
 use Try::Tiny;
 use Crypt::PK::ECC;
 
+use Bitcoin::Crypto;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Base58 qw(decode_base58check);
+
+our $VERSION = Bitcoin::Crypto->VERSION;
 
 our @EXPORT_OK = qw(
 	validate_wif

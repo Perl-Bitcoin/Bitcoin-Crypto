@@ -1,8 +1,11 @@
 use Modern::Perl "2010";
 use Test::More;
 use Test::Exception;
+use Bitcoin::Crypto;
 
 BEGIN { use_ok('Bitcoin::Crypto::Types', qw(:all)) };
+
+is(Bitcoin::Crypto::Types->VERSION, Bitcoin::Crypto->VERSION);
 
 {
 	package TestMoo;

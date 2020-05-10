@@ -1,8 +1,11 @@
 use Modern::Perl "2010";
 use Test::More;
 use Test::Exception;
+use Bitcoin::Crypto;
 
 BEGIN { use_ok('Bitcoin::Crypto::Exception')};
+
+is(Bitcoin::Crypto::Exception->VERSION, Bitcoin::Crypto->VERSION);
 
 {
 	throws_ok {

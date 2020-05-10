@@ -3,8 +3,11 @@ package Bitcoin::Crypto::Bech32;
 use Modern::Perl "2010";
 use Exporter qw(import);
 
+use Bitcoin::Crypto;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Segwit qw(validate_program);
+
+our $VERSION = Bitcoin::Crypto->VERSION;
 
 our @EXPORT_OK = qw(
 	encode_bech32

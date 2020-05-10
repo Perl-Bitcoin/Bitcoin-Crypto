@@ -1,7 +1,10 @@
 use Modern::Perl "2010";
 use Test::More;
+use Bitcoin::Crypto;
 
 BEGIN { use_ok('Bitcoin::Crypto::Key::ExtPublic') };
+
+is(Bitcoin::Crypto::Key::ExtPublic->VERSION, Bitcoin::Crypto->VERSION);
 
 my %test_data = (
 	"xpub661MyMwAqRbcFFM2R7nJTBxJ5SDygTLXPLFweie6ZaoskrEg4HPubXmNuHKtmoQrW1WyA67xtVTM5MsHzL2YHj7UYAMUWUKVawE6jtSCUNN" => [

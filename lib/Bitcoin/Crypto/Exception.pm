@@ -2,7 +2,11 @@ package Bitcoin::Crypto::Exception;
 
 use Modern::Perl "2010";
 use parent "Throwable::Error";
+
+use Bitcoin::Crypto;
 use namespace::clean;
+
+our $VERSION = Bitcoin::Crypto->VERSION;
 
 sub raise
 {

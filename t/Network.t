@@ -1,8 +1,11 @@
 use Modern::Perl "2010";
 use Test::More;
 use Test::Exception;
+use Bitcoin::Crypto;
 
 BEGIN { use_ok 'Bitcoin::Crypto::Network' };
+
+is(Bitcoin::Crypto::Network->VERSION, Bitcoin::Crypto->VERSION);
 
 # default networks
 

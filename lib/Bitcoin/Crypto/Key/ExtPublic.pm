@@ -10,8 +10,10 @@ use Scalar::Util qw(blessed);
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(new_bigint ensure_length);
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto;
 
 use namespace::clean;
+our $VERSION = Bitcoin::Crypto->VERSION;
 
 with "Bitcoin::Crypto::Role::ExtendedKey";
 

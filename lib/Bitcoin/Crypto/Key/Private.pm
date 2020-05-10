@@ -14,8 +14,10 @@ use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Util qw(validate_wif);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto;
 
 use namespace::clean;
+our $VERSION = Bitcoin::Crypto->VERSION;
 
 with "Bitcoin::Crypto::Role::BasicKey";
 

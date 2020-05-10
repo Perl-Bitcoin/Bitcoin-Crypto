@@ -14,8 +14,10 @@ use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(new_bigint pad_hex ensure_length);
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto;
 
 use namespace::clean;
+our $VERSION = Bitcoin::Crypto->VERSION;
 
 with "Bitcoin::Crypto::Role::ExtendedKey";
 

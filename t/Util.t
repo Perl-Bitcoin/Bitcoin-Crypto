@@ -2,8 +2,11 @@ use Modern::Perl "2010";
 use Test::More;
 use Test::Exception;
 use Math::BigInt;
+use Bitcoin::Crypto;
 
 BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info)) };
+
+is(Bitcoin::Crypto::Util->VERSION, Bitcoin::Crypto->VERSION);
 
 # validate_wif - 3 tests
 
