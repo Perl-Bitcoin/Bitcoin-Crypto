@@ -27,7 +27,6 @@ WriteMakefile(
 		'Type::Tiny' => '>= 1.010001',
 		'CryptX' => '>= 0.068',
 		'Bitcoin::BIP39' => '>= 0.002',
-		'Try::Tiny' => '>= 0.30',
 		'Throwable' => '>= 0.2',
 		'namespace::clean' => '>= 0.27',
 	},

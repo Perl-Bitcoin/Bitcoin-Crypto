@@ -3,7 +3,6 @@ package Bitcoin::Crypto::Util;
 use Modern::Perl "2010";
 use Exporter qw(import);
 use List::Util qw(first);
-use Try::Tiny;
 use Crypt::PK::ECC;
 
 use Bitcoin::Crypto;
