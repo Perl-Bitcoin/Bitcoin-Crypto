@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Role::Compressed;
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use Types::Standard qw(Bool);
 
 use Bitcoin::Crypto::Config;

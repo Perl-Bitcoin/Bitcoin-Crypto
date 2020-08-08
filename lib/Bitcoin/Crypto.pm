@@ -2,7 +2,7 @@ package Bitcoin::Crypto;
 
 our $VERSION = "0.994";
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use Exporter qw(import);
 
 our @EXPORT_OK = qw(btc_extprv btc_prv btc_extpub btc_pub btc_script);

@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Role::Network;
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use Types::Standard qw(InstanceOf);
 use Scalar::Util qw(blessed);
 

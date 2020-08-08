@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Key::Public;
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use Moo;
 
 use Bitcoin::Crypto::Script;

@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Base58;
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use Exporter qw(import);
 use Math::BigInt 1.999818 try => 'GMP';
 

@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Key::ExtPrivate;
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
 use Math::EllipticCurve::Prime;

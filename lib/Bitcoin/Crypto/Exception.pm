@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Exception;
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use parent "Throwable::Error";
 
 use Bitcoin::Crypto;

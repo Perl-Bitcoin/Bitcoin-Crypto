@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Segwit;
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use Exporter qw(import);
 
 use Bitcoin::Crypto::Exception;

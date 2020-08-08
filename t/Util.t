@@ -1,4 +1,4 @@
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use Test::More;
 use Test::Exception;
 use Math::BigInt;

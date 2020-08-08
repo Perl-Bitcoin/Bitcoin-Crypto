@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Network;
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use Moo;
 use Scalar::Util qw(blessed);
 use Types::Standard qw(Str Int Str);

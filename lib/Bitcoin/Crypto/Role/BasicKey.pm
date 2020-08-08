@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Role::BasicKey;
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Exception;

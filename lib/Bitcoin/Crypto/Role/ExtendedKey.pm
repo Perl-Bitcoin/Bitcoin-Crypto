@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Role::ExtendedKey;
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use List::Util qw(first);
 use Types::Standard qw(Str);
 

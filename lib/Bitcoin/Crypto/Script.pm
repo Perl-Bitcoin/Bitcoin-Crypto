@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Script;
 
-use Modern::Perl "2010";
+use v5.10; use warnings;
 use Moo;
 use Types::Standard qw(ArrayRef Str);
 use Crypt::Digest::SHA256 qw(sha256);

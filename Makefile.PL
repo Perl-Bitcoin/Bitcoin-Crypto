@@ -19,7 +19,6 @@ WriteMakefile(
 		'Test::Exception' => 0,
 	},
 	PREREQ_PM => {
-		'Modern::Perl' => '>= 1.20181021',
 		'Math::EllipticCurve::Prime' => '>= 0.003',
 		'Math::BigInt' => '>= 1.999818',
 		'Math::BigInt::GMP' => '>= 1.6006',
