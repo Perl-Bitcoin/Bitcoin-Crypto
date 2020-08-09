@@ -100,13 +100,27 @@ foreach my $tdata (@test_data) {
 
 # generating english mnemonics
 for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
-	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic($bits, "en");
-	my $length = $bits / 8 - 4;
-	ok($mnemonic =~ /^(\w+ ?){$length}$/, "generated mnemonic looks valid ($bits bits)");
-	lives_ok {
-		Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic, "", "en");
-	} "generated mnemonic can be imported";
+	my @mnemonics = (
+		Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic($bits, "en"),
+		Bitcoin::Crypto::Key::ExtPrivate->mnemonic_from_entropy("\x01" x ($bits / 8), "en"),
+	);
+
+	foreach my $mnemonic (@mnemonics) {
+		my $length = $bits / 8 - 4;
+		ok($mnemonic =~ /^(\w+ ?){$length}$/, "generated mnemonic looks valid ($bits bits)");
+		lives_ok {
+			Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic, "", "en");
+		} "generated mnemonic can be imported";
+	};
 }
+
+throws_ok {
+	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic(129, "en");
+} "Bitcoin::Crypto::Exception::MnemonicGenerate", "invalid entropy dies";
+
+throws_ok {
+	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->mnemonic_from_entropy("\x01" x 17, "en");
+} "Bitcoin::Crypto::Exception::MnemonicGenerate", "invalid entropy dies";
 
 # test for network in extended keys
 my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic;

@@ -6,7 +6,7 @@ use Crypt::Mac::HMAC qw(hmac);
 use Math::EllipticCurve::Prime;
 use Encode qw(encode decode);
 use Unicode::Normalize;
-use Bitcoin::BIP39 qw(gen_bip39_mnemonic bip39_mnemonic_to_entropy);
+use Bitcoin::BIP39 qw(gen_bip39_mnemonic bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
 use Crypt::KeyDerivation qw(pbkdf2);
 use Scalar::Util qw(blessed);
 
@@ -35,8 +35,23 @@ sub generate_mnemonic
 		"required entropy of between $min_len and $max_len bits, divisible by $len_div"
 	) if $len < $min_len || $len > $max_len || $len % $len_div != 0;
 
-	my $ret = gen_bip39_mnemonic(bits => $len, language => $lang);
-	return $ret->{mnemonic};
+	return Bitcoin::Crypto::Exception::MnemonicGenerate->trap_into(sub {
+		my $ret = gen_bip39_mnemonic(bits => $len, language => $lang);
+		$ret->{mnemonic};
+	});
+}
+
+sub mnemonic_from_entropy
+{
+	my ($class, $entropy, $lang) = @_;
+	$lang //= "en";
+
+	return Bitcoin::Crypto::Exception::MnemonicGenerate->trap_into(sub {
+		entropy_to_bip39_mnemonic(
+			entropy => $entropy,
+			language => $lang
+		);
+	});
 }
 
 sub from_mnemonic
@@ -48,7 +63,12 @@ sub from_mnemonic
 	if (defined $lang) {
 		# checks validity of seed in given language
 		# requires Wordlist::LANG::BIP39 module for given LANG
-		bip39_mnemonic_to_entropy(mnemonic => $mnemonic, language => $lang);
+		Bitcoin::Crypto::Exception::MnemonicCheck->trap_into(sub {
+			bip39_mnemonic_to_entropy(
+				mnemonic => $mnemonic,
+				language => $lang
+			);
+		});
 	}
 	my $bytes = pbkdf2($mnemonic, $password, 2048, "SHA512", 64);
 
@@ -190,6 +210,16 @@ Other languages than english require additional modules for L<Bitcoin::BIP39>.
 Dies when $len is invalid (under 128, above 256 or not divisible by 32).
 Returns newly generated BIP39 mnemonic string.
 
+=head2 mnemonic_from_entropy
+
+	sig: mnemonic_from_entropy($class, $bytes, $lang = "en")
+
+Generates a new mnemonic code from custom entropy given in $bytes (a bytestring). This entropy should be of the same bit size as in L</"generate_mnemonic">. Returns newly generated BIP39 mnemonic string.
+
+This can be useful to avoid relying on the underlying implementation of L<Bitcoin::BIP39>. In some environments a problem may be encountered that causes the secure random bytes generator to block the program execution (See L<Bytes::Random::Secure/"BLOCKING ENTROPY SOURCE">).
+
+Another use would be implementing one's own entropy source that can be truly random, not just cryptographically-secure. A popular example would be capturing user's mouse movements.
+
 =head2 from_mnemonic
 
 	sig: from_mnemonic($class, $mnemonic, $password = "", $lang = undef)
@@ -285,6 +315,8 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 =over 2
 
 =item * MnemonicGenerate - mnemonic couldn't be generated correctly
+
+=item * MnemonicCheck - mnemonic didn't pass the validity check
 
 =item * KeyDerive - key couldn't be derived correctly
 
