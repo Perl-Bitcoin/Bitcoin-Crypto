@@ -1,0 +1,28 @@
+### GENERAL
+--maximum-line-length=100
+--converge
+
+### WHITESPACE
+--tabs
+--entab-leading-whitespace=4
+--continuation-indentation=4
+--no-delete-old-newlines
+
+### ALIGNMENT
+--no-outdent-long-lines
+--no-outdent-labels
+--novalign
+--no-logical-padding
+
+### TIGHTNESS
+--opening-sub-brace-on-new-line
+--square-bracket-tightness=2
+--paren-tightness=2
+--brace-tightness=2
+--opening-token-right
+
+### ITEMS PER LINE
+--stack-opening-tokens
+--keep-interior-semicolons
+--maximum-fields-per-table=1
+

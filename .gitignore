@@ -5,3 +5,4 @@ blib/*
 MANIFEST*
 pm_to_blib
 *.tar.gz
+.tidyall.d
