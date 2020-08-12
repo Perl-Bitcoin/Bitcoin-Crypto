@@ -20,6 +20,7 @@ sub new_bigint
 {
 	my ($bytes) = @_;
 	return Math::BigInt->from_hex(unpack "H*", $bytes);
+
 	# return Math::BigInt->from_bytes($bytes);
 }
 
@@ -55,6 +56,5 @@ sub hash256
 
 	return sha256(sha256($data));
 }
-
 
 1;

@@ -25,7 +25,8 @@ sub bip44_get_derived_key_from_mnemonic
 		if defined $network;
 
 	my $coin_type = $extkey->network->bip44_coin;
-	die "Network needs to have a 'bip44_coin' field set according to https://github.com/satoshilabs/slips/blob/master/slip-0044.md"
+	die
+		"Network needs to have a 'bip44_coin' field set according to https://github.com/satoshilabs/slips/blob/master/slip-0044.md"
 		unless defined $coin_type;
 
 	# Construct a bip44-compilant derivation path
@@ -40,13 +41,15 @@ sub bip44_get_derived_key_from_mnemonic
 }
 
 my $key = bip44_get_derived_key_from_mnemonic({
-	mnemonic => "bachelor taxi wrong egg range weasel submit bless clutch liberty hip cloth guitar debate vibrant",
-	password => "qwerty",
-	network => "bitcoin",
-	account => 0,
-	change => 0,
-	index => 7,
-});
+		mnemonic =>
+			"bachelor taxi wrong egg range weasel submit bless clutch liberty hip cloth guitar debate vibrant",
+		password => "qwerty",
+		network => "bitcoin",
+		account => 0,
+		change => 0,
+		index => 7,
+	}
+);
 is $key->to_wif(), "L2Xpy9ST9bT9531yAjjLfXGxeXQJfnpVsvnuo4eRwBzDFNpeTzR7";
 
 done_testing;

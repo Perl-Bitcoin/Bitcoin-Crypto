@@ -2,7 +2,7 @@ use v5.10; use warnings;
 use Test::More;
 use Bitcoin::Crypto;
 
-BEGIN { use_ok('Bitcoin::Crypto::Script') };
+BEGIN { use_ok('Bitcoin::Crypto::Script') }
 
 is(Bitcoin::Crypto::Script->VERSION, Bitcoin::Crypto->VERSION);
 
@@ -44,7 +44,8 @@ my %data = (
 				->add_operation("OP_NUMEQUAL");
 		},
 	},
-	"5121032b505cb176689d04c3c89590e46ac8bcac600ba3a45cc8a6f3dfcadea2e827b221024fad8c81793a1f2403fe9c8b1bbcdfe3bd2914b4419d182d5e91f0c343c9417052ae" => {
+	"5121032b505cb176689d04c3c89590e46ac8bcac600ba3a45cc8a6f3dfcadea2e827b221024fad8c81793a1f2403fe9c8b1bbcdfe3bd2914b4419d182d5e91f0c343c9417052ae"
+		=> {
 		"addresses" => [
 			"36XHMXUu8hN2QiwPnn2ZUkdffeTRji3DnU",
 			"3PTSFSe4ebrLzbUrFwzVdGEYjGa2gKCxep",
@@ -53,12 +54,16 @@ my %data = (
 		"script" => sub {
 			shift
 				->add_operation("OP_1")
-				->push_bytes("\x03\x2b\x50\x5c\xb1\x76\x68\x9d\x04\xc3\xc8\x95\x90\xe4\x6a\xc8\xbc\xac\x60\x0b\xa3\xa4\x5c\xc8\xa6\xf3\xdf\xca\xde\xa2\xe8\x27\xb2")
-				->push_bytes("\x02\x4f\xad\x8c\x81\x79\x3a\x1f\x24\x03\xfe\x9c\x8b\x1b\xbc\xdf\xe3\xbd\x29\x14\xb4\x41\x9d\x18\x2d\x5e\x91\xf0\xc3\x43\xc9\x41\x70")
+				->push_bytes(
+				"\x03\x2b\x50\x5c\xb1\x76\x68\x9d\x04\xc3\xc8\x95\x90\xe4\x6a\xc8\xbc\xac\x60\x0b\xa3\xa4\x5c\xc8\xa6\xf3\xdf\xca\xde\xa2\xe8\x27\xb2"
+				)
+				->push_bytes(
+				"\x02\x4f\xad\x8c\x81\x79\x3a\x1f\x24\x03\xfe\x9c\x8b\x1b\xbc\xdf\xe3\xbd\x29\x14\xb4\x41\x9d\x18\x2d\x5e\x91\xf0\xc3\x43\xc9\x41\x70"
+				)
 				->add_operation("OP_2")
 				->add_operation("OP_CHECKMULTISIG");
 		},
-	},
+		},
 );
 
 while (my ($expected, $info) = each %data) {
@@ -70,6 +75,7 @@ while (my ($expected, $info) = each %data) {
 	is($script->get_compat_address, $addr_compat, "compat script address created correctly")
 		if defined $addr_compat;
 	is($script->get_segwit_address, $addr_segwit, "segwit script address created correctly")
+
 		if defined $addr_segwit;
 }
 

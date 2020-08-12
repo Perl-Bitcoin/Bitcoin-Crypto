@@ -39,6 +39,7 @@ my %op_codes = (
 		code => "\x4c",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -46,6 +47,7 @@ my %op_codes = (
 		code => "\x4d",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -53,6 +55,7 @@ my %op_codes = (
 		code => "\x4e",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -60,6 +63,7 @@ my %op_codes = (
 		code => "\x4f",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -67,6 +71,7 @@ my %op_codes = (
 		code => "\x50",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -74,6 +79,7 @@ my %op_codes = (
 		code => "\x51",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -81,6 +87,7 @@ my %op_codes = (
 		code => "\x51",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -88,6 +95,7 @@ my %op_codes = (
 		code => "\x61",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -95,6 +103,7 @@ my %op_codes = (
 		code => "\x62",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -102,6 +111,7 @@ my %op_codes = (
 		code => "\x63",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -109,6 +119,7 @@ my %op_codes = (
 		code => "\x64",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -116,6 +127,7 @@ my %op_codes = (
 		code => "\x65",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -123,6 +135,7 @@ my %op_codes = (
 		code => "\x66",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -130,6 +143,7 @@ my %op_codes = (
 		code => "\x67",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -137,6 +151,7 @@ my %op_codes = (
 		code => "\x68",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -144,6 +159,7 @@ my %op_codes = (
 		code => "\x69",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -151,6 +167,7 @@ my %op_codes = (
 		code => "\x6a",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -158,6 +175,7 @@ my %op_codes = (
 		code => "\x6b",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -165,6 +183,7 @@ my %op_codes = (
 		code => "\x6c",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -172,6 +191,7 @@ my %op_codes = (
 		code => "\x6d",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -179,6 +199,7 @@ my %op_codes = (
 		code => "\x6e",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -186,6 +207,7 @@ my %op_codes = (
 		code => "\x6f",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -193,6 +215,7 @@ my %op_codes = (
 		code => "\x70",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -200,6 +223,7 @@ my %op_codes = (
 		code => "\x71",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -207,6 +231,7 @@ my %op_codes = (
 		code => "\x72",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -214,6 +239,7 @@ my %op_codes = (
 		code => "\x73",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -221,6 +247,7 @@ my %op_codes = (
 		code => "\x74",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -228,6 +255,7 @@ my %op_codes = (
 		code => "\x75",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -235,6 +263,7 @@ my %op_codes = (
 		code => "\x76",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -242,6 +271,7 @@ my %op_codes = (
 		code => "\x77",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -249,6 +279,7 @@ my %op_codes = (
 		code => "\x78",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -256,6 +287,7 @@ my %op_codes = (
 		code => "\x79",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -263,6 +295,7 @@ my %op_codes = (
 		code => "\x7a",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -270,6 +303,7 @@ my %op_codes = (
 		code => "\x7b",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -277,6 +311,7 @@ my %op_codes = (
 		code => "\x7c",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -284,6 +319,7 @@ my %op_codes = (
 		code => "\x7d",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -291,6 +327,7 @@ my %op_codes = (
 		code => "\x82",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -298,6 +335,7 @@ my %op_codes = (
 		code => "\x87",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -305,6 +343,7 @@ my %op_codes = (
 		code => "\x88",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -312,6 +351,7 @@ my %op_codes = (
 		code => "\x89",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -319,6 +359,7 @@ my %op_codes = (
 		code => "\x8a",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -326,6 +367,7 @@ my %op_codes = (
 		code => "\x8b",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -333,6 +375,7 @@ my %op_codes = (
 		code => "\x8c",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -340,6 +383,7 @@ my %op_codes = (
 		code => "\x8f",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -347,6 +391,7 @@ my %op_codes = (
 		code => "\x90",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -354,6 +399,7 @@ my %op_codes = (
 		code => "\x91",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -361,6 +407,7 @@ my %op_codes = (
 		code => "\x92",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -368,6 +415,7 @@ my %op_codes = (
 		code => "\x93",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -375,6 +423,7 @@ my %op_codes = (
 		code => "\x94",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -382,6 +431,7 @@ my %op_codes = (
 		code => "\x9a",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -389,6 +439,7 @@ my %op_codes = (
 		code => "\x9b",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -396,6 +447,7 @@ my %op_codes = (
 		code => "\x9c",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -403,6 +455,7 @@ my %op_codes = (
 		code => "\x9d",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -410,6 +463,7 @@ my %op_codes = (
 		code => "\x9e",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -417,6 +471,7 @@ my %op_codes = (
 		code => "\x9f",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -424,6 +479,7 @@ my %op_codes = (
 		code => "\xa0",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -431,6 +487,7 @@ my %op_codes = (
 		code => "\xa1",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -438,6 +495,7 @@ my %op_codes = (
 		code => "\xa2",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -445,6 +503,7 @@ my %op_codes = (
 		code => "\xa3",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -452,6 +511,7 @@ my %op_codes = (
 		code => "\xa4",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -459,6 +519,7 @@ my %op_codes = (
 		code => "\xa5",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -466,6 +527,7 @@ my %op_codes = (
 		code => "\xa6",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -473,6 +535,7 @@ my %op_codes = (
 		code => "\xa7",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -480,6 +543,7 @@ my %op_codes = (
 		code => "\xa8",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -487,6 +551,7 @@ my %op_codes = (
 		code => "\xa9",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -494,6 +559,7 @@ my %op_codes = (
 		code => "\xaa",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -501,6 +567,7 @@ my %op_codes = (
 		code => "\xab",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -508,6 +575,7 @@ my %op_codes = (
 		code => "\xac",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -515,6 +583,7 @@ my %op_codes = (
 		code => "\xad",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -522,6 +591,7 @@ my %op_codes = (
 		code => "\xae",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -529,6 +599,7 @@ my %op_codes = (
 		code => "\xaf",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -536,6 +607,7 @@ my %op_codes = (
 		code => "\xb1",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -543,6 +615,7 @@ my %op_codes = (
 		code => "\xb2",
 		func => sub {
 			my ($stack, $ops) = @_;
+
 			# TODO
 		}
 	},
@@ -550,7 +623,7 @@ my %op_codes = (
 
 has "operations" => (
 	is => "rw",
-	isa => ArrayRef[Str],
+	isa => ArrayRef [Str],
 	default => sub { [] },
 );
 
@@ -560,15 +633,24 @@ sub _get_op_code
 	if ($op_code =~ /^OP_(.+)/) {
 		$op_code = $1;
 
-		if (!defined $op_codes{$op_code} && $op_code =~ /^[0-9]+$/ && $op_code >= 2 && $op_code <= 16) {
+		if (
+			!defined $op_codes{$op_code}
+			&& $op_code =~ /^[0-9]+$/
+			&& $op_code >= 2
+			&& $op_code <= 16
+			)
+		{
 			# OP_N - starts with 0x52, up to 0x60
 			return pack("C", 0x50 + $op_code);
 		}
 		return $op_codes{$op_code}{code};
-	} elsif ($op_code =~ /^[0-9]+$/ && $op_code >= 1 && $op_code <= 75) {
+	}
+	elsif ($op_code =~ /^[0-9]+$/ && $op_code >= 1 && $op_code <= 75) {
+
 		# standard data push - 0x01 up to 0x4b
 		return pack("C", 0x00 + $op_code);
-	} else {
+	}
+	else {
 		Bitcoin::Crypto::Exception::ScriptOpcode->raise(
 			defined $op_code ? "unknown opcode $op_code" : "undefined opcode variable"
 		);
@@ -601,20 +683,25 @@ sub push_bytes
 	if ($bytes =~ /[\x00-\x10]/ && $len == 1) {
 		my $num = unpack "C", $bytes;
 		$self->add_operation("OP_$num");
-	} else {
+	}
+	else {
 		use bigint;
 		if ($len <= 75) {
 			$self->add_operation($len);
-		} elsif ($len < (2 << 7)) {
+		}
+		elsif ($len < (2 << 7)) {
 			$self->add_operation("OP_PUSHDATA1")
 				->add_raw(pack "C", $len);
-		} elsif ($len < (2 << 15)) {
+		}
+		elsif ($len < (2 << 15)) {
 			$self->add_operation("OP_PUSHDATA2")
 				->add_raw(pack "S", $len);
-		} elsif ($len < (2 << 31)) {
+		}
+		elsif ($len < (2 << 31)) {
 			$self->add_operation("OP_PUSHDATA4")
 				->add_raw(pack "L", $len);
-		} else {
+		}
+		else {
 			Bitcoin::Crypto::Exception::ScriptPush->raise(
 				"too much data to push onto stack in one operation"
 			);

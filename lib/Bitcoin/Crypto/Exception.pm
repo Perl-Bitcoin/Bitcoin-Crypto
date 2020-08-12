@@ -33,11 +33,19 @@ sub trap_into
 { package Bitcoin::Crypto::Exception::MnemonicCheck; use parent "Bitcoin::Crypto::Exception"; }
 
 { package Bitcoin::Crypto::Exception::Base58InputFormat; use parent "Bitcoin::Crypto::Exception"; }
-{ package Bitcoin::Crypto::Exception::Base58InputChecksum; use parent "Bitcoin::Crypto::Exception"; }
+{
+
+	package Bitcoin::Crypto::Exception::Base58InputChecksum;
+	use parent "Bitcoin::Crypto::Exception";
+}
 
 { package Bitcoin::Crypto::Exception::Bech32InputFormat; use parent "Bitcoin::Crypto::Exception"; }
 { package Bitcoin::Crypto::Exception::Bech32InputData; use parent "Bitcoin::Crypto::Exception"; }
-{ package Bitcoin::Crypto::Exception::Bech32InputChecksum; use parent "Bitcoin::Crypto::Exception"; }
+{
+
+	package Bitcoin::Crypto::Exception::Bech32InputChecksum;
+	use parent "Bitcoin::Crypto::Exception";
+}
 { package Bitcoin::Crypto::Exception::SegwitProgram; use parent "Bitcoin::Crypto::Exception"; }
 { package Bitcoin::Crypto::Exception::ValidationTest; use parent "Bitcoin::Crypto::Exception"; }
 

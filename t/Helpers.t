@@ -5,7 +5,7 @@ use Math::BigInt;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 
-BEGIN { use_ok('Bitcoin::Crypto::Helpers', qw(new_bigint pad_hex ensure_length hash160 hash256)) };
+BEGIN { use_ok('Bitcoin::Crypto::Helpers', qw(new_bigint pad_hex ensure_length hash160 hash256)) }
 
 my @bytes = ("\x00\x11", "\x01", "\xff" x 21, "\x00");
 
@@ -23,11 +23,15 @@ for my $hex (@hexes) {
 	is($from_pack, $from_bi, "hex packing ok");
 }
 
-is(ensure_length(pack("x4"), 4), pack("x4"), "ensuring length does not change data for equal length");
+is(
+	ensure_length(pack("x4"), 4),
+	pack("x4"), "ensuring length does not change data for equal length"
+);
 is(ensure_length(pack("x30"), 32), pack("x32"), "ensuring length adds missing zero bytes");
 dies_ok {
 	ensure_length pack("x5"), 4;
-} "packed data that was too long failed as expected";
+}
+"packed data that was too long failed as expected";
 
 my $data = pack "u", "packed data...";
 is(hash160($data), ripemd160(sha256($data)), "hash160 ok");

@@ -10,7 +10,7 @@ use Moo::Role;
 
 has "network" => (
 	is => "rw",
-	isa => InstanceOf["Bitcoin::Crypto::Network"],
+	isa => InstanceOf ["Bitcoin::Crypto::Network"],
 	default => sub {
 		return Bitcoin::Crypto::Network->get;
 	},

@@ -15,7 +15,7 @@ with "Bitcoin::Crypto::Role::Network";
 
 has "key_instance" => (
 	is => "ro",
-	isa => InstanceOf["Crypt::PK::ECC"]
+	isa => InstanceOf ["Crypt::PK::ECC"]
 );
 
 sub _is_private { undef }
@@ -74,7 +74,8 @@ sub raw_key
 		$type = "public_compressed";
 		if ($self->_is_private) {
 			$type = "private";
-		} elsif ($self->does("Bitcoin::Crypto::Role::Compressed") && !$self->compressed) {
+		}
+		elsif ($self->does("Bitcoin::Crypto::Role::Compressed") && !$self->compressed) {
 			$type = "public";
 		}
 	}

@@ -19,7 +19,7 @@ with "Bitcoin::Crypto::Role::Key";
 
 has "depth" => (
 	is => "ro",
-	isa => IntMaxBits[8],
+	isa => IntMaxBits [8],
 	coerce => 1,
 	default => 0
 );
@@ -32,7 +32,7 @@ has "parent_fingerprint" => (
 
 has "child_number" => (
 	is => "ro",
-	isa => IntMaxBits[32],
+	isa => IntMaxBits [32],
 	coerce => 1,
 	default => 0
 );
@@ -69,7 +69,8 @@ sub to_serialized
 {
 	my ($self) = @_;
 
-	my $version = $self->_is_private ? $self->network->extprv_version : $self->network->extpub_version;
+	my $version =
+		$self->_is_private ? $self->network->extprv_version : $self->network->extpub_version;
 
 	# network field is not required, lazy check for completeness
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
@@ -78,14 +79,19 @@ sub to_serialized
 
 	# version number (4B)
 	my $serialized = ensure_length pack("N", $version), 4;
+
 	# depth (1B)
 	$serialized .= ensure_length pack("C", $self->depth), 1;
+
 	# parent's fingerprint (4B) - ensured
 	$serialized .= $self->parent_fingerprint;
+
 	# child number (4B)
 	$serialized .= ensure_length pack("N", $self->child_number), 4;
+
 	# chain code (32B) - ensured
 	$serialized .= $self->chain_code;
+
 	# key entropy (1 + 32B or 33B)
 	$serialized .= ensure_length $self->raw_key, $config{key_max_length} + 1;
 
@@ -95,10 +101,12 @@ sub to_serialized
 sub from_serialized
 {
 	my ($class, $serialized, $network) = @_;
+
 	# expected length is 78
 	if (defined $serialized && length $serialized == 78) {
 		my $format = "a4aa4a4a32a33";
-		my ($version, $depth, $fingerprint, $number, $chain_code, $data) = unpack($format, $serialized);
+		my ($version, $depth, $fingerprint, $number, $chain_code, $data) =
+			unpack($format, $serialized);
 
 		my $is_private = pack("x") eq substr $data, 0, 1;
 
@@ -110,10 +118,13 @@ sub from_serialized
 			if $is_private;
 
 		$version = unpack "N", $version;
-		my @found_networks = Bitcoin::Crypto::Network->find(sub {
-			my ($inst) = @_;
-			return ($class->_is_private ? $inst->extprv_version : $inst->extpub_version) eq $version;
-		});
+		my @found_networks = Bitcoin::Crypto::Network->find(
+			sub {
+				my ($inst) = @_;
+				return ($class->_is_private ? $inst->extprv_version : $inst->extpub_version) eq
+					$version;
+			}
+		);
 		@found_networks = first { $_ eq $network } @found_networks if defined $network;
 
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
@@ -138,7 +149,8 @@ sub from_serialized
 		$key->set_network(@found_networks);
 
 		return $key;
-	} else {
+	}
+	else {
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
 			"input data does not look like a valid serialized extended key"
 		);
@@ -162,7 +174,7 @@ sub get_basic_key
 {
 	my ($self) = @_;
 	my $base_class = "Bitcoin::Crypto::Key::" . ($self->_is_private ? "Private" : "Public");
-	my $basic_key =  $base_class->new($self->key_instance);
+	my $basic_key = $base_class->new($self->key_instance);
 	$basic_key->set_network($self->network);
 
 	return $basic_key;
@@ -194,6 +206,7 @@ sub derive_key
 	my $key = $self;
 	for my $child_num (@{$path_info->{path}}) {
 		my $hardened = $child_num >= $config{max_child_keys};
+
 		# dies if hardened-from-public requested
 		# dies if key is invalid
 		$key = $key->_derive_key_partial($child_num, $hardened);

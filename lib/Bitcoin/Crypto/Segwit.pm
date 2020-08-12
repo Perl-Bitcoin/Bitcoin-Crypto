@@ -48,9 +48,10 @@ sub validate_program
 	$program = substr $program, 1;
 	my $validator = $validators{$version};
 	common_validator($program);
-	if (defined $validator && ref $validator eq ref sub{}) {
+	if (defined $validator && ref $validator eq ref sub { }) {
 		$validator->($program);
-	} else {
+	}
+	else {
 		warn("No validator for segwit program version $version is declared");
 	}
 

@@ -6,6 +6,7 @@ use Data::Dumper;
 sub sign_message
 {
 	my ($private, $message, $algo) = @_;
+
 	# algo needs to be available in Digest:: namespace
 	$algo //= "sha256";
 
@@ -46,7 +47,8 @@ sub verify
 }
 
 # create a private key instance
-my $mnemonic = "bachelor taxi wrong egg range weasel submit bless clutch liberty hip cloth guitar debate vibrant";
+my $mnemonic =
+	"bachelor taxi wrong egg range weasel submit bless clutch liberty hip cloth guitar debate vibrant";
 my $private = btc_extprv->from_mnemonic($mnemonic)->derive_key("m/0'")->get_basic_key;
 
 my $signed_data = sign_message($private, "A quick brown fox jumped over a lazy dog");

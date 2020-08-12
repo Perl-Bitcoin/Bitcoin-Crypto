@@ -3,7 +3,7 @@ use Test::More;
 use Test::Exception;
 use Bitcoin::Crypto;
 
-BEGIN { use_ok 'Bitcoin::Crypto::Network' };
+BEGIN { use_ok 'Bitcoin::Crypto::Network' }
 
 is(Bitcoin::Crypto::Network->VERSION, Bitcoin::Crypto->VERSION);
 
@@ -26,10 +26,13 @@ my $litecoin = {
 
 dies_ok {
 	Bitcoin::Crypto::Network->register(%$litecoin);
-} "invalid network validation fails";
+}
+"invalid network validation fails";
 
-cmp_ok(Bitcoin::Crypto::Network->find, "==", $count,
-	"network list unchanged");
+cmp_ok(
+	Bitcoin::Crypto::Network->find, "==", $count,
+	"network list unchanged"
+);
 
 $litecoin->{wif_byte} = "\xb0";
 
@@ -37,13 +40,16 @@ lives_and {
 	$litecoin = Bitcoin::Crypto::Network->register(%$litecoin);
 	isa_ok $litecoin, "Bitcoin::Crypto::Network";
 	is(Bitcoin::Crypto::Network->get($litecoin->id)->id, $litecoin->id);
-} "network validates and gets registered";
+}
+"network validates and gets registered";
 
 # default network
 
 $litecoin->set_default;
-is(Bitcoin::Crypto::Network->get->id, $litecoin->id,
-	"network successfully flagged as default");
+is(
+	Bitcoin::Crypto::Network->get->id, $litecoin->id,
+	"network successfully flagged as default"
+);
 
 # finding the network
 

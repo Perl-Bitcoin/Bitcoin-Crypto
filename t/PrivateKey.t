@@ -4,7 +4,7 @@ use Test::Exception;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto;
 
-BEGIN { use_ok('Bitcoin::Crypto::Key::Private') };
+BEGIN { use_ok('Bitcoin::Crypto::Key::Private') }
 
 is(Bitcoin::Crypto::Key::Private->VERSION, Bitcoin::Crypto->VERSION);
 
@@ -16,8 +16,9 @@ my %cases = qw(
 );
 
 my $PrivateKey = "Bitcoin::Crypto::Key::Private";
+
 # silence warnings
-local $SIG{__WARN__} = sub {};
+local $SIG{__WARN__} = sub { };
 
 # Basic creation of public keys - 4 tests
 for my $key (keys %cases) {
@@ -44,7 +45,10 @@ for my $message (@messages) {
 	my $privkey2 = $PrivateKey->from_hex($keylist[1]);
 	my $pubkey2 = $privkey2->get_public_key();
 
-	ok(!$pubkey2->verify_message($message, $signature), "Different pubkey doesn't recognize signature");
+	ok(
+		!$pubkey2->verify_message($message, $signature),
+		"Different pubkey doesn't recognize signature"
+	);
 }
 
 # WIF import / export - 4 tests
@@ -52,21 +56,42 @@ my $wif_raw_key = "972e85e7e3345cb7e6a5f812aa5f5bea82005e3ded7b32d9d56f5ab2504f1
 my $wif = "5JxsKGzCoJwaWEjQvfNqD4qPEoUQ696BUEq68Y68WQ2GNR6zrxW";
 my $testnet_wif = "92jVu1okPY1iUJEhZ1Gk5fPLtTq7FJdNpBh3DASdr8mK9SZXqy3";
 is($PrivateKey->from_wif($wif)->to_hex(), $wif_raw_key, "imported WIF correctly");
-is($PrivateKey->from_hex($wif_raw_key)->set_compressed(0)->to_wif(), $wif, "exported WIF correctly");
-is($PrivateKey->from_wif($testnet_wif)->network->name, "Bitcoin Testnet", "Recognized non-default network");
-is($PrivateKey->from_wif($testnet_wif)->to_hex(), $wif_raw_key, "imported non-default network WIF correctly");
-is($PrivateKey->from_wif($testnet_wif)->get_public_key()->network->name, "Bitcoin Testnet", "Passed network to public key");
+is(
+	$PrivateKey->from_hex($wif_raw_key)->set_compressed(0)->to_wif(), $wif,
+	"exported WIF correctly"
+);
+is(
+	$PrivateKey->from_wif($testnet_wif)->network->name,
+	"Bitcoin Testnet",
+	"Recognized non-default network"
+);
+is(
+	$PrivateKey->from_wif($testnet_wif)->to_hex(),
+	$wif_raw_key, "imported non-default network WIF correctly"
+);
+is(
+	$PrivateKey->from_wif($testnet_wif)->get_public_key()->network->name,
+	"Bitcoin Testnet",
+	"Passed network to public key"
+);
 
 # Key length testing - 3 tests
 my $short_key = "e8d964843cc55a91d";
 my $longer_key = "d0a08067d186ffd9d14e8d964843cc55a91d";
 my $too_long_key = "a3bc641ce7ab9a2ec7697f32d3ade425d9785e8f23bea3501524852cda3ca05fae28";
 
-is(length $PrivateKey->from_hex($short_key)->to_bytes(), $config{key_max_length}, "Short key length OK");
-is(length $PrivateKey->from_hex($longer_key)->to_bytes(), $config{key_max_length}, "Longer key length OK");
+is(
+	length $PrivateKey->from_hex($short_key)->to_bytes(),
+	$config{key_max_length}, "Short key length OK"
+);
+is(
+	length $PrivateKey->from_hex($longer_key)->to_bytes(),
+	$config{key_max_length}, "Longer key length OK"
+);
 
 throws_ok {
 	$PrivateKey->from_hex($too_long_key);
-} "Bitcoin::Crypto::Exception::KeyCreate", "Too long key got rejected";
+}
+"Bitcoin::Crypto::Exception::KeyCreate", "Too long key got rejected";
 
 done_testing;

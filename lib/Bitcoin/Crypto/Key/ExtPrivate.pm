@@ -35,10 +35,12 @@ sub generate_mnemonic
 		"required entropy of between $min_len and $max_len bits, divisible by $len_div"
 	) if $len < $min_len || $len > $max_len || $len % $len_div != 0;
 
-	return Bitcoin::Crypto::Exception::MnemonicGenerate->trap_into(sub {
-		my $ret = gen_bip39_mnemonic(bits => $len, language => $lang);
-		$ret->{mnemonic};
-	});
+	return Bitcoin::Crypto::Exception::MnemonicGenerate->trap_into(
+		sub {
+			my $ret = gen_bip39_mnemonic(bits => $len, language => $lang);
+			$ret->{mnemonic};
+		}
+	);
 }
 
 sub mnemonic_from_entropy
@@ -46,12 +48,14 @@ sub mnemonic_from_entropy
 	my ($class, $entropy, $lang) = @_;
 	$lang //= "en";
 
-	return Bitcoin::Crypto::Exception::MnemonicGenerate->trap_into(sub {
-		entropy_to_bip39_mnemonic(
-			entropy => $entropy,
-			language => $lang
-		);
-	});
+	return Bitcoin::Crypto::Exception::MnemonicGenerate->trap_into(
+		sub {
+			entropy_to_bip39_mnemonic(
+				entropy => $entropy,
+				language => $lang
+			);
+		}
+	);
 }
 
 sub from_mnemonic
@@ -61,14 +65,17 @@ sub from_mnemonic
 	$password = encode("UTF-8", NFKD(decode("UTF-8", "mnemonic" . ($password // ""))));
 
 	if (defined $lang) {
+
 		# checks validity of seed in given language
 		# requires Wordlist::LANG::BIP39 module for given LANG
-		Bitcoin::Crypto::Exception::MnemonicCheck->trap_into(sub {
-			bip39_mnemonic_to_entropy(
-				mnemonic => $mnemonic,
-				language => $lang
-			);
-		});
+		Bitcoin::Crypto::Exception::MnemonicCheck->trap_into(
+			sub {
+				bip39_mnemonic_to_entropy(
+					mnemonic => $mnemonic,
+					language => $lang
+				);
+			}
+		);
 	}
 	my $bytes = pbkdf2($mnemonic, $password, 2048, "SHA512", 64);
 
@@ -114,14 +121,18 @@ sub _derive_key_partial
 
 	my $hmac_data;
 	if ($hardened) {
+
 		# zero byte
 		$hmac_data .= "\x00";
+
 		# key data - 32 bytes
 		$hmac_data .= ensure_length $self->raw_key, $config{key_max_length};
-	} else {
+	}
+	else {
 		# public key data - SEC compressed form
 		$hmac_data .= $self->raw_key("public_compressed");
 	}
+
 	# child number - 4 bytes
 	$hmac_data .= ensure_length pack("N", $child_num), 4;
 

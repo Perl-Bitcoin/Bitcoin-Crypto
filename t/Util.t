@@ -4,7 +4,7 @@ use Test::Exception;
 use Math::BigInt;
 use Bitcoin::Crypto;
 
-BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info)) };
+BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info)) }
 
 is(Bitcoin::Crypto::Util->VERSION, Bitcoin::Crypto->VERSION);
 
@@ -20,11 +20,14 @@ foreach my $case (keys %cases) {
 	if (defined $cases{$case}) {
 		lives_and {
 			is(validate_wif($case), $cases{$case})
-		} "wif validation ok";
-	} else {
+		}
+		"wif validation ok";
+	}
+	else {
 		throws_ok {
 			validate_wif($case);
-		} "Bitcoin::Crypto::Exception", "wif validation failed as expected";
+		}
+		"Bitcoin::Crypto::Exception", "wif validation failed as expected";
 	}
 }
 
@@ -69,7 +72,6 @@ my @path_test_data = (
 		undef
 	],
 );
-
 
 for my $case (@path_test_data) {
 	is_deeply(get_path_info($case->[0]), $case->[1], "test case $case->[0]");

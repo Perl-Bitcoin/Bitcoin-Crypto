@@ -30,7 +30,6 @@ ok check_default_network $derived;
 my $pkey_basic = $pkey->get_basic_key;
 ok check_default_network $pkey_basic;
 
-
 # however once we change the network ...
 $pkey->set_network("bitcoin_testnet");
 ok !check_default_network $pkey;
@@ -45,7 +44,6 @@ ok !check_default_network $derived;
 
 $pkey_basic = $pkey->get_basic_key;
 ok !check_default_network $pkey_basic;
-
 
 # Same private key can be used with different cryptocurrencies,
 # although this is usually done with bip44 spec derivation paths

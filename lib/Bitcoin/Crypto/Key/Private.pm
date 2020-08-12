@@ -27,10 +27,13 @@ sub to_wif
 {
 	my ($self) = @_;
 	my $bytes = $self->to_bytes();
+
 	# wif network - 1B
 	my $wifdata = $self->network->wif_byte;
+
 	# key entropy - 32B
 	$wifdata .= ensure_length $bytes, $config{key_max_length};
+
 	# additional byte for compressed key - 1B
 	$wifdata .= $config{wif_compressed_byte} if $self->compressed;
 
@@ -55,7 +58,8 @@ sub from_wif
 	}
 
 	my $wif_network_byte = substr $decoded, 0, 1;
-	my @found_networks = Bitcoin::Crypto::Network->find(sub { shift->wif_byte eq $wif_network_byte });
+	my @found_networks =
+		Bitcoin::Crypto::Network->find(sub { shift->wif_byte eq $wif_network_byte });
 	@found_networks = first { $_ eq $network } @found_networks if defined $network;
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(

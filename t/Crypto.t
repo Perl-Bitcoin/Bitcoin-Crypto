@@ -3,7 +3,7 @@ use Test::More;
 use Test::Exception;
 use Module::Loaded;
 
-BEGIN { use_ok('Bitcoin::Crypto', qw(:all))};
+BEGIN { use_ok('Bitcoin::Crypto', qw(:all)) }
 
 like(Bitcoin::Crypto->VERSION(), qr/\d+\.\d+/, "version string ok");
 

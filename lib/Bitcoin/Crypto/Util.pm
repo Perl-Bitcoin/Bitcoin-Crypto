@@ -26,7 +26,8 @@ sub validate_wif
 	my $last_byte = substr $byte_wif, -1;
 	if (length $byte_wif == $config{key_max_length} + 2) {
 		return $last_byte eq $config{wif_compressed_byte};
-	} else {
+	}
+	else {
 		return length $byte_wif == $config{key_max_length} + 1;
 	}
 }
@@ -58,13 +59,16 @@ sub get_path_info
 		my %info;
 		$info{private} = $1 eq "m";
 		if (defined $2 && length $2 > 0) {
-			$info{path} = [map { s#(\d+)'#$1 + $config{max_child_keys}#e; $_ } split "/", substr $2, 1];
-		} else {
+			$info{path} =
+				[map { s#(\d+)'#$1 + $config{max_child_keys}#e; $_ } split "/", substr $2, 1];
+		}
+		else {
 			$info{path} = [];
 		}
 		return undef if first { $_ >= $config{max_child_keys} * 2 } @{$info{path}};
 		return \%info;
-	} else {
+	}
+	else {
 		return undef;
 	}
 }

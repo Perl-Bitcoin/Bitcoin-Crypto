@@ -29,19 +29,19 @@ has "name" => (
 
 has "p2pkh_byte" => (
 	is => "ro",
-	isa => StrLength[1, 1],
+	isa => StrLength [1, 1],
 	required => 1,
 );
 
 has "wif_byte" => (
 	is => "ro",
-	isa => StrLength[1, 1],
+	isa => StrLength [1, 1],
 	required => 1,
 );
 
 has "p2sh_byte" => (
 	is => "ro",
-	isa => StrLength[1, 1],
+	isa => StrLength [1, 1],
 	required => 0,
 );
 

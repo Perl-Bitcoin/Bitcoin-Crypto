@@ -29,6 +29,7 @@ sub _derive_key_partial
 
 	# public key data - SEC compressed form
 	my $hmac_data = $self->raw_key("public_compressed");
+
 	# child number - 4 bytes
 	$hmac_data .= ensure_length pack("N", $child_num), 4;
 
