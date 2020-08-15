@@ -2,9 +2,12 @@ Revision history for Perl extension Bitcoin::Crypto.
 
 0.994
 	- update dependencies
+	- remove redundant dependencies
 	- replace type checks with Type::Tiny
 	- remove trash methods from classes (namespace::clean)
 	- performance improvements
+	- add mnemonic_from_entropy method to Bitcoin::Crypto::Key::ExtPrivate
+	- tidy up source files with perltidy
 
 0.993 Thu Jan 30 23:00:00 2020
 	- replace some dependencies with CryptX functions
