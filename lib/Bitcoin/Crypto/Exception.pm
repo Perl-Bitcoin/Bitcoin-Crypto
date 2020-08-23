@@ -26,33 +26,48 @@ sub trap_into
 	return $ret;
 }
 
-{ package Bitcoin::Crypto::Exception::KeySign; use parent "Bitcoin::Crypto::Exception"; }
-{ package Bitcoin::Crypto::Exception::KeyCreate; use parent "Bitcoin::Crypto::Exception"; }
-{ package Bitcoin::Crypto::Exception::KeyDerive; use parent "Bitcoin::Crypto::Exception"; }
-{ package Bitcoin::Crypto::Exception::MnemonicGenerate; use parent "Bitcoin::Crypto::Exception"; }
-{ package Bitcoin::Crypto::Exception::MnemonicCheck; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::KeySign;
+use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::KeyCreate;
+use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::KeyDerive;
+use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::MnemonicGenerate;
+use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::MnemonicCheck;
+use parent "Bitcoin::Crypto::Exception"; }
 
-{ package Bitcoin::Crypto::Exception::Base58InputFormat; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::Base58InputFormat;
+use parent "Bitcoin::Crypto::Exception"; }
 {
 
 	package Bitcoin::Crypto::Exception::Base58InputChecksum;
 	use parent "Bitcoin::Crypto::Exception";
 }
 
-{ package Bitcoin::Crypto::Exception::Bech32InputFormat; use parent "Bitcoin::Crypto::Exception"; }
-{ package Bitcoin::Crypto::Exception::Bech32InputData; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::Bech32InputFormat;
+use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::Bech32InputData;
+use parent "Bitcoin::Crypto::Exception"; }
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputChecksum;
 	use parent "Bitcoin::Crypto::Exception";
 }
-{ package Bitcoin::Crypto::Exception::SegwitProgram; use parent "Bitcoin::Crypto::Exception"; }
-{ package Bitcoin::Crypto::Exception::ValidationTest; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::SegwitProgram;
+use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::ValidationTest;
+use parent "Bitcoin::Crypto::Exception"; }
 
-{ package Bitcoin::Crypto::Exception::ScriptOpcode; use parent "Bitcoin::Crypto::Exception"; }
-{ package Bitcoin::Crypto::Exception::ScriptPush; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::ScriptOpcode;
+use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::ScriptPush;
+use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::ScriptExecution;
+use parent "Bitcoin::Crypto::Exception"; }
 
-{ package Bitcoin::Crypto::Exception::NetworkConfig; use parent "Bitcoin::Crypto::Exception"; }
+{ package Bitcoin::Crypto::Exception::NetworkConfig;
+use parent "Bitcoin::Crypto::Exception"; }
 
 1;
 
