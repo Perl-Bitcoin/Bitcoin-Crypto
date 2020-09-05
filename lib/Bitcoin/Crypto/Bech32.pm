@@ -159,7 +159,7 @@ sub decode_base32
 	$bits =~ s/0{$padding}$//;
 
 	Bitcoin::Crypto::Exception::Bech32InputData->raise(
-		"incorrrect padding encoded in bech32"
+		"incorrect padding encoded in bech32"
 	) if length($bits) % 8 != 0 || length($bits) < $length_padded - 4;
 
 	my @data = unpack "(a8)*", $bits;
