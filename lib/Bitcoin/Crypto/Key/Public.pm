@@ -10,18 +10,6 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(hash160);
 use Bitcoin::Crypto;
 
-sub witness_script
-{
-	my ($self) = @_;
-
-	my $script = Bitcoin::Crypto::Script
-		->new(network => $self->network)
-		->add_operation("OP_" . $config{witness_version})
-		->push_bytes($self->key_hash);
-
-	return $script;
-}
-
 use namespace::clean;
 our $VERSION = Bitcoin::Crypto->VERSION;
 
@@ -40,7 +28,7 @@ sub witness_program
 {
 	my ($self) = @_;
 
-	return join "", @{witness_script($self)->execute};
+	return pack("C", $config{witness_version}) . $self->key_hash;
 }
 
 sub get_legacy_address
@@ -54,7 +42,10 @@ sub get_compat_address
 {
 	my ($self) = @_;
 
-	return witness_script($self)->get_legacy_address;
+	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
+	$program->add_operation("OP_" . $config{witness_version})
+		->push_bytes($self->key_hash);
+	return $program->get_legacy_address;
 }
 
 sub get_segwit_address
