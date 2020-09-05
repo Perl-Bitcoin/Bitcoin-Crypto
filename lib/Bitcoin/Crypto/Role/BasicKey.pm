@@ -2,7 +2,7 @@ package Bitcoin::Crypto::Role::BasicKey;
 
 use v5.10; use warnings;
 
-use Bitcoin::Crypto::Helpers qw(pad_hex);
+use Bitcoin::Crypto::Helpers qw(pad_hex verify_bytestring);
 use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
@@ -28,6 +28,8 @@ sub sign_message
 sub verify_message
 {
 	my ($self, $message, $signature, $algorithm) = @_;
+	verify_bytestring($signature);
+
 	$algorithm //= "sha256";
 	return $self->key_instance->verify_message($signature, $message, $algorithm);
 }
@@ -47,6 +49,7 @@ sub to_hex
 sub from_bytes
 {
 	my ($class, $bytes) = @_;
+	verify_bytestring($bytes);
 
 	return $class->new($bytes);
 }

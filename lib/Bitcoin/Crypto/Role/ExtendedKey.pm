@@ -9,7 +9,7 @@ use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Types qw(IntMaxBits);
 use Bitcoin::Crypto::Util qw(get_path_info);
-use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length hash160);
+use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length hash160 verify_bytestring);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Exception;
@@ -101,6 +101,7 @@ sub to_serialized
 sub from_serialized
 {
 	my ($class, $serialized, $network) = @_;
+	verify_bytestring($serialized);
 
 	# expected length is 78
 	if (defined $serialized && length $serialized == 78) {

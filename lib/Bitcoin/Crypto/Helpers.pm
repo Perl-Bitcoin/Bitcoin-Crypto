@@ -12,6 +12,7 @@ our @EXPORT_OK = qw(
 	new_bigint
 	pad_hex
 	ensure_length
+	verify_bytestring
 	hash160
 	hash256
 );
@@ -37,10 +38,21 @@ sub ensure_length
 	my $missing = $bytelen - length $packed;
 
 	Bitcoin::Crypto::Exception->raise(
-		"packed string exceeds maximum number of bytes available ($bytelen)"
+		"packed string exceeds maximum number of bytes allowed ($bytelen)"
 	) if $missing < 0;
 
 	return pack("x$missing") . $packed;
+}
+
+sub verify_bytestring
+{
+	my ($string) = @_;
+
+	my @characters = split //, $string;
+
+	Bitcoin::Crypto::Exception->raise(
+		"string contains characters with numeric values over 255 and cannot be used as a byte string"
+	) if (grep { ord($_) > 255 } @characters) > 0;
 }
 
 sub hash160
