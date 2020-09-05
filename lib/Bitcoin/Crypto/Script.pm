@@ -18,608 +18,237 @@ our $VERSION = Bitcoin::Crypto->VERSION;
 with "Bitcoin::Crypto::Role::Network";
 
 # list of significant opcodes
-my %op_codes = (
-	0 => {
-		code => "\x00",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			push @$stack, 0x00;
-		}
-	},
+our %op_codes = (
 	FALSE => {
 		code => "\x00",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			push @$stack, 0x00;
-		}
 	},
 	PUSHDATA1 => {
 		code => "\x4c",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	PUSHDATA2 => {
 		code => "\x4d",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	PUSHDATA4 => {
 		code => "\x4e",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	"1NEGATE" => {
 		code => "\x4f",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	RESERVED => {
 		code => "\x50",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
-	},
-	1 => {
-		code => "\x51",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	TRUE => {
 		code => "\x51",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	NOP => {
 		code => "\x61",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	VER => {
 		code => "\x62",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	IF => {
 		code => "\x63",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	NOTIF => {
 		code => "\x64",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	VERIF => {
 		code => "\x65",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	VERNOTIF => {
 		code => "\x66",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	ELSE => {
 		code => "\x67",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	ENDIF => {
 		code => "\x68",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	VERIFY => {
 		code => "\x69",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	RETURN => {
 		code => "\x6a",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	TOALTSTACK => {
 		code => "\x6b",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	FROMALTSTACK => {
 		code => "\x6c",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	"2DROP" => {
 		code => "\x6d",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	"2DUP" => {
 		code => "\x6e",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	"3DUP" => {
 		code => "\x6f",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	"2OVER" => {
 		code => "\x70",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	"2ROT" => {
 		code => "\x71",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	"2SWAP" => {
 		code => "\x72",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	IFDUP => {
 		code => "\x73",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	DEPTH => {
 		code => "\x74",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	DROP => {
 		code => "\x75",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	DUP => {
 		code => "\x76",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	NIP => {
 		code => "\x77",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	OVER => {
 		code => "\x78",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	PICK => {
 		code => "\x79",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	ROLL => {
 		code => "\x7a",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	ROT => {
 		code => "\x7b",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	SWAP => {
 		code => "\x7c",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	TUCK => {
 		code => "\x7d",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	SIZE => {
 		code => "\x82",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	EQUAL => {
 		code => "\x87",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	EQUALVERIFY => {
 		code => "\x88",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	RESERVED1 => {
 		code => "\x89",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	RESERVED2 => {
 		code => "\x8a",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	"1ADD" => {
 		code => "\x8b",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	"1SUB" => {
 		code => "\x8c",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	NEGATE => {
 		code => "\x8f",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	ABS => {
 		code => "\x90",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	NOT => {
 		code => "\x91",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	ONOTEQUAL => {
 		code => "\x92",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	ADD => {
 		code => "\x93",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	SUB => {
 		code => "\x94",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	BOOLAND => {
 		code => "\x9a",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	BOOLOR => {
 		code => "\x9b",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	NUMEQUAL => {
 		code => "\x9c",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	NUMEQUALVERIFY => {
 		code => "\x9d",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	NUMNOTEQUAL => {
 		code => "\x9e",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	LESSTHAN => {
 		code => "\x9f",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	GREATERTHAN => {
 		code => "\xa0",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	LESSTHANOREQUAL => {
 		code => "\xa1",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	GREATERTHANOREQUAL => {
 		code => "\xa2",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	MIN => {
 		code => "\xa3",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	MAX => {
 		code => "\xa4",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	WITHIN => {
 		code => "\xa5",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	RIPEMD160 => {
 		code => "\xa6",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	SHA1 => {
 		code => "\xa7",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	SHA256 => {
 		code => "\xa8",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	HASH160 => {
 		code => "\xa9",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	HASH256 => {
 		code => "\xaa",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	CODESEPARATOR => {
 		code => "\xab",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	CHECKSIG => {
 		code => "\xac",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	CHECKSIGVERIFY => {
 		code => "\xad",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	CHECKMULTISIG => {
 		code => "\xae",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	CHECKMULTISIGVERIFY => {
 		code => "\xaf",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	CHECKLOCKTIMEVERFIY => {
 		code => "\xb1",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 	CHECKSEQUENCEVERIFY => {
 		code => "\xb2",
-		func => sub {
-			my ($stack, $ops) = @_;
-
-			# TODO
-		}
 	},
 );
+
+$op_codes{0} = $op_codes{FALSE};
+$op_codes{1} = $op_codes{TRUE};
+
+for (2 .. 16) {
+	# OP_N - starts with 0x52, up to 0x60
+	$op_codes{$_} = {
+		code => pack("C", 0x50 + $_),
+	};
+}
 
 has "operations" => (
 	is => "rw",
@@ -632,17 +261,6 @@ sub _get_op_code
 	my ($context, $op_code) = @_;
 	if ($op_code =~ /^OP_(.+)/) {
 		$op_code = $1;
-
-		if (
-			!defined $op_codes{$op_code}
-			&& $op_code =~ /^[0-9]+$/
-			&& $op_code >= 2
-			&& $op_code <= 16
-			)
-		{
-			# OP_N - starts with 0x52, up to 0x60
-			return pack("C", 0x50 + $op_code);
-		}
 		return $op_codes{$op_code}{code};
 	}
 	elsif ($op_code =~ /^[0-9]+$/ && $op_code >= 1 && $op_code <= 75) {

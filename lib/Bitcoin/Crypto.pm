@@ -186,8 +186,6 @@ For the best performance during dependencies installation ensure that you have M
 
 =over 2
 
-=item * Bitcoin script execution
-
 =item * Better test coverage
 
 =item * Further performance improvements
