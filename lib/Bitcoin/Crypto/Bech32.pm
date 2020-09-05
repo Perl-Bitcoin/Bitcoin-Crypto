@@ -229,15 +229,25 @@ Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl
 
 Implementation of Bech32 algorithm (BIP173 compatible)
 
+The module has a couple of layers of encoding, namely:
+
+=over
+
+=item *base32, which handles the alphabet and 5-to-8 transformation (not exported)
+
+=item *bech32, which handles checksums and human-readable (HRP) parts
+
+=item *segwit, which handles segwit program numbering and validation
+
+=back
+
+For Bech32-encoded SegWit addresses, use I<encode_segwit> and I<decode_segwit>.
+For custom uses of Bech32 (not in context of Bitcoin SegWit addresses), use
+I<encode_bech32> and I<decode_bech32>.
+
+B<If in doubt, use *_segwit functions, not *_bech32 functions!>
+
 =head1 FUNCTIONS
-
-=head2 encode_bech32
-
-=head2 decode_bech32
-
-Basic bech32 encoding / decoding.
-Encoding takes two arguments which are a human readable part and a byte string.
-Decoding takes bech32-encoded string.
 
 =head2 encode_segwit
 
@@ -247,6 +257,16 @@ Bech32 encoding / decoding valid for SegWit addresses. Does not validate the hum
 These functions also perform segwit program validation, see L<Bitcoin::Crypto::Segwit>.
 Encoding takes two arguments which are a human readable part and a byte string.
 Decoding takes bech32-encoded string. Returns the entire encoded data along with the segwit program version byte.
+
+=head2 encode_bech32
+
+=head2 decode_bech32
+
+Basic bech32 encoding / decoding.
+Encoding takes two arguments which are a human readable part and a byte string.
+Decoding takes bech32-encoded string.
+
+B<These methods are not meant to work with Bitcoin SegWit addresses, use encode_segwit and decode_segwit for that instead>
 
 =head2 split_bech32
 
