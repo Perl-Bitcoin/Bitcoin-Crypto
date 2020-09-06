@@ -17,10 +17,15 @@ sub trap_into
 {
 	my ($class, $sub) = @_;
 
-	local $@;
-	my $ret = eval { $sub->() };
-	if ($@) {
-		$class->throw($@);
+	my $ret;
+	my $error = do {
+		local $@;
+		$ret = eval { $sub->() };
+		$@;
+	};
+
+	if ($error) {
+		$class->throw($error);
 	}
 
 	return $ret;
