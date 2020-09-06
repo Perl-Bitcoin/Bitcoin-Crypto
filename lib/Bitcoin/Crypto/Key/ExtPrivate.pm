@@ -150,6 +150,10 @@ sub _derive_key_partial
 	$number->badd($key_num);
 	$number->bmod($n_order);
 
+	Bitcoin::Crypto::Exception::KeyDerive->raise(
+		"key $child_num in sequence was found invalid"
+	) if $number->beq(0);
+
 	return (blessed $self)->new(
 		$number->as_bytes,
 		$chain_code,
