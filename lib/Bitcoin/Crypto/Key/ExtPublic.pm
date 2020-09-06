@@ -3,12 +3,10 @@ package Bitcoin::Crypto::Key::ExtPublic;
 use v5.10; use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
-use Math::EllipticCurve::Prime;
-use Math::EllipticCurve::Prime::Point;
 use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Config;
-use Bitcoin::Crypto::Helpers qw(new_bigint ensure_length);
+use Bitcoin::Crypto::Helpers qw(new_bigint ensure_length add_ec_points);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto;
 
@@ -36,21 +34,23 @@ sub _derive_key_partial
 	my $data = hmac("SHA512", $self->chain_code, $hmac_data);
 	my $chain_code = substr $data, 32, 32;
 
-	my $el_curve = Math::EllipticCurve::Prime->from_name($config{curve_name});
+	my $n_order = new_bigint(pack "H*", $self->key_instance->curve2hash->{order});
 	my $number = new_bigint(substr $data, 0, 32);
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
 		"key $child_num in sequence was found invalid"
-	) if $number->bge($el_curve->n);
+	) if $number->bge($n_order);
 
 	my $key = $self->_create_key(substr $data, 0, 32);
-	my $point = Math::EllipticCurve::Prime::Point->from_bytes($key->export_key_raw("public"));
-	$point->curve($el_curve);
-	my $parent_point = Math::EllipticCurve::Prime::Point->from_bytes($self->raw_key("public"));
-	$parent_point->curve($el_curve);
-	$point->badd($parent_point);
+	my $point = $key->export_key_raw("public");
+	my $parent_point = $self->raw_key("public");
+	$point = add_ec_points($point, $parent_point);
+
+	Bitcoin::Crypto::Exception::KeyDerive->raise(
+		"key $child_num in sequence was found invalid"
+	) unless defined $point;
 
 	return (blessed $self)->new(
-		$point->to_bytes,
+		$point,
 		$chain_code,
 		$child_num,
 		$self->get_fingerprint,

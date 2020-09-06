@@ -3,7 +3,6 @@ package Bitcoin::Crypto::Key::ExtPrivate;
 use v5.10; use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
-use Math::EllipticCurve::Prime;
 use Encode qw(encode decode);
 use Unicode::Normalize;
 use Bitcoin::BIP39 qw(gen_bip39_mnemonic bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
@@ -12,7 +11,7 @@ use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Config;
-use Bitcoin::Crypto::Helpers qw(new_bigint pad_hex ensure_length);
+use Bitcoin::Crypto::Helpers qw(new_bigint pad_hex ensure_length verify_bytestring);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto;
 
@@ -85,6 +84,8 @@ sub from_mnemonic
 sub from_seed
 {
 	my ($class, $seed) = @_;
+	verify_bytestring($seed);
+
 	my $bytes = hmac("SHA512", "Bitcoin seed", $seed);
 	my $key = substr $bytes, 0, 32;
 	my $cc = substr $bytes, 32, 32;
@@ -141,7 +142,7 @@ sub _derive_key_partial
 
 	my $number = new_bigint(substr $data, 0, 32);
 	my $key_num = new_bigint($self->raw_key);
-	my $n_order = Math::EllipticCurve::Prime->from_name($config{curve_name})->n;
+	my $n_order = new_bigint(pack "H*", $self->key_instance->curve2hash->{order});
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
 		"key $child_num in sequence was found invalid"

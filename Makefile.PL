@@ -19,7 +19,6 @@ WriteMakefile(
 		'Test::Exception' => 0,
 	},
 	PREREQ_PM => {
-		'Math::EllipticCurve::Prime' => '>= 0.003',
 		'Math::BigInt' => '>= 1.999818',
 		'Math::BigInt::GMP' => '>= 1.6006',
 		'Moo' => '>= 2.004000',
