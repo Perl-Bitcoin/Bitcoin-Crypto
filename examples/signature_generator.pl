@@ -61,7 +61,7 @@ ok !verify $signed_data;
 
 done_testing;
 
-__DATA__
+__END__
 
 =head1 Message signing script example
 
