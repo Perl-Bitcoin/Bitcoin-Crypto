@@ -1,12 +1,17 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 0.994
-	- update dependencies
-	- remove redundant dependencies
+	- remove Math::EllipticCurve::Prime dependency - replaced with custom function
+	- remove Math::BigInt::GMP dependency - replaced with LTM
+	- replace most of Base58 module internals with CryptX, leave the module for Base58Check
+	- remove base58_preserve functions - standard Base58 encoding decoding now preserves null bytes
 	- replace type checks with Type::Tiny
+	- add mnemonic_from_entropy method to Bitcoin::Crypto::Key::ExtPrivate
+	- verify bytestrings on method inputs (exception is thrown)
 	- remove trash methods from classes (namespace::clean)
 	- performance improvements
-	- add mnemonic_from_entropy method to Bitcoin::Crypto::Key::ExtPrivate
+	- update dependencies
+	- improve documentation
 	- tidy up source files with perltidy
 
 0.993 Thu Jan 30 23:00:00 2020
