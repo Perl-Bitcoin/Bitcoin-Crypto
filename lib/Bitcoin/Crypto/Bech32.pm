@@ -218,12 +218,19 @@ Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl
 
 	use Bitcoin::Crypto::Bech32 qw(:all);
 
+	# witness version - a number from 0 to 16, packed into a byte
+	my $version = pack "C", $Bitcoin::Crypto::Config::config{witness_version};
+
+	# human readable part of the address - a string
+	my $network_hrp = Bitcoin::Crypto::Network->get->segwit_hrp;
+
+	# handles Bitcoin SegWit adresses
+	my $segwit_address = encode_segwit($network_hrp, $version . $pubkeyhash);
+	my $data_with_version = decode_segwit($segwit_address);
+
+	# handles custom Bech32 encoding
 	my $bech32str = encode_bech32("hello", pack "A*", "world"); # should start with hello1
 	my $bytestr = decode_bech32($bech32str);
-
-	my $segwit_address = encode_segwit($network_hrp, $version . $pubkeyhash);
-	my $data = decode_segwit($segwit_address);
-
 
 =head1 DESCRIPTION
 
