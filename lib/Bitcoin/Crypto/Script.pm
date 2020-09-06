@@ -244,6 +244,7 @@ $op_codes{0} = $op_codes{FALSE};
 $op_codes{1} = $op_codes{TRUE};
 
 for (2 .. 16) {
+
 	# OP_N - starts with 0x52, up to 0x60
 	$op_codes{$_} = {
 		code => pack("C", 0x50 + $_),

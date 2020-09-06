@@ -5,7 +5,12 @@ use Math::BigInt;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 
-BEGIN { use_ok('Bitcoin::Crypto::Helpers', qw(new_bigint pad_hex ensure_length verify_bytestring hash160 hash256)) }
+BEGIN {
+	use_ok(
+		'Bitcoin::Crypto::Helpers',
+		qw(new_bigint pad_hex ensure_length verify_bytestring hash160 hash256)
+	);
+}
 
 my @bytes = ("\x00\x11", "\x01", "\xff" x 21, "\x00");
 
@@ -39,9 +44,11 @@ is(hash256($data), sha256(sha256($data)), "hash256 ok");
 
 lives_ok {
 	verify_bytestring(join "", map chr, 0 .. 255);
-} "byte string check ok";
+}
+"byte string check ok";
 
 dies_ok {
-	verify_bytesting(chr(255) . chr (256));
-} "byte string check ok";
+	verify_bytesting(chr(255) . chr(256));
+}
+"byte string check ok";
 done_testing;

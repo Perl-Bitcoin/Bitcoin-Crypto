@@ -132,15 +132,16 @@ sub add_ec_points
 		else {
 			return $double->($px1, $py1);
 		}
-	}->();
+		}
+		->();
 
 	my $exp_x = $ret->{x}->to_bytes;
 	my $exp_y = $ret->{y}->to_bytes;
 
 	return defined $ret
 		? "\x04" .
-			ensure_length($exp_x, $curve_size) .
-			ensure_length($exp_y, $curve_size)
+		ensure_length($exp_x, $curve_size) .
+		ensure_length($exp_y, $curve_size)
 		: undef;
 }
 
