@@ -47,7 +47,7 @@ foreach my $case (@cases) {
 	is($case_packed, decode_base58check($case->[1]), "valid decoding");
 	is($case->[1], encode_base58check($case_packed), "valid encoding");
 
-	my $decoded_with_check = decode_base58_preserve($case->[1]);
+	my $decoded_with_check = decode_base58($case->[1]);
 	is(substr($decoded_with_check, 0, -4), $case_packed, "base58check value unchanged");
 	is(
 		pack("a4", sha256(sha256(substr $decoded_with_check, 0, -4))),
