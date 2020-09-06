@@ -1,6 +1,6 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
-0.994
+0.994 Sun Sep 06 22:00:00 2020
 	- remove Math::EllipticCurve::Prime dependency - replaced with custom function
 	- remove Math::BigInt::GMP dependency - replaced with LTM
 	- replace most of Base58 module internals with CryptX, leave the module for Base58Check
