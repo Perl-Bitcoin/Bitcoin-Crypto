@@ -20,7 +20,6 @@ WriteMakefile(
 	},
 	PREREQ_PM => {
 		'Math::BigInt' => '>= 1.999818',
-		'Math::BigInt::GMP' => '>= 1.6006',
 		'Moo' => '>= 2.004000',
 		'Type::Tiny' => '>= 1.010001',
 		'CryptX' => '>= 0.068',

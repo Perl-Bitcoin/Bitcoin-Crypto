@@ -2,7 +2,7 @@ package Bitcoin::Crypto::Base58;
 
 use v5.10; use warnings;
 use Exporter qw(import);
-use Math::BigInt 1.999818 try => 'GMP';
+use Math::BigInt 1.999818 try => 'LTM,GMP';
 
 use Bitcoin::Crypto;
 use Bitcoin::Crypto::Helpers qw(new_bigint hash256 verify_bytestring);
@@ -123,7 +123,7 @@ Bitcoin::Crypto::Base58 - Bitcoin's Base58 implementation in Perl
 
 =head1 DESCRIPTION
 
-Implementation of Base58 and Base58Check algorithm with Math::BigInt (GMP).
+Implementation of Base58 and Base58Check algorithm with Math::BigInt (LTM/GMP).
 
 =head1 FUNCTIONS
 

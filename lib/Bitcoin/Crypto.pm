@@ -173,14 +173,8 @@ Although the module was written with an extra care and appropriate tests are in 
 
 =head1 SPEED
 
-Since most of the calculations are delegated to the XS (and further to libtomcrypt and GMP) most tasks should be fairly quick to finish, in Perl definition of quick.
+Since most of the calculations are delegated to the XS (and further to libtomcrypt or GMP) most tasks should be fairly quick to finish, in Perl definition of quick.
 The module have a little bit of startup time because of Moo and Type::Tiny, measured in miliseconds. The biggest runtime bottleneck seem to be the key derivation mechanism, which imports a key once for every derivation path part. Some tasks, like signature generation and verification, should be very fast thanks to libtomcrypt doing all the heavy lifting. All in all, the module should be able to handle any task which does not require brute forcing (like vanity address generation).
-
-=head1 INSTALLATION
-
-This module requires GMP library installed on your system in development flavour (with C header files). It must be installed before installing other dependencies.
-
-For the best performance during dependencies installation ensure that you have Math::BigInt::GMP package installed. Some of the dependencies can run their test suites orders of magnitude faster with GMP available.
 
 =head1 TODO
 
