@@ -8,7 +8,7 @@ use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Config;
-use Bitcoin::Crypto::Helpers qw(hash160 hash256);
+use Bitcoin::Crypto::Helpers qw(hash160 hash256 verify_bytestring);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto;
 
@@ -278,6 +278,8 @@ sub _get_op_code
 sub add_raw
 {
 	my ($self, $bytes) = @_;
+	verify_bytestring($bytes);
+
 	push @{$self->operations}, $bytes;
 	return $self;
 }
@@ -293,6 +295,8 @@ sub add_operation
 sub push_bytes
 {
 	my ($self, $bytes) = @_;
+	verify_bytestring($bytes);
+
 	my $len = length $bytes;
 	Bitcoin::Crypto::Exception::ScriptPush->raise(
 		"empty data variable"

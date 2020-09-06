@@ -5,7 +5,7 @@ use Exporter qw(import);
 use Math::BigInt 1.999818 try => 'GMP';
 
 use Bitcoin::Crypto;
-use Bitcoin::Crypto::Helpers qw(new_bigint hash256);
+use Bitcoin::Crypto::Helpers qw(new_bigint hash256 verify_bytestring);
 use Bitcoin::Crypto::Exception;
 
 our $VERSION = Bitcoin::Crypto->VERSION;
@@ -34,9 +34,12 @@ my %alphabet_mapped = map { $alphabet[$_] => $_ } 0 .. $#alphabet;
 sub encode_base58
 {
 	my ($bytes) = @_;
+	verify_bytestring($bytes);
+
 	my $number = new_bigint($bytes);
 	my $result = "";
 	my $size = scalar @alphabet;
+
 	while ($number->is_pos()) {
 		my $copy = $number->copy();
 		$result = $alphabet[$copy->bmod($size)] . $result;
@@ -48,6 +51,7 @@ sub encode_base58
 sub encode_base58_preserve
 {
 	my ($bytes) = @_;
+
 	my $preserve = 0;
 	++$preserve while substr($bytes, $preserve, 1) eq "\x00";
 	return ($alphabet[0] x $preserve) . encode_base58($bytes);

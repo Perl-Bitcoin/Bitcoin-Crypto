@@ -5,6 +5,7 @@ use Exporter qw(import);
 
 use Bitcoin::Crypto;
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Helpers qw(verify_bytestring);
 use Bitcoin::Crypto::Segwit qw(validate_program);
 
 our $VERSION = Bitcoin::Crypto->VERSION;
@@ -173,6 +174,7 @@ sub decode_base32
 sub encode_bech32
 {
 	my ($hrp, $bytes) = @_;
+	verify_bytestring($bytes);
 
 	my $result = encode_base32($bytes);
 	my $checksum = create_checksum($hrp, $result);

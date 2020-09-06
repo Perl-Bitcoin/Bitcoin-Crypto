@@ -6,6 +6,7 @@ use Exporter qw(import);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto;
+use Bitcoin::Crypto::Helpers qw(verify_bytestring);
 
 our $VERSION = Bitcoin::Crypto->VERSION;
 
@@ -39,6 +40,7 @@ sub common_validator
 sub validate_program
 {
 	my ($program) = @_;
+	verify_bytestring($program);
 
 	my $version = unpack "C", $program;
 	Bitcoin::Crypto::Exception::SegwitProgram->raise(
