@@ -1,7 +1,7 @@
 use v5.10; use warnings;
 use Test::More;
 use Test::Exception;
-use Math::BigInt;
+use Math::BigInt 1.999808 try => 'LTM,GMP';
 use Bitcoin::Crypto;
 
 BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info)) }
