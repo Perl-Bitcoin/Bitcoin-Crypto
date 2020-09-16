@@ -1,5 +1,11 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+0.995 Wed Sep 16 18:00:00 2020
+	- downgrade and fix dependencies
+	- fix minimum perl version
+	- improve documentation
+	- explicitly document beta version
+
 0.994 Sun Sep 06 22:00:00 2020
 	- remove Math::EllipticCurve::Prime dependency - replaced with custom function
 	- remove Math::BigInt::GMP dependency - replaced with LTM

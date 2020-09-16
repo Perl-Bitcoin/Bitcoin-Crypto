@@ -23,6 +23,7 @@ while (my ($expected_package, $func) = each %cases) {
 	my $package = $func->();
 	is $package, $expected_package;
 	ok is_loaded($package), "can use $package - was loaded";
+	is $package->VERSION, Bitcoin::Crypto->VERSION, "can run methods - version ok";
 }
 
 done_testing;

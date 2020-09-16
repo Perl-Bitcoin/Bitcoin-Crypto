@@ -242,11 +242,11 @@ The module has a couple of layers of encoding, namely:
 
 =over
 
-=item *base32, which handles the alphabet and 5-to-8 transformation (not exported)
+=item * base32, which handles the alphabet and 5-to-8 transformation (not exported)
 
-=item *bech32, which handles checksums and human-readable (HRP) parts
+=item * bech32, which handles checksums and human-readable (HRP) parts
 
-=item *segwit, which handles segwit program numbering and validation
+=item * segwit, which handles segwit program numbering and validation
 
 =back
 

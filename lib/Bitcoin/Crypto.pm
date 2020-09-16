@@ -1,6 +1,6 @@
 package Bitcoin::Crypto;
 
-our $VERSION = "0.994";
+our $VERSION = "0.995";
 
 use v5.10; use warnings;
 use Exporter qw(import);
@@ -113,7 +113,7 @@ This package won't help you with:
 
 =head1 WHERE TO START?
 
-Documentation and examples in this module assump that you're already familiar with the basics of Bitcoin protocol and assymetric cryptography. If that's not the case, start with wikipedia pages for those topics.
+Documentation and examples in this module assump that you're already familiar with the basics of Bitcoin protocol and asymmetric cryptography. If that's not the case, start with learning about those topics.
 
 If you like to learn by example, dive right into the examples directory.
 
@@ -121,13 +121,13 @@ There are many things that you may want to achieve with this module. Common topi
 
 =over 2
 
-=item * create a keypair for signature or address generation
+=item * create a key pair for signature or address generation
 
 Start with L<Bitcoin::Crypto::Key::Private> if you already have some data you want to use as a private key entropy (like Bitcoin's WIF format or hex data). If you'd like to generate a key and get a list of words, L<Bitcoin::Crypto::Key::ExtPrivate> is what you want.
 
 =item * generate many keys at once
 
-L<Bitcoin::Crypto::Key::ExtPrivate> will allow you to derive as many keys as you want from a master key (so you won't have to store multiple private key seeds). L<Bitcoin::Crypto::Key::ExtPublic> can be stored in a "hot" storage and used to derive public keys lazily.
+L<Bitcoin::Crypto::Key::ExtPrivate> will allow you to derive as many keys as you want from a master key, so you won't have to store multiple private key seeds. L<Bitcoin::Crypto::Key::ExtPublic> can be stored in a "hot" storage - a place which can be hacked into, like a website's database - and used to derive public keys lazily.
 
 =item * work with other cryptocurrencies
 
@@ -135,7 +135,7 @@ You can work with any cryptocurrency as long as it is based on the same fundamen
 
 =item * serialize a Bitcoin script
 
-L<Bitcoin::Crypto::Script> will help you build and serialize a script, but not (yet) run it.
+L<Bitcoin::Crypto::Script> will help you build and serialize a script, but not run it.
 
 =item * work with Bitcoin-related encodings
 
@@ -143,9 +143,23 @@ See L<Bitcoin::Crypto::Base58> and L<Bitcoin::Crypto::Bech32>.
 
 =back
 
+=head1 HOW TO READ THE DOCUMENTATION?
+
+Most functions in this documentation have a code line starting with I<sig:>. These lines are there to inform you about the expected arguments on input.
+
+The first argument is usually an object instance (denoted as C<$self>) or just a class name (C<$class>). Optional arguments are followed by the equal sign and their default value, like C<$lang = "en">. Argument names are often mentioned in function's description with some additional info.
+
+Signature lines are not meant to be valid perl. They're there for you to understand what arguments the function expects.
+
 =head1 SHORTCUT FUNCTIONS
 
-This package exports the following function when asked for them. They are shourtcut functions and will load needed packages and return their names. You can then use names of loaded packages to instantiate them however you want. You can also load all of them with the I<:all> tag in import.
+This package exports the following function when asked for them. They are shourtcut functions and will load needed packages and return their names. You can then use names of loaded packages to instantiate them however you want. You can also load all of them with the I<:all> tag in import. These functions can be used as follows:
+
+	use Bitcoin::Crypto qw(btc_extprv);
+
+	# loads Bitcoin::Crypto::Key::ExtPrivate and returns package name
+	# we can now use it to run methods
+	my $mnemonic = btc_extprv->generate_mnemonic();
 
 =head2 btc_extprv
 
@@ -167,6 +181,22 @@ Loads L<Bitcoin::Crypto::Key::Public>
 
 Loads L<Bitcoin::Crypto::Script>
 
+=head1 BETA INFORMATION
+
+The module is currently consided to be in a beta phase.
+
+=over 2
+
+=item * beta will end with version 1.00, which will be released after enough live testing
+
+=item * current release is considered stable, but may have some rough edges
+
+=item * currently existing API will stay mostly the same (minor modifications are possible)
+
+=item * let me know if you are using the module so that I can guess the users to issues ratio
+
+=back
+
 =head1 DISCLAIMER
 
 Although the module was written with an extra care and appropriate tests are in place asserting compatibility with many Bitcoin standards, due to complexity of the subject some bugs may still be present. In the world of digital money, a single bug may lead to losing funds. I encourage anyone to test the module themselves, review the test cases and use the module with care, espetially in the beta phase. Suggestions for improvements and more edge cases to test will be gladly accepted, but there is no warranty on your funds being manipulated by this module.
@@ -180,9 +210,9 @@ The module have a little bit of startup time because of Moo and Type::Tiny, meas
 
 =over 2
 
-=item * Better test coverage
+=item * Live testing
 
-=item * Further performance improvements
+=item * Better test coverage
 
 =back
 
@@ -192,7 +222,7 @@ Bartosz Jarzyna E<lt>brtastic.dev@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2018 by Bartosz Jarzyna
+Copyright (C) 2018 - 2021 by Bartosz Jarzyna
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,
