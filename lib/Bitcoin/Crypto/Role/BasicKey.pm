@@ -16,7 +16,7 @@ sub sign_message
 {
 	my ($self, $message, $algorithm) = @_;
 
-	Bitcoin::Crypto::Exception::KeySign->raise(
+	Bitcoin::Crypto::Exception::Sign->raise(
 		"cannot sign a message with a public key"
 	) unless $self->_is_private;
 
@@ -25,7 +25,11 @@ sub sign_message
 	);
 
 	$algorithm //= "sha256";
-	return $self->key_instance->sign_message($message, $algorithm);
+	return Bitcoin::Crypto::Exception::Sign->trap_into(
+		sub {
+			$self->key_instance->sign_message($message, $algorithm);
+		}
+	);
 }
 
 sub verify_message
@@ -34,7 +38,11 @@ sub verify_message
 	verify_bytestring($signature);
 
 	$algorithm //= "sha256";
-	return $self->key_instance->verify_message($signature, $message, $algorithm);
+	return Bitcoin::Crypto::Exception::Verify->trap_into(
+		sub {
+			$self->key_instance->verify_message($signature, $message, $algorithm);
+		}
+	);
 }
 
 sub from_hex

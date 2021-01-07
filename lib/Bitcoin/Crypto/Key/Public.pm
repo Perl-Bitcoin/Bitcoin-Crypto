@@ -185,6 +185,8 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =item * KeyCreate - key couldn't be created correctly
 
+=item * Verify - couldn't verify the message correctly
+
 =item * NetworkConfig - incomplete or corrupted network configuration
 
 =back

@@ -54,17 +54,21 @@ sub _create_key
 		if blessed($entropy) && $entropy->isa("Crypt::PK::ECC");
 
 	my $is_private = get_key_type $entropy;
-	unless (defined $is_private) {
-		Bitcoin::Crypto::Exception::KeyCreate->raise(
-			"invalid entropy data passed to key creation method"
-		);
-	}
+
+	Bitcoin::Crypto::Exception::KeyCreate->raise(
+		"invalid entropy data passed to key creation method"
+	) unless defined $is_private;
 
 	$entropy = ensure_length $entropy, $config{key_max_length}
 		if $is_private;
 
 	my $key = Crypt::PK::ECC->new();
-	$key->import_key_raw($entropy, $config{curve_name});
+
+	Bitcoin::Crypto::Exception::KeyCreate->trap_into(
+		sub {
+			$key->import_key_raw($entropy, $config{curve_name});
+		}
+	);
 
 	return $key;
 }

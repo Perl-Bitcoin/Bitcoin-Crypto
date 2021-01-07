@@ -93,92 +93,106 @@ sub as_string
 
 {
 
+	package Bitcoin::Crypto::Exception::Sign;
+	use parent -norequire, "Bitcoin::Crypto::Exception";
+
+}
+
+{
+
+	# old form - deprecated
 	package Bitcoin::Crypto::Exception::KeySign;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception::Sign";
+}
+
+{
+
+	package Bitcoin::Crypto::Exception::Verify;
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::KeyCreate;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::KeyDerive;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::MnemonicGenerate;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::MnemonicCheck;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Base58InputFormat;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Base58InputChecksum;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputFormat;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputData;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputChecksum;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::SegwitProgram;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::ValidationTest;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::ScriptOpcode;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::ScriptPush;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::NetworkConfig;
-	use parent "Bitcoin::Crypto::Exception";
+	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 1;
@@ -209,7 +223,7 @@ Bitcoin::Crypto::Exception - Exception class for Bitcoin::Crypto purposes
 =head1 DESCRIPTION
 
 A wrapper class with automatic stringification and standarized raising.
-Contains many other inline packages that identify parts that went wrong (like Bitcoin::Crypto::Exception::KeySign for errors in signature generation).
+Contains many other inline packages that identify parts that went wrong (like Bitcoin::Crypto::Exception::Sign for errors in signature generation).
 See individual Bitcoin::Crypto packages documentation to see the exception classes to check for extra control flow when needed.
 
 =head1 FUNCTIONS

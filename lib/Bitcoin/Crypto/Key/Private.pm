@@ -244,7 +244,9 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =over 2
 
-=item * KeySign - couldn't sign the message corretcly
+=item * Sign - couldn't sign the message correctly
+
+=item * Verify - couldn't verify the message correctly
 
 =item * KeyCreate - key couldn't be created correctly
 
