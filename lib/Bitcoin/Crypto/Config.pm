@@ -1,6 +1,7 @@
 package Bitcoin::Crypto::Config;
 
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Exporter qw(import);
 
 our @EXPORT = qw(

@@ -1,6 +1,7 @@
 package Bitcoin::Crypto::Key::Private;
 
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Moo;
 use Types::Standard qw(Str);
 use Crypt::PK::ECC;
@@ -60,7 +61,8 @@ sub from_wif
 	my $wif_network_byte = substr $decoded, 0, 1;
 	my @found_networks =
 		Bitcoin::Crypto::Network->find(sub { shift->wif_byte eq $wif_network_byte });
-	@found_networks = first { $_ eq $network } @found_networks if defined $network;
+	@found_networks = first { $_ eq $network }
+		@found_networks if defined $network;
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(
 		"found multiple networks possible for given WIF"

@@ -1,6 +1,7 @@
 package Bitcoin::Crypto::Exception;
 
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use parent "Throwable::Error";
 
 use Bitcoin::Crypto;

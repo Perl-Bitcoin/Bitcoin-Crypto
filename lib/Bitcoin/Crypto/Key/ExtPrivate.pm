@@ -1,6 +1,7 @@
 package Bitcoin::Crypto::Key::ExtPrivate;
 
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
 use Encode qw(encode decode);

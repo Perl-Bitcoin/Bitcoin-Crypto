@@ -1,4 +1,5 @@
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Bitcoin::Crypto::Key::ExtPrivate;
 use Bitcoin::Crypto::Network;
 use Test::More;

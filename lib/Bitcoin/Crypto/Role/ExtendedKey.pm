@@ -1,6 +1,7 @@
 package Bitcoin::Crypto::Role::ExtendedKey;
 
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use List::Util qw(first);
 use Types::Standard qw(Str);
 
@@ -126,7 +127,8 @@ sub from_serialized
 					$version;
 			}
 		);
-		@found_networks = first { $_ eq $network } @found_networks if defined $network;
+		@found_networks = first { $_ eq $network }
+			@found_networks if defined $network;
 
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
 			"found multiple networks possible for given serialized key"

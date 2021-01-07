@@ -1,6 +1,7 @@
 package Bitcoin::Crypto::Role::BasicKey;
 
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 
 use Bitcoin::Crypto::Helpers qw(pad_hex verify_bytestring);
 use Bitcoin::Crypto::Exception;

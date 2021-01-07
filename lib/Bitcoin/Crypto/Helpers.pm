@@ -1,6 +1,7 @@
 package Bitcoin::Crypto::Helpers;
 
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Exporter qw(import);
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);

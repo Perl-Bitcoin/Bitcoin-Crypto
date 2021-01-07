@@ -1,4 +1,5 @@
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Test::More;
 use Test::Exception;
 use Math::BigInt 1.999808 try => 'LTM,GMP';

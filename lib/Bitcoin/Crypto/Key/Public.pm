@@ -1,6 +1,7 @@
 package Bitcoin::Crypto::Key::Public;
 
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Moo;
 
 use Bitcoin::Crypto::Script;

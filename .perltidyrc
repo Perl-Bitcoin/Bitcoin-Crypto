@@ -1,11 +1,12 @@
 ### GENERAL
---maximum-line-length=100
+--maximum-line-length=120
 --converge
 
 ### WHITESPACE
 --tabs
 --entab-leading-whitespace=4
 --continuation-indentation=4
+--extended-continuation-indentation
 --no-delete-old-newlines
 
 ### ALIGNMENT
@@ -21,8 +22,4 @@
 --brace-tightness=2
 --opening-token-right
 
-### ITEMS PER LINE
---stack-opening-tokens
---keep-interior-semicolons
---maximum-fields-per-table=1
-
+-sal='first any sum sum0 reduce'

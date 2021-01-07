@@ -1,3 +1,4 @@
 [PerlTidy]
 select = **/*.{pl,pm,t}
+ignore = blib/**/*.{pl,pm,t}
 argv = -pro=./.perltidyrc --character-encoding=none

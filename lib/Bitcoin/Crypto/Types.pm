@@ -1,6 +1,7 @@
 package Bitcoin::Crypto::Types;
 
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Type::Library -base;
 use Type::Coercion;
 use Types::Common::Numeric qw(assert_PositiveInt);

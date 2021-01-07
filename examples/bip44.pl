@@ -1,4 +1,5 @@
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Bitcoin::Crypto qw(:all);
 use Test::More;
 use Test::Exception;
@@ -40,7 +41,8 @@ sub bip44_get_derived_key_from_mnemonic
 	return $extkey->derive_key($bip44_path)->get_basic_key;
 }
 
-my $key = bip44_get_derived_key_from_mnemonic({
+my $key = bip44_get_derived_key_from_mnemonic(
+	{
 		mnemonic =>
 			"bachelor taxi wrong egg range weasel submit bless clutch liberty hip cloth guitar debate vibrant",
 		password => "qwerty",

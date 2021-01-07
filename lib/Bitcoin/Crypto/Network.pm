@@ -1,6 +1,7 @@
 package Bitcoin::Crypto::Network;
 
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Moo;
 use Scalar::Util qw(blessed);
 use Types::Standard qw(Str Int Str);

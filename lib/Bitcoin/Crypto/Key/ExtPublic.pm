@@ -1,6 +1,7 @@
 package Bitcoin::Crypto::Key::ExtPublic;
 
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
 use Scalar::Util qw(blessed);

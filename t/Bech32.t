@@ -1,4 +1,5 @@
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Test::More;
 use Test::Exception;
 use Bitcoin::Crypto;
@@ -21,8 +22,8 @@ my %tests = (
 	},
 	"an83characterlonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio1tt5tgs" =>
 		{
-		type => "bech32",
-		data => ""
+			type => "bech32",
+			data => ""
 		},
 	"abcdef1qpzry9x8gf2tvdw0s3jn54khce6mua7lmqqqxw" => {
 		type => "bech32",
@@ -30,8 +31,8 @@ my %tests = (
 	},
 	"11qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqc8247j" =>
 		{
-		type => "bech32",
-		data => "00" x 51
+			type => "bech32",
+			data => "00" x 51
 		},
 	"split1checkupstagehandshakeupstreamerranterredcaperred2y9e3w" => {
 		type => "bech32",
@@ -63,8 +64,8 @@ my %tests = (
 	},    # Invalid character in HRP
 	"an84characterslonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio1569pvx"
 		=> {
-		type => "bech32",
-		exception => "Bech32InputFormat"
+			type => "bech32",
+			exception => "Bech32InputFormat"
 		},
 	"pzry9x0s0muk" => {
 		type => "bech32",

@@ -1,4 +1,5 @@
-use v5.10; use warnings;
+use v5.10;
+use warnings;
 use Bitcoin::Crypto qw(btc_extprv btc_pub);
 use Test::More;
 use Data::Dumper;
