@@ -2,12 +2,9 @@ use v5.10;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Bitcoin::Crypto;
 use Crypt::Digest::SHA256 qw(sha256);
 
 BEGIN { use_ok('Bitcoin::Crypto::Base58', qw(:all)) }
-
-is(Bitcoin::Crypto::Base58->VERSION, Bitcoin::Crypto->VERSION);
 
 my @cases = (
 	[

@@ -8,10 +8,8 @@ use Exporter qw(import);
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Config;
-use Bitcoin::Crypto;
 use Bitcoin::Crypto::Helpers qw(verify_bytestring);
 
-our $VERSION = Bitcoin::Crypto->VERSION;
 
 our @EXPORT_OK = qw(
 	validate_program

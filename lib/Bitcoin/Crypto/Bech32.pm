@@ -6,12 +6,10 @@ use v5.10;
 use warnings;
 use Exporter qw(import);
 
-use Bitcoin::Crypto;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(verify_bytestring);
 use Bitcoin::Crypto::Segwit qw(validate_program);
 
-our $VERSION = Bitcoin::Crypto->VERSION;
 
 our @EXPORT_OK = qw(
 	encode_bech32

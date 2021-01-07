@@ -2,12 +2,9 @@ use v5.10;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Bitcoin::Crypto;
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 BEGIN { use_ok('Bitcoin::Crypto::Key::ExtPrivate') }
-
-is(Bitcoin::Crypto::Key::ExtPrivate->VERSION, Bitcoin::Crypto->VERSION);
 
 my @test_data = (
 	{

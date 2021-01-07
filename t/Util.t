@@ -3,11 +3,8 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use Math::BigInt 1.999808 try => 'LTM,GMP';
-use Bitcoin::Crypto;
 
 BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info)) }
-
-is(Bitcoin::Crypto::Util->VERSION, Bitcoin::Crypto->VERSION);
 
 # validate_wif - 3 tests
 

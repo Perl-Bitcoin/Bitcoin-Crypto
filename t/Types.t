@@ -2,11 +2,8 @@ use v5.10;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Bitcoin::Crypto;
 
 BEGIN { use_ok('Bitcoin::Crypto::Types', qw(:all)) }
-
-is(Bitcoin::Crypto::Types->VERSION, Bitcoin::Crypto->VERSION);
 
 {
 

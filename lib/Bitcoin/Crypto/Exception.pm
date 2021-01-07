@@ -6,10 +6,8 @@ use v5.10;
 use warnings;
 use parent "Throwable::Error";
 
-use Bitcoin::Crypto;
 use namespace::clean;
 
-our $VERSION = Bitcoin::Crypto->VERSION;
 
 sub raise
 {

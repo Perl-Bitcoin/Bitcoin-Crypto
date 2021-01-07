@@ -3,13 +3,10 @@ use warnings;
 use Test::More;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Config;
-use Bitcoin::Crypto;
 
 $config{compress_public_point} = 0;
 
 BEGIN { use_ok('Bitcoin::Crypto::Key::Public') }
-
-is(Bitcoin::Crypto::Key::Public->VERSION, Bitcoin::Crypto->VERSION);
 
 my $PublicKey = "Bitcoin::Crypto::Key::Public";
 

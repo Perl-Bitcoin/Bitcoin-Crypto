@@ -2,11 +2,8 @@ use v5.10;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Bitcoin::Crypto;
 
 BEGIN { use_ok('Bitcoin::Crypto::Bech32', qw(:all)) }
-
-is(Bitcoin::Crypto::Bech32->VERSION, Bitcoin::Crypto->VERSION);
 
 # silence warnings
 local $SIG{__WARN__} = sub { };

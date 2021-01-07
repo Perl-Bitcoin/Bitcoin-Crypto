@@ -3,11 +3,8 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use Bitcoin::Crypto::Config;
-use Bitcoin::Crypto;
 
 BEGIN { use_ok('Bitcoin::Crypto::Key::Private') }
-
-is(Bitcoin::Crypto::Key::Private->VERSION, Bitcoin::Crypto->VERSION);
 
 my %cases = qw(
 	641ce7ab9a2ec7697f32d3ade425d9785e8f23bea3501524852cda3ca05fae28
