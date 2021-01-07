@@ -10,7 +10,6 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(verify_bytestring);
 
-
 our @EXPORT_OK = qw(
 	validate_program
 );

@@ -1,6 +1,7 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 0.996
+	- replace Throwable dependency with custom error class
 	- add version number to each of module's files
 	- improve bytestring checking - should now throw exception for undefs and refs
 	- improve error trapping - now properly executes eval

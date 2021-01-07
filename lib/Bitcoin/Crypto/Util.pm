@@ -11,7 +11,6 @@ use Crypt::PK::ECC;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Base58 qw(decode_base58check);
 
-
 our @EXPORT_OK = qw(
 	validate_wif
 	get_key_type

@@ -27,7 +27,7 @@ BEGIN { use_ok('Bitcoin::Crypto::Exception') }
 	}
 	"Bitcoin::Crypto::Exception::KeyCreate", "exception was raised";
 
-	note("$@");
+	note $@;
 }
 
 {

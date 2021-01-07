@@ -10,7 +10,6 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(verify_bytestring);
 use Bitcoin::Crypto::Segwit qw(validate_program);
 
-
 our @EXPORT_OK = qw(
 	encode_bech32
 	decode_bech32
