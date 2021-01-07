@@ -33,5 +33,51 @@ is(Bitcoin::Crypto::Exception->VERSION, Bitcoin::Crypto->VERSION);
 	note("$@");
 }
 
+{
+
+	package BuggyDestroy;
+
+	sub new
+	{
+		return bless {}, __PACKAGE__;
+	}
+
+	sub DESTROY
+	{
+		eval { 1 };
+	}
+}
+
+{
+	throws_ok {
+		Bitcoin::Crypto::Exception->trap_into(
+			sub { die 'test'; }
+		);
+	}
+	"Bitcoin::Crypto::Exception", "exception was trapped";
+
+	lives_and {
+		is(
+			Bitcoin::Crypto::Exception->trap_into(
+				sub { 54321 }
+			),
+			54321
+		);
+	}
+	"trapped return value ok";
+
+	throws_ok {
+		Bitcoin::Crypto::Exception->trap_into(
+			sub {
+				my $var = BuggyDestroy->new;
+				die 'test';
+			}
+		);
+	}
+	"Bitcoin::Crypto::Exception", "exception was trapped despite DESTROY";
+
+	note $@;
+}
+
 done_testing;
 

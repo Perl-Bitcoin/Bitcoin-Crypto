@@ -21,8 +21,12 @@ sub trap_into
 	my $ret;
 	my $error = do {
 		local $@;
-		$ret = eval { $sub->() };
-		$@;
+		my $failure = not eval {
+			$ret = $sub->();
+			return 1;
+		};
+
+		$@ || $failure;
 	};
 
 	if ($error) {
