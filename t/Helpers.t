@@ -45,6 +45,7 @@ is(hash256($data), sha256(sha256($data)), "hash256 ok");
 
 lives_ok {
 	verify_bytestring(join "", map chr, 0 .. 255);
+	verify_bytestring("");
 }
 "byte string check ok";
 
@@ -52,4 +53,10 @@ dies_ok {
 	verify_bytesting(chr(255) . chr(256));
 }
 "byte string check ok";
+
+dies_ok {
+	verify_bytesting(undef);
+}
+"byte string check ok";
+
 done_testing;

@@ -51,6 +51,10 @@ sub verify_bytestring
 {
 	my ($string) = @_;
 
+	Bitcoin::Crypto::Exception->raise(
+		"invalid input value, expected string"
+	) if !defined $string || ref $string;
+
 	my @characters = split //, $string;
 
 	Bitcoin::Crypto::Exception->raise(
