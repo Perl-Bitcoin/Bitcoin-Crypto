@@ -66,7 +66,7 @@ sub _derive_key_partial
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Key::ExtPublic - class for Bitcoin extended public keys
+Bitcoin::Crypto::Key::ExtPublic - Bitcoin extended public keys
 
 =head1 SYNOPSIS
 

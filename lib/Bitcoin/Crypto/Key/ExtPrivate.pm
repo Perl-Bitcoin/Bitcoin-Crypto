@@ -172,7 +172,7 @@ sub _derive_key_partial
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Key::ExtPrivate - class for Bitcoin extended private keys
+Bitcoin::Crypto::Key::ExtPrivate - Bitcoin extended private keys
 
 =head1 SYNOPSIS
 

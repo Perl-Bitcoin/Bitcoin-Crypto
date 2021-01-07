@@ -389,7 +389,7 @@ sub get_segwit_address
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Script - class for Bitcoin script representations
+Bitcoin::Crypto::Script - Bitcoin script representations
 
 =head1 SYNOPSIS
 
@@ -417,8 +417,6 @@ You can use a script object to:
 =item * serialize script into byte string
 
 =item * create legacy (p2sh), compat (p2sh(p2wsh)) and segwit (p2wsh) adresses
-
-=item * (work in progress) run script and get resulting stack
 
 =back
 

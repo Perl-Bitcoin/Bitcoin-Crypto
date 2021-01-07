@@ -163,20 +163,35 @@ See individual Bitcoin::Crypto packages documentation to see the exception class
 
 =head2 raise
 
-	Bitcoin::Crypto::Exception->raise("error message");
+	sig: raise($self)
+	     raise($class, $message)
 
 Creates a new instance and throws it. If used on an object, throws it right away.
 
+	use Try::Tiny;
+
+	try {
+		# throws, but will be catched
+		Bitcoin::Crypto::Exception->raise("something went wrong");
+	} catch {
+		my $exception = $_;
+
+		# throws again
+		$exception->raise;
+	};
+
 =head2 throw
 
-Same as raise.
+An alias to raise.
 
 =head2 trap_into
 
-	Bitcoin::Crypto::Exception->trap_into(sub {
+	sig: trap_into($class, $sub)
+
+Executes the subroutine given as the only parameter inside an eval. Any exceptions thrown inside the subroutine will be re-thrown after turning them into objects of the given class. If no exception is thrown, method returns the value returned by the subroutine.
+
+	my $result = Bitcoin::Crypto::Exception->trap_into(sub {
 		die "something went wrong";
 	});
-
-Executes the subroutine given as the only parameter inside an eval. Any exceptions thrown inside the subroutine will be re-thrown after turning them into objects of the given class.
 
 =cut

@@ -257,7 +257,7 @@ For Bech32-encoded SegWit addresses, use I<encode_segwit> and I<decode_segwit>.
 For custom uses of Bech32 (not in context of Bitcoin SegWit addresses), use
 I<encode_bech32> and I<decode_bech32>.
 
-B<If in doubt, use *_segwit functions, not *_bech32 functions!>
+B<If in doubt, use segwit functions, not bech32 functions!>
 
 =head1 FUNCTIONS
 

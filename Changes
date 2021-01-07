@@ -4,6 +4,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- add version number to each of module's files
 	- improve bytestring checking - should now throw exception for undefs and refs
 	- improve error trapping - now properly executes eval
+	- documentation improvements
 
 0.995 Wed Sep 16 18:00:00 2020
 	- downgrade and fix dependencies

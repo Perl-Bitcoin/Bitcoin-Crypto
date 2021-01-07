@@ -68,7 +68,7 @@ sub get_segwit_address
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Key::Public - class for Bitcoin public keys
+Bitcoin::Crypto::Key::Public - Bitcoin public keys
 
 =head1 SYNOPSIS
 

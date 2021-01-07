@@ -99,7 +99,7 @@ sub get_public_key
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Key::Private - class for Bitcoin private keys
+Bitcoin::Crypto::Key::Private - Bitcoin private keys
 
 =head1 SYNOPSIS
 

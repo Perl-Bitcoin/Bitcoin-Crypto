@@ -211,18 +211,18 @@ you have to configure it's network first.
 
 =head1 CONFIGURATION
 
-Right now networks only require four keys, which are marked with *
+Right now networks only require four keys, which are marked with (*)
 
 	my %config = (
-		id => "* identifier for the network",
-		name => "* human-readable network name",
-		p2pkh_byte => "* p2pkh address prefix byte, eg. 0x00",
-		p2sh_byte => "p2sh address prefix byte, eg. 0x05",
-		segwit_hrp => "segwit native address human readable part, eg. 'bc'",
-		wif_byte => "* WIF private key prefix byte, eg. 0x80",
+		id             => "(*) identifier for the network",
+		name           => "(*) human-readable network name",
+		p2pkh_byte     => "(*) p2pkh address prefix byte, eg. 0x00",
+		p2sh_byte      => "p2sh address prefix byte, eg. 0x05",
+		segwit_hrp     => "segwit native address human readable part, eg. 'bc'",
+		wif_byte       => "(*) WIF private key prefix byte, eg. 0x80",
 		extprv_version => "version of extended private keys, eg. 0x0488ade4",
 		extpub_version => "version of extended public keys, eg. 0x0488b21e",
-		bip44_coin => "bip44 coin number, eg. 0",
+		bip44_coin     => "bip44 coin number, eg. 0",
 	);
 
 After you register a network with this hashref your program will be able to import keys for that

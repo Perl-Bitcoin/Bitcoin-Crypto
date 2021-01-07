@@ -51,13 +51,13 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto::Key::ExtPrivate;
+	use Bitcoin::Crypto qw(btc_extprv);
 
 	# extended keys are used for mnemonic generation and key derivation
-	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic();
+	my $mnemonic = btc_extprv->generate_mnemonic();
 	say "your mnemonic code is: $mnemonic";
 
-	my $master_key = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic);
+	my $master_key = btc_extprv->from_mnemonic($mnemonic);
 	my $derived_key = $master_key->derive_key("m/0'");
 
 	# basic keys are used for signatures and addresses
@@ -124,7 +124,7 @@ There are many things that you may want to achieve with this module. Common topi
 
 =item * create a key pair for signature or address generation
 
-Start with L<Bitcoin::Crypto::Key::Private> if you already have some data you want to use as a private key entropy (like Bitcoin's WIF format or hex data). If you'd like to generate a key and get a list of words, L<Bitcoin::Crypto::Key::ExtPrivate> is what you want.
+Start with L<Bitcoin::Crypto::Key::Private> if you already have some data you want to use as a private key entropy (like Bitcoin's WIF format or hex data). If you'd like to generate a key and get a list of words (a mnemonic), L<Bitcoin::Crypto::Key::ExtPrivate> is what you want.
 
 =item * generate many keys at once
 
@@ -152,15 +152,17 @@ The first argument is usually an object instance (denoted as C<$self>) or just a
 
 Signature lines are not meant to be valid perl. They're there for you to understand what arguments the function expects.
 
+Most packages in this module have the types of their thrown exceptions documented near the bottom of the document. The exceptions section may be useful to understand which types of exceptions can be thrown when using functions or methods from the package and what they mean. It is not meant to be a full list of exceptions a function can throw and unblessed errors may still be raised.
+
 =head1 SHORTCUT FUNCTIONS
 
 This package exports the following function when asked for them. They are shourtcut functions and will load needed packages and return their names. You can then use names of loaded packages to instantiate them however you want. You can also load all of them with the I<:all> tag in import. These functions can be used as follows:
 
-	use Bitcoin::Crypto qw(btc_extprv);
+	use Bitcoin::Crypto qw(btc_pub);
 
-	# loads Bitcoin::Crypto::Key::ExtPrivate and returns package name
-	# we can now use it to run methods
-	my $mnemonic = btc_extprv->generate_mnemonic();
+	# loads Bitcoin::Crypto::Key::Public and returns package name
+	# we can now use it to run its methods
+	my $public_key = btc_pub->from_hex($hex_data);
 
 =head2 btc_extprv
 
@@ -204,7 +206,7 @@ Although the module was written with an extra care and appropriate tests are in 
 
 =head1 SPEED
 
-Since most of the calculations are delegated to the XS (and further to libtomcrypt or GMP) most tasks should be fairly quick to finish, in Perl definition of quick.
+Since most of the calculations are delegated to the XS (and further to libtommath and libtomcrypt) most tasks should be fairly quick to finish, in Perl definition of quick.
 The module have a little bit of startup time because of Moo and Type::Tiny, measured in miliseconds. The biggest runtime bottleneck seem to be the key derivation mechanism, which imports a key once for every derivation path part. Some tasks, like signature generation and verification, should be very fast thanks to libtomcrypt doing all the heavy lifting. All in all, the module should be able to handle any task which does not require brute forcing (like vanity address generation).
 
 =head1 TODO
