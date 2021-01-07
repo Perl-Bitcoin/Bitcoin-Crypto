@@ -62,7 +62,8 @@ sub from_wif
 	my @found_networks =
 		Bitcoin::Crypto::Network->find(sub { shift->wif_byte eq $wif_network_byte });
 	@found_networks = first { $_ eq $network }
-		@found_networks if defined $network;
+		@found_networks
+		if defined $network;
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(
 		"found multiple networks possible for given WIF"

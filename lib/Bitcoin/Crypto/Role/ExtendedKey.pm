@@ -43,6 +43,7 @@ has "child_number" => (
 has "chain_code" => (
 	is => "ro",
 	isa => Str->where(q{ length $_ == 32 }),
+	required => 1,
 );
 
 sub _build_args

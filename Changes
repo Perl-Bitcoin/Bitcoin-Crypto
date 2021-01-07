@@ -1,11 +1,14 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 0.996
+	- deprecate Exception::KeySign in favor of Exception::Sign
+	- add Exception::Verify, trapping CryptX exceptions during signature verification
 	- replace Throwable dependency with custom error class
 	- add version number to each of module's files
 	- improve bytestring checking - should now throw exception for undefs and refs
 	- improve error trapping - now properly executes eval
-	- documentation improvements
+	- improve documentation
+	- improved test suite (now covers many edge cases)
 
 0.995 Wed Sep 16 18:00:00 2020
 	- downgrade and fix dependencies

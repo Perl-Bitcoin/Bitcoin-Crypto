@@ -5,6 +5,7 @@ our $VERSION = "0.996";
 use v5.10;
 use warnings;
 use Exporter qw(import);
+use Types::Standard qw(Str);
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(verify_bytestring);
@@ -85,6 +86,11 @@ sub verify_checksum
 sub split_bech32
 {
 	my ($bech32enc) = @_;
+
+	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
+		"bech32 input is not a string"
+	) unless Str->check($bech32enc);
+
 	$bech32enc = lc $bech32enc
 		if uc $bech32enc eq $bech32enc;
 

@@ -18,7 +18,8 @@ with "Bitcoin::Crypto::Role::Network";
 
 has "key_instance" => (
 	is => "ro",
-	isa => InstanceOf ["Crypt::PK::ECC"]
+	isa => InstanceOf ["Crypt::PK::ECC"],
+	required => 1,
 );
 
 sub _is_private { undef }

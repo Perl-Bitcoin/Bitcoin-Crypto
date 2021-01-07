@@ -12,7 +12,7 @@ use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
 has "network" => (
-	is => "rw",
+	is => "ro",
 	isa => InstanceOf ["Bitcoin::Crypto::Network"],
 	default => sub {
 		return Bitcoin::Crypto::Network->get;
