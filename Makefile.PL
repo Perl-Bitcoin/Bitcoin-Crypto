@@ -24,7 +24,7 @@ WriteMakefile(
 	META_MERGE => {
 		resources => {
 			license => 'https://dev.perl.org/licenses',
-			homepage => 'https://metacpan.org/release/Bitcoin-Crypto',
+			homepage => 'https://brtastic.xyz/project/bitcoin-crypto',
 			bugtracker => 'https://github.com/brtastic/perl-bitcoin-crypto/issues',
 			repository => 'https://github.com/brtastic/perl-bitcoin-crypto',
 		},
