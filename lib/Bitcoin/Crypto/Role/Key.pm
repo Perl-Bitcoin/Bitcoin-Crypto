@@ -60,14 +60,14 @@ sub _create_key
 		"invalid entropy data passed to key creation method"
 	) unless defined $is_private;
 
-	$entropy = ensure_length $entropy, $config{key_max_length}
+	$entropy = ensure_length $entropy, Bitcoin::Crypto::Config::key_max_length
 		if $is_private;
 
 	my $key = Crypt::PK::ECC->new();
 
 	Bitcoin::Crypto::Exception::KeyCreate->trap_into(
 		sub {
-			$key->import_key_raw($entropy, $config{curve_name});
+			$key->import_key_raw($entropy, Bitcoin::Crypto::Config::curve_name);
 		}
 	);
 

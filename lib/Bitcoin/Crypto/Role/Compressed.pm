@@ -13,7 +13,7 @@ has "compressed" => (
 	is => "rw",
 	isa => Bool,
 	coerce => 1,
-	default => $config{compress_public_point},
+	default => Bitcoin::Crypto::Config::compress_public_point,
 	writer => "_set_compressed"
 );
 

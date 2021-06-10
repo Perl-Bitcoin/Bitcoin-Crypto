@@ -224,10 +224,17 @@ Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto::Bech32 qw(:all);
+	# none exported by default
+	use Bitcoin::Crypto::Bech32 qw(
+		encode_bech32
+		decode_bech32
+		split_bech32
+		encode_segwit
+		decode_segwit
+	);
 
 	# witness version - a number from 0 to 16, packed into a byte
-	my $version = pack "C", $Bitcoin::Crypto::Config::config{witness_version};
+	my $version = pack "C", 0;
 
 	# human readable part of the address - a string
 	my $network_hrp = Bitcoin::Crypto::Network->get->segwit_hrp;
@@ -263,6 +270,8 @@ I<encode_bech32> and I<decode_bech32>.
 B<If in doubt, use segwit functions, not bech32 functions!>
 
 =head1 FUNCTIONS
+
+This module is based on Exporter. None of the functions are exported by default. C<:all> tag exists that exports all the functions at once.
 
 =head2 encode_segwit
 

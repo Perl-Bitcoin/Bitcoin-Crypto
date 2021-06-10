@@ -219,6 +219,16 @@ The module have a little bit of startup time because of Moo and Type::Tiny, meas
 
 =back
 
+=head1 SEE ALSO
+
+=over
+
+=item L<Bitcoin::RPC::Client>
+
+=item L<https://github.com/bitcoin/bips>
+
+=back
+
 =head1 AUTHOR
 
 Bartosz Jarzyna E<lt>brtastic.dev@gmail.comE<gt>

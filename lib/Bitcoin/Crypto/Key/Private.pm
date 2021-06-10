@@ -33,10 +33,10 @@ sub to_wif
 	my $wifdata = $self->network->wif_byte;
 
 	# key entropy - 32B
-	$wifdata .= ensure_length $bytes, $config{key_max_length};
+	$wifdata .= ensure_length $bytes, Bitcoin::Crypto::Config::key_max_length;
 
 	# additional byte for compressed key - 1B
-	$wifdata .= $config{wif_compressed_byte} if $self->compressed;
+	$wifdata .= Bitcoin::Crypto::Config::wif_compressed_byte if $self->compressed;
 
 	return encode_base58check($wifdata);
 }
@@ -53,7 +53,7 @@ sub from_wif
 	my $private = substr $decoded, 1;
 
 	my $compressed = 0;
-	if (length($private) > $config{key_max_length}) {
+	if (length($private) > Bitcoin::Crypto::Config::key_max_length) {
 		chop $private;
 		$compressed = 1;
 	}

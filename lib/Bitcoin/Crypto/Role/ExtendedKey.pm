@@ -97,7 +97,7 @@ sub to_serialized
 	$serialized .= $self->chain_code;
 
 	# key entropy (1 + 32B or 33B)
-	$serialized .= ensure_length $self->raw_key, $config{key_max_length} + 1;
+	$serialized .= ensure_length $self->raw_key, Bitcoin::Crypto::Config::key_max_length + 1;
 
 	return $serialized;
 }
@@ -119,7 +119,7 @@ sub from_serialized
 			"invalid class used, key is " . ($is_private ? "private" : "public")
 		) if $is_private != $class->_is_private;
 
-		$data = substr $data, 1, $config{key_max_length}
+		$data = substr $data, 1, Bitcoin::Crypto::Config::key_max_length
 			if $is_private;
 
 		$version = unpack "N", $version;
@@ -211,7 +211,7 @@ sub derive_key
 
 	my $key = $self;
 	for my $child_num (@{$path_info->{path}}) {
-		my $hardened = $child_num >= $config{max_child_keys};
+		my $hardened = $child_num >= Bitcoin::Crypto::Config::max_child_keys;
 
 		# dies if hardened-from-public requested
 		# dies if key is invalid

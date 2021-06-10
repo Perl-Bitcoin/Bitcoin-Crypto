@@ -45,7 +45,7 @@ sub validate_program
 	my $version = unpack "C", $program;
 	Bitcoin::Crypto::Exception::SegwitProgram->raise(
 		"incorrect witness program version " . ($version // "[null]")
-	) unless defined $version && $version >= 0 && $version <= $config{max_witness_version};
+	) unless defined $version && $version >= 0 && $version <= Bitcoin::Crypto::Config::max_witness_version;
 
 	$program = substr $program, 1;
 	my $validator = $validators{$version};

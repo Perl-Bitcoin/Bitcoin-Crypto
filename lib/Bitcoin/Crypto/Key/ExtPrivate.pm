@@ -140,7 +140,7 @@ sub _derive_key_partial
 		$hmac_data .= "\x00";
 
 		# key data - 32 bytes
-		$hmac_data .= ensure_length $self->raw_key, $config{key_max_length};
+		$hmac_data .= ensure_length $self->raw_key, Bitcoin::Crypto::Config::key_max_length;
 	}
 	else {
 		# public key data - SEC compressed form

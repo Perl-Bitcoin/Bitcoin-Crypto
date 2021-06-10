@@ -29,7 +29,7 @@ sub witness_program
 {
 	my ($self) = @_;
 
-	return pack("C", $config{witness_version}) . $self->key_hash;
+	return pack("C", Bitcoin::Crypto::Config::witness_version) . $self->key_hash;
 }
 
 sub get_legacy_address
@@ -44,7 +44,7 @@ sub get_compat_address
 	my ($self) = @_;
 
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
-	$program->add_operation("OP_" . $config{witness_version})
+	$program->add_operation("OP_" . Bitcoin::Crypto::Config::witness_version)
 		->push_bytes($self->key_hash);
 	return $program->get_legacy_address;
 }

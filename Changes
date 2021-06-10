@@ -7,6 +7,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- refactor testing out of examples
 	- minor documentation improvements
 	- fix distribution metadata
+	- change how internal constants are handled
 
 0.996 Thu Jan 7 23:00:00 2021
 	- deprecate Exception::KeySign in favor of Exception::Sign

@@ -24,11 +24,11 @@ sub validate_wif
 	my ($wif) = @_;
 	my $byte_wif = decode_base58check($wif);
 	my $last_byte = substr $byte_wif, -1;
-	if (length $byte_wif == $config{key_max_length} + 2) {
-		return $last_byte eq $config{wif_compressed_byte};
+	if (length $byte_wif == Bitcoin::Crypto::Config::key_max_length + 2) {
+		return $last_byte eq Bitcoin::Crypto::Config::wif_compressed_byte;
 	}
 	else {
-		return length $byte_wif == $config{key_max_length} + 1;
+		return length $byte_wif == Bitcoin::Crypto::Config::key_max_length + 1;
 	}
 }
 
@@ -36,7 +36,7 @@ sub get_key_type
 {
 	my ($entropy) = @_;
 
-	my $curve_size = $config{key_max_length};
+	my $curve_size = Bitcoin::Crypto::Config::key_max_length;
 	my $octet = substr $entropy, 0, 1;
 
 	my $has_unc_oc = $octet eq "\x04" || $octet eq "\x06" || $octet eq "\x07";
@@ -60,12 +60,12 @@ sub get_path_info
 		$info{private} = $1 eq "m";
 		if (defined $2 && length $2 > 0) {
 			$info{path} =
-				[map { s#(\d+)'#$1 + $config{max_child_keys}#e; $_ } split "/", substr $2, 1];
+				[map { s#(\d+)'#$1 + Bitcoin::Crypto::Config::max_child_keys#e; $_ } split "/", substr $2, 1];
 		}
 		else {
 			$info{path} = [];
 		}
-		return undef if first { $_ >= $config{max_child_keys} * 2 }
+		return undef if first { $_ >= Bitcoin::Crypto::Config::max_child_keys * 2 }
 			@{$info{path}};
 		return \%info;
 	}

@@ -76,7 +76,13 @@ Bitcoin::Crypto::Base58 - Bitcoin's Base58 helpers in Perl
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto::Base58 qw(:all);
+	# none exported by default
+	use Bitcoin::Crypto::Base58 qw(
+		encode_base58
+		decode_base58
+		encode_base58check
+		decode_base58check
+	);
 
 	my $b58str = encode_base58check(pack "A*", "hello");
 	my $bytestr = decode_base58check($b58str);
@@ -86,6 +92,8 @@ Bitcoin::Crypto::Base58 - Bitcoin's Base58 helpers in Perl
 Implementation of Base58Check algorithm and alias to CryptX encode_b58b / decode_b58b
 
 =head1 FUNCTIONS
+
+This module is based on Exporter. None of the functions are exported by default. C<:all> tag exists that exports all the functions at once.
 
 =head2 encode_base58
 
