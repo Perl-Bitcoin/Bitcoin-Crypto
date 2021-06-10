@@ -22,11 +22,18 @@ WriteMakefile(
 	},
 
 	META_MERGE => {
+		'meta-spec' => { version => 2 },
 		resources => {
 			license => 'https://dev.perl.org/licenses',
 			homepage => 'https://brtastic.xyz/project/bitcoin-crypto',
-			bugtracker => 'https://github.com/brtastic/perl-bitcoin-crypto/issues',
-			repository => 'https://github.com/brtastic/perl-bitcoin-crypto',
+			bugtracker => {
+				web => 'https://github.com/brtastic/perl-bitcoin-crypto/issues',
+			},
+			repository => {
+				type => 'git',
+				url => 'https://github.com/brtastic/perl-bitcoin-crypto.git',
+				web => 'https://github.com/brtastic/perl-bitcoin-crypto',
+			},
 		},
 	},
 
