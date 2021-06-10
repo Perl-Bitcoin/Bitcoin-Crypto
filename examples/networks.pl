@@ -2,49 +2,23 @@ use v5.10;
 use warnings;
 use Bitcoin::Crypto::Key::ExtPrivate;
 use Bitcoin::Crypto::Network;
-use Test::More;
 
-sub check_default_network
-{
-	my ($pkey) = @_;
-	my $default = Bitcoin::Crypto::Network->get;
-
-	return $pkey->network->id eq $default->id;
-}
-
-# generate a new mnemonic
 my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic;
 
-# this key will be assigned to a default network ...
+# this key will be assigned to a default network, as well as
+# any other keys acquired using it
 my $pkey = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic);
-ok check_default_network $pkey;
-
-# ... and its public keys too ...
 my $pubkey = $pkey->get_public_key;
-ok check_default_network $pubkey;
-
-# ... and its derived keys too ...
 my $derived = $pkey->derive_key("m/5'");
-ok check_default_network $derived;
-
-# ... and its basic keys too.
 my $pkey_basic = $pkey->get_basic_key;
-ok check_default_network $pkey_basic;
 
 # however once we change the network ...
 $pkey->set_network("bitcoin_testnet");
-ok !check_default_network $pkey;
 
-# ... all of these will have it as well after regeneration
-# without the need to set the network manually for them
+# ... all of these will have to be regenerated to also have it
 $pubkey = $pkey->get_public_key;
-ok !check_default_network $pubkey;
-
 $derived = $pkey->derive_key("m/5'");
-ok !check_default_network $derived;
-
 $pkey_basic = $pkey->get_basic_key;
-ok !check_default_network $pkey_basic;
 
 # Same private key can be used with different cryptocurrencies,
 # although this is usually done with bip44 spec derivation paths
@@ -57,12 +31,6 @@ my $address_mainnet = $pkey_basic
 	->set_network("bitcoin")
 	->get_public_key
 	->get_segwit_address;
-
-isnt $address_testnet, $address_mainnet;
-note $address_testnet;
-note $address_mainnet;
-
-done_testing;
 
 __END__
 
