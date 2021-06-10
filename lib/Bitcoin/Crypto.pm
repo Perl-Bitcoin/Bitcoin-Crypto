@@ -128,7 +128,7 @@ Start with L<Bitcoin::Crypto::Key::Private> if you already have some data you wa
 
 =item * generate many keys at once
 
-L<Bitcoin::Crypto::Key::ExtPrivate> will allow you to derive as many keys as you want from a master key, so you won't have to store multiple private key seeds. L<Bitcoin::Crypto::Key::ExtPublic> can be stored in a "hot" storage - a place which can be hacked into, like a website's database - and used to derive public keys lazily.
+L<Bitcoin::Crypto::Key::ExtPrivate> will allow you to derive as many keys as you want from a master key, so you won't have to store multiple private key seeds. L<Bitcoin::Crypto::Key::ExtPublic> can be then used to derive public keys lazily. I<(Note: storing extended public keys together with private keys in a hot storage will put your extended private key at risk!)>
 
 =item * work with other cryptocurrencies
 
