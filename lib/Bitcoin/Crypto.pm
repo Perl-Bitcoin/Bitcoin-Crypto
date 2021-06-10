@@ -100,7 +100,7 @@ This module allows you to do basic tasks for Bitcoin such as:
 
 =back
 
-This package won't help you with:
+This module won't help you with:
 
 =over 2
 
@@ -114,7 +114,7 @@ This package won't help you with:
 
 =head1 WHERE TO START?
 
-Documentation and examples in this module assump that you're already familiar with the basics of Bitcoin protocol and asymmetric cryptography. If that's not the case, start with learning about those topics.
+Documentation and examples in this module assume you're already familiar with the basics of Bitcoin protocol and asymmetric cryptography. If that's not the case, start with learning about those topics.
 
 If you like to learn by example, dive right into the examples directory.
 
@@ -156,7 +156,7 @@ Most packages in this module have the types of their thrown exceptions documente
 
 =head1 SHORTCUT FUNCTIONS
 
-This package exports the following function when asked for them. They are shourtcut functions and will load needed packages and return their names. You can then use names of loaded packages to instantiate them however you want. You can also load all of them with the I<:all> tag in import. These functions can be used as follows:
+This package exports the following functions when asked for them. They are shourtcut functions and will load needed packages and return their names. You can then use names of loaded packages to instantiate them however you want. You can also load all of them with the I<:all> tag in import. These functions can be used as follows:
 
 	use Bitcoin::Crypto qw(btc_pub);
 
