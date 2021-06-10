@@ -9,7 +9,21 @@ use Types::Standard qw(Enum);
 use Types::Common::Numeric qw(PositiveOrZeroInt);
 use Scalar::Util qw(blessed);
 
+use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
+
+sub _get_network_constant
+{
+	my ($network) = @_;
+
+	my $coin_type = $network->bip44_coin;
+
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		"no bip44_coin constant found in network configuration"
+	) unless defined $coin_type;
+
+	return $coin_type;
+}
 
 use namespace::clean;
 
@@ -23,16 +37,15 @@ has 'coin_type' => (
 			$coin_type = $coin_type->network
 				if $coin_type->DOES('Bitcoin::Crypto::Role::Network');
 
-			$coin_type = $coin_type->bip44_coin
+			$coin_type = _get_network_constant($coin_type)
 				if $coin_type->isa('Bitcoin::Crypto::Network');
-
-			Bitcoin::Crypto::Exception::NetworkConfig->raise(
-				"no bip44 coin constant found in network configuration"
-			) unless defined $coin_type;
 		}
+
 		return $coin_type;
 	},
-	required => 1,
+	default => sub {
+		_get_network_constant(Bitcoin::Crypto::Network->get);
+	},
 );
 
 has 'account' => (
