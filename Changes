@@ -1,5 +1,12 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+0.997 Thu Jun 10 21:00:00 2021
+	- add BIP44 support
+	- add bip44_derive_key helper to extended private key class
+	- refactor testing out of examples
+	- minor improvements to documentation
+	- fix distribution metadata
+
 0.996 Thu Jan 7 23:00:00 2021
 	- deprecate Exception::KeySign in favor of Exception::Sign
 	- add Exception::Verify, trapping CryptX exceptions during signature verification

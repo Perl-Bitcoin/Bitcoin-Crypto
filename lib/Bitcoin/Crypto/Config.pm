@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Config;
 
-our $VERSION = "0.996";
+our $VERSION = "0.997";
 
 use v5.10;
 use warnings;
