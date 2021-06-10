@@ -2,8 +2,6 @@ use v5.10;
 use warnings;
 use Bitcoin::Crypto qw(btc_extprv);
 use Bitcoin::Crypto::BIP44;
-use Test::More;
-use Test::Exception;
 
 sub bip44_get_derived_key_from_mnemonic
 {
@@ -51,9 +49,6 @@ my $key = bip44_get_derived_key_from_mnemonic(
 		index => 7,
 	}
 );
-is $key->to_wif(), "L2Xpy9ST9bT9531yAjjLfXGxeXQJfnpVsvnuo4eRwBzDFNpeTzR7";
-
-done_testing;
 
 __END__
 

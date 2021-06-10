@@ -1,8 +1,6 @@
 use v5.10;
 use warnings;
 use Bitcoin::Crypto qw(btc_extprv btc_pub);
-use Test::More;
-use Data::Dumper;
 
 sub sign_message
 {
@@ -53,14 +51,14 @@ my $mnemonic =
 my $private = btc_extprv->from_mnemonic($mnemonic)->derive_key("m/0'")->get_basic_key;
 
 my $signed_data = sign_message($private, "A quick brown fox jumped over a lazy dog");
-note Dumper $signed_data;
-
-ok verify $signed_data;
+if (verify $signed_data) {
+	say 'verification ok';
+}
 
 $signed_data->{message} = "I've been hijacked!";
-ok !verify $signed_data;
-
-done_testing;
+if (!verify $signed_data) {
+	say 'verification ok';
+}
 
 __END__
 
