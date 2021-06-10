@@ -77,4 +77,14 @@ subtest 'bip44 can be used directly in key derivation' => sub {
 	is $key->derive_key($bip44)->get_basic_key->to_wif, 'L4cAPkgogiSuiySepNFsrWoB2wdCVGCkuNT4se1U6A59xTaJbeFz';
 };
 
+subtest 'extended private key has bip44 helper' => sub {
+	my $key = btc_extprv->from_mnemonic(
+		'spawn impact body ask nothing warm farm novel host later basic subject point resist pilot'
+	);
+	$key->set_network('bitcoin_testnet');
+
+	is $key->bip44_derive_key(account => 3, index => 4)->get_basic_key->to_wif, 'cSTUMXWSBL5oiA6vVTN9jcN1kE59pbFuYPSeE8Q1L4mwpMw8ybo1';
+	is $key->bip44_derive_key(coin_type => 25, account => 3, index => 4)->get_basic_key->to_wif, 'cSTUMXWSBL5oiA6vVTN9jcN1kE59pbFuYPSeE8Q1L4mwpMw8ybo1';
+};
+
 done_testing;
