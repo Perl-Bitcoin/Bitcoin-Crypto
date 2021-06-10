@@ -56,7 +56,7 @@ has 'account' => (
 
 has 'change' => (
 	is => 'ro',
-	isa => Enum[1, 0],
+	isa => Enum [1, 0],
 	default => sub { 0 },
 );
 

@@ -28,7 +28,7 @@ sub bip44_get_derived_key_from_mnemonic
 
 	# Construct a bip44-compilant derivation path
 	my $bip44 = Bitcoin::Crypto::BIP44->new(
-		coin_type => $extkey, # can be a key instance, a network instance or just an integer
+		coin_type => $extkey,    # can be a key instance, a network instance or just an integer
 		account => $account,
 		change => $change,
 		index => $index
