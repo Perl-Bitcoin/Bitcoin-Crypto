@@ -1,6 +1,7 @@
 use v5.10;
 use warnings;
-use Bitcoin::Crypto qw(:all);
+use Bitcoin::Crypto qw(btc_extprv);
+use Bitcoin::Crypto::BIP44;
 use Test::More;
 use Test::Exception;
 
@@ -25,20 +26,18 @@ sub bip44_get_derived_key_from_mnemonic
 	$extkey->set_network($network)
 		if defined $network;
 
-	my $coin_type = $extkey->network->bip44_coin;
-	die
-		"Network needs to have a 'bip44_coin' field set according to https://github.com/satoshilabs/slips/blob/master/slip-0044.md"
-		unless defined $coin_type;
-
 	# Construct a bip44-compilant derivation path
-	# https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
-	# m / purpose' / coin_type' / account' / change / address_index
-	my $bip44_path = "m/44'/$coin_type'/$account'/$change/$index";
+	my $bip44 = Bitcoin::Crypto::BIP44->new(
+		coin_type => $extkey, # can be a key instance, a network instance or just an integer
+		account => $account,
+		change => $change,
+		index => $index
+	);
 
 	# derive the key and return the basic key
 	# returned key is of type Bitcoin::Crypto::Key::Private
 	# and have a proper network field set (to produce valid WIFs and addresses)
-	return $extkey->derive_key($bip44_path)->get_basic_key;
+	return $extkey->derive_key($bip44)->get_basic_key;
 }
 
 my $key = bip44_get_derived_key_from_mnemonic(
