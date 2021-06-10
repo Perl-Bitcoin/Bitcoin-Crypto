@@ -100,13 +100,6 @@ sub as_string
 
 {
 
-	# old form - deprecated
-	package Bitcoin::Crypto::Exception::KeySign;
-	use parent -norequire, "Bitcoin::Crypto::Exception::Sign";
-}
-
-{
-
 	package Bitcoin::Crypto::Exception::Verify;
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
