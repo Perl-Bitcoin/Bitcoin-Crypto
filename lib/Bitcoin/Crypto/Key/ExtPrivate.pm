@@ -118,7 +118,7 @@ sub get_public_key
 	return $public;
 }
 
-sub bip44_derive_key
+sub derive_key_bip44
 {
 	my ($self, %data) = @_;
 	my $path = Bitcoin::Crypto::BIP44->new(
@@ -335,9 +335,9 @@ See BIP32 document for details on derivation paths and methods.
 
 Returns a new extended key instance - result of a derivation.
 
-=head2 bip44_derive_key
+=head2 derive_key_bip44
 
-	sig: bip44_derive_key($self, %data)
+	sig: derive_key_bip44($self, %data)
 
 A helper that constructs a L<Bitcoin::Crypto::BIP44> path from C<%data> and calls L</derive_key> with it. Refer to L<Bitcoin::Crypto::BIP44/PROPERTIES> to see what you can include in C<%data>.
 

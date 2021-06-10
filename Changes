@@ -2,7 +2,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 
 0.997 Thu Jun 10 21:00:00 2021
 	- implement BIP44 derivation paths
-	- add bip44_derive_key helper to extended private key class
+	- add derive_key_bip44 helper to extended private key class
 	- remove previously deprecated Exception::KeySign
 	- refactor testing out of examples
 	- minor documentation improvements
