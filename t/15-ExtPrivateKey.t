@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
+use utf8;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 BEGIN { use_ok('Bitcoin::Crypto::Key::ExtPrivate') }
 

@@ -62,8 +62,6 @@ sub mnemonic_from_entropy
 sub from_mnemonic
 {
 	my ($class, $mnemonic, $password, $lang) = @_;
-	$mnemonic = encode("UTF-8", NFKD(decode("UTF-8", $mnemonic)));
-	$password = encode("UTF-8", NFKD(decode("UTF-8", "mnemonic" . ($password // ""))));
 
 	if (defined $lang) {
 
@@ -78,6 +76,10 @@ sub from_mnemonic
 			}
 		);
 	}
+
+	$mnemonic = encode("UTF-8", NFKD($mnemonic));
+	$password = encode("UTF-8", NFKD("mnemonic" . ($password // "")));
+
 	my $bytes = pbkdf2($mnemonic, $password, 2048, "SHA512", 64);
 
 	return $class->from_seed($bytes);
@@ -266,6 +268,8 @@ If you need to validate if $mnemonic is a valid mnemonic you should specify $lan
 If no $lang is given then any string passed as $mnemonic will produce a valid key.
 
 Returns a new instance of this class.
+
+B<Important note about unicode:> this function only accepts UTF8-decoded strings (both C<$mnemonic> and C<$password>), but can't detect whether it got it or not. This will only become a problem if you use non-ascii mnemonic and/or password. If there's a possibility of non-ascii, always use utf8 and set binmodes to get decoded (wide) characters to avoid problems recovering your wallet.
 
 =head2 from_seed
 
