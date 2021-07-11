@@ -83,8 +83,10 @@ subtest 'extended private key has bip44 helper' => sub {
 	);
 	$key->set_network('bitcoin_testnet');
 
-	is $key->derive_key_bip44(account => 3, index => 4)->get_basic_key->to_wif, 'cSTUMXWSBL5oiA6vVTN9jcN1kE59pbFuYPSeE8Q1L4mwpMw8ybo1';
-	is $key->derive_key_bip44(coin_type => 25, account => 3, index => 4)->get_basic_key->to_wif, 'cSTUMXWSBL5oiA6vVTN9jcN1kE59pbFuYPSeE8Q1L4mwpMw8ybo1';
+	is $key->derive_key_bip44(account => 3, index => 4)->get_basic_key->to_wif,
+		'cSTUMXWSBL5oiA6vVTN9jcN1kE59pbFuYPSeE8Q1L4mwpMw8ybo1';
+	is $key->derive_key_bip44(coin_type => 25, account => 3, index => 4)->get_basic_key->to_wif,
+		'cSTUMXWSBL5oiA6vVTN9jcN1kE59pbFuYPSeE8Q1L4mwpMw8ybo1';
 };
 
 done_testing;
