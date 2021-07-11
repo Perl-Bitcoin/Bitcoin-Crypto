@@ -20,14 +20,26 @@ sub sign_message
 		"cannot sign a message with a public key"
 	) unless $self->_is_private;
 
-	warn(
-		"Current implementation of signature generation mechanisms does not produce deterministic result. This is a security flaw that is currently being worked on. Please use with caution."
-	);
-
 	$algorithm //= "sha256";
+	if (eval { require Crypt::Perl::ECDSA::Parse }) {
+		$self->{_crypt_perl_prv} = Crypt::Perl::ECDSA::Parse::private($self->key_instance->export_key_der('private'))
+			if !exists $self->{_crypt_perl_prv};
+	}
+	else {
+		warn(
+			'Current implementation of CryptX signature generation does not produce deterministic results. For better security, install the Crypt::Perl module.'
+		);
+	}
+
 	return Bitcoin::Crypto::Exception::Sign->trap_into(
 		sub {
-			$self->key_instance->sign_message($message, $algorithm);
+			if (exists $self->{_crypt_perl_prv}) {
+				my $sub = "sign_${algorithm}";
+				return $self->{_crypt_perl_prv}->$sub($message);
+			}
+			else {
+				return $self->key_instance->sign_message($message, $algorithm);
+			}
 		}
 	);
 }
