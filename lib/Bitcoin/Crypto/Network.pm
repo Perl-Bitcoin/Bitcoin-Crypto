@@ -207,6 +207,22 @@ This package allows you to manage non-bitcoin cryptocurrencies.
 Before you start producing keys and addresses for your favorite crypto
 you have to configure it's network first.
 
+=head1 PREDEFINED NETWORKS
+
+There are a couple of networks that are already defined and can be used without defining them:
+
+=over
+
+=item * Bitcoin Mainnet
+
+defined with id: C<bitcoin>
+
+=item * Bitcoin Testnet
+
+defined with id: C<bitcoin_testnet>
+
+=back
+
 =head1 CONFIGURATION
 
 Right now networks only require four keys, which are marked with (*)
@@ -215,9 +231,9 @@ Right now networks only require four keys, which are marked with (*)
 		id             => "(*) identifier for the network",
 		name           => "(*) human-readable network name",
 		p2pkh_byte     => "(*) p2pkh address prefix byte, eg. 0x00",
+		wif_byte       => "(*) WIF private key prefix byte, eg. 0x80",
 		p2sh_byte      => "p2sh address prefix byte, eg. 0x05",
 		segwit_hrp     => "segwit native address human readable part, eg. 'bc'",
-		wif_byte       => "(*) WIF private key prefix byte, eg. 0x80",
 		extprv_version => "version of extended private keys, eg. 0x0488ade4",
 		extpub_version => "version of extended public keys, eg. 0x0488b21e",
 		bip44_coin     => "bip44 coin number, eg. 0",
