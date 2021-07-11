@@ -11,37 +11,32 @@ our %EXPORT_TAGS = (all => [@EXPORT_OK]);
 
 sub btc_extprv
 {
-	my $package = "Bitcoin::Crypto::Key::ExtPrivate";
-	eval "require $package";
-	return $package;
+	require Bitcoin::Crypto::Key::ExtPrivate;
+	return "Bitcoin::Crypto::Key::ExtPrivate";
 }
 
 sub btc_prv
 {
-	my $package = "Bitcoin::Crypto::Key::Private";
-	eval "require $package";
-	return $package;
+	require Bitcoin::Crypto::Key::Private;
+	return "Bitcoin::Crypto::Key::Private";
 }
 
 sub btc_extpub
 {
-	my $package = "Bitcoin::Crypto::Key::ExtPublic";
-	eval "require $package";
-	return $package;
+	require Bitcoin::Crypto::Key::ExtPublic;
+	return "Bitcoin::Crypto::Key::ExtPublic";
 }
 
 sub btc_pub
 {
-	my $package = "Bitcoin::Crypto::Key::Public";
-	eval "require $package";
-	return $package;
+	require Bitcoin::Crypto::Key::Public;
+	return "Bitcoin::Crypto::Key::Public";
 }
 
 sub btc_script
 {
-	my $package = "Bitcoin::Crypto::Script";
-	eval "require $package";
-	return $package;
+	require Bitcoin::Crypto::Script;
+	return "Bitcoin::Crypto::Script";
 }
 
 __END__
