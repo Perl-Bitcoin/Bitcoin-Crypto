@@ -3,6 +3,8 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use Bitcoin::Crypto::Config;
+use Encode qw(encode);
+use utf8;
 
 BEGIN { use_ok('Bitcoin::Crypto::Key::Private') }
 
@@ -32,6 +34,7 @@ my $pubkey = $privkey->get_public_key();
 # Message signing
 my @messages = ("Perl test script", "", "a", "_ś\x1f " x 250);
 for my $message (@messages) {
+	$message = encode('UTF-8', $message);
 	my $signature = $privkey->sign_message($message);
 
 	# ok($privkey->sign_message($message) eq $signature, "Signatures generation should be deterministic")

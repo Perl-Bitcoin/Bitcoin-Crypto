@@ -103,7 +103,7 @@ You can use a public key to:
 	sig: from_bytes($class, $data)
 
 Use this method to create a PublicKey instance from a byte string.
-Data $data must represent a public key in ASN X9.62 format.
+Data C<$data> must represent a public key in ASN X9.62 format.
 
 Returns class instance.
 
@@ -137,8 +137,8 @@ Does the opposite of from_hex on a target object
 
 	sig: set_compressed($self, $val)
 
-Change key's compression state to $val (1/0). This will change the address.
-If $val is omitted it is set to 1.
+Change key's compression state to C<$val> (C<1>/C<0>). This will change the address.
+If C<$val> is omitted it is set to C<1>.
 
 Returns current key instance.
 
@@ -146,7 +146,7 @@ Returns current key instance.
 
 	sig: set_network($self, $val)
 
-Change key's network state to $val. It can be either network name present in Bitcoin::Crypto::Network package or an instance of this class.
+Change key's network state to C<$val>. It can be either network name present in Bitcoin::Crypto::Network package or an instance of this class.
 
 Returns current key instance.
 
@@ -154,10 +154,16 @@ Returns current key instance.
 
 	sig: verify_message($self, $message, $signature, $algo = "sha256")
 
-Verifies $signature against digest of $message (with $algo digest algorithm) using public key.
-$algo must be available in Digest package.
+Verifies C<$signature> against digest of C<$message> (with C<$algo> digest algorithm) using public key.
+
+C<$algo> must be available in Digest package.
 
 Returns boolean.
+
+Character encoding note: C<$message> should be encoded in the proper encoding before passing it to this method. Passing Unicode string will cause the function to fail. You can encode like this (for UTF-8):
+
+	use Encode qw(encode);
+	$message = encode('UTF-8', $message);
 
 =head2 get_legacy_address
 
