@@ -4,7 +4,7 @@ our $VERSION = "0.997";
 
 use v5.10;
 use warnings;
-use Types::Standard qw(InstanceOf);
+use Types::Standard qw(InstanceOf Str);
 use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Network;
@@ -13,26 +13,13 @@ use Moo::Role;
 
 has "network" => (
 	is => "ro",
-	isa => InstanceOf ["Bitcoin::Crypto::Network"],
+	isa => (InstanceOf ["Bitcoin::Crypto::Network"])
+		->plus_coercions(Str, q{Bitcoin::Crypto::Network->get($_)}),
 	default => sub {
 		return Bitcoin::Crypto::Network->get;
 	},
-	writer => "_set_network"
+	coerce => 1,
+	writer => "set_network"
 );
-
-sub set_network
-{
-	my ($self, $network) = @_;
-	if (ref $network eq "") {
-		$network = Bitcoin::Crypto::Network->get($network);
-	}
-
-	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"set_network only accepts Bitcoin::Crypto::Network instances or their ids"
-	) unless blessed $network && $network->isa("Bitcoin::Crypto::Network");
-
-	$self->_set_network($network);
-	return $self;
-}
 
 1;
