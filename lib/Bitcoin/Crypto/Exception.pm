@@ -223,26 +223,26 @@ See individual Bitcoin::Crypto packages documentation to see the exception class
 
 =head2 message
 
-	sig: message($self)
+	$error_string = $object->message()
 
 Returns the error message (a string).
 
 =head2 caller
 
-	sig: caller($self)
+	$caller_aref = $object->caller()
 
 Returns an array ref containing: package name, file name and line number (same as C<[caller()]> perl expression). It will contain the data for the first code from outside Bitcoin::Crypto which called it. May be undefined if it cannot find a calling source.
 
 =head2 as_string
 
-	sig: as_string($self)
+	$error_info = $object->as_string()
 
-Stringifies the error, using the I<message>, I<caller> and some extra text for context.
+Stringifies the error, using the C<message> method, C<caller> method and some extra text for context.
 
 =head2 raise
 
-	sig: raise($self)
-	     raise($class, $message)
+	$object->raise()
+	$class->raise($message)
 
 Creates a new instance and throws it. If used on an object, throws it right away.
 
@@ -260,13 +260,13 @@ Creates a new instance and throws it. If used on an object, throws it right away
 
 =head2 throw
 
-An alias to raise.
+An alias to C<raise>.
 
 =head2 trap_into
 
-	sig: trap_into($class, $sub)
+	$sub_result = $class->trap_into($sub)
 
-Executes the subroutine given as the only parameter inside an eval. Any exceptions thrown inside the subroutine will be re-thrown after turning them into objects of the given class. If no exception is thrown, method returns the value returned by the subroutine.
+Executes the subroutine given as the only parameter inside an C<eval>. Any exceptions thrown inside the subroutine C<$sub> will be re-thrown after turning them into objects of the given class. If no exception is thrown, method returns the value returned by C<$sub>.
 
 	my $result = Bitcoin::Crypto::Exception->trap_into(sub {
 		die "something went wrong";

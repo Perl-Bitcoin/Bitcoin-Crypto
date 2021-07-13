@@ -111,14 +111,14 @@ These are basic utilities for working with bitcoin, used by other packages.
 
 =head2 validate_wif
 
-	my $bool = validate_wif($str);
+	$bool = validate_wif($str);
 
 Ensures Base58 encoded string looks like encoded private key in WIF format.
 Throws an exception if C<$str> is not valid base58.
 
 =head2 get_key_type
 
-	my $is_private = get_key_type($bytestr);
+	$is_private = get_key_type($bytestr);
 
 Checks if the C<$bytestr> looks like a valid ASN X9.62 format (compressed / uncompressed / hybrid public key or private key entropy up to curve size bits).
 Returns boolean which can be used to determine if the key is private.
@@ -126,7 +126,7 @@ Returns undef if C<$bytestr> does not look like a valid key entropy.
 
 =head2 mnemonic_to_seed
 
-	my $seed = mnemonic_to_seed($mnemonic, $password);
+	$seed = mnemonic_to_seed($mnemonic, $password);
 
 Transforms the given BIP39 C<$mnemonic> and C<$password> into a valid BIP32 C<$seed>, which can be fed into L<Bitcoin::Crypto::Key::ExtPrivate/from_seed>.
 
@@ -138,8 +138,7 @@ B<Important note about unicode:> this function only accepts UTF8-decoded strings
 
 =head2 get_path_info
 
-	my $path = "m/1/3'";
-	my $path_data = get_path_info($path);
+	$path_data = get_path_info($path);
 
 Tries to get derivation path data from C<$path>.
 Returns undef if C<$path> is not a valid path.
@@ -152,6 +151,11 @@ Otherwise returns the structure:
 			int, int, ..
 		],
 	}
+
+Example:
+
+	my $path = "m/1/3'";
+	my $path_data = get_path_info($path);
 
 =head1 SEE ALSO
 

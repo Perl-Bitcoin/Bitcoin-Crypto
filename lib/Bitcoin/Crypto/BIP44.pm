@@ -148,7 +148,7 @@ Required. Needs to be a non-negative integer number. It should be less than C<2^
 
 =head2 new
 
-	sig: new($class, %data)
+	$key_object = $class->new(%data)
 
 This is a regular Moo constructor, which can be used to create the object. It takes arguments specified in L</PROPERTIES>.
 
@@ -156,7 +156,7 @@ Returns class instance.
 
 =head2 as_string
 
-	sig: as_string($self)
+	$path = $object->as_string()
 
 Stringifies the object as BIP44-compilant key derivation path. Can be used indirectly by just stringifying the object.
 

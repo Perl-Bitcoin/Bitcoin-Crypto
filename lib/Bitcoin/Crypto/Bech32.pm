@@ -278,8 +278,11 @@ This module is based on Exporter. None of the functions are exported by default.
 =head2 decode_segwit
 
 Bech32 encoding / decoding valid for SegWit addresses. Does not validate the human readable part.
+
 These functions also perform segwit program validation, see L<Bitcoin::Crypto::Segwit>.
+
 Encoding takes two arguments which are a human readable part and a byte string.
+
 Decoding takes bech32-encoded string. Returns the entire encoded data along with the segwit program version byte.
 
 =head2 encode_bech32
@@ -287,7 +290,9 @@ Decoding takes bech32-encoded string. Returns the entire encoded data along with
 =head2 decode_bech32
 
 Basic bech32 encoding / decoding.
+
 Encoding takes two arguments which are a human readable part and a byte string.
+
 Decoding takes bech32-encoded string.
 
 B<These methods are not meant to work with Bitcoin SegWit addresses, use encode_segwit and decode_segwit for that instead>
@@ -295,6 +300,7 @@ B<These methods are not meant to work with Bitcoin SegWit addresses, use encode_
 =head2 split_bech32
 
 Splits a bech32-encoded string into human-readable part and data part. Returns a list containing the two.
+
 Performs all validity checks on the input. Dies on every error.
 
 =head1 EXCEPTIONS

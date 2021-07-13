@@ -141,11 +141,9 @@ See L<Bitcoin::Crypto::Base58> and L<Bitcoin::Crypto::Bech32>.
 
 =head1 HOW TO READ THE DOCUMENTATION?
 
-Most functions in this documentation have a code line starting with I<sig:>. These lines are there to inform you about the expected arguments on input.
+Most functions in this documentation have a code line showcasing the arguments used by the function.
 
-The first argument is usually an object instance (denoted as C<$self>) or just a class name (C<$class>). Optional arguments are followed by the equal sign and their default value, like C<$lang = "en">. Argument names are often mentioned in function's description with some additional info.
-
-Signature lines are not meant to be valid perl. They're there for you to understand what arguments the function expects.
+These lines are not meant to be valid perl. They're there for you to understand what arguments the function expects.
 
 Most packages in this module have the types of their thrown exceptions documented near the bottom of the document. The exceptions section may be useful to understand which types of exceptions can be thrown when using functions or methods from the package and what they mean. It is not meant to be a full list of exceptions a function can throw and unblessed errors may still be raised.
 

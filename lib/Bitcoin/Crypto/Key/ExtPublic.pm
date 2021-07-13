@@ -102,49 +102,49 @@ see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bit
 
 =head2 to_serialized
 
-	sig: to_serialized($self)
+	$serialized_key = $object->to_serialized()
 
 Returns the key serialized in format specified in BIP32 as byte string.
 
 =head2 to_serialized_base58
 
-	sig: to_serialized_base58($self)
+	$serialized_key = $object->to_serialized_base58()
 
 Behaves the same as to_serialized(), but performs Base58Check encoding on the resulting byte string.
 
 =head2 from_serialized
 
-	sig: from_serialized($class, $serialized, $network = undef)
+	$key_object = $class->from_serialized($serialized, $network = undef)
 
-Tries to unserialize byte string $serialized with format specified in BIP32.
+Tries to unserialize byte string C<$serialized> with format specified in BIP32.
 
-Dies on errors. If multiple networks match serialized data specify $network manually (id of the network) to avoid exception.
+Dies on errors. If multiple networks match serialized data specify C<$network> manually (id of the network) to avoid exception.
 
 =head2 from_serialized_base58
 
-	sig: from_serialized_base58($class, $base58, $network = undef)
+	$key_object = $class->from_serialized_base58($base58, $network = undef)
 
-Same as from_serialized, but performs Base58Check decoding on $base58 argument.
+Same as from_serialized, but performs Base58Check decoding on C<$base58> argument.
 
 =head2 set_network
 
-	sig: set_network($self, $val)
+	$key_object = $object->set_network($val)
 
-Change key's network state to $val. It can be either network name present in Bitcoin::Crypto::Network package or an instance of this class.
+Change key's network state to C<$val>. It can be either network name present in Bitcoin::Crypto::Network package or an instance of this class.
 
 Returns current key instance.
 
 =head2 get_basic_key
 
-	sig: get_basic_key($self)
+	$basic_key_object = $object->get_basic_key()
 
 Returns the key in basic format: L<Bitcoin::Crypto::Key::Public>
 
 =head2 derive_key
 
-	sig: derive_key($self, $path)
+	$derived_key_object = $object->derive_key($path)
 
-Performs extended key derivation as specified in BIP32 on the current key with $path. Dies on error.
+Performs extended key derivation as specified in BIP32 on the current key with C<$path>. Dies on error.
 
 See BIP32 document for details on derivation paths and methods.
 
@@ -154,9 +154,9 @@ Returns a new extended key instance - result of a derivation.
 
 =head2 get_fingerprint
 
-	sig: get_fingerprint($self, $len = 4)
+	$fingerprint = $object->get_fingerprint($len = 4)
 
-Returns a fingerprint of the extended key of $len length (byte string)
+Returns a fingerprint of the extended key of C<$len> length (byte string)
 
 =head1 EXCEPTIONS
 

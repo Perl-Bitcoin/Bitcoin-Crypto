@@ -397,8 +397,10 @@ Bitcoin::Crypto::Script - Bitcoin script representations
 		->add_operation("OP_1")
 		->add_operation("OP_TRUE")
 		->add_operation("OP_EQUAL");
+
 	# getting serialized script
 	my $serialized = $script->get_script();
+
 	# getting address from script (p2wsh)
 	my $address = $script->get_segwit_adress();
 
@@ -422,69 +424,74 @@ You can use a script object to:
 
 =head2 new
 
-	sig: new($class, $data)
+	$script_object = $class->new($data)
 
-This works exactly the same as from_bytes
+A constructor. Returns new script instance
 
 =head2 add_operation
 
-	sig: add_operation($self, $opcode)
+	$script_object = $object->add_operation($opcode)
 
-Adds a new opcode at the end of a script. Returns $self for chaining.
+Adds a new opcode at the end of a script. Returns the object instance for chaining.
+
 Throws an exception for unknown opcodes.
 
 =head2 add_raw
 
-	sig: add_raw($self, $bytes)
+	$script_object = $object->add_raw($bytes)
 
-Adds $bytes at the end of a script.
-Useful when you need a value in a script that shouldn't be pushed to the execution stack, like the first four bytes after PUSHDATA4.
-Returns $self for chaining.
+Adds C<$bytes> at the end of a script.
+Useful when you need a value in a script that shouldn't be pushed to the execution stack, like the first four bytes after C<PUSHDATA4>.
+
+Returns the object instance for chaining.
 
 =head2 push_bytes
 
-	sig: push_bytes($self, $bytes)
+	$script_object = $object->push_bytes($bytes)
 
-Pushes $bytes to the execution stack at the end of a script, using a minimal push opcode.
+Pushes C<$bytes> to the execution stack at the end of a script, using a minimal push opcode.
+
 For example, running C<$script->push_bytes("\x03")> will have the same effect as C<$script->add_operation("OP_3")>.
+
 Throws an exception for data exceeding a 4 byte number in length.
-Returns $self for chaining.
+
+Returns the object instance for chaining.
 
 =head2 get_script
 
-	sig: get_script($self)
+	$bytestring = $object->get_script()
 
 Returns a serialized script as byte string.
 
 =head2 get_script_hash
 
-	sig: get_script_hash($self)
+	$bytestring = $object->get_script_hash()
 
-Returns a serialized script parsed with HASH160 (ripemd160 of sha256).
+Returns a serialized script parsed with C<HASH160> (ripemd160 of sha256).
 
 =head2 set_network
 
-	sig: set_network($self, $val)
+	$script_object = $object->set_network($val)
 
-Change key's network state to $val. It can be either network name present in Bitcoin::Crypto::Network package or an instance of this class.
+Change key's network state to C<$val>. It can be either network name present in L<Bitcoin::Crypto::Network> package or an instance of this class.
 
-Returns current key instance.
+Returns current object instance.
 
 =head2 get_legacy_address
 
-	sig: get_legacy_address($self)
+	$address = $object->get_legacy_address()
 
 Returns string containing Base58Check encoded script hash (p2sh address)
 
 =head2 get_compat_address
 
-	sig: get_compat_address($self)
+	$address = $object->get_compat_address()
 
 Returns string containing Base58Check encoded script hash containing a witness program for compatibility purposes (p2sh(p2wsh) address)
 
 =head2 get_segwit_address
 
-	sig: get_segwit_address($self)
+	$address = $object->get_segwit_address()
 
 Returns string containing Bech32 encoded witness program (p2wsh address)
 

@@ -223,6 +223,10 @@ defined with id: C<bitcoin_testnet>
 
 =back
 
+If you want to see more predefined networks added and you're willing to make
+some research to find out the correct values for the configuration fields,
+consider opening a pull request on Github.
+
 =head1 CONFIGURATION
 
 Right now networks only require four keys, which are marked with (*)
@@ -254,44 +258,51 @@ with custom network without segwit_hrp field set.
 
 =head2 register
 
-	sig: register($self, %config)
+	$network_object = $class->register(%config)
+	$network_object = $object->register()
 
-Calls Moose's new with keys present in C<$config> hash when called in static context.
-Adds the newly created network instance or the one that the method was called on to a list of known networks.
-The hash %config is ignored in object context.
+Adds the network instance to a list of known networks.
+
+Calls L</new> with keys present in C<%config> hash when called in static context.
+
+Returns the network instance.
 
 =head2 set_default
 
-	sig: set_default($self)
+	$network_object = $object->set_default()
 
-Sets the network as default one. All newly created private and public
-keys will be bound to this network.
+Sets the network as default one. All newly created private and public keys will be bound to this network.
 
-=head1 STATIC METHODS
+Returns the network instance.
 
 =head2 new
 
-	sig: new($class, %config)
+	$network_object = $class->new(%config)
 
-Works the same as C<register> does in static context, but does not add the newly created network to a list of known networks.
+Creates a new network instance. See L</CONFIGURATION> for a list of possible C<%config> keys.
 
 =head2 get
 
-	sig: get($class, $id = undef)
+	$network_object = $class->get($id = undef)
 
-Without arguments, returns default network configuration, the Bitcoin::Crypto::Network instance
-With the $id argument (string), returns the instance of a configuration matching the id.
+Without arguments, returns the default network configuration as the Bitcoin::Crypto::Network instance.
+
+With the C<$id> argument (string), returns the instance of a configuration matching the id.
+
 Throws an exception if network doesn't exist.
 
 =head2 find
 
-	sig: find($class, $sub = undef)
+	@network_objects = $class->find($sub = undef)
 
 Without arguments, returns a list of all registered network ids.
-With the $sub argument (coderef), searches for all networks that pass the criteria and returns their ids.
-Returns list.
 
-The $sub will be passed all the instances of registered networks, one at a time.
+With the C<$sub> argument (coderef), searches for all networks that pass the criteria and returns their ids.
+
+Returns list of network instances.
+
+The C<$sub> will be passed all the instances of registered networks, one at a time.
+
 If must perform required checks and return a boolean value. All the networks that pass this
 test will be returned. Example:
 

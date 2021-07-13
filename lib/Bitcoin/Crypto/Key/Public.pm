@@ -100,7 +100,7 @@ You can use a public key to:
 
 =head2 from_bytes
 
-	sig: from_bytes($class, $data)
+	$key_object = $class->from_bytes($data)
 
 Use this method to create a PublicKey instance from a byte string.
 Data C<$data> must represent a public key in ASN X9.62 format.
@@ -109,33 +109,33 @@ Returns class instance.
 
 =head2 new
 
-	sig: new($class, $data)
+	$key_object = $class->new($data)
 
 This works exactly the same as from_bytes
 
 =head2 to_bytes
 
-	sig: to_bytes($self)
+	$bytestring = $object->to_bytes()
 
-Does the opposite of from_bytes on a target object
+Does the opposite of C<from_bytes> on a target object
 
 =head2 from_hex
 
-	sig: from_hex($class, $hex)
+	$key_object = $class->from_hex($hex)
 
-Use this method to create a public key instance from a hexadecimal number. Packs the number and runs it through from_bytes.
+Use this method to create a public key instance from a hexadecimal number. Packs the number and runs it through C<from_bytes>.
 
 Returns class instance.
 
 =head2 to_hex
 
-	sig: to_hex($self)
+	$hex_string = $object->to_hex()
 
 Does the opposite of from_hex on a target object
 
 =head2 set_compressed
 
-	sig: set_compressed($self, $val)
+	$key_object = $object->set_compressed($val)
 
 Change key's compression state to C<$val> (C<1>/C<0>). This will change the address.
 If C<$val> is omitted it is set to C<1>.
@@ -144,15 +144,15 @@ Returns current key instance.
 
 =head2 set_network
 
-	sig: set_network($self, $val)
+	$key_object = $object->set_network($val)
 
-Change key's network state to C<$val>. It can be either network name present in Bitcoin::Crypto::Network package or an instance of this class.
+Change key's network state to C<$val>. It can be either network name present in L<Bitcoin::Crypto::Network> package or an instance of this class.
 
 Returns current key instance.
 
 =head2 verify_message
 
-	sig: verify_message($self, $message, $signature, $algo = "sha256")
+	$signature_valid = $object->verify_message($message, $signature, $algo = "sha256")
 
 Verifies C<$signature> against digest of C<$message> (with C<$algo> digest algorithm) using public key.
 
@@ -167,19 +167,19 @@ Character encoding note: C<$message> should be encoded in the proper encoding be
 
 =head2 get_legacy_address
 
-	sig: get_legacy_address($self)
+	$address_string = $object->get_legacy_address()
 
 Returns string containing Base58Check encoded public key hash (p2pkh address)
 
 =head2 get_compat_address
 
-	sig: get_compat_address($self)
+	$address_string = $object->get_compat_address()
 
 Returns string containing Base58Check encoded script hash containing a witness program for compatibility purposes (p2sh(p2wpkh) address)
 
 =head2 get_segwit_address
 
-	sig: get_segwit_address($self)
+	$address_string = $object->get_segwit_address()
 
 Returns string containing Bech32 encoded witness program (p2wpkh address)
 

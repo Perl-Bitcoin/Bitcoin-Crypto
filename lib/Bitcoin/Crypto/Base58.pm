@@ -100,7 +100,9 @@ This module is based on Exporter. None of the functions are exported by default.
 =head2 decode_base58
 
 Basic base58 encoding / decoding.
+
 Encoding takes one argument which is byte string.
+
 Decoding takes base58-encoded string
 
 These two functions are just aliases to I<encode_b58b> and I<decode_b58b> from
@@ -114,6 +116,7 @@ Base58 with checksum validation. These functions are used with Bitcoin legacy /
 compatibility addresses.
 
 Arguments are the same as base functions mentioned above.
+
 Additional errors (other than illegal characters) are thrown.
 
 =head1 EXCEPTIONS

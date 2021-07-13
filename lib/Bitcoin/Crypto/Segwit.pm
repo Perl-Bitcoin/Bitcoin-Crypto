@@ -81,11 +81,11 @@ This module provides tools required to define and use a Segregated Witness versi
 
 =head2 validate_program
 
-	sig: validate_program($program)
+	$segwit_version = validate_program($program)
 
 Performs a segwit program validation on $program, which is expected to be a byte string in which the first byte is a segwit version. Based on this version a validator is invoked, present in %Bitcoin::Crypto::Segwit::validators module hash. If the validator is not defined for a segwit version being validated, a warning is issued.
 
-The function returns a detected segwit program version. Please note that it does not perform any more checks than ensuring the byte string is in correct format.
+The function returns the detected segwit program version. Please note that it does not perform any more checks than ensuring the byte string is in correct format.
 
 The current implementation defines a validator for segwit version 0. In the future (when another segwit program version is defined) it might be neccessary to define another one in the program until it's added to the library. This can be done like so:
 
