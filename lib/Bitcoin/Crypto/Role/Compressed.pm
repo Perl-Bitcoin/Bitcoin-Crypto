@@ -20,7 +20,10 @@ has "compressed" => (
 sub set_compressed
 {
 	my ($self, $state) = @_;
-	$state //= 1;
+
+	$state = 1
+		if @_ == 1;
+
 	$self->_set_compressed($state);
 	return $self;
 }

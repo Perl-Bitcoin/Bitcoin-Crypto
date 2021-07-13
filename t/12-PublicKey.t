@@ -49,7 +49,7 @@ for my $key (keys %cases) {
 	my $pubkey = $PublicKey->from_hex($key)->set_compressed(0);
 	is($pubkey->to_hex(), $key, "imported and exported correctly");
 	is($pubkey->get_legacy_address(), $cases{$key}, "correctly created address");
-	$pubkey->set_compressed(1);
+	$pubkey->set_compressed();
 	ok(defined $cases_compressed{$pubkey->to_hex()}, "exported compressed key correctly");
 	is(
 		$pubkey->get_legacy_address(),
