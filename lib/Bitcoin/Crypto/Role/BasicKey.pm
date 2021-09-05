@@ -21,7 +21,8 @@ sub sign_message
 	) unless $self->_is_private;
 
 	$algorithm //= "sha256";
-	if (eval { require Crypt::Perl::ECDSA::Parse }) {
+	if (eval { require Crypt::Perl } && Crypt::Perl->VERSION gt '0.33') {
+		require Crypt::Perl::ECDSA::Parse;
 		$self->{_crypt_perl_prv} = Crypt::Perl::ECDSA::Parse::private($self->key_instance->export_key_der('private'))
 			if !exists $self->{_crypt_perl_prv};
 	}
