@@ -234,7 +234,7 @@ Character encoding note: C<$message> should be encoded in the proper encoding be
 	use Encode qw(encode);
 	$message = encode('UTF-8', $message);
 
-Caution: libtomcrypt cryptographic package that is generating signatures does not currently offer a deterministic mechanism. For this reason the sign_message method will always complain with a warning until the RFC6797 procedure is implemented. Non-deterministic signatures can lead to leaking private keys if the random number generator's entropy is insufficient.
+Caution: libtomcrypt cryptographic package that is generating signatures does not currently offer a deterministic mechanism. For this reason the sign_message method will complain with a warning. You should install an optional L<Crypt::Perl> package, which supports deterministic signatures, which will disable the warning. Non-deterministic signatures can lead to leaking private keys if the random number generator's entropy is insufficient.
 
 =head2 verify_message
 
