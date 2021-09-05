@@ -1,5 +1,13 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+1.000 Sun Sep 5 11:00:00 2021
+	- end of the beta phase
+	- imported mnemonics must now be proper unicode strings (important for non-english mnemonics)
+	- module will now use Crypt::Perl when available to produce deterministic signatures
+	- add Bitcoin::Crypto::Util::mnemonic_to_seed function
+	- set_compressed method on keys now properly handles undefined values
+	- code refactors and documentation improvements
+
 0.997 Fri Jun 11 00:00:00 2021
 	- implement BIP44 derivation paths
 	- add derive_key_bip44 helper to extended private key class
