@@ -177,25 +177,9 @@ Loads L<Bitcoin::Crypto::Key::Public>
 
 Loads L<Bitcoin::Crypto::Script>
 
-=head1 BETA INFORMATION
-
-The module is currently consided to be in a beta phase.
-
-=over 2
-
-=item * beta will end with version 1.00, which will be released after enough live testing
-
-=item * current release is considered stable, but may have some rough edges
-
-=item * currently existing API will stay mostly the same (minor modifications are possible)
-
-=item * let me know if you are using the module so that I can guess the users to issues ratio
-
-=back
-
 =head1 DISCLAIMER
 
-Although the module was written with an extra care and appropriate tests are in place asserting compatibility with many Bitcoin standards, due to complexity of the subject some bugs may still be present. In the world of digital money, a single bug may lead to losing funds. I encourage anyone to test the module themselves, review the test cases and use the module with care, espetially in the beta phase. Suggestions for improvements and more edge cases to test will be gladly accepted, but there is no warranty on your funds being manipulated by this module.
+Although the module was written with an extra care and appropriate tests are in place asserting compatibility with many Bitcoin standards, due to complexity of the subject some bugs may still be present. In the world of digital money, a single bug may lead to losing funds. I encourage anyone to test the module themselves, review the test cases and use the module with care. Suggestions for improvements and more edge cases to test will be gladly accepted, but there is no warranty on your funds being manipulated by this module.
 
 =head1 SPEED
 
@@ -206,7 +190,7 @@ The module have a little bit of startup time because of Moo and Type::Tiny, meas
 
 =over 2
 
-=item * Live testing
+=item * Taproot compatibility
 
 =item * Better test coverage
 
