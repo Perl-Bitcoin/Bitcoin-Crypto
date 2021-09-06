@@ -2,7 +2,7 @@ use v5.10;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Math::BigInt 1.999808 try => 'LTM,GMP';
+use Math::BigInt 1.999808 try => 'GMP,LTM';
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 

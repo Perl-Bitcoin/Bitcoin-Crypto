@@ -2,7 +2,7 @@ use v5.10;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Math::BigInt 1.999808 try => 'LTM,GMP';
+use Math::BigInt 1.999808 try => 'GMP,LTM';
 use utf8;
 
 BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info mnemonic_to_seed)) }

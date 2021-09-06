@@ -9,7 +9,7 @@ use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 use List::Util qw(max);
 use Crypt::PK::ECC;
-use Math::BigInt 1.999808 try => 'LTM,GMP';
+use Math::BigInt 1.999808 try => 'GMP,LTM';
 
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Exception;
