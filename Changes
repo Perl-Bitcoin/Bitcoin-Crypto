@@ -1,5 +1,8 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+1.001 Thu Sep 9 15:00:00 2021
+	- prefer GMP to LTM backend in Math::BigInt
+
 1.000 Sun Sep 5 11:00:00 2021
 	- end of the beta phase
 	- imported mnemonics must now be proper unicode strings (important for non-english mnemonics)
