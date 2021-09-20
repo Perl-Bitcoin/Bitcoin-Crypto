@@ -6,7 +6,6 @@ use v5.10;
 use warnings;
 use Exporter qw(import);
 use Types::Standard qw(Str);
-use Carp qw(croak);
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(verify_bytestring);
@@ -205,7 +204,7 @@ sub encode_base32
 	for my $num (@{$array}) {
 		Bitcoin::Crypto::Exception::Bech32InputData->raise(
 			"incorrect number to be encoded in bech32: must be between 0 and 31"
-		) unless defined $alphabet[$num];
+		) if $num < 0 || $num > 31;
 		$result .= $alphabet[$num];
 	}
 
@@ -224,7 +223,7 @@ sub decode_base32
 sub encode_bech32
 {
 	my ($hrp, $data, $type) = @_;
-	$type //= BECH32;
+	$type //= BECH32M;
 
 	my $result = encode_base32($data);
 	my $checksum;
@@ -236,7 +235,9 @@ sub encode_bech32
 		$checksum = create_checksum_bech32m($hrp, $result);
 	}
 	else {
-		croak 'invalid type: neither bech32 nor bech32m';
+		Bitcoin::Crypto::Exception::Bech32Type->raise(
+			'invalid type: neither bech32 nor bech32m'
+		);
 	}
 
 	return $hrp . 1 . $result . $checksum;
@@ -294,9 +295,10 @@ Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl
 
 	# none exported by default
 	use Bitcoin::Crypto::Bech32 qw(
+		translate_5to8
+		translate_8to5
 		encode_bech32
 		decode_bech32
-		split_bech32
 		encode_segwit
 		decode_segwit
 	);
@@ -312,8 +314,8 @@ Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl
 	my $data_with_version = decode_segwit($segwit_address);
 
 	# handles custom Bech32 encoding
-	my $bech32str = encode_bech32("hello", pack "A*", "world"); # should start with hello1
-	my $bytestr = decode_bech32($bech32str);
+	my $bech32str = encode_bech32("hello", [28, 25, 31, 0, 5], Bitcoin::Crypto::Bech32->BECH32); # should start with hello1
+	my ($hrp, $data_aref, $type) = decode_bech32($bech32str);
 
 =head1 DESCRIPTION
 
@@ -323,7 +325,7 @@ The module has a couple of layers of encoding, namely:
 
 =over
 
-=item * base32, which handles the alphabet and 5-to-8 transformation (not exported)
+=item * 5-to-8 and 8-to-5 bits transformation
 
 =item * bech32, which handles checksums and human-readable (HRP) parts
 
@@ -343,33 +345,62 @@ This module is based on Exporter. None of the functions are exported by default.
 
 =head2 encode_segwit
 
+	my $encoded_address = encode_segwit($hrp, $segwit_program);
+
 =head2 decode_segwit
+
+	my $segwit_program = decode_segwit($encoded_address);
 
 Bech32 encoding / decoding valid for SegWit addresses. Does not validate the human readable part.
 
 These functions also perform segwit program validation, see L<Bitcoin::Crypto::Segwit>.
 
-Encoding takes two arguments which are a human readable part and a byte string.
+Encoding takes two arguments which are a human readable part and a bytestring.
 
-Decoding takes bech32-encoded string. Returns the entire encoded data along with the segwit program version byte.
+Decoding takes bech32-encoded string. Returns the entire encoded data (bytestring) along with the segwit program version byte.
 
 =head2 encode_bech32
 
+	my $encoded_bech32 = encode_bech32($hrp, \@data, Bitcoin::Crypto::Bech32->BECH32 || Bitcoin::Crypto::Bech32->BECH32M);
+
 =head2 decode_bech32
+
+	my ($hrp, $data_aref, $type) = decode_bech32($encoded_bech32);
 
 Basic bech32 encoding / decoding.
 
-Encoding takes two arguments which are a human readable part and a byte string.
+Encoding takes up to three arguments which are:
 
-Decoding takes bech32-encoded string.
+=over
+
+=item * a human readable part
+
+=item * an array reference of integer values to be encoded in bech32 (each must be between 0 and 31)
+
+=item * optional type, which may be C<'bech32'> or C<'bech32m'> (available in constant values Bitcoin::Crypto::Bech32::BECH32 and Bitcoin::Crypto::Bech32::BECH32M)
+
+If omitted, the type will be equal to C<'bech32m'>, which has more robust checksum.
+
+=back
+
+Decoding takes a single parameter: a bech32-encoded string and returns a list which has the same elements as arguments to C<encode_bech32> function.
+
+This means you can feed both bech32 and bech32m encodings to C<decode_bech32> and the function will identify and return the type for you.
 
 B<These methods are not meant to work with Bitcoin SegWit addresses, use encode_segwit and decode_segwit for that instead>
 
-=head2 split_bech32
+=head2 translate_5to8
 
-Splits a bech32-encoded string into human-readable part and data part. Returns a list containing the two.
+	my $bytestr = translate_5to8(\@int_array);
 
-Performs all validity checks on the input. Dies on every error.
+=head2 translate_8to5
+
+	my $int_aref = translate_8to5($bytestr);
+
+These are helper functions that implement 5-bit to 8-bit encoding used in bech32 segwit addresses. C<translate_8to5> is used during encoding, and C<translate_5to8> during decoding. They can be used as means to store full byte data in bech32 strings, like so:
+
+	my $data = encode_bech32('hrp', translate_8to5($bytes));
+	my $decoded = translate_5to8(decode_bech32($data));
 
 =head1 EXCEPTIONS
 
@@ -382,6 +413,8 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 =item * Bech32InputData - input was parsed with bech32 operations but contained invalid data
 
 =item * Bech32InputChecksum - checksum validation has failed
+
+=item * Bech32Type - invalid type was passed to bech32_encode function
 
 =back
 

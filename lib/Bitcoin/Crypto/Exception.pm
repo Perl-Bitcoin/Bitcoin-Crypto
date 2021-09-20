@@ -154,6 +154,12 @@ sub as_string
 
 {
 
+	package Bitcoin::Crypto::Exception::Bech32Type;
+	use parent -norequire, "Bitcoin::Crypto::Exception";
+}
+
+{
+
 	package Bitcoin::Crypto::Exception::Bech32InputChecksum;
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }

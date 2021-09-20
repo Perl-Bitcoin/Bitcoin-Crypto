@@ -1,5 +1,10 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+	- implement bech32m encoding and use it in segwit v1+ addresses
+	- fix bech32 encoding by removing mandatory bit translation - old behavior can be achieved by using new translate_ functions
+	- remove Bitcoin::Crypto::Bech32::split_bech32 from exported functions
+	- add new Bitcoin::Crypto::Bech32 functions: translate_5to8 and translate_8to5
+
 1.001 Thu Sep 9 15:00:00 2021
 	- prefer GMP to LTM backend in Math::BigInt
 
