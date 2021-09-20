@@ -10,8 +10,8 @@ BEGIN { use_ok('Bitcoin::Crypto::Segwit', qw(validate_program)) }
 # make warnings critical
 local $SIG{__WARN__} = sub { die shift() . " - warning" };
 
-# segwit version 1 program passing common length valiadion
-my $program = "\x01\x00\xff";
+# segwit version 15 program passing common length valiadion
+my $program = "\x0f\x00\xff";
 
 {
 	throws_ok {
@@ -24,12 +24,12 @@ my $program = "\x01\x00\xff";
 }
 
 # use slightly changed validator from the documentation
-$Bitcoin::Crypto::Segwit::validators{1} = sub {
+$Bitcoin::Crypto::Segwit::validators{15} = sub {
 	my ($data) = @_;
 
 	# perform validation
 	Bitcoin::Crypto::Exception::ValidationTest->raise(
-		"validation of program version 1 failed"
+		"validation of program version 15 failed"
 	);
 
 	# if validation is successful just do nothing
