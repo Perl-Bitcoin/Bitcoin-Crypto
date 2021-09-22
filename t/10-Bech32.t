@@ -24,7 +24,10 @@ my @tests_bech32 = (
 	},
 	{
 		case => "abcdef1qpzry9x8gf2tvdw0s3jn54khce6mua7lmqqqxw",
-		data => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+		data => [
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+			16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
+		]
 	},
 	{
 		case => "11qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqc8247j",
@@ -32,7 +35,10 @@ my @tests_bech32 = (
 	},
 	{
 		case => "split1checkupstagehandshakeupstreamerranterredcaperred2y9e3w",
-		data => [24, 23, 25, 24, 22, 28, 1, 16, 11, 29, 8, 25, 23, 29, 19, 13, 16, 23, 29, 22, 25, 28, 1, 16, 11, 3, 25, 29, 27, 25, 3, 3, 29, 19, 11, 25, 3, 3, 25, 13, 24, 29, 1, 25, 3, 3, 25, 13]
+		data => [
+			24, 23, 25, 24, 22, 28, 1, 16, 11, 29, 8, 25, 23, 29, 19, 13, 16, 23, 29, 22, 25, 28, 1, 16,
+			11, 3, 25, 29, 27, 25, 3, 3, 29, 19, 11, 25, 3, 3, 25, 13, 24, 29, 1, 25, 3, 3, 25, 13
+		]
 	},
 	{
 		case => "?1ezyfcl",
@@ -40,11 +46,19 @@ my @tests_bech32 = (
 	},
 	{
 		case => "asd1nyvqgdr08nh7p9r4kwjtrgjt685c7wggd8fhr3gtap3sasj0egcs500w9e",
-		data => [19, 4, 12, 0, 8, 13, 3, 15, 7, 19, 23, 30, 1, 5, 3, 21, 22, 14, 18, 11, 3, 8, 18, 11, 26, 7, 20, 24, 30, 14, 8, 8, 13, 7, 9, 23, 3, 17, 8, 11, 29, 1, 17, 16, 29, 16, 18, 15, 25, 8, 24, 16]
+		data => [
+			19, 4, 12, 0, 8, 13, 3, 15, 7, 19, 23, 30, 1, 5, 3, 21, 22, 14,
+			18, 11, 3, 8, 18, 11, 26, 7, 20, 24, 30, 14, 8, 8, 13, 7, 9, 23,
+			3, 17, 8, 11, 29, 1, 17, 16, 29, 16, 18, 15, 25, 8, 24, 16
+		]
 	},
 	{
 		case => "qq1rgyr56nk7ag7kyyfr4y3ec2vt98qh6h9l46e45thq6spgw6gr5k5gzs0v90mv",
-		data => [3, 8, 4, 3, 20, 26, 19, 22, 30, 29, 8, 30, 22, 4, 4, 9, 3, 21, 4, 17, 25, 24, 10, 12, 11, 5, 7, 0, 23, 26, 23, 5, 31, 21, 26, 25, 21, 20, 11, 23, 0, 26, 16, 1, 8, 14, 26, 8, 3, 20, 22, 20, 8, 2, 16]
+		data => [
+			3, 8, 4, 3, 20, 26, 19, 22, 30, 29, 8, 30, 22, 4, 4, 9, 3, 21, 4, 17,
+			25, 24, 10, 12, 11, 5, 7, 0, 23, 26, 23, 5, 31, 21, 26, 25, 21, 20, 11, 23,
+			0, 26, 16, 1, 8, 14, 26, 8, 3, 20, 22, 20, 8, 2, 16
+		]
 	},
 	{
 		case => "\x201nwldj5",
@@ -116,7 +130,10 @@ my @tests_bech32m = (
 	},
 	{
 		case => "abcdef1l7aum6echk45nj3s0wdvt2fg8x9yrzpqzd3ryx",
-		data => [31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+		data => [
+			31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16,
+			15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+		]
 	},
 	{
 		case => "11llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllludsr8",
@@ -124,12 +141,16 @@ my @tests_bech32m = (
 	},
 	{
 		case => "split1checkupstagehandshakeupstreamerranterredcaperredlc445v",
-		data => [24, 23, 25, 24, 22, 28, 1, 16, 11, 29, 8, 25, 23, 29, 19, 13, 16, 23, 29, 22, 25, 28, 1, 16, 11, 3, 25, 29, 27, 25, 3, 3, 29, 19, 11, 25, 3, 3, 25, 13, 24, 29, 1, 25, 3, 3, 25, 13]
+		data => [
+			24, 23, 25, 24, 22, 28, 1, 16, 11, 29, 8, 25, 23, 29, 19, 13, 16, 23, 29, 22, 25, 28, 1, 16,
+			11, 3, 25, 29, 27, 25, 3, 3, 29, 19, 11, 25, 3, 3, 25, 13, 24, 29, 1, 25, 3, 3, 25, 13
+		]
 	},
 	{
 		case => "?1v759aa",
 		data => []
 	},
+
 	# negative tests
 	{
 		case => "an84characterslonghumanreadablepartthatcontainsthetheexcludedcharactersbioandnumber11d6pts4",
@@ -138,7 +159,7 @@ my @tests_bech32m = (
 	{
 		case => "M1VUXWEZ",
 		exception => "Bech32InputChecksum"
-	}, # checksum calculated with uppercase form of HRP
+	},    # checksum calculated with uppercase form of HRP
 );
 
 # SEGREGATED WITNESS
@@ -177,15 +198,15 @@ my @tests_segwit = (
 	{
 		case => "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kemeawh",
 		exception => "Bech32InputChecksum"
-	},# Invalid checksum
+	},    # Invalid checksum
 	{
 		case => "tb1q0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vq24jc47",
 		exception => "Bech32InputChecksum"
-	},# Invalid checksum
+	},    # Invalid checksum
 	{
 		case => "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5",
 		exception => "Bech32InputChecksum"
-	},# Invalid checksum
+	},    # Invalid checksum
 	{
 		case => "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5",
 		exception => "Bech32InputChecksum"
@@ -197,7 +218,7 @@ my @tests_segwit = (
 	{
 		case => "BC1QR508D6QEJXTDG4Y5R3ZARVARYV98GJ9P",
 		exception => "SegwitProgram"
-	},# Invalid program length
+	},    # Invalid program length
 	{
 		case => "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7",
 		exception => "Bech32InputFormat"
@@ -241,23 +262,23 @@ my @tests_taproot = (
 	{
 		case => "bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqh2y7hd",
 		exception => "Bech32InputChecksum"
-	},# Invalid checksum
+	},    # Invalid checksum
 	{
 		case => "tb1z0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqglt7rf",
 		exception => "Bech32InputChecksum"
-	},# Invalid checksum
+	},    # Invalid checksum
 	{
 		case => "BC1S0XLXVLHEMJA6C4DQV22UAPCTQUPFHLXM9H8Z3K2E72Q4K9HCZ7VQ54WELL",
 		exception => "Bech32InputChecksum"
-	},# Invalid checksum
+	},    # Invalid checksum
 	{
 		case => "bc1p38j9r5y49hruaue7wxjce0updqjuyyx0kh56v8s25huc6995vvpql3jow4",
 		exception => "Bech32InputFormat"
-	},# Invalid character in checksum
+	},    # Invalid character in checksum
 	{
 		case => "BC1SW50QA3JX3S",
 		exception => "Bech32InputChecksum"
-	},# Invalid checksum (bech32 for segwit > 0)
+	},    # Invalid checksum (bech32 for segwit > 0)
 	{
 		case => "bc1pw5dgrnzv",
 		exception => "SegwitProgram"
@@ -273,7 +294,7 @@ my @tests_taproot = (
 	{
 		case => "tb1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vpggkg4j",
 		exception => "Bech32InputData"
-	},# Non-zero padding in 8-to-5 conversion
+	},    # Non-zero padding in 8-to-5 conversion
 );
 
 for my $test (@tests_bech32) {
