@@ -3,6 +3,7 @@ package Bitcoin::Crypto::Key::ExtPrivate;
 our $VERSION = "1.001";
 
 use v5.10;
+use strict;
 use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);

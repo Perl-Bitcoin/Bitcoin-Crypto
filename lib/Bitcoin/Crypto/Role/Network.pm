@@ -3,6 +3,7 @@ package Bitcoin::Crypto::Role::Network;
 our $VERSION = "1.001";
 
 use v5.10;
+use strict;
 use warnings;
 use Types::Standard qw(InstanceOf Str);
 use Scalar::Util qw(blessed);

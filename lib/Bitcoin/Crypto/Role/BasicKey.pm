@@ -3,6 +3,7 @@ package Bitcoin::Crypto::Role::BasicKey;
 our $VERSION = "1.001";
 
 use v5.10;
+use strict;
 use warnings;
 
 use Bitcoin::Crypto::Helpers qw(pad_hex verify_bytestring);

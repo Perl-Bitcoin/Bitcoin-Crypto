@@ -1,4 +1,5 @@
 use v5.10;
+use strict;
 use warnings;
 use Test::More;
 use Bitcoin::Crypto::Helpers qw(pad_hex);

@@ -3,6 +3,7 @@ package Bitcoin::Crypto::Bech32;
 our $VERSION = "1.001";
 
 use v5.10;
+use strict;
 use warnings;
 use Exporter qw(import);
 use Types::Standard qw(Str);

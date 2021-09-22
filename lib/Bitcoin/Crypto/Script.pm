@@ -3,6 +3,7 @@ package Bitcoin::Crypto::Script;
 our $VERSION = "1.001";
 
 use v5.10;
+use strict;
 use warnings;
 use Moo;
 use Types::Standard qw(ArrayRef Str);

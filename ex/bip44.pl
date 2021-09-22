@@ -1,4 +1,5 @@
 use v5.10;
+use strict;
 use warnings;
 use Bitcoin::Crypto qw(btc_extprv);
 use Bitcoin::Crypto::BIP44;
