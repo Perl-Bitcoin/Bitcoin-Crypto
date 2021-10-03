@@ -100,7 +100,9 @@ ok(!$random_pub->verify_message($message, $sig), "verification fails with differ
 
 # Generate address for different network
 
-$pub->set_network("bitcoin_testnet");
+my $should_be_pub = $pub->set_network("bitcoin_testnet");
+is $should_be_pub, $pub, 'set_network return value ok';
+
 my $testnet_addr = "n1raSqPwHRbJ87dC8daiwgLVrQBy9Fj17K";
 is($pub->network->name, "Bitcoin Testnet", "changed network to testnet");
 is(

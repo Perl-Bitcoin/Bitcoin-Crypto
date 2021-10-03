@@ -20,7 +20,14 @@ has "network" => (
 		return Bitcoin::Crypto::Network->get;
 	},
 	coerce => 1,
-	writer => "set_network"
+	writer => "_set_network"
 );
+
+sub set_network
+{
+	my ($self, $network) = @_;
+	$self->_set_network($network);
+	return $self;
+}
 
 1;
