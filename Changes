@@ -1,5 +1,9 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+1.003 Sat Oct 9 18:00:00 2021
+	- fix return value of set_network method in key instances to match documentation
+	- update CryptX dependency and check the version of optional GMP dependency to fix testers
+
 1.002 Wed Sep 22 12:00:00 2021
 	- implement bech32m encoding and use it in segwit v1+ addresses
 	- fix bech32 encoding by removing mandatory bit translation - old behavior can be achieved by using new translate_ functions

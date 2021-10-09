@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Key::Public;
 
-our $VERSION = "1.002";
+our $VERSION = "1.003";
 
 use v5.10;
 use strict;
