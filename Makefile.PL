@@ -3,6 +3,20 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
+my %prereq = (
+	'Math::BigInt' => '1.999808',
+	'Moo' => '2.003004',
+	'Type::Tiny' => '1.004000',
+	'CryptX' => '0.062',
+	'Bitcoin::BIP39' => '0.002',
+	'namespace::clean' => '0.27',
+);
+
+my $min_MBIGMP = '1.6003';
+if (eval { require Math::BigInt::GMP; 1 } && Math::BigInt::GMP->VERSION < $min_MBIGMP) {
+	$prereq{'Math::BigInt::GMP'} = $min_MBIGMP;
+}
+
 WriteMakefile(
 	NAME => 'Bitcoin::Crypto',
 	VERSION_FROM => 'lib/Bitcoin/Crypto.pm',
@@ -12,14 +26,7 @@ WriteMakefile(
 		'Test::More' => '0.88',
 		'Test::Exception' => 0,
 	},
-	PREREQ_PM => {
-		'Math::BigInt' => '1.999808',
-		'Moo' => '2.003004',
-		'Type::Tiny' => '1.004000',
-		'CryptX' => '0.062',
-		'Bitcoin::BIP39' => '0.002',
-		'namespace::clean' => '0.27',
-	},
+	PREREQ_PM => \%prereq,
 
 	META_MERGE => {
 		'meta-spec' => { version => 2 },
