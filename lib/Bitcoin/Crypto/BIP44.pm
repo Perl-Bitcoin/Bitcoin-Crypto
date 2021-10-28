@@ -28,6 +28,12 @@ sub _get_network_constant
 
 use namespace::clean;
 
+has 'purpose' => (
+	is => 'ro',
+	isa => Enum[44, 49, 84],
+	default => sub { 44 },
+);
+
 has 'coin_type' => (
 	is => 'ro',
 	isa => PositiveOrZeroInt,
@@ -77,9 +83,8 @@ sub as_string
 
 	# https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
 	# m / purpose' / coin_type' / account' / change / address_index
-	# purpose is always 44 in bip44
-	return sprintf "m/44'/%u'/%u'/%u/%u",
-		$self->coin_type, $self->account, $self->change, $self->index;
+	return sprintf "m/%u'/%u'/%u'/%u/%u",
+		$self->purpose, $self->coin_type, $self->account, $self->change, $self->index;
 }
 
 1;
@@ -108,7 +113,7 @@ Bitcoin::Crypto::BIP44 - BIP44 implementation in Perl
 
 =head1 DESCRIPTION
 
-This class is a helper for constructing BIP44-compilant key derivation paths. BIP44 describes the mechanism the HD (Hierarchical Deterministic) wallets use to decide derivation paths for coins.
+This class is a helper for constructing BIP44-compilant key derivation paths. BIP44 describes the mechanism the HD (Hierarchical Deterministic) wallets use to decide derivation paths for coins. BIP49 and BIP84 are constructed the same way, but used for compat and segwit addresses respectively.
 
 Each coin has its own C<coin_type> constant, a list of which is maintained here: L<https://github.com/satoshilabs/slips/blob/master/slip-0044.md>. L<Bitcoin::Crypto::Network> instances hold these constants under the C<bip44_coin> property.
 
@@ -119,6 +124,12 @@ BIP44 objects stringify automatically and can be directly used in L<Bitcoin::Cry
 Refer to L<https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki> for details of those properties.
 
 All of these properties can be fetched using a method with the same name.
+
+=head2 purpose
+
+Purpose contains the BIP document number that you wish to use. Can be either C<44>, C<49> or C<84>.
+
+By default, number C<44> will be used.
 
 =head2 coin_type
 
