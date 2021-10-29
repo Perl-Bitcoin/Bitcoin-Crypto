@@ -90,4 +90,24 @@ subtest 'extended private key has bip44 helper' => sub {
 		'cSTUMXWSBL5oiA6vVTN9jcN1kE59pbFuYPSeE8Q1L4mwpMw8ybo1';
 };
 
+subtest 'can derive bip49' => sub {
+	my $key = btc_extprv->from_mnemonic(
+		'spawn impact body ask nothing warm farm novel host later basic subject point resist pilot'
+	);
+
+	my $derived = $key->derive_key_bip44(purpose => 49, account => 3, index => 4)->get_basic_key;
+	is $derived->to_wif, 'Kyji1MGDJXN88tG1DkZgqGgHEjhuSGYxVeXBaEFvEQrDReAkMDAZ';
+	is $derived->get_public_key->get_compat_address, '3MzCdGHkbasTkxPMTMYQa3Tp7okMCceY7K';
+};
+
+subtest 'can derive bip84' => sub {
+	my $key = btc_extprv->from_mnemonic(
+		'spawn impact body ask nothing warm farm novel host later basic subject point resist pilot'
+	);
+
+	my $derived = $key->derive_key_bip44(purpose => 84, account => 3, index => 4)->get_basic_key;
+	is $derived->to_wif, 'L5CXRMnEVSZ7j23VJ22mib3e4UWnb7utEpkDQtfTPn8DL9EEtTQZ';
+	is $derived->get_public_key->get_segwit_address, 'bc1qs9370rhcdq8jtnxgq4cz93sthh9gtq3036dlw7';
+};
+
 done_testing;

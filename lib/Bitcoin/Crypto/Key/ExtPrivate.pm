@@ -283,6 +283,8 @@ Same as C<from_seed>, but C<$seed> is treated as hex string.
 
 Returns the key serialized in format specified in BIP32 as byte string.
 
+B<Note:> different prefixes defined in BIP49 and BIP84 are not yet supported.
+
 =head2 to_serialized_base58
 
 	$serialized_base58 = $object->to_serialized_base58()
@@ -296,6 +298,8 @@ Behaves the same as C<to_serialized>, but performs Base58Check encoding on the r
 Tries to unserialize byte string C<$serialized> with format specified in BIP32.
 
 Dies on errors. If multiple networks match serialized data specify C<$network> manually (id of the network) to avoid exception.
+
+B<Note:> different prefixes defined in BIP49 and BIP84 are not yet supported.
 
 =head2 from_serialized_base58
 
