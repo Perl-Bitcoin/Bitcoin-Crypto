@@ -1,5 +1,8 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+1.004 Sat Oct 30 10:00:00 2021
+	- BIP44 implementation now also supports BIP49 and BIP84 via its 'purpose' parameter
+
 1.003 Sat Oct 9 18:00:00 2021
 	- fix return value of set_network method in key instances to match documentation
 	- update CryptX dependency and check the version of optional GMP dependency to fix testers

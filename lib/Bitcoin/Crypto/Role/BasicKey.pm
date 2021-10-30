@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Role::BasicKey;
 
-our $VERSION = "1.003";
+our $VERSION = "1.004";
 
 use v5.10;
 use strict;
