@@ -7,7 +7,7 @@ my %prereq = (
 	'Math::BigInt' => '1.999808',
 	'Moo' => '2.003004',
 	'Type::Tiny' => '1.004000',
-	'CryptX' => '0.073',
+	'CryptX' => '0.074',
 	'Bitcoin::BIP39' => '0.002',
 	'namespace::clean' => '0.27',
 );

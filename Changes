@@ -1,5 +1,8 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+1.005 Sat Nov 6 16:00:00 2021
+	- update CryptX dependency to fix compatibility with the latest Math::BigInt
+
 1.004 Sat Oct 30 10:00:00 2021
 	- BIP44 implementation now also supports BIP49 and BIP84 via its 'purpose' parameter
 

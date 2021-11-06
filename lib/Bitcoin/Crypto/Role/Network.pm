@@ -1,6 +1,6 @@
 package Bitcoin::Crypto::Role::Network;
 
-our $VERSION = "1.004";
+our $VERSION = "1.005";
 
 use v5.10;
 use strict;
