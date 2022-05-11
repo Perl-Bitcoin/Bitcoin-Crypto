@@ -9,7 +9,18 @@ use Type::Library -base;
 use Type::Coercion;
 use Types::Common::Numeric qw(assert_PositiveInt);
 use Types::Standard qw(Int InstanceOf);
-use Math::BigInt 1.999808 try => 'GMP,LTM';
+
+BEGIN {
+	require Math::BigInt;
+
+	# Version 1.6003 of optional GMP is required for the from_bytes / to_bytes implementations
+	if (eval { require Math::BigInt::GMP; Math::BigInt::GMP->VERSION('1.6003'); 1 }) {
+		Math::BigInt->import(try => 'GMP,LTM');
+	}
+	else {
+		Math::BigInt->import(try => 'LTM');
+	}
+}
 
 __PACKAGE__->add_type(
 	name => "IntMaxBits",
@@ -38,3 +49,4 @@ __PACKAGE__->add_type(
 );
 
 1;
+

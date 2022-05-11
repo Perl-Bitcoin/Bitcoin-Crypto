@@ -12,11 +12,6 @@ my %prereq = (
 	'namespace::clean' => '0.27',
 );
 
-my $min_MBIGMP = '1.6003';
-if (eval { require Math::BigInt::GMP; 1 } && Math::BigInt::GMP->VERSION < $min_MBIGMP) {
-	$prereq{'Math::BigInt::GMP'} = $min_MBIGMP;
-}
-
 WriteMakefile(
 	NAME => 'Bitcoin::Crypto',
 	VERSION_FROM => 'lib/Bitcoin/Crypto.pm',
@@ -48,3 +43,4 @@ WriteMakefile(
 	AUTHOR => 'Bartosz Jarzyna <brtastic.dev@gmail.com>',
 	LICENSE => 'perl',
 );
+
