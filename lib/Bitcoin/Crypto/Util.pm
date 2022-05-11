@@ -1,7 +1,5 @@
 package Bitcoin::Crypto::Util;
 
-our $VERSION = "1.005";
-
 use v5.10;
 use strict;
 use warnings;
@@ -167,3 +165,4 @@ Example:
 =back
 
 =cut
+

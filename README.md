@@ -14,4 +14,5 @@ coding style of the module. Let me know if you plan something
 bigger so we can talk it through.
 
 ### Author
-Bartosz Jarzyna <brtastic.dev@gmail.com>
+Bartosz Jarzyna <bbrtj.pro@gmail.com>
+

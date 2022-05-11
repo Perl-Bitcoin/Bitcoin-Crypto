@@ -1,7 +1,5 @@
 package Bitcoin::Crypto;
 
-our $VERSION = "1.005";
-
 use v5.10;
 use strict;
 use warnings;
@@ -209,14 +207,14 @@ The module have a little bit of startup time because of Moo and Type::Tiny, meas
 
 =head1 AUTHOR
 
-Bartosz Jarzyna E<lt>brtastic.dev@gmail.comE<gt>
+Bartosz Jarzyna E<lt>bbrtj.pro@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2018 - 2021 by Bartosz Jarzyna
+Copyright (C) 2018 - 2022 by Bartosz Jarzyna
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.10.0 or,
-at your option, any later version of Perl 5 you may have available.
+it under the same terms as Perl itself.
 
 =cut
+

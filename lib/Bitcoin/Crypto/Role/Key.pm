@@ -1,7 +1,5 @@
 package Bitcoin::Crypto::Role::Key;
 
-our $VERSION = "1.005";
-
 use v5.10;
 use strict;
 use warnings;
@@ -92,3 +90,4 @@ sub raw_key
 }
 
 1;
+

@@ -1,7 +1,5 @@
 package Bitcoin::Crypto::Key::Private;
 
-our $VERSION = "1.005";
-
 use v5.10;
 use strict;
 use warnings;
@@ -279,3 +277,4 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 =back
 
 =cut
+

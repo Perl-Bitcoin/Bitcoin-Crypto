@@ -1,7 +1,5 @@
 package Bitcoin::Crypto::Network;
 
-our $VERSION = "1.005";
-
 use v5.10;
 use strict;
 use warnings;
@@ -323,3 +321,4 @@ test will be returned. Example:
 =back
 
 =cut
+

@@ -1,7 +1,5 @@
 package Bitcoin::Crypto::Exception;
 
-our $VERSION = "1.005";
-
 use v5.10;
 use strict;
 use warnings;
@@ -280,3 +278,4 @@ Executes the subroutine given as the only parameter inside an C<eval>. Any excep
 	});
 
 =cut
+
