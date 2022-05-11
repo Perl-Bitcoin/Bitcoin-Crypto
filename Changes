@@ -1,26 +1,26 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
-1.005 Sat Nov 6 16:00:00 2021
+1.005 Sat Nov 6 2021
 	- update CryptX dependency to fix compatibility with the latest Math::BigInt
 
-1.004 Sat Oct 30 10:00:00 2021
+1.004 Sat Oct 30 2021
 	- BIP44 implementation now also supports BIP49 and BIP84 via its 'purpose' parameter
 
-1.003 Sat Oct 9 18:00:00 2021
+1.003 Sat Oct 9 2021
 	- fix return value of set_network method in key instances to match documentation
 	- update CryptX dependency and check the version of optional GMP dependency to fix testers
 
-1.002 Wed Sep 22 12:00:00 2021
+1.002 Wed Sep 22 2021
 	- implement bech32m encoding and use it in segwit v1+ addresses
 	- fix bech32 encoding by removing mandatory bit translation - old behavior can be achieved by using new translate_ functions
 	- change encode_bech32 and decode_bech32 input and output format
 	- add new Bitcoin::Crypto::Bech32 exported functions: translate_5to8 and translate_8to5
 	- remove Bitcoin::Crypto::Bech32::split_bech32 from exported functions
 
-1.001 Thu Sep 9 15:00:00 2021
+1.001 Thu Sep 9 2021
 	- prefer GMP to LTM backend in Math::BigInt
 
-1.000 Sun Sep 5 11:00:00 2021
+1.000 Sun Sep 5 2021
 	- end of the beta phase
 	- imported mnemonics must now be proper unicode strings (important for non-english mnemonics)
 	- module will now use Crypt::Perl when available to produce deterministic signatures
@@ -28,7 +28,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- set_compressed method on keys now properly handles undefined values
 	- code refactors and documentation improvements
 
-0.997 Fri Jun 11 00:00:00 2021
+0.997 Fri Jun 11 2021
 	- implement BIP44 derivation paths
 	- add derive_key_bip44 helper to extended private key class
 	- remove previously deprecated Exception::KeySign
@@ -37,7 +37,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fix distribution metadata
 	- change how internal constants are handled
 
-0.996 Thu Jan 7 23:00:00 2021
+0.996 Thu Jan 7 2021
 	- deprecate Exception::KeySign in favor of Exception::Sign
 	- add Exception::Verify, trapping CryptX exceptions during signature verification
 	- replace Throwable dependency with custom error class
@@ -47,7 +47,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- improve documentation
 	- improved test suite (now covers some edge cases)
 
-0.995 Wed Sep 16 18:00:00 2020
+0.995 Wed Sep 16 2020
 	- downgrade and fix dependencies
 	- fix minimum perl version
 	- improve documentation
@@ -98,3 +98,4 @@ Revision history for Perl extension Bitcoin::Crypto.
 
 0.01  Mon Nov 15 21:58:51 2018
 	- first version
+
