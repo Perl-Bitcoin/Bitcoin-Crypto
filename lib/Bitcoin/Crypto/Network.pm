@@ -145,6 +145,24 @@ __PACKAGE__->register(
 	bip44_coin => 1,
 );
 
+__PACKAGE__->register(
+	id => "dogecoin",
+	name => "Dogecoin Mainnet",
+	p2pkh_byte => "\x1e",
+	p2sh_byte => "\x16",
+	wif_byte => "\x9e",
+	bip44_coin => 0,
+);
+
+__PACKAGE__->register(
+	id => "dogecoin_testnet",
+	name => "Dogecoin Testnet",
+	p2pkh_byte => "\x71",
+	p2sh_byte => "\xc4",
+	wif_byte => "\xf1",
+	bip44_coin => 0,
+);
+
 1;
 
 __END__

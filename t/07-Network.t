@@ -14,6 +14,10 @@ ok defined $default_mapped{bitcoin},
 	"mainnet available";
 ok defined $default_mapped{bitcoin_testnet},
 	"testnet available";
+ok defined $default_mapped{dogecoin},
+	"dogecoin mainnet available";
+ok defined $default_mapped{dogecoin_testnet},
+	"dogecoin testnet available";
 
 my $litecoin = {
 	id => "litecoin",
