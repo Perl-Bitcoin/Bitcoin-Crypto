@@ -53,7 +53,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- improve documentation
 	- explicitly document beta version
 
-0.994 Sun Sep 06 22:00:00 2020
+0.994 Sun Sep 06 2020
 	- remove Math::EllipticCurve::Prime dependency - replaced with custom function
 	- remove Math::BigInt::GMP dependency - replaced with LTM
 	- replace most of Base58 module internals with CryptX, leave the module for Base58Check
@@ -67,23 +67,23 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- improve documentation
 	- tidy up source files with perltidy
 
-0.993 Thu Jan 30 23:00:00 2020
+0.993 Thu Jan 30 2020
 	- replace some dependencies with CryptX functions
 	- add shortcut functions in Bitcoin::Crypto package (autoloading of important classes)
 	- more tests and docs
 	- repo cleanup
 
-0.992 Sun Jan 12 10:00:00 2020
+0.992 Sun Jan 12 2020
 	- change Bitcoin::Crypto::Network register method to accept a plain hash (instead of a hashref)
 	- run examples during tests
 
-0.991 Wed Jan 08 22:00:00 2020
+0.991 Wed Jan 08 2020
 	- rewrite Bitcoin::Crypto::Network to Moo (changed interface)
 	- add examples directory and bip44 implementation example
 	- 32 bit compatibility attempt
 	- add the missing test to distribution
 
-0.99 Sun Jan 05 20:00:00 2020
+0.99 Sun Jan 05 2020
 	- almost complete rewrite of the module
 	- added extended keys
 	- added segwit compatibility
@@ -91,11 +91,11 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- many small improvements
 	- beta relase - yet to be tested in a realistic environment
 
-0.02 Fri Nov 23 22:00:00 2018
+0.02 Fri Nov 23 2018
 	- enable package on ealier Perl versions
 	- remove pack_hex from Bitcoin::Crypto::Util
 	- add pad_hex to Bitoin::Crypto::Helpers
 
-0.01  Mon Nov 15 21:58:51 2018
+0.01  Mon Nov 15 2018
 	- first version
 
