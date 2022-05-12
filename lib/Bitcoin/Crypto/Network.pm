@@ -151,7 +151,7 @@ __PACKAGE__->register(
 	p2pkh_byte => "\x1e",
 	p2sh_byte => "\x16",
 	wif_byte => "\x9e",
-	bip44_coin => 0,
+	bip44_coin => 3,
 );
 
 __PACKAGE__->register(
@@ -160,7 +160,7 @@ __PACKAGE__->register(
 	p2pkh_byte => "\x71",
 	p2sh_byte => "\xc4",
 	wif_byte => "\xf1",
-	bip44_coin => 0,
+	bip44_coin => 1,
 );
 
 1;
