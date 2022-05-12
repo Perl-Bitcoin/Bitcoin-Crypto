@@ -145,6 +145,28 @@ __PACKAGE__->register(
 	bip44_coin => 1,
 );
 
+__PACKAGE__->register(
+	id => "dogecoin",
+	name => "Dogecoin Mainnet",
+	p2pkh_byte => "\x1e",
+	p2sh_byte => "\x16",
+	wif_byte => "\x9e",
+	extprv_version => 0x02fac398,
+	extpub_version => 0x02facafd,
+	bip44_coin => 3,
+);
+
+__PACKAGE__->register(
+	id => "dogecoin_testnet",
+	name => "Dogecoin Testnet",
+	p2pkh_byte => "\x71",
+	p2sh_byte => "\xc4",
+	wif_byte => "\xf1",
+	extprv_version => 0x04358394,
+	extpub_version => 0x043587cf,
+	bip44_coin => 1,
+);
+
 1;
 
 __END__
@@ -219,6 +241,14 @@ defined with id: C<bitcoin>
 =item * Bitcoin Testnet
 
 defined with id: C<bitcoin_testnet>
+
+=item * Dogecoin Mainnet
+
+defined with id: C<dogecoin>
+
+=item * Dogecoin Testnet
+
+defined with id: C<dogecoin_testnet>
 
 =back
 
