@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Moo;
 use Scalar::Util qw(blessed);
-use Types::Standard qw(Str Int Str);
+use Types::Standard qw(Str Int);
 use Types::Common::String qw(StrLength);
 
 use Bitcoin::Crypto::Exception;
@@ -121,6 +121,14 @@ sub get
 	return $network;
 }
 
+### PREDEFINED NETWORKS SECTION
+# When adding a network, make sure to:
+# - code in valid constants of the network below
+# - provide resources that will confirm these constant values (in the merge request)
+# - add your network to the POD documentation below
+
+### BITCOIN
+
 __PACKAGE__->register(
 	id => "bitcoin",
 	name => "Bitcoin Mainnet",
@@ -144,6 +152,8 @@ __PACKAGE__->register(
 	extpub_version => 0x043587cf,
 	bip44_coin => 1,
 );
+
+### DOGECOIN
 
 __PACKAGE__->register(
 	id => "dogecoin",
@@ -226,39 +236,35 @@ Bitcoin::Crypto::Network - Management tool for cryptocurrency networks
 
 This package allows you to manage non-bitcoin cryptocurrencies.
 Before you start producing keys and addresses for your favorite crypto
-you have to configure it's network first.
+you have to configure its network first.
 
 =head1 PREDEFINED NETWORKS
 
-There are a couple of networks that are already defined and can be used without defining them:
-
-=over
-
-=item * Bitcoin Mainnet
-
-defined with id: C<bitcoin>
-
-=item * Bitcoin Testnet
-
-defined with id: C<bitcoin_testnet>
-
-=item * Dogecoin Mainnet
-
-defined with id: C<dogecoin>
-
-=item * Dogecoin Testnet
-
-defined with id: C<dogecoin_testnet>
-
-=back
+Here is a list of networks that are already defined and can be used without defining them.
 
 If you want to see more predefined networks added and you're willing to make
 some research to find out the correct values for the configuration fields,
 consider opening a pull request on Github.
 
+=head2 Bitcoin Mainnet
+
+defined with id: C<bitcoin>
+
+=head2 Bitcoin Testnet
+
+defined with id: C<bitcoin_testnet>
+
+=head2 Dogecoin Mainnet
+
+defined with id: C<dogecoin>
+
+=head2 Dogecoin Testnet
+
+defined with id: C<dogecoin_testnet>
+
 =head1 CONFIGURATION
 
-Right now networks only require four keys, which are marked with (*)
+Right now networks only require four keys, which are marked with C<(*)>
 
 	my %config = (
 		id             => "(*) identifier for the network",
