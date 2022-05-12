@@ -238,6 +238,14 @@ defined with id: C<bitcoin>
 
 defined with id: C<bitcoin_testnet>
 
+=item * Dogecoin Mainnet
+
+defined with id: C<dogecoin>
+
+=item * Dogecoin Testnet
+
+defined with id: C<dogecoin_testnet>
+
 =back
 
 If you want to see more predefined networks added and you're willing to make
