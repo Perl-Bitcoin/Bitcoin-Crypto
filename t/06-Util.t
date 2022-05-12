@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Math::BigInt 1.999808 try => 'GMP,LTM';
+use Bitcoin::Crypto::Types; # loads Math::BigInt
 use utf8;
 
 BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info mnemonic_to_seed)) }
@@ -88,3 +88,4 @@ for my $case (@path_test_data) {
 }
 
 done_testing;
+

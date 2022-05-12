@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Math::BigInt 1.999808 try => 'GMP,LTM';
+use Bitcoin::Crypto::Types; # loads Math::BigInt
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 
@@ -61,3 +61,4 @@ dies_ok {
 "byte string check ok";
 
 done_testing;
+
