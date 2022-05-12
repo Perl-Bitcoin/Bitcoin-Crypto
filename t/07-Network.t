@@ -8,16 +8,7 @@ BEGIN { use_ok 'Bitcoin::Crypto::Network' }
 
 # default networks
 
-my %default_mapped = map { $_ => 1 } Bitcoin::Crypto::Network->find;
-my $count = scalar keys %default_mapped;
-ok defined $default_mapped{bitcoin},
-	"mainnet available";
-ok defined $default_mapped{bitcoin_testnet},
-	"testnet available";
-ok defined $default_mapped{dogecoin},
-	"dogecoin mainnet available";
-ok defined $default_mapped{dogecoin_testnet},
-	"dogecoin testnet available";
+my $count = scalar Bitcoin::Crypto::Network->find;
 
 my $litecoin = {
 	id => "litecoin",
@@ -62,3 +53,4 @@ ok !Bitcoin::Crypto::Network->find(sub { shift->name eq "unexistent" }),
 	"non-existent network not found";
 
 done_testing;
+
