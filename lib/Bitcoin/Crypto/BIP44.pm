@@ -161,11 +161,20 @@ By default, the value C<0> is used.
 =head2 change
 
 Needs to be a number C<1> (for addresses to be used as change outputs) or C<0> (for addresses that are to be used only internally).
+
 By default, the value C<0> is used.
 
 =head2 index
 
-Required. Needs to be a non-negative integer number. It should be less than C<2^31> (but will not check for that).
+Needs to be a non-negative integer number. It should be less than C<2^31> (but will not check for that).
+
+By default, the value C<0> is used.
+
+=head2 get_account
+
+If passed C<1>, the resulting derivation path will only go as far as to the account part. L</index> and L</change> values will be ignored.
+
+By default, you will get the full derivation path.
 
 =head1 METHODS
 
