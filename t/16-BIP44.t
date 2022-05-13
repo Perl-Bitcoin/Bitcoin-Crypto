@@ -110,4 +110,14 @@ subtest 'can derive bip84' => sub {
 	is $derived->get_public_key->get_segwit_address, 'bc1qs9370rhcdq8jtnxgq4cz93sthh9gtq3036dlw7';
 };
 
+subtest 'can derive account key' => sub {
+	my $key = btc_extprv->from_mnemonic(
+		'spawn impact body ask nothing warm farm novel host later basic subject point resist pilot'
+	);
+
+	my $derived = $key->derive_key_bip44(account => 3, get_account => 1);
+	is $derived->to_serialized_base58, 'xprv9yuRwketYqkKMDaaiJ9TmygWzquPJV8Bfw7cENzYtbgcnhg8ZFgjxDS9bQaXT5RcNfWf5QiwGD4573SvWnQpKvw8ZqCehftBSmHNkaM83cf';
+};
+
 done_testing;
+

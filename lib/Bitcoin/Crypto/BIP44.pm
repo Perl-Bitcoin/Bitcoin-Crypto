@@ -4,7 +4,7 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
-use Types::Standard qw(Enum);
+use Types::Standard qw(Enum Bool);
 use Types::Common::Numeric qw(PositiveOrZeroInt);
 use Scalar::Util qw(blessed);
 
@@ -68,7 +68,13 @@ has 'change' => (
 has 'index' => (
 	is => 'ro',
 	isa => PositiveOrZeroInt,
-	required => 1,
+	default => sub { 0 },
+);
+
+has 'get_account' => (
+	is => 'ro',
+	isa => Bool,
+	default => sub { 0 },
 );
 
 use overload
@@ -81,8 +87,15 @@ sub as_string
 
 	# https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
 	# m / purpose' / coin_type' / account' / change / address_index
-	return sprintf "m/%u'/%u'/%u'/%u/%u",
-		$self->purpose, $self->coin_type, $self->account, $self->change, $self->index;
+
+	my $path = sprintf "m/%u'/%u'/%u'",
+		$self->purpose, $self->coin_type, $self->account;
+
+	return $path
+		if $self->get_account;
+
+	return sprintf "%s/%u/%u",
+		$path, $self->change, $self->index;
 }
 
 1;
