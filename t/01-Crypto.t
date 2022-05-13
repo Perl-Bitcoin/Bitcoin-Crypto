@@ -6,8 +6,6 @@ use Test::Exception;
 
 BEGIN { use_ok('Bitcoin::Crypto', qw(:all)) }
 
-like(Bitcoin::Crypto->VERSION(), qr/\d+\.\d+/, "version string ok");
-
 my %cases = (
 	"Bitcoin::Crypto::Key::ExtPrivate" => \&btc_extprv,
 	"Bitcoin::Crypto::Key::Private" => \&btc_prv,
@@ -19,7 +17,7 @@ my %cases = (
 while (my ($expected_package, $func) = each %cases) {
 	my $package = $func->();
 	is $package, $expected_package;
-	is $package->VERSION, Bitcoin::Crypto->VERSION, "can run methods - version ok";
 }
 
 done_testing;
+
