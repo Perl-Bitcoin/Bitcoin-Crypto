@@ -116,7 +116,8 @@ subtest 'can derive account key' => sub {
 	);
 
 	my $derived = $key->derive_key_bip44(account => 3, get_account => 1);
-	is $derived->to_serialized_base58, 'xprv9yuRwketYqkKMDaaiJ9TmygWzquPJV8Bfw7cENzYtbgcnhg8ZFgjxDS9bQaXT5RcNfWf5QiwGD4573SvWnQpKvw8ZqCehftBSmHNkaM83cf';
+	is $derived->to_serialized_base58,
+		'xprv9yuRwketYqkKMDaaiJ9TmygWzquPJV8Bfw7cENzYtbgcnhg8ZFgjxDS9bQaXT5RcNfWf5QiwGD4573SvWnQpKvw8ZqCehftBSmHNkaM83cf';
 };
 
 done_testing;

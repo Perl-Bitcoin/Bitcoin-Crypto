@@ -28,7 +28,7 @@ use namespace::clean;
 
 has 'purpose' => (
 	is => 'ro',
-	isa => Enum[44, 49, 84],
+	isa => Enum [44, 49, 84],
 	default => sub { 44 },
 );
 
