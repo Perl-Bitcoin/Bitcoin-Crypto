@@ -1,5 +1,12 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+1.006 Fri May 13 2022
+	- add predefined 'dogecoin' and 'dogecoin_testnet' networks (thanks @chromatic)
+	- add 'get_account' option to BIP44 to get derivation path only up the account part
+	- BIP44 'index' is no longer required - uses 0 by default
+	- slightly improved documentation
+	- switch to Dist::Zilla
+
 1.005 Sat Nov 6 2021
 	- update CryptX dependency to fix compatibility with the latest Math::BigInt
 
