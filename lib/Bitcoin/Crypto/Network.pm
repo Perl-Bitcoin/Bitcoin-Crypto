@@ -126,6 +126,7 @@ sub get
 # - code in valid constants of the network below
 # - provide resources that will confirm these constant values (in the merge request)
 # - add your network to the POD documentation below
+# - add your network to test file 17-predefined-networks.t
 
 ### BITCOIN
 
