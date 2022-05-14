@@ -22,4 +22,5 @@
 --brace-tightness=2
 --opening-token-right
 
--sal='first any sum sum0 reduce'
+-gal='first any sum sum0 reduce'
+
