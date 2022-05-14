@@ -186,7 +186,9 @@ Character encoding note: C<$message> should be encoded in the proper encoding be
 
 	$address_string = $object->get_legacy_address()
 
-Returns string containing Base58Check encoded public key hash (p2pkh address)
+Returns string containing Base58Check encoded public key hash (p2pkh address).
+
+If the public key was obtained through BIP44 derivation scheme, this method will check whether the purpose was C<44> and raise an exception otherwise.
 
 =head2 get_compat_address
 
@@ -194,11 +196,15 @@ Returns string containing Base58Check encoded public key hash (p2pkh address)
 
 Returns string containing Base58Check encoded script hash containing a witness program for compatibility purposes (p2sh(p2wpkh) address)
 
+If the public key was obtained through BIP44 derivation scheme, this method will check whether the purpose was C<49> and raise an exception otherwise.
+
 =head2 get_segwit_address
 
 	$address_string = $object->get_segwit_address()
 
 Returns string containing Bech32 encoded witness program (p2wpkh address)
+
+If the public key was obtained through BIP44 derivation scheme, this method will check whether the purpose was C<89> and raise an exception otherwise.
 
 =head1 EXCEPTIONS
 
@@ -211,6 +217,8 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 =item * Verify - couldn't verify the message correctly
 
 =item * NetworkConfig - incomplete or corrupted network configuration
+
+=item * AddressGenerate - address could not be generated (see BIP44 constraint notes)
 
 =back
 

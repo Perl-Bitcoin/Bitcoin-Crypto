@@ -182,7 +182,13 @@ By default, the value C<0> is used.
 
 =head2 get_account
 
-If passed C<1>, the resulting derivation path will only go as far as to the account part. L</index> and L</change> values will be ignored.
+If passed C<1>, the resulting derivation path will only go as far as to the account part. L</index> and L</change> values will be ignored. Use this to get extended key for the account.
+
+By default, you will get the full derivation path.
+
+=head2 get_from_account
+
+If passed C<1>, the resulting derivation path will start after the account part. L</purpose>, L</coin_type> and L</account> values will be ignored. Use this to further derive key that was only derived up to the account part.
 
 By default, you will get the full derivation path.
 

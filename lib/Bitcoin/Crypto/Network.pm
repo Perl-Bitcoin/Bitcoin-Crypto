@@ -325,9 +325,15 @@ Right now networks only require four keys, which are marked with C<(*)>
 		wif_byte       => "(*) WIF private key prefix byte, eg. 0x80",
 		p2sh_byte      => "p2sh address prefix byte, eg. 0x05",
 		segwit_hrp     => "segwit native address human readable part, eg. 'bc'",
-		extprv_version => "version of extended private keys, eg. 0x0488ade4",
-		extpub_version => "version of extended public keys, eg. 0x0488b21e",
-		bip44_coin     => "bip44 coin number, eg. 0",
+
+		extprv_version        => "version prefix of serialized extended private keys, eg. 0x0488ade4",
+		extpub_version        => "version prefix of serialized extended public keys, eg. 0x0488b21e",
+		extprv_compat_version => "same as extprv_version, but for BIP49",
+		extpub_compat_version => "same as extpub_version, but for BIP49",
+		extprv_segwit_version => "same as extprv_version, but for BIP84",
+		extpub_segwit_version => "same as extpub_version, but for BIP84",
+
+		bip44_coin => "bip44 coin number, eg. 0",
 	);
 
 After you register a network with this hashref your program will be able to import keys for that
