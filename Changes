@@ -1,5 +1,10 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+1.007 Sat May 14 2022
+	- extended keys derived using BIP44 scheme now use specific serialization according to BIP49 and BIP84
+	- basic keys derived using BIP44 scheme now prevent incorrect type of address from being generated
+	- Segregated Witness compatibility addresses can no longer be generated when there's no segwit_hrp config in network
+
 1.006 Fri May 13 2022
 	- add predefined 'dogecoin' and 'dogecoin_testnet' networks (thanks @chromatic)
 	- add 'get_account' option to BIP44 to get derivation path only up the account part
