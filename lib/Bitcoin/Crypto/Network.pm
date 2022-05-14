@@ -63,6 +63,30 @@ has "extpub_version" => (
 	required => 0,
 );
 
+has "extprv_compat_version" => (
+	is => "ro",
+	isa => Int,
+	required => 0,
+);
+
+has "extpub_compat_version" => (
+	is => "ro",
+	isa => Int,
+	required => 0,
+);
+
+has "extprv_segwit_version" => (
+	is => "ro",
+	isa => Int,
+	required => 0,
+);
+
+has "extpub_segwit_version" => (
+	is => "ro",
+	isa => Int,
+	required => 0,
+);
+
 has "bip44_coin" => (
 	is => "ro",
 	isa => Int,
@@ -142,10 +166,18 @@ __PACKAGE__->register(
 	name => "Bitcoin Mainnet",
 	p2pkh_byte => "\x00",
 	p2sh_byte => "\x05",
-	segwit_hrp => "bc",
 	wif_byte => "\x80",
+	segwit_hrp => "bc",
+
 	extprv_version => 0x0488ade4,
 	extpub_version => 0x0488b21e,
+
+	extprv_compat_version => 0x049d7878,
+	extpub_compat_version => 0x049d7cb2,
+
+	extprv_segwit_version => 0x04b2430c,
+	extpub_segwit_version => 0x04b24746,
+
 	bip44_coin => 0,
 )->set_default;
 
@@ -154,10 +186,18 @@ __PACKAGE__->register(
 	name => "Bitcoin Testnet",
 	p2pkh_byte => "\x6f",
 	p2sh_byte => "\xc4",
-	segwit_hrp => "tb",
 	wif_byte => "\xef",
+	segwit_hrp => "tb",
+
 	extprv_version => 0x04358394,
 	extpub_version => 0x043587cf,
+
+	extprv_compat_version => 0x044a4e28,
+	extpub_compat_version => 0x044a5262,
+
+	extprv_segwit_version => 0x045f18bc,
+	extpub_segwit_version => 0x045f1cf6,
+
 	bip44_coin => 1,
 );
 
@@ -169,8 +209,10 @@ __PACKAGE__->register(
 	p2pkh_byte => "\x1e",
 	p2sh_byte => "\x16",
 	wif_byte => "\x9e",
+
 	extprv_version => 0x02fac398,
 	extpub_version => 0x02facafd,
+
 	bip44_coin => 3,
 );
 
@@ -180,8 +222,10 @@ __PACKAGE__->register(
 	p2pkh_byte => "\x71",
 	p2sh_byte => "\xc4",
 	wif_byte => "\xf1",
+
 	extprv_version => 0x04358394,
 	extpub_version => 0x043587cf,
+
 	bip44_coin => 1,
 );
 

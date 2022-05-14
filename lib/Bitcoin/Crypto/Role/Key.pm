@@ -7,6 +7,7 @@ use Types::Standard qw(InstanceOf);
 use Crypt::PK::ECC;
 use Scalar::Util qw(blessed);
 
+use Bitcoin::Crypto::Types qw(BIP44Purpose);
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
@@ -19,6 +20,14 @@ has "key_instance" => (
 	is => "ro",
 	isa => InstanceOf ["Crypt::PK::ECC"],
 	required => 1,
+);
+
+has 'purpose' => (
+	is => 'ro',
+	isa => BIP44Purpose,
+	writer => '_set_purpose',
+	predicate => 'has_purpose',
+	required => 0,
 );
 
 sub _is_private { undef }
@@ -71,6 +80,13 @@ sub _create_key
 	);
 
 	return $key;
+}
+
+sub set_purpose
+{
+	my ($self, $purpose) = @_;
+	$self->_set_purpose($purpose)
+		if $purpose;
 }
 
 sub raw_key

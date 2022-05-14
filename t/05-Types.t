@@ -49,18 +49,30 @@ my %data = (
 	]
 );
 
-foreach my $case (@{$data{invalid}}) {
-	dies_ok {
-		TestMoo->new(%$case);
+subtest 'testing IntMaxBits' => sub {
+	foreach my $case (@{$data{invalid}}) {
+		dies_ok {
+			TestMoo->new(%$case);
+		}
+		"types fail for invalid data";
 	}
-	"types fail for invalid data";
-}
 
-foreach my $case (@{$data{valid}}) {
-	lives_ok {
-		TestMoo->new(%$case);
+	foreach my $case (@{$data{valid}}) {
+		lives_ok {
+			TestMoo->new(%$case);
+		}
+		"types pass for valid data";
 	}
-	"types pass for valid data";
-}
+};
+
+subtest 'testing BIP44Purpose' => sub {
+	ok BIP44Purpose->check(44);
+	ok BIP44Purpose->check(49);
+	ok BIP44Purpose->check(84);
+	ok !BIP44Purpose->check(43);
+	ok !BIP44Purpose->check(144);
+	ok !BIP44Purpose->check(undef);
+};
 
 done_testing;
+

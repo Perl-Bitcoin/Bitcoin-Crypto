@@ -193,6 +193,12 @@ sub as_string
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
+{
+
+	package Bitcoin::Crypto::Exception::AddressGenerate;
+	use parent -norequire, "Bitcoin::Crypto::Exception";
+}
+
 1;
 
 __END__

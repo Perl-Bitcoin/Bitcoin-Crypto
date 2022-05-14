@@ -8,6 +8,7 @@ use Types::Standard qw(Enum Bool);
 use Types::Common::Numeric qw(PositiveOrZeroInt);
 use Scalar::Util qw(blessed);
 
+use Bitcoin::Crypto::Types qw(BIP44Purpose);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
 
@@ -28,7 +29,7 @@ use namespace::clean;
 
 has 'purpose' => (
 	is => 'ro',
-	isa => Enum [44, 49, 84],
+	isa => BIP44Purpose,
 	default => sub { 44 },
 );
 
@@ -77,6 +78,12 @@ has 'get_account' => (
 	default => sub { 0 },
 );
 
+has 'get_from_account' => (
+	is => 'ro',
+	isa => Bool,
+	default => sub { 0 },
+);
+
 use overload
 	q{""} => "as_string",
 	fallback => 1;
@@ -93,6 +100,9 @@ sub as_string
 
 	return $path
 		if $self->get_account;
+
+	$path = 'm'
+		if $self->get_from_account;
 
 	return sprintf "%s/%u/%u",
 		$path, $self->change, $self->index;

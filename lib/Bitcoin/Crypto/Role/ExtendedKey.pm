@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use List::Util qw(first);
 use Types::Standard qw(Str);
+use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
@@ -68,12 +69,26 @@ sub _build_args
 	return %ret;
 }
 
+sub _get_network_extkey_version
+{
+	my ($self, $network, $purpose) = @_;
+	$network //= $self->network;
+	$purpose //= $self->purpose;
+
+	my $name = 'ext';
+	$name .= $self->_is_private ? 'prv' : 'pub';
+	$name .= '_compat' if $purpose && $purpose eq 49;
+	$name .= '_segwit' if $purpose && $purpose eq 84;
+	$name .= '_version';
+
+	return $network->$name;
+}
+
 sub to_serialized
 {
 	my ($self) = @_;
 
-	my $version =
-		$self->_is_private ? $self->network->extprv_version : $self->network->extpub_version;
+	my $version = $self->_get_network_extkey_version;
 
 	# network field is not required, lazy check for completeness
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
@@ -122,15 +137,24 @@ sub from_serialized
 			if $is_private;
 
 		$version = unpack "N", $version;
-		my @found_networks = Bitcoin::Crypto::Network->find(
-			sub {
-				my ($inst) = @_;
-				return ($class->_is_private ? $inst->extprv_version : $inst->extpub_version) eq
-					$version;
-			}
-		);
-		@found_networks = first { $_ eq $network }
-			@found_networks if defined $network;
+
+		my $purpose;
+		my @found_networks;
+
+		for my $check_purpose (qw(44 49 84)) {
+			$purpose = $check_purpose;
+
+			@found_networks = Bitcoin::Crypto::Network->find(
+				sub {
+					my ($inst) = @_;
+					my $this_version = $class->_get_network_extkey_version($inst, $purpose);
+					return $this_version && $this_version eq $version;
+				}
+			);
+			@found_networks = first { $_ eq $network } @found_networks if defined $network;
+
+			last if @found_networks > 0;
+		}
 
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
 			"found multiple networks possible for given serialized key"
@@ -151,7 +175,9 @@ sub from_serialized
 			$fingerprint,
 			unpack("C", $depth)
 		);
+
 		$key->set_network(@found_networks);
+		$key->set_purpose($purpose);
 
 		return $key;
 	}
@@ -181,6 +207,7 @@ sub get_basic_key
 	my $base_class = "Bitcoin::Crypto::Key::" . ($self->_is_private ? "Private" : "Public");
 	my $basic_key = $base_class->new($self->key_instance);
 	$basic_key->set_network($self->network);
+	$basic_key->set_purpose($self->purpose);
 
 	return $basic_key;
 }
@@ -193,6 +220,25 @@ sub get_fingerprint
 	my $pubkey = $self->raw_key("public_compressed");
 	my $identifier = hash160($pubkey);
 	return substr $identifier, 0, 4;
+}
+
+sub _get_purpose_from_BIP44
+{
+	my ($self, $path) = @_;
+
+	# NOTE: only handles BIP44 correctly when it is constructed with Bitcoin::Crypto::BIP44
+	# NOTE: when deriving new keys, we do not care about previous state:
+	# - if BIP44 is further derived, it is not BIP44 anymore
+	# - if BI44 is derived as a new BIP44, the old one is like the new master key
+	# because of that, set purpose to undef if path is not BIP44
+
+	return undef
+		unless blessed $path && $path->isa('Bitcoin::Crypto::BIP44');
+
+	return $self->purpose
+		if $path->get_from_account;
+
+	return $path->purpose;
 }
 
 sub derive_key
@@ -218,6 +264,8 @@ sub derive_key
 	}
 
 	$key->set_network($self->network);
+	$key->set_purpose($self->_get_purpose_from_BIP44($path));
+
 	$key = $key->get_public_key()
 		if $self->_is_private && !$path_info->{private};
 

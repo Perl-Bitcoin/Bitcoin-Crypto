@@ -6,7 +6,7 @@ use warnings;
 use Type::Library -base;
 use Type::Coercion;
 use Types::Common::Numeric qw(assert_PositiveInt);
-use Types::Standard qw(Int InstanceOf);
+use Types::Standard qw(Int InstanceOf Enum);
 
 BEGIN {
 	require Math::BigInt;
@@ -19,6 +19,11 @@ BEGIN {
 		Math::BigInt->import(try => 'LTM');
 	}
 }
+
+__PACKAGE__->add_type(
+	name => "BIP44Purpose",
+	parent => Enum->of(44, 49, 84),
+);
 
 __PACKAGE__->add_type(
 	name => "IntMaxBits",

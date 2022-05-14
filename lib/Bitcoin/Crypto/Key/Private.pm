@@ -89,6 +89,8 @@ sub get_public_key
 	my $public = Bitcoin::Crypto::Key::Public->new($self->raw_key("public"));
 	$public->set_compressed($self->compressed);
 	$public->set_network($self->network);
+	$public->set_purpose($self->purpose);
+
 	return $public;
 }
 
