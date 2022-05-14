@@ -95,6 +95,13 @@ sub set_default
 	return $self;
 }
 
+sub supports_segwit
+{
+	my ($self) = @_;
+
+	return defined $self->segwit_hrp;
+}
+
 sub find
 {
 	my ($class, $sub) = @_;
@@ -310,6 +317,12 @@ Returns the network instance.
 Sets the network as default one. All newly created private and public keys will be bound to this network.
 
 Returns the network instance.
+
+=head2 supports_segwit
+
+	$bool = $object->supports_segwit()
+
+Returns a boolean which can be used to determine whether a given network has segwit configured.
 
 =head2 new
 
