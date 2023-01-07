@@ -204,7 +204,7 @@ If the public key was obtained through BIP44 derivation scheme, this method will
 
 Returns string containing Bech32 encoded witness program (p2wpkh address)
 
-If the public key was obtained through BIP44 derivation scheme, this method will check whether the purpose was C<89> and raise an exception otherwise.
+If the public key was obtained through BIP44 derivation scheme, this method will check whether the purpose was C<84> and raise an exception otherwise.
 
 =head1 EXCEPTIONS
 
