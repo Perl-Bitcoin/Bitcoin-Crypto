@@ -211,7 +211,7 @@ Bartosz Jarzyna E<lt>bbrtj.pro@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2018 - 2022 by Bartosz Jarzyna
+Copyright (C) 2018 - 2023 by Bartosz Jarzyna
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
