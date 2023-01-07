@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Bitcoin::Crypto::Types;    # loads Math::BigInt
+use Bitcoin::Crypto::Helpers;    # loads Math::BigInt
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 

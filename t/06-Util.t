@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Bitcoin::Crypto::Types;    # loads Math::BigInt
+use Bitcoin::Crypto::Helpers;    # loads Math::BigInt
 use utf8;
 
 BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info mnemonic_to_seed)) }

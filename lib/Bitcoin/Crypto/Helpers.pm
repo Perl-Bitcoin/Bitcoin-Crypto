@@ -12,8 +12,17 @@ use Crypt::PK::ECC;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Exception;
 
-# make sure Math::BigInt is loaded - this module loads it
-use Bitcoin::Crypto::Types;
+BEGIN {
+	require Math::BigInt;
+
+	# Version 1.6003 of optional GMP is required for the from_bytes / to_bytes implementations
+	if (eval { require Math::BigInt::GMP; Math::BigInt::GMP->VERSION('1.6003'); 1 }) {
+		Math::BigInt->import(try => 'GMP,LTM');
+	}
+	else {
+		Math::BigInt->import(try => 'LTM');
+	}
+}
 
 our @EXPORT_OK = qw(
 	new_bigint
