@@ -187,9 +187,15 @@ The module have a little bit of startup time because of Moo and Type::Tiny, meas
 
 =head1 TODO
 
+I will gladly accept help working on these:
+
 =over 2
 
 =item * Taproot compatibility
+
+=item * Better error checking (subroutine inputs, edge cases etc.)
+
+=item * Detailed manual
 
 =item * Better test coverage
 
