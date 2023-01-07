@@ -78,6 +78,15 @@ for my $purpose (qw(44 49 84)) {
 			dies_ok { $first->get_segwit_address };
 		}
 	};
+
+	subtest "testing purpose clearing" => sub {
+		my $first = $derived->derive_key_bip44(get_from_account => 1)->get_basic_key->get_public_key;
+
+		$first->clear_purpose;
+		lives_ok { $first->get_legacy_address };
+		lives_ok { $first->get_compat_address };
+		lives_ok { $first->get_segwit_address };
+	};
 }
 
 done_testing;

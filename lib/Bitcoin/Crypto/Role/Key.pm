@@ -27,6 +27,7 @@ has 'purpose' => (
 	isa => BIP44Purpose,
 	writer => '_set_purpose',
 	predicate => 'has_purpose',
+	clearer => 'clear_purpose',
 	required => 0,
 );
 

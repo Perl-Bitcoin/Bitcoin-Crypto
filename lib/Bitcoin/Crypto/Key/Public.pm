@@ -189,6 +189,7 @@ Character encoding note: C<$message> should be encoded in the proper encoding be
 Returns string containing Base58Check encoded public key hash (p2pkh address).
 
 If the public key was obtained through BIP44 derivation scheme, this method will check whether the purpose was C<44> and raise an exception otherwise.
+If you wish to generate this address anyway, call L</clear_purpose>.
 
 =head2 get_compat_address
 
@@ -197,6 +198,7 @@ If the public key was obtained through BIP44 derivation scheme, this method will
 Returns string containing Base58Check encoded script hash containing a witness program for compatibility purposes (p2sh(p2wpkh) address)
 
 If the public key was obtained through BIP44 derivation scheme, this method will check whether the purpose was C<49> and raise an exception otherwise.
+If you wish to generate this address anyway, call L</clear_purpose>.
 
 =head2 get_segwit_address
 
@@ -205,6 +207,13 @@ If the public key was obtained through BIP44 derivation scheme, this method will
 Returns string containing Bech32 encoded witness program (p2wpkh address)
 
 If the public key was obtained through BIP44 derivation scheme, this method will check whether the purpose was C<84> and raise an exception otherwise.
+If you wish to generate this address anyway, call L</clear_purpose>.
+
+=head2 clear_purpose
+
+	$object->clear_purpose;
+
+Clears the purpose of this key instance, removing safety checks on address generation.
 
 =head1 EXCEPTIONS
 
