@@ -1,5 +1,9 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+1.008 Sat Jan 7 2023
+	- add clear_purpose method, which disables purpose security checks on a key
+	- documentation fixes
+
 1.007 Sat May 14 2022
 	- extended keys derived using BIP44 scheme now use specific serialization according to BIP49 and BIP84
 	- basic keys derived using BIP44 scheme now prevent incorrect type of address from being generated
