@@ -93,6 +93,7 @@ sub as_string
 {
 
 	package Bitcoin::Crypto::Exception::Sign;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 
 }
@@ -100,102 +101,119 @@ sub as_string
 {
 
 	package Bitcoin::Crypto::Exception::Verify;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::KeyCreate;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::KeyDerive;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::MnemonicGenerate;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::MnemonicCheck;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Base58InputFormat;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Base58InputChecksum;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputFormat;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputData;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32Type;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputChecksum;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::SegwitProgram;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::ValidationTest;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::ScriptOpcode;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::ScriptPush;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::NetworkConfig;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::AddressGenerate;
+
 	use parent -norequire, "Bitcoin::Crypto::Exception";
 }
 
