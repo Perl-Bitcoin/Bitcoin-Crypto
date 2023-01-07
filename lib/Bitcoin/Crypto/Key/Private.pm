@@ -218,7 +218,7 @@ Returns current key instance.
 
 	$public_key_object = $object->get_public_key()
 
-Returns instance of L<Bitcoin::Crypto::PublicKey> generated from the private key.
+Returns instance of L<Bitcoin::Crypto::Key::Public> generated from the private key.
 
 =head2 sign_message
 

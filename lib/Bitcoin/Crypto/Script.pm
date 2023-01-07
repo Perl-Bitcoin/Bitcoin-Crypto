@@ -517,7 +517,7 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =over 2
 
-=item L<Bitcoin::Crypto::PrivateKey>
+=item L<Bitcoin::Crypto::Key::Private>
 
 =item L<Bitcoin::Crypto::Network>
 
