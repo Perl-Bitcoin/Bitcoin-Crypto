@@ -38,7 +38,16 @@ sub btc_script
 	return "Bitcoin::Crypto::Script";
 }
 
+# OO interface
+
+sub extprv { goto \&btc_extprv }
+sub prv { goto \&btc_prv }
+sub extpub { goto \&btc_extpub }
+sub pub { goto \&btc_pub }
+sub script { goto \&btc_script }
+
 __END__
+
 =head1 NAME
 
 Bitcoin::Crypto - Bitcoin cryptography in Perl
@@ -148,6 +157,8 @@ Most packages in this module have the types of their thrown exceptions documente
 
 =head1 SHORTCUT FUNCTIONS
 
+=head2 Exported interface
+
 This package exports the following functions when asked for them. They are shourtcut functions and will load needed packages and return their names. You can then use names of loaded packages to instantiate them however you want. You can also load all of them with the I<:all> tag in import. These functions can be used as follows:
 
 	use Bitcoin::Crypto qw(btc_pub);
@@ -156,25 +167,35 @@ This package exports the following functions when asked for them. They are shour
 	# we can now use it to run its methods
 	my $public_key = btc_pub->from_hex($hex_data);
 
-=head2 btc_extprv
+=head3 btc_extprv
 
 Loads L<Bitcoin::Crypto::Key::ExtPrivate>
 
-=head2 btc_prv
+=head3 btc_prv
 
 Loads L<Bitcoin::Crypto::Key::Private>
 
-=head2 btc_extpub
+=head3 btc_extpub
 
 Loads L<Bitcoin::Crypto::Key::ExtPublic>
 
-=head2 btc_pub
+=head3 btc_pub
 
 Loads L<Bitcoin::Crypto::Key::Public>
 
-=head2 btc_script
+=head3 btc_script
 
 Loads L<Bitcoin::Crypto::Script>
+
+=head2 OO interface
+
+Alternatively, all function names mentioned above can be used without the C<btc_> prefix in OO style on the package's name.
+
+	use Bitcoin::Crypto;
+
+	# loads Bitcoin::Crypto::Key::Public and returns package name
+	# we can now use it to run its methods
+	my $public_key = Bitcoin::Crypto->pub->from_hex($hex_data);
 
 =head1 DISCLAIMER
 
