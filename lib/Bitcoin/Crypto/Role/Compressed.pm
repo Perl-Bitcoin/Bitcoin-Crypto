@@ -9,7 +9,7 @@ use Bitcoin::Crypto::Config;
 use Moo::Role;
 
 has "compressed" => (
-	is => "rw",
+	is => "ro",
 	isa => Bool,
 	coerce => 1,
 	default => Bitcoin::Crypto::Config::compress_public_point,
