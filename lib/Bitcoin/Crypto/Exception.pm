@@ -4,7 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
-use Types::Standard qw(Maybe Str ArrayRef);
+
+use Bitcoin::Crypto::Types qw(Str Maybe ArrayRef);
 
 use namespace::clean;
 

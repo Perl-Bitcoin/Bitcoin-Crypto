@@ -5,10 +5,9 @@ use strict;
 use warnings;
 use Moo;
 use Scalar::Util qw(blessed);
-use Types::Standard qw(Str Int);
-use Types::Common::String qw(StrLength);
 
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Types qw(Str StrLength Int);
 
 use namespace::clean;
 

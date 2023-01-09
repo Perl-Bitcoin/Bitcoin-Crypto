@@ -3,12 +3,15 @@ package Bitcoin::Crypto::Types;
 use v5.10;
 use strict;
 use warnings;
-use Type::Library -base;
-use Type::Coercion;
-use Types::Common::Numeric qw(assert_PositiveInt);
-use Types::Standard qw(Int InstanceOf Enum);
 
-# make sure Math::BigInt is loaded - this module loads it
+use Type::Library -extends => [ qw(
+	Types::Standard
+	Types::Common::Numeric
+	Types::Common::String
+) ];
+use Type::Coercion;
+
+# make sure Math::BigInt is properly loaded - this module loads it
 use Bitcoin::Crypto::Helpers;
 
 __PACKAGE__->add_type(
@@ -43,4 +46,6 @@ __PACKAGE__->add_type(
 );
 
 1;
+
+# Internal use only
 

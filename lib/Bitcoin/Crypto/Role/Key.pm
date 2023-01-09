@@ -3,11 +3,10 @@ package Bitcoin::Crypto::Role::Key;
 use v5.10;
 use strict;
 use warnings;
-use Types::Standard qw(InstanceOf);
 use Crypt::PK::ECC;
 use Scalar::Util qw(blessed);
 
-use Bitcoin::Crypto::Types qw(BIP44Purpose);
+use Bitcoin::Crypto::Types qw(InstanceOf BIP44Purpose);
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length);

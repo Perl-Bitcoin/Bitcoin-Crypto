@@ -4,11 +4,11 @@ use v5.10;
 use strict;
 use warnings;
 use Exporter qw(import);
-use Types::Standard qw(Str);
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(verify_bytestring);
 use Bitcoin::Crypto::Segwit qw(validate_program);
+use Bitcoin::Crypto::Types qw(Str);
 
 our @EXPORT_OK = qw(
 	translate_5to8

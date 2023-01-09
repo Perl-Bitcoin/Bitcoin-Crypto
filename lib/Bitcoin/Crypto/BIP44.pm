@@ -4,11 +4,9 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
-use Types::Standard qw(Enum Bool);
-use Types::Common::Numeric qw(PositiveOrZeroInt);
 use Scalar::Util qw(blessed);
 
-use Bitcoin::Crypto::Types qw(BIP44Purpose);
+use Bitcoin::Crypto::Types qw(BIP44Purpose PositiveOrZeroInt Bool Enum);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
 

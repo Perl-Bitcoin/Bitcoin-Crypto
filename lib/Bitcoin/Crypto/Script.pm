@@ -4,7 +4,6 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
-use Types::Standard qw(ArrayRef Str);
 use Crypt::Digest::SHA256 qw(sha256);
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
@@ -12,6 +11,7 @@ use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(hash160 hash256 verify_bytestring);
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Types qw(ArrayRef Str);
 
 use namespace::clean;
 

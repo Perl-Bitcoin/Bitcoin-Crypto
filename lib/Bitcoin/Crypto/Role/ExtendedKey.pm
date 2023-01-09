@@ -4,13 +4,12 @@ use v5.10;
 use strict;
 use warnings;
 use List::Util qw(first);
-use Types::Standard qw(Str);
 use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Config;
-use Bitcoin::Crypto::Types qw(IntMaxBits);
+use Bitcoin::Crypto::Types qw(IntMaxBits StrLength);
 use Bitcoin::Crypto::Util qw(get_path_info);
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length hash160 verify_bytestring);
 use Bitcoin::Crypto::Network;
@@ -29,7 +28,7 @@ has "depth" => (
 
 has "parent_fingerprint" => (
 	is => "ro",
-	isa => Str->where(q{ length $_ == 4 }),
+	isa => StrLength[4, 4],
 	default => sub { pack "x4" }
 );
 
@@ -42,7 +41,7 @@ has "child_number" => (
 
 has "chain_code" => (
 	is => "ro",
-	isa => Str->where(q{ length $_ == 32 }),
+	isa => StrLength[32, 32],
 	required => 1,
 );
 

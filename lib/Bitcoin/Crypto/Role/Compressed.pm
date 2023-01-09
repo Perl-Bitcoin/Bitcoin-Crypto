@@ -3,8 +3,8 @@ package Bitcoin::Crypto::Role::Compressed;
 use v5.10;
 use strict;
 use warnings;
-use Types::Standard qw(Bool);
 
+use Bitcoin::Crypto::Types qw(Bool);
 use Bitcoin::Crypto::Config;
 use Moo::Role;
 

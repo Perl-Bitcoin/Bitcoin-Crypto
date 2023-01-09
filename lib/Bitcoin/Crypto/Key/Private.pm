@@ -4,7 +4,6 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
-use Types::Standard qw(Str);
 use Crypt::PK::ECC;
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
 use List::Util qw(first);
