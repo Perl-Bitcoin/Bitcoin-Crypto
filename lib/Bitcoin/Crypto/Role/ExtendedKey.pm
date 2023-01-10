@@ -17,8 +17,6 @@ use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
-with "Bitcoin::Crypto::Role::Key";
-
 has "depth" => (
 	is => "ro",
 	isa => IntMaxBits [8],
@@ -44,6 +42,8 @@ has "chain_code" => (
 	isa => StrLength[32, 32],
 	required => 1,
 );
+
+with qw(Bitcoin::Crypto::Role::Key);
 
 sub _get_network_extkey_version
 {

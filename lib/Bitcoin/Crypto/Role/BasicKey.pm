@@ -9,8 +9,10 @@ use Bitcoin::Crypto::Helpers qw(pad_hex verify_bytestring);
 use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
-with "Bitcoin::Crypto::Role::Key",
-	"Bitcoin::Crypto::Role::Compressed";
+with qw(
+	Bitcoin::Crypto::Role::Key
+	Bitcoin::Crypto::Role::Compressed
+);
 
 around BUILDARGS => sub {
 	my ($orig, $class, @params) = @_;

@@ -29,7 +29,7 @@ has 'purpose' => (
 	required => 0,
 );
 
-with "Bitcoin::Crypto::Role::Network";
+with qw(Bitcoin::Crypto::Role::Network);
 
 requires qw(
 	_is_private
@@ -41,7 +41,7 @@ sub BUILD
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(
 		"trying to create key from unknown key data"
-	) unless $self->key_instance->is_private() == $self->_is_private;
+	) unless $self->key_instance->is_private == $self->_is_private;
 }
 
 sub __create_key

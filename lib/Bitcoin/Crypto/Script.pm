@@ -15,7 +15,13 @@ use Bitcoin::Crypto::Types qw(ArrayRef Str);
 
 use namespace::clean;
 
-with "Bitcoin::Crypto::Role::Network";
+has "operations" => (
+	is => "ro",
+	isa => ArrayRef [Str],
+	default => sub { [] },
+);
+
+with qw(Bitcoin::Crypto::Role::Network);
 
 # list of significant opcodes
 our %op_codes = (
@@ -250,12 +256,6 @@ for (2 .. 16) {
 		code => pack("C", 0x50 + $_),
 	};
 }
-
-has "operations" => (
-	is => "ro",
-	isa => ArrayRef [Str],
-	default => sub { [] },
-);
 
 sub _get_op_code
 {

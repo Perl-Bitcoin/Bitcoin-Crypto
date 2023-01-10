@@ -13,7 +13,7 @@ use Bitcoin::Crypto::Helpers qw(hash160);
 
 use namespace::clean;
 
-with "Bitcoin::Crypto::Role::BasicKey";
+with qw(Bitcoin::Crypto::Role::BasicKey);
 
 sub _is_private { 0 }
 

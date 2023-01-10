@@ -17,7 +17,7 @@ use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
 
-with "Bitcoin::Crypto::Role::ExtendedKey";
+with qw(Bitcoin::Crypto::Role::ExtendedKey);
 
 sub _is_private { 1 }
 
