@@ -252,7 +252,7 @@ for (2 .. 16) {
 }
 
 has "operations" => (
-	is => "rw",
+	is => "ro",
 	isa => ArrayRef [Str],
 	default => sub { [] },
 );
@@ -428,9 +428,9 @@ You can use a script object to:
 
 =head2 new
 
-	$script_object = $class->new($data)
+	$script_object = $class->new()
 
-A constructor. Returns new script instance
+A constructor. Returns new script instance.
 
 =head2 add_operation
 
