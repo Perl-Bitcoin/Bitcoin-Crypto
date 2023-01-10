@@ -45,29 +45,6 @@ has "chain_code" => (
 	required => 1,
 );
 
-sub _build_args
-{
-	my ($class, @params) = @_;
-
-	Bitcoin::Crypto::Exception::KeyCreate->raise(
-		"invalid arguments passed to key constructor"
-	) if @params < 2 || @params > 5;
-
-	my %ret = (
-		key_instance => $class->_create_key($params[0]),
-		chain_code => $params[1],
-	);
-
-	$ret{child_number} = $params[2]
-		if @params >= 3;
-	$ret{parent_fingerprint} = $params[3]
-		if @params >= 4;
-	$ret{depth} = $params[4]
-		if @params >= 5;
-
-	return %ret;
-}
-
 sub _get_network_extkey_version
 {
 	my ($self, $network, $purpose) = @_;
@@ -168,14 +145,14 @@ sub from_serialized
 		) if @found_networks == 0;
 
 		my $key = $class->new(
-			$data,
-			$chain_code,
-			unpack("N", $number),
-			$fingerprint,
-			unpack("C", $depth)
+			key_instance => $data,
+			chain_code => $chain_code,
+			child_number => unpack("N", $number),
+			parent_fingerprint => $fingerprint,
+			depth => unpack("C", $depth),
+			network => $found_networks[0],
 		);
 
-		$key->set_network(@found_networks);
 		$key->set_purpose($purpose);
 
 		return $key;
@@ -204,8 +181,11 @@ sub get_basic_key
 {
 	my ($self) = @_;
 	my $base_class = "Bitcoin::Crypto::Key::" . ($self->_is_private ? "Private" : "Public");
-	my $basic_key = $base_class->new($self->key_instance);
-	$basic_key->set_network($self->network);
+	my $basic_key = $base_class->new(
+		key_instance => $self->key_instance,
+		network => $self->network,
+	);
+
 	$basic_key->set_purpose($self->purpose);
 
 	return $basic_key;

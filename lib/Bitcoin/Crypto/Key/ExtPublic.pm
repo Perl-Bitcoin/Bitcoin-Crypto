@@ -5,7 +5,6 @@ use strict;
 use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
-use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(new_bigint ensure_length add_ec_points);
@@ -49,12 +48,12 @@ sub _derive_key_partial
 		"key $child_num in sequence was found invalid"
 	) unless defined $point;
 
-	return (blessed $self)->new(
-		$point,
-		$chain_code,
-		$child_num,
-		$self->get_fingerprint,
-		$self->depth + 1
+	return $self->new(
+		key_instance => $point,
+		chain_code => $chain_code,
+		child_number => $child_num,
+		parent_fingerprint => $self->get_fingerprint,
+		depth => $self->depth + 1,
 	);
 }
 
@@ -98,6 +97,11 @@ You can use an extended public key to:
 see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bitcoin Mainnet.
 
 =head1 METHODS
+
+=head2 new
+
+Constructor is reserved for internal and advanced use only. Use L</from_serialized> and
+L</from_serialized_base58> instead.
 
 =head2 to_serialized
 

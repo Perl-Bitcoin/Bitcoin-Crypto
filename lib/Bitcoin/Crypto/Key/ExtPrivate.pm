@@ -86,7 +86,10 @@ sub from_seed
 	my $key = substr $bytes, 0, 32;
 	my $cc = substr $bytes, 32, 32;
 
-	return $class->new($key, $cc);
+	return $class->new(
+		key_instance => $key,
+		chain_code => $cc,
+	);
 }
 
 sub from_hex_seed
@@ -101,14 +104,14 @@ sub get_public_key
 	my ($self) = @_;
 
 	my $public = Bitcoin::Crypto::Key::ExtPublic->new(
-		$self->raw_key("public"),
-		$self->chain_code,
-		$self->child_number,
-		$self->parent_fingerprint,
-		$self->depth
+		key_instance => $self->raw_key("public"),
+		chain_code => $self->chain_code,
+		child_number => $self->child_number,
+		parent_fingerprint => $self->parent_fingerprint,
+		depth => $self->depth,
+		network => $self->network,
 	);
 
-	$public->set_network($self->network);
 	$public->set_purpose($self->purpose);
 
 	return $public;
@@ -165,11 +168,11 @@ sub _derive_key_partial
 	) if $number->beq(0);
 
 	return (blessed $self)->new(
-		$number->as_bytes,
-		$chain_code,
-		$child_num,
-		$self->get_fingerprint,
-		$self->depth + 1
+		key_instance => $number->as_bytes,
+		chain_code => $chain_code,
+		child_number => $child_num,
+		parent_fingerprint => $self->get_fingerprint,
+		depth => $self->depth + 1,
 	);
 }
 
@@ -222,6 +225,12 @@ You can use an extended private key to:
 see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bitcoin Mainnet.
 
 =head1 METHODS
+
+=head2 new
+
+Constructor is reserved for internal and advanced use only. Use
+L</from_mnemonic>, L</from_seed>, L</from_hex_seed>, L</from_serialized> and
+L</from_serialized_base58> instead.
 
 =head2 generate_mnemonic
 

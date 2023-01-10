@@ -21,6 +21,7 @@ has "network" => (
 	writer => "_set_network"
 );
 
+# make writer chainable
 sub set_network
 {
 	my ($self, $network) = @_;

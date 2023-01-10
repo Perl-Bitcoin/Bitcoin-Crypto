@@ -13,11 +13,10 @@ use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
-with "Bitcoin::Crypto::Role::Network";
-
 has "key_instance" => (
 	is => "ro",
 	isa => InstanceOf ["Crypt::PK::ECC"],
+	coerce => sub { __create_key($_[0]) },
 	required => 1,
 );
 
@@ -30,34 +29,24 @@ has 'purpose' => (
 	required => 0,
 );
 
-sub _is_private { undef }
+with "Bitcoin::Crypto::Role::Network";
 
-sub _build_args
+requires qw(
+	_is_private
+);
+
+sub BUILD
 {
-	my ($class, @params) = @_;
-
-	Bitcoin::Crypto::Exception::KeyCreate->raise(
-		"invalid arguments passed to key constructor"
-	) unless @params == 1;
-
-	return
-		key_instance => $class->_create_key($params[0]);
-}
-
-around BUILDARGS => sub {
-	my ($orig, $class) = @_;
-	my %params = $class->_build_args(splice @_, 2);
+	my ($self) = @_;
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(
 		"trying to create key from unknown key data"
-	) unless $params{key_instance}->is_private() == $class->_is_private;
+	) unless $self->key_instance->is_private() == $self->_is_private;
+}
 
-	return $class->$orig(%params);
-};
-
-sub _create_key
+sub __create_key
 {
-	my ($class, $entropy) = @_;
+	my ($entropy) = @_;
 
 	return $entropy
 		if blessed($entropy) && $entropy->isa("Crypt::PK::ECC");
@@ -80,6 +69,13 @@ sub _create_key
 	);
 
 	return $key;
+}
+
+# __create_key for object usage
+sub _create_key
+{
+	shift;
+	goto \&__create_key;
 }
 
 sub set_purpose

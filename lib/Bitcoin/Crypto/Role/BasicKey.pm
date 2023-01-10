@@ -4,12 +4,24 @@ use v5.10;
 use strict;
 use warnings;
 
+use Carp qw(carp);
 use Bitcoin::Crypto::Helpers qw(pad_hex verify_bytestring);
 use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
 with "Bitcoin::Crypto::Role::Key",
 	"Bitcoin::Crypto::Role::Compressed";
+
+around BUILDARGS => sub {
+	my ($orig, $class, @params) = @_;
+
+	if (@params == 1) {
+		carp "$class->new(\$bytes) is now deprecated. Use $class->from_bytes(\$bytes) instead";
+		unshift @params, 'key_instance';
+	}
+
+	return $class->$orig(@params);
+};
 
 sub sign_message
 {
@@ -74,7 +86,7 @@ sub from_bytes
 	my ($class, $bytes) = @_;
 	verify_bytestring($bytes);
 
-	return $class->new($bytes);
+	return $class->new(key_instance => $bytes);
 }
 
 sub to_bytes

@@ -77,7 +77,7 @@ is(
 	"Passed network to public key"
 );
 
-# Key length testing - 3 tests
+# Key length testing
 my $short_key = "e8d964843cc55a91d";
 my $longer_key = "d0a08067d186ffd9d14e8d964843cc55a91d";
 my $too_long_key = "a3bc641ce7ab9a2ec7697f32d3ade425d9785e8f23bea3501524852cda3ca05fae28";
@@ -96,4 +96,13 @@ throws_ok {
 }
 "Bitcoin::Crypto::Exception::KeyCreate", "Too long key got rejected";
 
+# Incorrect data testing
+my $public_key = "04394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967c52ad62fe0b27e5acc0992fc8509e5041a06064ce967200b0b7288a4ab889bf22";
+
+throws_ok {
+	$PrivateKey->from_hex($public_key);
+}
+"Bitcoin::Crypto::Exception::KeyCreate", "Public key got rejected";
+
 done_testing;
+

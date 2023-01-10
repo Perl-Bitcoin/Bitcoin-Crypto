@@ -85,9 +85,12 @@ sub get_public_key
 {
 	my ($self) = @_;
 
-	my $public = Bitcoin::Crypto::Key::Public->new($self->raw_key("public"));
-	$public->set_compressed($self->compressed);
-	$public->set_network($self->network);
+	my $public = Bitcoin::Crypto::Key::Public->new(
+		key_instance => $self->raw_key("public"),
+		compressed => $self->compressed,
+		network => $self->network,
+	);
+
 	$public->set_purpose($self->purpose);
 
 	return $public;
@@ -141,6 +144,11 @@ see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bit
 
 =head1 METHODS
 
+=head2 new
+
+Constructor is reserved for internal and advanced use only. Use L</from_bytes>,
+L</from_hex> and L</from_wif> instead.
+
 =head2 from_bytes
 
 	$key_object = $class->from_bytes($data)
@@ -149,12 +157,6 @@ Use this method to create a PrivateKey instance from a byte string.
 Data C<$data> will be used as a private key entropy.
 
 Returns class instance.
-
-=head2 new
-
-	$key_object = $class->new($data)
-
-This works exactly the same as from_bytes
 
 =head2 to_bytes
 

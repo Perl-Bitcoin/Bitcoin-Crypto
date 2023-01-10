@@ -115,6 +115,11 @@ You can use a public key to:
 
 =head1 METHODS
 
+=head2 new
+
+Constructor is reserved for internal and advanced use only. Use L</from_bytes> and
+L</from_hex> instead.
+
 =head2 from_bytes
 
 	$key_object = $class->from_bytes($data)
@@ -123,12 +128,6 @@ Use this method to create a PublicKey instance from a byte string.
 Data C<$data> must represent a public key in ASN X9.62 format.
 
 Returns class instance.
-
-=head2 new
-
-	$key_object = $class->new($data)
-
-This works exactly the same as from_bytes
 
 =head2 to_bytes
 
