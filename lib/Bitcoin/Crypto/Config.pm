@@ -4,6 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
+use Config;
+
 use constant {
 	curve_name => 'secp256k1',
 	max_child_keys => (2 << 30),
@@ -12,6 +14,8 @@ use constant {
 	compress_public_point => 1,
 	witness_version => 0,
 	max_witness_version => 16,
+
+	ivsize => $Config{ivsize},
 };
 
 1;

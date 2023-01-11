@@ -13,6 +13,7 @@ use Type::Coercion;
 
 # make sure Math::BigInt is properly loaded - this module loads it
 use Bitcoin::Crypto::Helpers;
+use Bitcoin::Crypto::Config;
 
 __PACKAGE__->add_type(
 	name => 'BIP44Purpose',
@@ -21,22 +22,38 @@ __PACKAGE__->add_type(
 
 __PACKAGE__->add_type(
 	name => 'IntMaxBits',
-	parent => InstanceOf->of('Math::BigInt'),
+	parent => PositiveOrZeroInt,
 
 	constraint_generator => sub {
-		my $bits = assert_PositiveInt(shift) - 1;
-		my $limit = Math::BigInt->new(2)->blsft($bits);
+		my $bits = assert_PositiveInt(shift);
+
+		# for same bits as system, no need for special constraint
+		return sub { 1 }
+			if Bitcoin::Crypto::Config::ivsize * 8 == $bits;
+
+		# can't handle
+		die 'IntMaxBits only handles up to ' . (Bitcoin::Crypto::Config::ivsize * 8) . ' bits on this system'
+			if Bitcoin::Crypto::Config::ivsize * 8 < $bits;
+
+		my $limit = 1 << $bits;
 		return sub {
-			return $_->bge(0) && $_->blt($limit);
+			return $_ < $limit;
 		};
 	},
 
-	coercion_generator => sub {
-		return Type::Coercion->new(
-			type_coercion_map => [
-				Int, q{Math::BigInt->new($_)},
-			],
-		);
+	inline_generator => sub {
+		my $bits = shift;
+
+		return sub {
+			# for same bits as system, no need for special constraint
+			return (undef, qq{ 1 })
+				if Bitcoin::Crypto::Config::ivsize * 8 == $bits;
+
+			my $varname = pop;
+
+			my $limit = 1 << $bits;
+			return (undef, qq{ $varname < $limit });
+		}
 	},
 
 	message => sub {

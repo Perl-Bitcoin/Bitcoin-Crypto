@@ -4,74 +4,59 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
-BEGIN { use_ok('Bitcoin::Crypto::Types', qw(:all)) }
+BEGIN { use_ok('Bitcoin::Crypto::Types', qw(-types)) }
 
-{
+use Bitcoin::Crypto::Config;
 
-	package TestMoo;
-	use Moo;
-	use Bitcoin::Crypto::Types -types;
+subtest 'testing IntMaxBits[5]' => sub {
+	my $type = IntMaxBits [5];
 
-	has 't1' => (
-		is => 'ro',
-		isa => IntMaxBits [5],
-		coerce => 1,
-	);
-
-	has 't3' => (
-		is => 'ro',
-		isa => IntMaxBits [128],
-		coerce => 1,
-	);
-}
-
-my %data = (
-	invalid => [
-		{t1 => 32},
-		{t1 => 33},
-		{t1 => -1},
-		{
-			t3 => do { use bigint; 2 << 127 }
-		},
-		{t3 => -1},
-	],
-	valid => [
-		{t1 => 0},
-		{t1 => 10},
-		{t1 => 31},
-		{
-			t3 => do { use bigint; 2 << 70 }
-		},
-		{
-			t3 => do { use bigint; (2 << 127) - 1 }
-		},
-		{t3 => 0},
-	]
-);
-
-subtest 'testing IntMaxBits' => sub {
-	foreach my $case (@{$data{invalid}}) {
-		dies_ok {
-			TestMoo->new(%$case);
-		}
-		'types fail for invalid data';
+	foreach my $valid (qw(0 10 31)) {
+		ok $type->check($valid), 'valid check ok';
 	}
 
-	foreach my $case (@{$data{valid}}) {
-		lives_ok {
-			TestMoo->new(%$case);
-		}
-		'types pass for valid data';
+	foreach my $invalid (qw(32 33 -1)) {
+		ok !$type->check($invalid), 'invalid check ok';
+	}
+};
+
+subtest 'testing IntMaxBits[31]' => sub {
+	my $type = IntMaxBits [31];
+
+	foreach my $valid ((1 << 31) - 1) {
+		ok $type->check($valid), 'valid check ok';
+	}
+
+	foreach my $invalid (1 << 31) {
+		ok !$type->check($invalid), 'invalid check ok';
+	}
+};
+
+subtest 'testing IntMaxBits[60]' => sub {
+	plan skip_all => 'requires 64 bit system'
+		unless Bitcoin::Crypto::Config::ivsize >= 8;
+
+	my $type = IntMaxBits [60];
+
+	foreach my $valid ((1 << 60) - 1) {
+		ok $type->check($valid), 'valid check ok';
+	}
+
+	foreach my $invalid (1 << 60) {
+		ok !$type->check($invalid), 'invalid check ok';
 	}
 };
 
 subtest 'testing BIP44Purpose' => sub {
-	ok BIP44Purpose->check(undef);
-	ok BIP44Purpose->check(44);
-	ok BIP44Purpose->check(49);
-	ok BIP44Purpose->check(84);
-	ok !BIP44Purpose->check(43);
-	ok !BIP44Purpose->check(144);
+	my $type = BIP44Purpose;
+
+	for my $valid (undef, qw(44 49 84)) {
+		ok $type->check($valid), 'valid check ok';
+	}
+
+	for my $invalid (qw(43 144)) {
+		ok !$type->check($invalid), 'invalid check ok';
+	}
 };
 
 done_testing;

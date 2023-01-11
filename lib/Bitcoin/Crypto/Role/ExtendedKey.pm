@@ -19,7 +19,7 @@ use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
 has param 'depth' => (
-	coerce => IntMaxBits [8],
+	isa => IntMaxBits [8],
 	default => 0
 );
 
@@ -29,7 +29,7 @@ has param 'parent_fingerprint' => (
 );
 
 has param 'child_number' => (
-	coerce => IntMaxBits [32],
+	isa => IntMaxBits [32],
 	default => 0
 );
 
