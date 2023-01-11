@@ -12,33 +12,6 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Exception;
-use Moo::Role;
-
-has param 'key_instance' => (
-	isa => InstanceOf ['Crypt::PK::ECC'],
-	coerce => sub { __create_key($_[0]) },
-);
-
-has option 'purpose' => (
-	isa => BIP44Purpose,
-	writer => -hidden,
-	clearer => 1,
-);
-
-with qw(Bitcoin::Crypto::Role::Network);
-
-requires qw(
-	_is_private
-);
-
-sub BUILD
-{
-	my ($self) = @_;
-
-	Bitcoin::Crypto::Exception::KeyCreate->raise(
-		'trying to create key from unknown key data'
-	) unless $self->key_instance->is_private == $self->_is_private;
-}
 
 sub __create_key
 {
@@ -65,6 +38,35 @@ sub __create_key
 	);
 
 	return $key;
+}
+
+
+use Moo::Role;
+
+has param 'key_instance' => (
+	isa => InstanceOf ['Crypt::PK::ECC'],
+	coerce => sub { __create_key($_[0]) },
+);
+
+has option 'purpose' => (
+	isa => BIP44Purpose,
+	writer => -hidden,
+	clearer => 1,
+);
+
+with qw(Bitcoin::Crypto::Role::Network);
+
+requires qw(
+	_is_private
+);
+
+sub BUILD
+{
+	my ($self) = @_;
+
+	Bitcoin::Crypto::Exception::KeyCreate->raise(
+		'trying to create key from unknown key data'
+	) unless $self->key_instance->is_private == $self->_is_private;
 }
 
 # __create_key for object usage
