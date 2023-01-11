@@ -38,9 +38,6 @@ for my $message (@messages) {
 	$message = encode('UTF-8', $message);
 	my $signature = $privkey->sign_message($message);
 
-	# ok($privkey->sign_message($message) eq $signature, 'Signatures generation should be deterministic')
-	# 	or diag('Signatures generation seems to be nondeterministic, which is a possible private key security threat');
-
 	ok($privkey->verify_message($message, $signature), 'Valid signature');
 	ok($pubkey->verify_message($message, $signature), 'Pubkey recognizes signature');
 
