@@ -12,7 +12,7 @@ use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Types qw(IntMaxBits StrLength);
 use Bitcoin::Crypto::Util qw(get_path_info);
-use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length hash160 verify_bytestring);
+use Bitcoin::Crypto::Helpers qw(ensure_length hash160 verify_bytestring);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Exception;
@@ -25,7 +25,7 @@ has param 'depth' => (
 
 has param 'parent_fingerprint' => (
 	isa => StrLength[4, 4],
-	default => sub { pack 'x4' }
+	default => (pack 'x4'),
 );
 
 has param 'child_number' => (
@@ -38,6 +38,8 @@ has param 'chain_code' => (
 );
 
 with qw(Bitcoin::Crypto::Role::Key);
+
+requires '_derive_key_partial';
 
 sub _get_network_extkey_version
 {
