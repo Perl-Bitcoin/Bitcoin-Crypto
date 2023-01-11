@@ -48,10 +48,11 @@ has param 'key_instance' => (
 	coerce => sub { __create_key($_[0]) },
 );
 
-has option 'purpose' => (
+has param 'purpose' => (
 	isa => BIP44Purpose,
-	writer => -hidden,
+	writer => 1,
 	clearer => 1,
+	required => 0,
 );
 
 with qw(Bitcoin::Crypto::Role::Network);
@@ -69,18 +70,18 @@ sub BUILD
 	) unless $self->key_instance->is_private == $self->_is_private;
 }
 
+sub has_purpose
+{
+	my ($self, $purpose) = @_;
+
+	return !$self->purpose || $self->purpose == $purpose;
+}
+
 # __create_key for object usage
 sub _create_key
 {
 	shift;
 	goto \&__create_key;
-}
-
-sub set_purpose
-{
-	my ($self, $purpose) = @_;
-	$self->_set_purpose($purpose)
-		if $purpose;
 }
 
 sub raw_key

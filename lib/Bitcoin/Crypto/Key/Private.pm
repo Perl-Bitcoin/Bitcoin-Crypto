@@ -89,9 +89,8 @@ sub get_public_key
 		key_instance => $self->raw_key('public'),
 		compressed => $self->compressed,
 		network => $self->network,
+		purpose => $self->purpose,
 	);
-
-	$public->set_purpose($self->purpose);
 
 	return $public;
 }

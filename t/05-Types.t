@@ -66,12 +66,12 @@ subtest 'testing IntMaxBits' => sub {
 };
 
 subtest 'testing BIP44Purpose' => sub {
+	ok BIP44Purpose->check(undef);
 	ok BIP44Purpose->check(44);
 	ok BIP44Purpose->check(49);
 	ok BIP44Purpose->check(84);
 	ok !BIP44Purpose->check(43);
 	ok !BIP44Purpose->check(144);
-	ok !BIP44Purpose->check(undef);
 };
 
 done_testing;

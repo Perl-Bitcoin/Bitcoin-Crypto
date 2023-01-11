@@ -110,9 +110,8 @@ sub get_public_key
 		parent_fingerprint => $self->parent_fingerprint,
 		depth => $self->depth,
 		network => $self->network,
+		purpose => $self->purpose,
 	);
-
-	$public->set_purpose($self->purpose);
 
 	return $public;
 }

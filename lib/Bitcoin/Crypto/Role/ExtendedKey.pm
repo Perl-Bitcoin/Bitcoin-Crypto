@@ -145,9 +145,8 @@ sub from_serialized
 			parent_fingerprint => $fingerprint,
 			depth => unpack('C', $depth),
 			network => $found_networks[0],
+			purpose => $purpose,
 		);
-
-		$key->set_purpose($purpose);
 
 		return $key;
 	}
@@ -178,9 +177,8 @@ sub get_basic_key
 	my $basic_key = $base_class->new(
 		key_instance => $self->key_instance,
 		network => $self->network,
+		purpose => $self->purpose,
 	);
-
-	$basic_key->set_purpose($self->purpose);
 
 	return $basic_key;
 }
@@ -202,7 +200,7 @@ sub _get_purpose_from_BIP44
 	# NOTE: only handles BIP44 correctly when it is constructed with Bitcoin::Crypto::BIP44
 	# NOTE: when deriving new keys, we do not care about previous state:
 	# - if BIP44 is further derived, it is not BIP44 anymore
-	# - if BI44 is derived as a new BIP44, the old one is like the new master key
+	# - if BIP44 is derived as a new BIP44, the old one is like the new master key
 	# because of that, set purpose to undef if path is not BIP44
 
 	return undef

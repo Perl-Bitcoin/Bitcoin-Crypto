@@ -16,7 +16,7 @@ use Bitcoin::Crypto::Helpers;
 
 __PACKAGE__->add_type(
 	name => 'BIP44Purpose',
-	parent => Enum->of(44, 49, 84),
+	parent => Maybe [Enum->of(44, 49, 84)],
 );
 
 __PACKAGE__->add_type(
