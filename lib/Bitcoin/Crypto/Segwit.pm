@@ -20,7 +20,7 @@ our %validators = (
 		my ($data) = @_;
 
 		Bitcoin::Crypto::Exception::SegwitProgram->raise(
-			"incorrect witness program length"
+			'incorrect witness program length'
 		) unless length $data == 20 || length $data == 32;
 		return;
 	},
@@ -31,7 +31,7 @@ sub common_validator
 	my ($data) = @_;
 
 	Bitcoin::Crypto::Exception::SegwitProgram->raise(
-		"incorrect witness program length"
+		'incorrect witness program length'
 	) unless length $data >= 2 && length $data <= 40;
 	return;
 }
@@ -41,9 +41,9 @@ sub validate_program
 	my ($program) = @_;
 	verify_bytestring($program);
 
-	my $version = unpack "C", $program;
+	my $version = unpack 'C', $program;
 	Bitcoin::Crypto::Exception::SegwitProgram->raise(
-		"incorrect witness program version " . ($version // "[null]")
+		'incorrect witness program version ' . ($version // '[null]')
 	) unless defined $version && $version >= 0 && $version <= Bitcoin::Crypto::Config::max_witness_version;
 
 	$program = substr $program, 1;
@@ -96,7 +96,7 @@ The current implementation defines a validator for segwit version 0. In the futu
 
 		# perform validation
 		Bitcoin::Crypto::Exception::SegwitProgram->raise(
-			"validation of program version 1 failed"
+			'validation of program version 1 failed'
 		) if ...;
 
 		# if validation is successful just do nothing

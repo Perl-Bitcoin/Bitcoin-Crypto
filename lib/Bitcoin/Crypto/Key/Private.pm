@@ -44,7 +44,7 @@ sub from_wif
 	my ($class, $wif, $network) = @_;
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(
-		"base58 string is not valid WIF"
+		'base58 string is not valid WIF'
 	) unless validate_wif($wif);
 
 	my $decoded = decode_base58check($wif);
@@ -64,7 +64,7 @@ sub from_wif
 		if defined $network;
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(
-		"found multiple networks possible for given WIF"
+		'found multiple networks possible for given WIF'
 	) if @found_networks > 1;
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(
@@ -86,7 +86,7 @@ sub get_public_key
 	my ($self) = @_;
 
 	my $public = Bitcoin::Crypto::Key::Public->new(
-		key_instance => $self->raw_key("public"),
+		key_instance => $self->raw_key('public'),
 		compressed => $self->compressed,
 		network => $self->network,
 	);
@@ -113,16 +113,16 @@ Bitcoin::Crypto::Key::Private - Bitcoin private keys
 
 	# create signature using private key (sha256 of string byte representation)
 
-	my $sig = $priv->sign_message("Hello world");
+	my $sig = $priv->sign_message('Hello world');
 
 	# signature is returned as byte string
 	# use unpack to get the representation you need
 
-	my $sig_hex = unpack "H*", $sig;
+	my $sig_hex = unpack 'H*', $sig;
 
 	# signature verification
 
-	$priv->verify_message("Hello world", $sig);
+	$priv->verify_message('Hello world', $sig);
 
 =head1 DESCRIPTION
 
@@ -223,7 +223,7 @@ Returns instance of L<Bitcoin::Crypto::Key::Public> generated from the private k
 
 =head2 sign_message
 
-	$signature = $object->sign_message($message, $algo = "sha256")
+	$signature = $object->sign_message($message, $algo = 'sha256')
 
 Signs a digest of C<$message> (using C<$algo> digest algorithm) with a private key.
 
@@ -240,7 +240,7 @@ Caution: libtomcrypt cryptographic package that is generating signatures does no
 
 =head2 verify_message
 
-	$signature_valid = $object->verify_message($message, $signature, $algo = "sha256")
+	$signature_valid = $object->verify_message($message, $signature, $algo = 'sha256')
 
 Verifies C<$signature> against digest of C<$message> (with C<$algo> digest algorithm) using private key.
 

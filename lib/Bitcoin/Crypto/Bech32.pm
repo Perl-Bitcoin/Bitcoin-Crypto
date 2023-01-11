@@ -53,7 +53,7 @@ sub polymod
 
 sub hrp_expand
 {
-	my @hrp = split "", shift;
+	my @hrp = split //, shift;
 	my (@part1, @part2);
 	for (@hrp) {
 		my $val = ord;
@@ -67,7 +67,7 @@ sub to_numarr
 {
 	my ($string) = @_;
 
-	return [map { $alphabet_mapped{$_} } split "", $string];
+	return [map { $alphabet_mapped{$_} } split //, $string];
 }
 
 sub create_checksum
@@ -109,45 +109,45 @@ sub split_bech32
 	my ($bech32enc) = @_;
 
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
-		"bech32 input is not a string"
+		'bech32 input is not a string'
 	) unless Str->check($bech32enc);
 
 	$bech32enc = lc $bech32enc
 		if uc $bech32enc eq $bech32enc;
 
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
-		"bech32 string too long"
+		'bech32 string too long'
 	) if length $bech32enc > 90;
 
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
-		"bech32 string contains mixed case"
+		'bech32 string contains mixed case'
 	) if lc $bech32enc ne $bech32enc;
 
-	my @parts = split "1", $bech32enc;
+	my @parts = split /1/, $bech32enc;
 
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
-		"bech32 separator character missing"
+		'bech32 separator character missing'
 	) if @parts < 2;
 
 	my $data = pop @parts;
 
-	@parts = (join("1", @parts), $data);
+	@parts = (join('1', @parts), $data);
 
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
-		"incorrect length of bech32 human readable part"
+		'incorrect length of bech32 human readable part'
 	) if length $parts[0] < 1 || length $parts[0] > 83;
 
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
-		"illegal characters in bech32 human readable part"
+		'illegal characters in bech32 human readable part'
 	) if $parts[0] !~ /^[\x21-\x7e]+$/;
 
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
-		"incorrect length of bech32 data part"
+		'incorrect length of bech32 data part'
 	) if length $parts[1] < 6;
 
-	my $chars = join "", @alphabet;
+	my $chars = join '', @alphabet;
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
-		"illegal characters in bech32 data part"
+		'illegal characters in bech32 data part'
 	) if $parts[1] !~ /^[$chars]+$/;
 
 	return @parts;
@@ -159,21 +159,21 @@ sub translate_5to8
 	my ($values_ref) = @_;
 	my @enc_values = @{$values_ref};
 
-	my $bits = unpack "B*", pack "C*", @enc_values;
-	$bits = join "", map { substr $_, 3 } unpack "(a8)*", $bits;
+	my $bits = unpack 'B*', pack 'C*', @enc_values;
+	$bits = join '', map { substr $_, 3 } unpack '(a8)*', $bits;
 
 	my $length_padded = length $bits;
 	my $padding = $length_padded % 8;
 	$bits =~ s/0{$padding}$//;
 
 	Bitcoin::Crypto::Exception::Bech32InputData->raise(
-		"incorrect padding encoded in bech32"
+		'incorrect padding encoded in bech32'
 	) if length($bits) % 8 != 0 || length($bits) < $length_padded - 4;
 
-	my @data = unpack "(a8)*", $bits;
-	my $result = "";
+	my @data = unpack '(a8)*', $bits;
+	my $result = '';
 	for my $bitstr (@data) {
-		$result .= pack "B8", $bitstr;
+		$result .= pack 'B8', $bitstr;
 	}
 	return $result;
 }
@@ -184,11 +184,11 @@ sub translate_8to5
 	my ($bytes) = @_;
 	verify_bytestring($bytes);
 
-	my @data = unpack "(a5)*", unpack "B*", $bytes;
+	my @data = unpack '(a5)*', unpack 'B*', $bytes;
 	my @result;
 	for my $bitstr (@data) {
 		my $pad = 5 - length $bitstr;
-		my $num = unpack "C", pack "B*", "000$bitstr" . 0 x $pad;
+		my $num = unpack 'C', pack 'B*', "000$bitstr" . 0 x $pad;
 		push @result, $num;
 	}
 
@@ -202,7 +202,7 @@ sub encode_base32
 	my $result = '';
 	for my $num (@{$array}) {
 		Bitcoin::Crypto::Exception::Bech32InputData->raise(
-			"incorrect number to be encoded in bech32: must be between 0 and 31"
+			'incorrect number to be encoded in bech32: must be between 0 and 31'
 		) if $num < 0 || $num > 31;
 		$result .= $alphabet[$num];
 	}
@@ -261,7 +261,7 @@ sub decode_bech32
 		if !$type && verify_checksum_bech32m($hrp, $data);
 
 	Bitcoin::Crypto::Exception::Bech32InputChecksum->raise(
-		"incorrect bech32 checksum"
+		'incorrect bech32 checksum'
 	) unless $type;
 
 	return ($hrp, decode_base32(substr $data, 0, -$CHECKSUM_SIZE), $type);
@@ -273,7 +273,7 @@ sub decode_segwit
 	my $ver = shift @{$data};
 
 	Bitcoin::Crypto::Exception::Bech32InputChecksum->raise(
-		"wrong bech32 checksum calculated for given segwit program"
+		'wrong bech32 checksum calculated for given segwit program'
 	) if ($ver == 0 && $type ne BECH32)
 		|| ($ver > 0 && $type ne BECH32M);
 
@@ -303,7 +303,7 @@ Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl
 	);
 
 	# witness version - a number from 0 to 16, packed into a byte
-	my $version = pack "C", 0;
+	my $version = pack 'C', 0;
 
 	# human readable part of the address - a string
 	my $network_hrp = Bitcoin::Crypto::Network->get->segwit_hrp;
@@ -313,7 +313,7 @@ Bitcoin::Crypto::Bech32 - Bitcoin's Bech32 implementation in Perl
 	my $data_with_version = decode_segwit($segwit_address);
 
 	# handles custom Bech32 encoding
-	my $bech32str = encode_bech32("hello", [28, 25, 31, 0, 5], Bitcoin::Crypto::Bech32->BECH32); # should start with hello1
+	my $bech32str = encode_bech32('hello', [28, 25, 31, 0, 5], Bitcoin::Crypto::Bech32->BECH32); # should start with hello1
 	my ($hrp, $data_aref, $type) = decode_bech32($bech32str);
 
 =head1 DESCRIPTION

@@ -11,31 +11,31 @@ our %EXPORT_TAGS = (all => [@EXPORT_OK]);
 sub btc_extprv
 {
 	require Bitcoin::Crypto::Key::ExtPrivate;
-	return "Bitcoin::Crypto::Key::ExtPrivate";
+	return 'Bitcoin::Crypto::Key::ExtPrivate';
 }
 
 sub btc_prv
 {
 	require Bitcoin::Crypto::Key::Private;
-	return "Bitcoin::Crypto::Key::Private";
+	return 'Bitcoin::Crypto::Key::Private';
 }
 
 sub btc_extpub
 {
 	require Bitcoin::Crypto::Key::ExtPublic;
-	return "Bitcoin::Crypto::Key::ExtPublic";
+	return 'Bitcoin::Crypto::Key::ExtPublic';
 }
 
 sub btc_pub
 {
 	require Bitcoin::Crypto::Key::Public;
-	return "Bitcoin::Crypto::Key::Public";
+	return 'Bitcoin::Crypto::Key::Public';
 }
 
 sub btc_script
 {
 	require Bitcoin::Crypto::Script;
-	return "Bitcoin::Crypto::Script";
+	return 'Bitcoin::Crypto::Script';
 }
 
 # OO interface
@@ -67,16 +67,16 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 	my $priv = $derived_key->get_basic_key();
 	my $pub = $priv->get_public_key();
 
-	say "private key: " . $priv->to_wif();
-	say "public key: " . $pub->to_hex();
-	say "address: " . $pub->get_segwit_address();
+	say 'private key: ' . $priv->to_wif();
+	say 'public key: ' . $pub->to_hex();
+	say 'address: ' . $pub->get_segwit_address();
 
-	my $message = "Hello CPAN";
+	my $message = 'Hello CPAN';
 	my $signature = $priv->sign_message($message);
 
 	if ($pub->verify_message($message, $signature)) {
 		say "successfully signed message '$message'";
-		say "signature: " . unpack "H*", $signature;
+		say 'signature: ' . unpack 'H*', $signature;
 	}
 
 =head1 DESCRIPTION

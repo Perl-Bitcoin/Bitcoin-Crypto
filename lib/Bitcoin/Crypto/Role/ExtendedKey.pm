@@ -18,22 +18,22 @@ use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
-has param "depth" => (
+has param 'depth' => (
 	coerce => IntMaxBits [8],
 	default => 0
 );
 
-has param "parent_fingerprint" => (
+has param 'parent_fingerprint' => (
 	isa => StrLength[4, 4],
-	default => sub { pack "x4" }
+	default => sub { pack 'x4' }
 );
 
-has param "child_number" => (
+has param 'child_number' => (
 	coerce => IntMaxBits [32],
 	default => 0
 );
 
-has param "chain_code" => (
+has param 'chain_code' => (
 	isa => StrLength[32, 32],
 );
 
@@ -62,20 +62,20 @@ sub to_serialized
 
 	# network field is not required, lazy check for completeness
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"no extended key version found in network configuration"
+		'no extended key version found in network configuration'
 	) unless defined $version;
 
 	# version number (4B)
-	my $serialized = ensure_length pack("N", $version), 4;
+	my $serialized = ensure_length pack('N', $version), 4;
 
 	# depth (1B)
-	$serialized .= ensure_length pack("C", $self->depth), 1;
+	$serialized .= ensure_length pack('C', $self->depth), 1;
 
 	# parent's fingerprint (4B) - ensured
 	$serialized .= $self->parent_fingerprint;
 
 	# child number (4B)
-	$serialized .= ensure_length pack("N", $self->child_number), 4;
+	$serialized .= ensure_length pack('N', $self->child_number), 4;
 
 	# chain code (32B) - ensured
 	$serialized .= $self->chain_code;
@@ -93,20 +93,20 @@ sub from_serialized
 
 	# expected length is 78
 	if (defined $serialized && length $serialized == 78) {
-		my $format = "a4aa4a4a32a33";
+		my $format = 'a4aa4a4a32a33';
 		my ($version, $depth, $fingerprint, $number, $chain_code, $data) =
 			unpack($format, $serialized);
 
-		my $is_private = pack("x") eq substr $data, 0, 1;
+		my $is_private = pack('x') eq substr $data, 0, 1;
 
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
-			"invalid class used, key is " . ($is_private ? "private" : "public")
+			'invalid class used, key is ' . ($is_private ? 'private' : 'public')
 		) if $is_private != $class->_is_private;
 
 		$data = substr $data, 1, Bitcoin::Crypto::Config::key_max_length
 			if $is_private;
 
-		$version = unpack "N", $version;
+		$version = unpack 'N', $version;
 
 		my $purpose;
 		my @found_networks;
@@ -127,7 +127,7 @@ sub from_serialized
 		}
 
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
-			"found multiple networks possible for given serialized key"
+			'found multiple networks possible for given serialized key'
 		) if @found_networks > 1;
 
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
@@ -141,9 +141,9 @@ sub from_serialized
 		my $key = $class->new(
 			key_instance => $data,
 			chain_code => $chain_code,
-			child_number => unpack("N", $number),
+			child_number => unpack('N', $number),
 			parent_fingerprint => $fingerprint,
-			depth => unpack("C", $depth),
+			depth => unpack('C', $depth),
 			network => $found_networks[0],
 		);
 
@@ -153,7 +153,7 @@ sub from_serialized
 	}
 	else {
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
-			"input data does not look like a valid serialized extended key"
+			'input data does not look like a valid serialized extended key'
 		);
 	}
 }
@@ -174,7 +174,7 @@ sub from_serialized_base58
 sub get_basic_key
 {
 	my ($self) = @_;
-	my $base_class = "Bitcoin::Crypto::Key::" . ($self->_is_private ? "Private" : "Public");
+	my $base_class = 'Bitcoin::Crypto::Key::' . ($self->_is_private ? 'Private' : 'Public');
 	my $basic_key = $base_class->new(
 		key_instance => $self->key_instance,
 		network => $self->network,
@@ -190,7 +190,7 @@ sub get_fingerprint
 	my ($self, $len) = @_;
 	$len //= 4;
 
-	my $pubkey = $self->raw_key("public_compressed");
+	my $pubkey = $self->raw_key('public_compressed');
 	my $identifier = hash160($pubkey);
 	return substr $identifier, 0, 4;
 }
@@ -220,11 +220,11 @@ sub derive_key
 	my $path_info = get_path_info $path;
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
-		"invalid key derivation path supplied"
+		'invalid key derivation path supplied'
 	) unless defined $path_info;
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
-		"cannot derive private key from public key"
+		'cannot derive private key from public key'
 	) if !$self->_is_private && $path_info->{private};
 
 	my $key = $self;

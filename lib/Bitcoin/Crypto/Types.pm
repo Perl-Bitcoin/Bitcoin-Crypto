@@ -15,13 +15,13 @@ use Type::Coercion;
 use Bitcoin::Crypto::Helpers;
 
 __PACKAGE__->add_type(
-	name => "BIP44Purpose",
+	name => 'BIP44Purpose',
 	parent => Enum->of(44, 49, 84),
 );
 
 __PACKAGE__->add_type(
-	name => "IntMaxBits",
-	parent => InstanceOf->of("Math::BigInt"),
+	name => 'IntMaxBits',
+	parent => InstanceOf->of('Math::BigInt'),
 
 	constraint_generator => sub {
 		my $bits = assert_PositiveInt(shift) - 1;

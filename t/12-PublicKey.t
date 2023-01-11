@@ -7,7 +7,7 @@ use Bitcoin::Crypto::Config;
 
 BEGIN { use_ok('Bitcoin::Crypto::Key::Public') }
 
-my $PublicKey = "Bitcoin::Crypto::Key::Public";
+my $PublicKey = 'Bitcoin::Crypto::Key::Public';
 
 my %cases = qw(
 	04394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967c52ad62fe0b27e5acc0992fc8509e5041a06064ce967200b0b7288a4ab889bf22
@@ -48,14 +48,14 @@ my %cases_segwit_native = qw(
 # Basic creation of addresses keys - 8 tests
 for my $key (keys %cases) {
 	my $pubkey = $PublicKey->from_hex($key)->set_compressed(0);
-	is($pubkey->to_hex(), $key, "imported and exported correctly");
-	is($pubkey->get_legacy_address(), $cases{$key}, "correctly created address");
+	is($pubkey->to_hex(), $key, 'imported and exported correctly');
+	is($pubkey->get_legacy_address(), $cases{$key}, 'correctly created address');
 	$pubkey->set_compressed();
-	ok(defined $cases_compressed{$pubkey->to_hex()}, "exported compressed key correctly");
+	ok(defined $cases_compressed{$pubkey->to_hex()}, 'exported compressed key correctly');
 	is(
 		$pubkey->get_legacy_address(),
 		$cases_compressed{$pubkey->to_hex()},
-		"correctly created compressed address"
+		'correctly created compressed address'
 	);
 }
 
@@ -65,7 +65,7 @@ for my $key (keys %cases_segwit_compat) {
 	is(
 		$pubkey->get_compat_address(),
 		$cases_segwit_compat{$key},
-		"correctly created segwit compat address"
+		'correctly created segwit compat address'
 	);
 }
 
@@ -74,40 +74,41 @@ for my $key (keys %cases_segwit_native) {
 	is(
 		$pubkey->get_segwit_address(),
 		$cases_segwit_native{$key},
-		"correctly created segwit native address"
+		'correctly created segwit native address'
 	);
 }
 
 # Verify message without private key
-my $message = "Perl test script";
+my $message = 'Perl test script';
 my $pub = $PublicKey->from_hex(
-	"04b55965ca968e6e14d9175fb3fc3dc35f68b67b7e69cc2d1fa8c27f2406889c0f77cc2c39331735990bc67ccbf63c67642ff7b8ffd3794a4d76e0b78d9797a347"
+	'04b55965ca968e6e14d9175fb3fc3dc35f68b67b7e69cc2d1fa8c27f2406889c0f77cc2c39331735990bc67ccbf63c67642ff7b8ffd3794a4d76e0b78d9797a347'
 )->set_compressed(0);
 my $pub_compressed =
-	$PublicKey->from_hex("03b55965ca968e6e14d9175fb3fc3dc35f68b67b7e69cc2d1fa8c27f2406889c0f");
+	$PublicKey->from_hex('03b55965ca968e6e14d9175fb3fc3dc35f68b67b7e69cc2d1fa8c27f2406889c0f');
 my $random_pub = $PublicKey->from_hex((keys %cases)[0]);
-my $sig = pack "H*",
+my $sig = pack 'H*',
 	pad_hex(
-	"3044022031731fbf940cffc6b72298b8775b12603fe16844a65983fb46b5fa8cf5d9e9bd022064625366f834314f8aef02aedc241a9b393d1f43887875f663b1be7080bae5c5"
+	'3044022031731fbf940cffc6b72298b8775b12603fe16844a65983fb46b5fa8cf5d9e9bd022064625366f834314f8aef02aedc241a9b393d1f43887875f663b1be7080bae5c5'
 	);
 
-ok($pub->verify_message($message, $sig), "verified message correctly");
+ok($pub->verify_message($message, $sig), 'verified message correctly');
 ok(
 	$pub_compressed->verify_message($message, $sig),
-	"verified message correctly with compressed key"
+	'verified message correctly with compressed key'
 );
-ok(!$random_pub->verify_message($message, $sig), "verification fails with different pubkey");
+ok(!$random_pub->verify_message($message, $sig), 'verification fails with different pubkey');
 
 # Generate address for different network
 
-my $should_be_pub = $pub->set_network("bitcoin_testnet");
+my $should_be_pub = $pub->set_network('bitcoin_testnet');
 is $should_be_pub, $pub, 'set_network return value ok';
 
-my $testnet_addr = "n1raSqPwHRbJ87dC8daiwgLVrQBy9Fj17K";
-is($pub->network->name, "Bitcoin Testnet", "changed network to testnet");
+my $testnet_addr = 'n1raSqPwHRbJ87dC8daiwgLVrQBy9Fj17K';
+is($pub->network->name, 'Bitcoin Testnet', 'changed network to testnet');
 is(
 	$pub->get_legacy_address(),
-	$testnet_addr, "created different address correctly when in non-default network"
+	$testnet_addr, 'created different address correctly when in non-default network'
 );
 
 done_testing;
+

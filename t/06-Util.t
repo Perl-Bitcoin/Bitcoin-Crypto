@@ -9,21 +9,21 @@ use utf8;
 BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info mnemonic_to_seed)) }
 
 is mnemonic_to_seed(
-	"われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　らいう",
-	"㍍ガバヴァぱばぐゞちぢ十人十色"
+	'われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　らいう',
+	'㍍ガバヴァぱばぐゞちぢ十人十色'
 	),
 	pack(
 		'H*',
-		"a44ba7054ac2f9226929d56505a51e13acdaa8a9097923ca07ea465c4c7e294c038f3f4e7e4b373726ba0057191aced6e48ac8d183f3a11569c426f0de414623"
+		'a44ba7054ac2f9226929d56505a51e13acdaa8a9097923ca07ea465c4c7e294c038f3f4e7e4b373726ba0057191aced6e48ac8d183f3a11569c426f0de414623'
 	),
 	'seed from mnemonic ok';
 
 # validate_wif - 3 tests
 
 my %cases = (
-	"935hpxoy4BGeuHmmtjURq52SehWtRoSArv6mJVZbVXUWyN9HQ5T" => !!1,
-	"Aammc6SScZZF47CuWe4Wn91kDE" => !!0,
-	"IOU" => undef,
+	'935hpxoy4BGeuHmmtjURq52SehWtRoSArv6mJVZbVXUWyN9HQ5T' => !!1,
+	'Aammc6SScZZF47CuWe4Wn91kDE' => !!0,
+	'IOU' => undef,
 );
 
 foreach my $case (keys %cases) {
@@ -31,13 +31,13 @@ foreach my $case (keys %cases) {
 		lives_and {
 			is(validate_wif($case), $cases{$case})
 		}
-		"wif validation ok";
+		'wif validation ok';
 	}
 	else {
 		throws_ok {
 			validate_wif($case);
 		}
-		"Bitcoin::Crypto::Exception", "wif validation failed as expected";
+		'Bitcoin::Crypto::Exception', 'wif validation failed as expected';
 	}
 }
 

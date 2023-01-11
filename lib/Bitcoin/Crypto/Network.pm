@@ -15,63 +15,63 @@ use namespace::clean;
 my %networks;
 my $default_network;
 
-has param "id" => (
+has param 'id' => (
 	isa => Str,
 );
 
-has param "name" => (
+has param 'name' => (
 	isa => Str,
 );
 
-has param "p2pkh_byte" => (
+has param 'p2pkh_byte' => (
 	isa => StrLength [1, 1],
 );
 
-has param "wif_byte" => (
+has param 'wif_byte' => (
 	isa => StrLength [1, 1],
 );
 
-has param "p2sh_byte" => (
+has param 'p2sh_byte' => (
 	isa => StrLength [1, 1],
 	required => 0,
 );
 
-has param "segwit_hrp" => (
+has param 'segwit_hrp' => (
 	isa => Str,
 	required => 0,
 );
 
-has param "extprv_version" => (
+has param 'extprv_version' => (
 	isa => Int,
 	required => 0,
 );
 
-has param "extpub_version" => (
+has param 'extpub_version' => (
 	isa => Int,
 	required => 0,
 );
 
-has param "extprv_compat_version" => (
+has param 'extprv_compat_version' => (
 	isa => Int,
 	required => 0,
 );
 
-has param "extpub_compat_version" => (
+has param 'extpub_compat_version' => (
 	isa => Int,
 	required => 0,
 );
 
-has param "extprv_segwit_version" => (
+has param 'extprv_segwit_version' => (
 	isa => Int,
 	required => 0,
 );
 
-has param "extpub_segwit_version" => (
+has param 'extpub_segwit_version' => (
 	isa => Int,
 	required => 0,
 );
 
-has param "bip44_coin" => (
+has param 'bip44_coin' => (
 	isa => Int,
 	required => 0,
 );
@@ -91,11 +91,11 @@ sub set_default
 	my ($self) = @_;
 
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"network must be an instance of Bitcoin::Crypto::Network"
+		'network must be an instance of Bitcoin::Crypto::Network'
 	) unless blessed($self);
 
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"the network needs to be registered before becoming the default one"
+		'the network needs to be registered before becoming the default one'
 	) unless defined $networks{$self->id};
 
 	$default_network = $self->id;
@@ -117,8 +117,8 @@ sub find
 		unless defined $sub;
 
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"argument passed to Bitcoin::Crypto::Network->find must be a coderef returning boolean"
-	) unless ref $sub eq "CODE";
+		'argument passed to Bitcoin::Crypto::Network->find must be a coderef returning boolean'
+	) unless ref $sub eq 'CODE';
 
 	return grep { $sub->($networks{$_}) } keys %networks;
 }
@@ -145,12 +145,12 @@ sub get
 ### BITCOIN
 
 __PACKAGE__->register(
-	id => "bitcoin",
-	name => "Bitcoin Mainnet",
+	id => 'bitcoin',
+	name => 'Bitcoin Mainnet',
 	p2pkh_byte => "\x00",
 	p2sh_byte => "\x05",
 	wif_byte => "\x80",
-	segwit_hrp => "bc",
+	segwit_hrp => 'bc',
 
 	extprv_version => 0x0488ade4,
 	extpub_version => 0x0488b21e,
@@ -165,12 +165,12 @@ __PACKAGE__->register(
 )->set_default;
 
 __PACKAGE__->register(
-	id => "bitcoin_testnet",
-	name => "Bitcoin Testnet",
+	id => 'bitcoin_testnet',
+	name => 'Bitcoin Testnet',
 	p2pkh_byte => "\x6f",
 	p2sh_byte => "\xc4",
 	wif_byte => "\xef",
-	segwit_hrp => "tb",
+	segwit_hrp => 'tb',
 
 	extprv_version => 0x04358394,
 	extpub_version => 0x043587cf,
@@ -187,8 +187,8 @@ __PACKAGE__->register(
 ### DOGECOIN
 
 __PACKAGE__->register(
-	id => "dogecoin",
-	name => "Dogecoin Mainnet",
+	id => 'dogecoin',
+	name => 'Dogecoin Mainnet',
 	p2pkh_byte => "\x1e",
 	p2sh_byte => "\x16",
 	wif_byte => "\x9e",
@@ -200,8 +200,8 @@ __PACKAGE__->register(
 );
 
 __PACKAGE__->register(
-	id => "dogecoin_testnet",
-	name => "Dogecoin Testnet",
+	id => 'dogecoin_testnet',
+	name => 'Dogecoin Testnet',
 	p2pkh_byte => "\x71",
 	p2sh_byte => "\xc4",
 	wif_byte => "\xf1",
@@ -235,13 +235,13 @@ Bitcoin::Crypto::Network - Management tool for cryptocurrency networks
 
 	# you can get full network configuration with get() using network id
 
-	Bitcoin::Crypto::Network->get("bitcoin_testnet")->name; # Bitcoin Testnet
+	Bitcoin::Crypto::Network->get('bitcoin_testnet')->name; # Bitcoin Testnet
 
 	# search for network and get array of keys in return
 	# there will be multiple results if your search is matched
 	# by multiple networks
 
-	Bitcoin::Crypto::Network->find(sub { shift->name eq "Bitcoin Mainnet" }); # (mainnet)
+	Bitcoin::Crypto::Network->find(sub { shift->name eq 'Bitcoin Mainnet' }); # (mainnet)
 	Bitcoin::Crypto::Network->find(sub { shift->p2pkh_byte eq "\x6f" }); # (testnet)
 
 	# if you're working with cryptocurrency other than Bitcoin you need to add a new network
@@ -253,8 +253,8 @@ Bitcoin::Crypto::Network - Management tool for cryptocurrency networks
 	# register() can be used to create a network
 
 	my $litecoin = Bitcoin::Crypto::Network->register(
-		id => "litecoin",
-		name => "Litecoin Mainnet",
+		id => 'litecoin',
+		name => 'Litecoin Mainnet',
 		p2pkh_byte => "\x30",
 		wif_byte => "\xb0",
 	);
@@ -324,7 +324,7 @@ network but all keys created from other sources will be treated as Bitcoin.
 You need to set_default to make all new keys use it. If you use many
 networks it might be better to set a network with key's set_network method:
 
-	$priv->set_network("network_id");
+	$priv->set_network('network_id');
 
 Remember that if you don't specify network field for some feature you won't be able to
 use it. For example the module will complain if you try to generate segwit address
@@ -390,7 +390,7 @@ test will be returned. Example:
 
 	sub {
 		my $instance = shift;
-		return $instance->name eq "Some name";
+		return $instance->name eq 'Some name';
 	}
 
 =head1 SEE ALSO

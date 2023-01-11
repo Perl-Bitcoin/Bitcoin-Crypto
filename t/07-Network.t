@@ -11,8 +11,8 @@ BEGIN { use_ok 'Bitcoin::Crypto::Network' }
 my $count = scalar Bitcoin::Crypto::Network->find;
 
 my $litecoin = {
-	id => "litecoin",
-	name => "Litecoin Mainnet",
+	id => 'litecoin',
+	name => 'Litecoin Mainnet',
 	p2pkh_byte => "\x30",
 };
 
@@ -21,36 +21,36 @@ my $litecoin = {
 dies_ok {
 	Bitcoin::Crypto::Network->register(%$litecoin);
 }
-"invalid network validation fails";
+'invalid network validation fails';
 
 cmp_ok(
-	Bitcoin::Crypto::Network->find, "==", $count,
-	"network list unchanged"
+	Bitcoin::Crypto::Network->find, '==', $count,
+	'network list unchanged'
 );
 
 $litecoin->{wif_byte} = "\xb0";
 
 lives_and {
 	$litecoin = Bitcoin::Crypto::Network->register(%$litecoin);
-	isa_ok $litecoin, "Bitcoin::Crypto::Network";
+	isa_ok $litecoin, 'Bitcoin::Crypto::Network';
 	is(Bitcoin::Crypto::Network->get($litecoin->id)->id, $litecoin->id);
 }
-"network validates and gets registered";
+'network validates and gets registered';
 
 # default network
 
 $litecoin->set_default;
 is(
 	Bitcoin::Crypto::Network->get->id, $litecoin->id,
-	"network successfully flagged as default"
+	'network successfully flagged as default'
 );
 
 # finding the network
 
 is_deeply [Bitcoin::Crypto::Network->find(sub { shift->wif_byte eq "\xb0" })], [$litecoin->id],
-	"network found successfully";
-ok !Bitcoin::Crypto::Network->find(sub { shift->name eq "unexistent" }),
-	"non-existent network not found";
+	'network found successfully';
+ok !Bitcoin::Crypto::Network->find(sub { shift->name eq 'unexistent' }),
+	'non-existent network not found';
 
 done_testing;
 

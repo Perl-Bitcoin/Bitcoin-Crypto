@@ -37,14 +37,14 @@ our @EXPORT_OK = qw(
 sub new_bigint
 {
 	my ($bytes) = @_;
-	return Math::BigInt->from_hex(unpack "H*", $bytes);
+	return Math::BigInt->from_hex(unpack 'H*', $bytes);
 }
 
 sub pad_hex
 {
 	my ($hex) = @_;
 	$hex =~ s/^0x//;
-	return "0" x (length($hex) % 2) . $hex;
+	return '0' x (length($hex) % 2) . $hex;
 }
 
 sub ensure_length
@@ -64,13 +64,13 @@ sub verify_bytestring
 	my ($string) = @_;
 
 	Bitcoin::Crypto::Exception->raise(
-		"invalid input value, expected string"
+		'invalid input value, expected string'
 	) if !defined $string || ref $string;
 
 	my @characters = split //, $string;
 
 	Bitcoin::Crypto::Exception->raise(
-		"string contains characters with numeric values over 255 and cannot be used as a byte string"
+		'string contains characters with numeric values over 255 and cannot be used as a byte string'
 	) if (grep { ord($_) > 255 } @characters) > 0;
 }
 
@@ -99,8 +99,8 @@ sub add_ec_points
 
 	my $curve_size = Bitcoin::Crypto::Config::key_max_length;
 	my $curve_data = Crypt::PK::ECC->new->generate_key(Bitcoin::Crypto::Config::curve_name)->curve2hash;
-	my $p = new_bigint(pack "H*", $curve_data->{prime});
-	my $a = new_bigint(pack "H*", $curve_data->{A});
+	my $p = new_bigint(pack 'H*', $curve_data->{prime});
+	my $a = new_bigint(pack 'H*', $curve_data->{A});
 
 	my $add_points = sub {
 		my ($x1, $x2, $y1, $lambda) = @_;

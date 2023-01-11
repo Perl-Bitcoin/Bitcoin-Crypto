@@ -9,7 +9,7 @@ use Bitcoin::Crypto::Exception;
 BEGIN { use_ok('Bitcoin::Crypto::Segwit', qw(validate_program)) }
 
 # make warnings critical
-local $SIG{__WARN__} = sub { die shift() . " - warning" };
+local $SIG{__WARN__} = sub { die shift() . ' - warning' };
 
 # segwit version 15 program passing common length valiadion
 my $program = "\x0f\x00\xff";
@@ -18,7 +18,7 @@ my $program = "\x0f\x00\xff";
 	throws_ok {
 		validate_program($program);
 	}
-	qr/- warning/, "warning was raised as exception";
+	qr/- warning/, 'warning was raised as exception';
 	my $err = $@;
 
 	note($err);
@@ -30,7 +30,7 @@ $Bitcoin::Crypto::Segwit::validators{15} = sub {
 
 	# perform validation
 	Bitcoin::Crypto::Exception::ValidationTest->raise(
-		"validation of program version 15 failed"
+		'validation of program version 15 failed'
 	);
 
 	# if validation is successful just do nothing
@@ -41,10 +41,11 @@ $Bitcoin::Crypto::Segwit::validators{15} = sub {
 	throws_ok {
 		validate_program($program);
 	}
-	"Bitcoin::Crypto::Exception::ValidationTest", "exception was raised";
+	'Bitcoin::Crypto::Exception::ValidationTest', 'exception was raised';
 	my $err = $@;
 
 	note($err);
 }
 
 done_testing;
+

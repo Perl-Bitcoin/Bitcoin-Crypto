@@ -30,10 +30,10 @@ sub sign_message
 	my ($self, $message, $algorithm) = @_;
 
 	Bitcoin::Crypto::Exception::Sign->raise(
-		"cannot sign a message with a public key"
+		'cannot sign a message with a public key'
 	) unless $self->_is_private;
 
-	$algorithm //= "sha256";
+	$algorithm //= 'sha256';
 	if (eval { require Crypt::Perl } && Crypt::Perl->VERSION gt '0.33') {
 		require Crypt::Perl::ECDSA::Parse;
 		$self->{_crypt_perl_prv} = Crypt::Perl::ECDSA::Parse::private($self->key_instance->export_key_der('private'))
@@ -63,7 +63,7 @@ sub verify_message
 	my ($self, $message, $signature, $algorithm) = @_;
 	verify_bytestring($signature);
 
-	$algorithm //= "sha256";
+	$algorithm //= 'sha256';
 	return Bitcoin::Crypto::Exception::Verify->trap_into(
 		sub {
 			$self->key_instance->verify_message($signature, $message, $algorithm);
@@ -74,13 +74,13 @@ sub verify_message
 sub from_hex
 {
 	my ($class, $val) = @_;
-	return $class->from_bytes(pack "H*", pad_hex($val));
+	return $class->from_bytes(pack 'H*', pad_hex($val));
 }
 
 sub to_hex
 {
 	my ($self) = @_;
-	return unpack "H*", $self->to_bytes();
+	return unpack 'H*', $self->to_bytes();
 }
 
 sub from_bytes

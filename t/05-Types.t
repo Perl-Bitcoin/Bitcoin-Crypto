@@ -12,14 +12,14 @@ BEGIN { use_ok('Bitcoin::Crypto::Types', qw(:all)) }
 	use Moo;
 	use Bitcoin::Crypto::Types -types;
 
-	has "t1" => (
-		is => "ro",
+	has 't1' => (
+		is => 'ro',
 		isa => IntMaxBits [5],
 		coerce => 1,
 	);
 
-	has "t3" => (
-		is => "ro",
+	has 't3' => (
+		is => 'ro',
 		isa => IntMaxBits [128],
 		coerce => 1,
 	);
@@ -54,14 +54,14 @@ subtest 'testing IntMaxBits' => sub {
 		dies_ok {
 			TestMoo->new(%$case);
 		}
-		"types fail for invalid data";
+		'types fail for invalid data';
 	}
 
 	foreach my $case (@{$data{valid}}) {
 		lives_ok {
 			TestMoo->new(%$case);
 		}
-		"types pass for valid data";
+		'types pass for valid data';
 	}
 };
 

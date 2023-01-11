@@ -21,27 +21,27 @@ sub _derive_key_partial
 	my ($self, $child_num, $hardened) = @_;
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
-		"cannot derive hardened key from public key"
+		'cannot derive hardened key from public key'
 	) if $hardened;
 
 	# public key data - SEC compressed form
-	my $hmac_data = $self->raw_key("public_compressed");
+	my $hmac_data = $self->raw_key('public_compressed');
 
 	# child number - 4 bytes
-	$hmac_data .= ensure_length pack("N", $child_num), 4;
+	$hmac_data .= ensure_length pack('N', $child_num), 4;
 
-	my $data = hmac("SHA512", $self->chain_code, $hmac_data);
+	my $data = hmac('SHA512', $self->chain_code, $hmac_data);
 	my $chain_code = substr $data, 32, 32;
 
-	my $n_order = new_bigint(pack "H*", $self->key_instance->curve2hash->{order});
+	my $n_order = new_bigint(pack 'H*', $self->key_instance->curve2hash->{order});
 	my $number = new_bigint(substr $data, 0, 32);
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
 		"key $child_num in sequence was found invalid"
 	) if $number->bge($n_order);
 
 	my $key = $self->_create_key(substr $data, 0, 32);
-	my $point = $key->export_key_raw("public");
-	my $parent_point = $self->raw_key("public");
+	my $point = $key->export_key_raw('public');
+	my $parent_point = $self->raw_key('public');
 	$point = add_ec_points($point, $parent_point);
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(

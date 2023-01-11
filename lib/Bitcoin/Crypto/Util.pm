@@ -59,10 +59,10 @@ sub mnemonic_to_seed
 {
 	my ($mnemonic, $password) = @_;
 
-	$mnemonic = encode("UTF-8", NFKD($mnemonic));
-	$password = encode("UTF-8", NFKD("mnemonic" . ($password // "")));
+	$mnemonic = encode('UTF-8', NFKD($mnemonic));
+	$password = encode('UTF-8', NFKD('mnemonic' . ($password // '')));
 
-	return pbkdf2($mnemonic, $password, 2048, "SHA512", 64);
+	return pbkdf2($mnemonic, $password, 2048, 'SHA512', 64);
 }
 
 sub get_path_info
@@ -70,10 +70,10 @@ sub get_path_info
 	my ($path) = @_;
 	if ($path =~ m#^([mM])((?:/\d+'?)*)$#) {
 		my %info;
-		$info{private} = $1 eq "m";
+		$info{private} = $1 eq 'm';
 		if (defined $2 && length $2 > 0) {
 			$info{path} =
-				[map { s#(\d+)'#$1 + Bitcoin::Crypto::Config::max_child_keys#e; $_ } split "/", substr $2, 1];
+				[map { s#(\d+)'#$1 + Bitcoin::Crypto::Config::max_child_keys#e; $_ } split /\//, substr $2, 1];
 		}
 		else {
 			$info{path} = [];

@@ -79,7 +79,7 @@ for my $purpose (qw(44 49 84)) {
 		}
 	};
 
-	subtest "testing purpose clearing" => sub {
+	subtest 'testing purpose clearing' => sub {
 		my $first = $derived->derive_key_bip44(get_from_account => 1)->get_basic_key->get_public_key;
 
 		$first->clear_purpose;

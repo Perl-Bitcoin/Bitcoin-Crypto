@@ -8,25 +8,25 @@ BEGIN { use_ok('Bitcoin::Crypto::Exception') }
 
 {
 	throws_ok {
-		Bitcoin::Crypto::Exception->raise("test_message");
+		Bitcoin::Crypto::Exception->raise('test_message');
 	}
-	"Bitcoin::Crypto::Exception", "exception was raised";
+	'Bitcoin::Crypto::Exception', 'exception was raised';
 	throws_ok {
-		Bitcoin::Crypto::Exception->throw("test_message");
+		Bitcoin::Crypto::Exception->throw('test_message');
 	}
-	"Bitcoin::Crypto::Exception", "exception was raised";
+	'Bitcoin::Crypto::Exception', 'exception was raised';
 	my $err = $@;
 
-	is($err->message, "test_message", "message ok");
-	ok("$err" =~ /test_message/, "class stringified");
+	is($err->message, 'test_message', 'message ok');
+	ok("$err" =~ /test_message/, 'class stringified');
 	note("$err");
 }
 
 {
 	throws_ok {
-		Bitcoin::Crypto::Exception::KeyCreate->raise("message");
+		Bitcoin::Crypto::Exception::KeyCreate->raise('message');
 	}
-	"Bitcoin::Crypto::Exception::KeyCreate", "exception was raised";
+	'Bitcoin::Crypto::Exception::KeyCreate', 'exception was raised';
 
 	note $@;
 }
@@ -52,7 +52,7 @@ BEGIN { use_ok('Bitcoin::Crypto::Exception') }
 			sub { die 'test'; }
 		);
 	}
-	"Bitcoin::Crypto::Exception", "exception was trapped";
+	'Bitcoin::Crypto::Exception', 'exception was trapped';
 
 	lives_and {
 		is(
@@ -62,7 +62,7 @@ BEGIN { use_ok('Bitcoin::Crypto::Exception') }
 			54321
 		);
 	}
-	"trapped return value ok";
+	'trapped return value ok';
 
 	throws_ok {
 		Bitcoin::Crypto::Exception->trap_into(
@@ -72,7 +72,7 @@ BEGIN { use_ok('Bitcoin::Crypto::Exception') }
 			}
 		);
 	}
-	"Bitcoin::Crypto::Exception", "exception was trapped despite DESTROY";
+	'Bitcoin::Crypto::Exception', 'exception was trapped despite DESTROY';
 
 	note $@;
 }

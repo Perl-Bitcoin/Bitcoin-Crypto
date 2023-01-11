@@ -92,7 +92,7 @@ sub as_string
 
 	package Bitcoin::Crypto::Exception::Sign;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 
 }
 
@@ -100,119 +100,119 @@ sub as_string
 
 	package Bitcoin::Crypto::Exception::Verify;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::KeyCreate;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::KeyDerive;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::MnemonicGenerate;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::MnemonicCheck;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Base58InputFormat;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Base58InputChecksum;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputFormat;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputData;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32Type;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputChecksum;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::SegwitProgram;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::ValidationTest;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::ScriptOpcode;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::ScriptPush;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::NetworkConfig;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::AddressGenerate;
 
-	use parent -norequire, "Bitcoin::Crypto::Exception";
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 1;
@@ -227,7 +227,7 @@ Bitcoin::Crypto::Exception - Exception class for Bitcoin::Crypto purposes
 	use Try::Tiny;
 
 	try {
-		decode_segwit("Not a segwit address");
+		decode_segwit('Not a segwit address');
 	} catch {
 		my $error = $_;
 
@@ -235,7 +235,7 @@ Bitcoin::Crypto::Exception - Exception class for Bitcoin::Crypto purposes
 		warn "$error";
 
 		# but also contains some information about the problem to avoid regex matching
-		if ($error->isa("Bitcoin::Crypto::Exception::Bech32InputFormat")) {
+		if ($error->isa('Bitcoin::Crypto::Exception::Bech32InputFormat')) {
 			log $error->message;
 		}
 	};
@@ -277,7 +277,7 @@ Creates a new instance and throws it. If used on an object, throws it right away
 
 	try {
 		# throws, but will be catched
-		Bitcoin::Crypto::Exception->raise("something went wrong");
+		Bitcoin::Crypto::Exception->raise('something went wrong');
 	} catch {
 		my $exception = $_;
 
@@ -296,7 +296,7 @@ An alias to C<raise>.
 Executes the subroutine given as the only parameter inside an C<eval>. Any exceptions thrown inside the subroutine C<$sub> will be re-thrown after turning them into objects of the given class. If no exception is thrown, method returns the value returned by C<$sub>.
 
 	my $result = Bitcoin::Crypto::Exception->trap_into(sub {
-		die "something went wrong";
+		die 'something went wrong';
 	});
 
 =cut

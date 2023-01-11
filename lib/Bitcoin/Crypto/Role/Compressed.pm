@@ -9,7 +9,7 @@ use Bitcoin::Crypto::Types qw(Bool);
 use Bitcoin::Crypto::Config;
 use Moo::Role;
 
-has param "compressed" => (
+has param 'compressed' => (
 	coerce => Bool,
 	default => Bitcoin::Crypto::Config::compress_public_point,
 	writer => -hidden,

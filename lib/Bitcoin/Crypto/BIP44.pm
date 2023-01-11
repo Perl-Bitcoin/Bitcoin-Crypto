@@ -18,7 +18,7 @@ sub _get_network_constant
 	my $coin_type = $network->bip44_coin;
 
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"no bip44_coin constant found in network configuration"
+		'no bip44_coin constant found in network configuration'
 	) unless defined $coin_type;
 
 	return $coin_type;
@@ -77,7 +77,7 @@ has param 'get_from_account' => (
 );
 
 use overload
-	q{""} => "as_string",
+	q{""} => 'as_string',
 	fallback => 1;
 
 sub as_string

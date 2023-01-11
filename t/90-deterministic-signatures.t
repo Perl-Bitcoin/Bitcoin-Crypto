@@ -15,13 +15,13 @@ BEGIN {
 
 my $key = btc_prv->from_hex('b7331fd4ff8c53d31fa7d1625df7de451e55dc53337db64bee3efadb7fdd28d9');
 
-my @messages = ("Perl test script", "", "a", "_ś\x1f " x 250);
+my @messages = ('Perl test script', '', 'a', "_ś\x1f " x 250);
 for my $message (@messages) {
 	$message = encode('UTF-8', $message);
 	my $signature = $key->sign_message($message);
 
-	ok($key->sign_message($message) eq $signature, "Signatures generation should be deterministic");
-	ok($key->verify_message($message, $signature), "Valid signature");
+	ok($key->sign_message($message) eq $signature, 'Signatures generation should be deterministic');
+	ok($key->verify_message($message, $signature), 'Valid signature');
 }
 
 done_testing;

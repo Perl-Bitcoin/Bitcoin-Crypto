@@ -63,7 +63,7 @@ my $count = scalar keys %default_mapped;
 
 for my $network_id (keys %predefined_networks) {
 	subtest "testing $network_id" => sub {
-		ok defined $default_mapped{$network_id}, "network available ok";
+		ok defined $default_mapped{$network_id}, 'network available ok';
 
 		my %tdata = %{$predefined_networks{$network_id}};
 		$master_key->set_network($network_id);

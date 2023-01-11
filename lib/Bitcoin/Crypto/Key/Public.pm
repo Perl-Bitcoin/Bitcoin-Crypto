@@ -28,7 +28,7 @@ sub witness_program
 {
 	my ($self) = @_;
 
-	return pack("C", Bitcoin::Crypto::Config::witness_version) . $self->key_hash;
+	return pack('C', Bitcoin::Crypto::Config::witness_version) . $self->key_hash;
 }
 
 sub get_legacy_address
@@ -49,7 +49,7 @@ sub get_compat_address
 
 	# network field is not required, lazy check for completeness
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"this network does not support segregated witness"
+		'this network does not support segregated witness'
 	) unless $self->network->supports_segwit;
 
 	Bitcoin::Crypto::Exception::AddressGenerate->raise(
@@ -57,7 +57,7 @@ sub get_compat_address
 	) if $self->has_purpose && $self->purpose != 49;
 
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
-	$program->add_operation("OP_" . Bitcoin::Crypto::Config::witness_version)
+	$program->add_operation('OP_' . Bitcoin::Crypto::Config::witness_version)
 		->push_bytes($self->key_hash);
 	return $program->get_legacy_address;
 }
@@ -68,7 +68,7 @@ sub get_segwit_address
 
 	# network field is not required, lazy check for completeness
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"this network does not support segregated witness"
+		'this network does not support segregated witness'
 	) unless $self->network->supports_segwit;
 
 	Bitcoin::Crypto::Exception::AddressGenerate->raise(
@@ -93,7 +93,7 @@ Bitcoin::Crypto::Key::Public - Bitcoin public keys
 
 	# verify signature (it has to be byte string, see perlpacktut)
 
-	$pub->verify_message(pack("a*", "Hello world"), $sig);
+	$pub->verify_message(pack('a*', 'Hello world'), $sig);
 
 	# getting address from public key (p2wpkh)
 
@@ -168,7 +168,7 @@ Returns current key instance.
 
 =head2 verify_message
 
-	$signature_valid = $object->verify_message($message, $signature, $algo = "sha256")
+	$signature_valid = $object->verify_message($message, $signature, $algo = 'sha256')
 
 Verifies C<$signature> against digest of C<$message> (with C<$algo> digest algorithm) using public key.
 

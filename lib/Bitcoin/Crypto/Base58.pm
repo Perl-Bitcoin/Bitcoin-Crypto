@@ -31,7 +31,7 @@ sub encode_base58
 sub encode_base58check
 {
 	my ($bytes) = @_;
-	my $checksum = pack("a" . $CHECKSUM_SIZE, hash256($bytes));
+	my $checksum = pack('a' . $CHECKSUM_SIZE, hash256($bytes));
 	return encode_base58($bytes . $checksum);
 }
 
@@ -40,7 +40,7 @@ sub decode_base58
 	my ($base58encoded) = @_;
 	my $decoded = decode_b58b($base58encoded);
 	Bitcoin::Crypto::Exception::Base58InputFormat->raise(
-		"illegal characters in base58 string"
+		'illegal characters in base58 string'
 	) unless defined $decoded;
 
 	return $decoded;
@@ -51,7 +51,7 @@ sub verify_checksum
 	my ($decoded) = @_;
 	my $encoded_val = substr $decoded, 0, -$CHECKSUM_SIZE;
 	my $checksum = substr $decoded, -$CHECKSUM_SIZE;
-	return unpack("a" . $CHECKSUM_SIZE, hash256($encoded_val)) eq $checksum;
+	return unpack('a' . $CHECKSUM_SIZE, hash256($encoded_val)) eq $checksum;
 }
 
 sub decode_base58check
@@ -60,7 +60,7 @@ sub decode_base58check
 	my $decoded = decode_base58($base58encoded);
 
 	Bitcoin::Crypto::Exception::Base58InputChecksum->raise(
-		"incorrect base58check checksum"
+		'incorrect base58check checksum'
 	) unless verify_checksum($decoded);
 
 	return substr $decoded, 0, -$CHECKSUM_SIZE;
@@ -83,7 +83,7 @@ Bitcoin::Crypto::Base58 - Bitcoin's Base58 helpers
 		decode_base58check
 	);
 
-	my $b58str = encode_base58check(pack "A*", "hello");
+	my $b58str = encode_base58check(pack 'A*', 'hello');
 	my $bytestr = decode_base58check($b58str);
 
 =head1 DESCRIPTION

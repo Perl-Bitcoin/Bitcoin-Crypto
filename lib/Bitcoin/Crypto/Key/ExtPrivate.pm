@@ -26,7 +26,7 @@ sub generate_mnemonic
 	my ($class, $len, $lang) = @_;
 	my ($min_len, $len_div, $max_len) = (128, 32, 256);
 	$len //= $min_len;
-	$lang //= "en";
+	$lang //= 'en';
 
 	# bip39 specification values
 	Bitcoin::Crypto::Exception::MnemonicGenerate->raise(
@@ -44,7 +44,7 @@ sub generate_mnemonic
 sub mnemonic_from_entropy
 {
 	my ($class, $entropy, $lang) = @_;
-	$lang //= "en";
+	$lang //= 'en';
 
 	return Bitcoin::Crypto::Exception::MnemonicGenerate->trap_into(
 		sub {
@@ -82,7 +82,7 @@ sub from_seed
 	my ($class, $seed) = @_;
 	verify_bytestring($seed);
 
-	my $bytes = hmac("SHA512", "Bitcoin seed", $seed);
+	my $bytes = hmac('SHA512', 'Bitcoin seed', $seed);
 	my $key = substr $bytes, 0, 32;
 	my $cc = substr $bytes, 32, 32;
 
@@ -96,7 +96,7 @@ sub from_hex_seed
 {
 	my ($class, $seed) = @_;
 
-	return $class->from_seed(pack "H*", pad_hex $seed);
+	return $class->from_seed(pack 'H*', pad_hex $seed);
 }
 
 sub get_public_key
@@ -104,7 +104,7 @@ sub get_public_key
 	my ($self) = @_;
 
 	my $public = Bitcoin::Crypto::Key::ExtPublic->new(
-		key_instance => $self->raw_key("public"),
+		key_instance => $self->raw_key('public'),
 		chain_code => $self->chain_code,
 		child_number => $self->child_number,
 		parent_fingerprint => $self->parent_fingerprint,
@@ -143,18 +143,18 @@ sub _derive_key_partial
 	}
 	else {
 		# public key data - SEC compressed form
-		$hmac_data .= $self->raw_key("public_compressed");
+		$hmac_data .= $self->raw_key('public_compressed');
 	}
 
 	# child number - 4 bytes
-	$hmac_data .= ensure_length pack("N", $child_num), 4;
+	$hmac_data .= ensure_length pack('N', $child_num), 4;
 
-	my $data = hmac("SHA512", $self->chain_code, $hmac_data);
+	my $data = hmac('SHA512', $self->chain_code, $hmac_data);
 	my $chain_code = substr $data, 32, 32;
 
 	my $number = new_bigint(substr $data, 0, 32);
 	my $key_num = new_bigint($self->raw_key);
-	my $n_order = new_bigint(pack "H*", $self->key_instance->curve2hash->{order});
+	my $n_order = new_bigint(pack 'H*', $self->key_instance->curve2hash->{order});
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
 		"key $child_num in sequence was found invalid"
@@ -234,7 +234,7 @@ L</from_serialized_base58> instead.
 
 =head2 generate_mnemonic
 
-	$mnemonic = $class->generate_mnemonic($len = 128, $lang = "en")
+	$mnemonic = $class->generate_mnemonic($len = 128, $lang = 'en')
 
 Generates a new mnemonic code using L<Bytes::Random::Secure>. Default entropy is 128 bits.
 With C<$len> this can be changed to up to 256 bits with 32 bit step.
@@ -248,7 +248,7 @@ In some environments a problem may be encountered that causes the secure random 
 
 =head2 mnemonic_from_entropy
 
-	$mnemonic = $class->mnemonic_from_entropy($bytes, $lang = "en")
+	$mnemonic = $class->mnemonic_from_entropy($bytes, $lang = 'en')
 
 Generates a new mnemonic code from custom entropy given in C<$bytes> (a bytestring). This entropy should be of the same bit size as in L</"generate_mnemonic">. Returns newly generated BIP39 mnemonic string.
 
@@ -260,13 +260,13 @@ Be aware that the method you use to generate a mnemonic will be a very important
 
 =head2 from_mnemonic
 
-	$key_object = $class->from_mnemonic($mnemonic, $password = "", $lang = undef)
+	$key_object = $class->from_mnemonic($mnemonic, $password = '', $lang = undef)
 
 Creates a new key from given mnemonic and password.
 
 Note that technically any password is correct and there's no way to tell if it was mistaken.
 
-If you need to validate if C<$mnemonic> is a valid mnemonic you should specify C<$lang>, e.g. "en".
+If you need to validate if C<$mnemonic> is a valid mnemonic you should specify C<$lang>, e.g. 'en'.
 
 If no C<$lang> is given then any string passed as C<$mnemonic> will produce a valid key.
 

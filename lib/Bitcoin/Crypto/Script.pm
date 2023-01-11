@@ -16,7 +16,7 @@ use Bitcoin::Crypto::Types qw(ArrayRef Str);
 
 use namespace::clean;
 
-has field "operations" => (
+has field 'operations' => (
 	isa => ArrayRef [Str],
 	default => sub { [] },
 );
@@ -253,7 +253,7 @@ for (2 .. 16) {
 
 	# OP_N - starts with 0x52, up to 0x60
 	$op_codes{$_} = {
-		code => pack("C", 0x50 + $_),
+		code => pack('C', 0x50 + $_),
 	};
 }
 
@@ -267,11 +267,11 @@ sub _get_op_code
 	elsif ($op_code =~ /^[0-9]+$/ && $op_code >= 1 && $op_code <= 75) {
 
 		# standard data push - 0x01 up to 0x4b
-		return pack("C", 0x00 + $op_code);
+		return pack('C', 0x00 + $op_code);
 	}
 	else {
 		Bitcoin::Crypto::Exception::ScriptOpcode->raise(
-			defined $op_code ? "unknown opcode $op_code" : "undefined opcode variable"
+			defined $op_code ? "unknown opcode $op_code" : 'undefined opcode variable'
 		);
 	}
 }
@@ -300,11 +300,11 @@ sub push_bytes
 
 	my $len = length $bytes;
 	Bitcoin::Crypto::Exception::ScriptPush->raise(
-		"empty data variable"
+		'empty data variable'
 	) unless $len;
 
 	if ($bytes =~ /[\x00-\x10]/ && $len == 1) {
-		my $num = unpack "C", $bytes;
+		my $num = unpack 'C', $bytes;
 		$self->add_operation("OP_$num");
 	}
 	else {
@@ -313,20 +313,20 @@ sub push_bytes
 			$self->add_operation($len);
 		}
 		elsif ($len < (2 << 7)) {
-			$self->add_operation("OP_PUSHDATA1")
-				->add_raw(pack "C", $len);
+			$self->add_operation('OP_PUSHDATA1')
+				->add_raw(pack 'C', $len);
 		}
 		elsif ($len < (2 << 15)) {
-			$self->add_operation("OP_PUSHDATA2")
-				->add_raw(pack "S", $len);
+			$self->add_operation('OP_PUSHDATA2')
+				->add_raw(pack 'S', $len);
 		}
 		elsif ($len < (2 << 31)) {
-			$self->add_operation("OP_PUSHDATA4")
-				->add_raw(pack "L", $len);
+			$self->add_operation('OP_PUSHDATA4')
+				->add_raw(pack 'L', $len);
 		}
 		else {
 			Bitcoin::Crypto::Exception::ScriptPush->raise(
-				"too much data to push onto stack in one operation"
+				'too much data to push onto stack in one operation'
 			);
 		}
 		$self->add_raw($bytes);
@@ -337,7 +337,7 @@ sub push_bytes
 sub get_script
 {
 	my ($self) = @_;
-	return join "", @{$self->operations};
+	return join '', @{$self->operations};
 }
 
 sub get_script_hash
@@ -350,7 +350,7 @@ sub witness_program
 {
 	my ($self) = @_;
 
-	return pack("C", Bitcoin::Crypto::Config::witness_version) . sha256($self->get_script);
+	return pack('C', Bitcoin::Crypto::Config::witness_version) . sha256($self->get_script);
 }
 
 sub get_legacy_address
@@ -365,11 +365,11 @@ sub get_compat_address
 
 	# network field is not required, lazy check for completeness
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"this network does not support segregated witness"
+		'this network does not support segregated witness'
 	) unless $self->network->supports_segwit;
 
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
-	$program->add_operation("OP_" . Bitcoin::Crypto::Config::witness_version)
+	$program->add_operation('OP_' . Bitcoin::Crypto::Config::witness_version)
 		->push_bytes(sha256($self->get_script));
 	return $program->get_legacy_address;
 }
@@ -380,7 +380,7 @@ sub get_segwit_address
 
 	# network field is not required, lazy check for completeness
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"this network does not support segregated witness"
+		'this network does not support segregated witness'
 	) unless $self->network->supports_segwit;
 
 	return encode_segwit($self->network->segwit_hrp, $self->witness_program);
@@ -398,9 +398,9 @@ Bitcoin::Crypto::Script - Bitcoin script representations
 	use Bitcoin::Crypto::Script;
 
 	my $script = Bitcoin::Crypto::Script->new
-		->add_operation("OP_1")
-		->add_operation("OP_TRUE")
-		->add_operation("OP_EQUAL");
+		->add_operation('OP_1')
+		->add_operation('OP_TRUE')
+		->add_operation('OP_EQUAL');
 
 	# getting serialized script
 	my $serialized = $script->get_script();
@@ -455,7 +455,7 @@ Returns the object instance for chaining.
 
 Pushes C<$bytes> to the execution stack at the end of a script, using a minimal push opcode.
 
-For example, running C<$script->push_bytes("\x03")> will have the same effect as C<$script->add_operation("OP_3")>.
+For example, running C<$script->push_bytes("\x03")> will have the same effect as C<$script->add_operation('OP_3')>.
 
 Throws an exception for data exceeding a 4 byte number in length.
 
