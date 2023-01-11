@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use List::Util qw(first);
 use Scalar::Util qw(blessed);
+use Mooish::AttributeBuilder -standard;
 
 use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
@@ -17,30 +18,23 @@ use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
-has "depth" => (
-	is => "ro",
-	isa => IntMaxBits [8],
-	coerce => 1,
+has param "depth" => (
+	coerce => IntMaxBits [8],
 	default => 0
 );
 
-has "parent_fingerprint" => (
-	is => "ro",
+has param "parent_fingerprint" => (
 	isa => StrLength[4, 4],
 	default => sub { pack "x4" }
 );
 
-has "child_number" => (
-	is => "ro",
-	isa => IntMaxBits [32],
-	coerce => 1,
+has param "child_number" => (
+	coerce => IntMaxBits [32],
 	default => 0
 );
 
-has "chain_code" => (
-	is => "ro",
+has param "chain_code" => (
 	isa => StrLength[32, 32],
-	required => 1,
 );
 
 with qw(Bitcoin::Crypto::Role::Key);

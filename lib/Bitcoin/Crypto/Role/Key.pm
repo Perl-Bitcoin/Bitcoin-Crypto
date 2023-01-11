@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Crypt::PK::ECC;
 use Scalar::Util qw(blessed);
+use Mooish::AttributeBuilder -standard;
 
 use Bitcoin::Crypto::Types qw(InstanceOf BIP44Purpose);
 use Bitcoin::Crypto::Config;
@@ -13,20 +14,15 @@ use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
-has "key_instance" => (
-	is => "ro",
+has param "key_instance" => (
 	isa => InstanceOf ["Crypt::PK::ECC"],
 	coerce => sub { __create_key($_[0]) },
-	required => 1,
 );
 
-has 'purpose' => (
-	is => 'ro',
+has option 'purpose' => (
 	isa => BIP44Purpose,
-	writer => '_set_purpose',
-	predicate => 'has_purpose',
-	clearer => 'clear_purpose',
-	required => 0,
+	writer => -hidden,
+	clearer => 1,
 );
 
 with qw(Bitcoin::Crypto::Role::Network);

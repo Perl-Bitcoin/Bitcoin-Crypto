@@ -4,21 +4,20 @@ use v5.10;
 use strict;
 use warnings;
 use Scalar::Util qw(blessed);
+use Mooish::AttributeBuilder -standard;
 
 use Bitcoin::Crypto::Types qw(InstanceOf Str);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
-has "network" => (
-	is => "ro",
-	isa => (InstanceOf ["Bitcoin::Crypto::Network"])
+has param "network" => (
+	coerce => (InstanceOf ["Bitcoin::Crypto::Network"])
 		->plus_coercions(Str, q{Bitcoin::Crypto::Network->get($_)}),
 	default => sub {
 		return Bitcoin::Crypto::Network->get;
 	},
-	coerce => 1,
-	writer => "_set_network"
+	writer => -hidden,
 );
 
 # make writer chainable

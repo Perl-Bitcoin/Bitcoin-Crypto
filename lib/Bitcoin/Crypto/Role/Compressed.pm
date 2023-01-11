@@ -3,17 +3,16 @@ package Bitcoin::Crypto::Role::Compressed;
 use v5.10;
 use strict;
 use warnings;
+use Mooish::AttributeBuilder -standard;
 
 use Bitcoin::Crypto::Types qw(Bool);
 use Bitcoin::Crypto::Config;
 use Moo::Role;
 
-has "compressed" => (
-	is => "ro",
-	isa => Bool,
-	coerce => 1,
+has param "compressed" => (
+	coerce => Bool,
 	default => Bitcoin::Crypto::Config::compress_public_point,
-	writer => "_set_compressed"
+	writer => -hidden,
 );
 
 sub set_compressed

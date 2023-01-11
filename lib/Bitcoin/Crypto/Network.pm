@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Moo;
 use Scalar::Util qw(blessed);
+use Mooish::AttributeBuilder -standard;
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Str StrLength Int);
@@ -14,80 +15,63 @@ use namespace::clean;
 my %networks;
 my $default_network;
 
-has "id" => (
-	is => "ro",
+has param "id" => (
 	isa => Str,
-	required => 1,
 );
 
-has "name" => (
-	is => "ro",
+has param "name" => (
 	isa => Str,
-	required => 1,
 );
 
-has "p2pkh_byte" => (
-	is => "ro",
+has param "p2pkh_byte" => (
 	isa => StrLength [1, 1],
-	required => 1,
 );
 
-has "wif_byte" => (
-	is => "ro",
+has param "wif_byte" => (
 	isa => StrLength [1, 1],
-	required => 1,
 );
 
-has "p2sh_byte" => (
-	is => "ro",
+has param "p2sh_byte" => (
 	isa => StrLength [1, 1],
 	required => 0,
 );
 
-has "segwit_hrp" => (
-	is => "ro",
+has param "segwit_hrp" => (
 	isa => Str,
 	required => 0,
 );
 
-has "extprv_version" => (
-	is => "ro",
+has param "extprv_version" => (
 	isa => Int,
 	required => 0,
 );
 
-has "extpub_version" => (
-	is => "ro",
+has param "extpub_version" => (
 	isa => Int,
 	required => 0,
 );
 
-has "extprv_compat_version" => (
-	is => "ro",
+has param "extprv_compat_version" => (
 	isa => Int,
 	required => 0,
 );
 
-has "extpub_compat_version" => (
-	is => "ro",
+has param "extpub_compat_version" => (
 	isa => Int,
 	required => 0,
 );
 
-has "extprv_segwit_version" => (
-	is => "ro",
+has param "extprv_segwit_version" => (
 	isa => Int,
 	required => 0,
 );
 
-has "extpub_segwit_version" => (
-	is => "ro",
+has param "extpub_segwit_version" => (
 	isa => Int,
 	required => 0,
 );
 
-has "bip44_coin" => (
-	is => "ro",
+has param "bip44_coin" => (
 	isa => Int,
 	required => 0,
 );

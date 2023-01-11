@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Moo;
 use Crypt::Digest::SHA256 qw(sha256);
+use Mooish::AttributeBuilder -standard;
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
@@ -15,8 +16,7 @@ use Bitcoin::Crypto::Types qw(ArrayRef Str);
 
 use namespace::clean;
 
-has "operations" => (
-	is => "ro",
+has field "operations" => (
 	isa => ArrayRef [Str],
 	default => sub { [] },
 );

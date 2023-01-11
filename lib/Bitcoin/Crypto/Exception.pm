@@ -4,6 +4,7 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
+use Mooish::AttributeBuilder -standard;
 
 use Bitcoin::Crypto::Types qw(Str Maybe ArrayRef);
 
@@ -13,14 +14,11 @@ use overload
 	q{""} => "as_string",
 	fallback => 1;
 
-has 'message' => (
-	is => 'ro',
+has param 'message' => (
 	isa => Str,
-	required => 1,
 );
 
-has 'caller' => (
-	is => 'ro',
+has field 'caller' => (
 	isa => Maybe [ArrayRef],
 	default => sub {
 		for my $call_level (1 .. 10) {
@@ -31,7 +29,6 @@ has 'caller' => (
 		}
 		return undef;
 	},
-	init_arg => undef,
 );
 
 sub raise

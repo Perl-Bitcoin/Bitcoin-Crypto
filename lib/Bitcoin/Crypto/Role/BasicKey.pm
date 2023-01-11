@@ -3,8 +3,8 @@ package Bitcoin::Crypto::Role::BasicKey;
 use v5.10;
 use strict;
 use warnings;
-
 use Carp qw(carp);
+
 use Bitcoin::Crypto::Helpers qw(pad_hex verify_bytestring);
 use Bitcoin::Crypto::Exception;
 use Moo::Role;

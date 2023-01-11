@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Moo;
 use Scalar::Util qw(blessed);
+use Mooish::AttributeBuilder -standard;
 
 use Bitcoin::Crypto::Types qw(BIP44Purpose PositiveOrZeroInt Bool Enum);
 use Bitcoin::Crypto::Network;
@@ -25,14 +26,12 @@ sub _get_network_constant
 
 use namespace::clean;
 
-has 'purpose' => (
-	is => 'ro',
+has param 'purpose' => (
 	isa => BIP44Purpose,
-	default => sub { 44 },
+	default => 44,
 );
 
-has 'coin_type' => (
-	is => 'ro',
+has param 'coin_type' => (
 	isa => PositiveOrZeroInt,
 	coerce => sub {
 		my ($coin_type) = @_;
@@ -52,34 +51,29 @@ has 'coin_type' => (
 	},
 );
 
-has 'account' => (
-	is => 'ro',
+has param 'account' => (
 	isa => PositiveOrZeroInt,
-	default => sub { 0 },
+	default => 0,
 );
 
-has 'change' => (
-	is => 'ro',
+has param 'change' => (
 	isa => Enum [1, 0],
-	default => sub { 0 },
+	default => 0,
 );
 
-has 'index' => (
-	is => 'ro',
+has param 'index' => (
 	isa => PositiveOrZeroInt,
-	default => sub { 0 },
+	default => 0,
 );
 
-has 'get_account' => (
-	is => 'ro',
+has param 'get_account' => (
 	isa => Bool,
-	default => sub { 0 },
+	default => !!0,
 );
 
-has 'get_from_account' => (
-	is => 'ro',
+has param 'get_from_account' => (
 	isa => Bool,
-	default => sub { 0 },
+	default => !!0,
 );
 
 use overload
