@@ -4,7 +4,6 @@ use v5.10;
 use strict;
 use warnings;
 use Exporter qw(import);
-use List::Util qw(first);
 use Crypt::PK::ECC;
 use Unicode::Normalize;
 use Crypt::KeyDerivation qw(pbkdf2);
@@ -68,23 +67,31 @@ sub mnemonic_to_seed
 sub get_path_info
 {
 	my ($path) = @_;
-	if ($path =~ m#^([mM])((?:/\d+'?)*)$#) {
-		my %info;
-		$info{private} = $1 eq 'm';
-		if (defined $2 && length $2 > 0) {
-			$info{path} =
-				[map { s#(\d+)'#$1 + Bitcoin::Crypto::Config::max_child_keys#e; $_ } split /\//, substr $2, 1];
+	if ($path =~ m{\A ([mM]) ((?: / \d+ '?)*) \z}x) {
+		my ($head, $rest) = ($1, $2);
+		my @path;
+
+		if (defined $rest && length $rest > 0) {
+			# remove leading slash (after $head)
+			substr $rest, 0, 1, '';
+
+			for my $part (split '/', $rest) {
+				my $is_hardened = $part =~ tr/'//d;
+
+				return undef if $part >= Bitcoin::Crypto::Config::max_child_keys;
+
+				$part += Bitcoin::Crypto::Config::max_child_keys if $is_hardened;
+				push @path, $part;
+			}
 		}
-		else {
-			$info{path} = [];
-		}
-		return undef if first { $_ >= Bitcoin::Crypto::Config::max_child_keys * 2 }
-			@{$info{path}};
-		return \%info;
+
+		return {
+			private => $head eq 'm',
+			path => \@path,
+		};
 	}
-	else {
-		return undef;
-	}
+
+	return undef;
 }
 
 1;
