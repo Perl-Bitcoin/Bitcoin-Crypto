@@ -139,7 +139,7 @@ sub split_bech32
 
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
 		'illegal characters in bech32 human readable part'
-	) if $parts[0] !~ /^[\x21-\x7e]+$/;
+	) if $parts[0] !~ /\A[\x21-\x7e]+\z/;
 
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
 		'incorrect length of bech32 data part'
@@ -148,7 +148,7 @@ sub split_bech32
 	my $chars = join '', @alphabet;
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
 		'illegal characters in bech32 data part'
-	) if $parts[1] !~ /^[$chars]+$/;
+	) if $parts[1] !~ /\A[$chars]+\z/;
 
 	return @parts;
 }

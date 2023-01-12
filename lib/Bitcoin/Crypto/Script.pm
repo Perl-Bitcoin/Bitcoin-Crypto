@@ -52,11 +52,11 @@ our %op_codes = do {
 sub _get_op_code
 {
 	my ($context, $op_code) = @_;
-	if ($op_code =~ /^OP_(.+)/) {
+	if ($op_code =~ /\AOP_(.+)/) {
 		$op_code = $1;
 		return $op_codes{$op_code}{code};
 	}
-	elsif ($op_code =~ /^[0-9]+$/ && $op_code >= 1 && $op_code <= 75) {
+	elsif ($op_code =~ /\A[0-9]+\z/ && $op_code >= 1 && $op_code <= 75) {
 
 		# standard data push - 0x01 up to 0x4b
 		return pack('C', 0x00 + $op_code);

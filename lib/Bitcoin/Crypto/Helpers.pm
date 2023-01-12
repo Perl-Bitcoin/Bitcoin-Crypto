@@ -43,7 +43,7 @@ sub new_bigint
 sub pad_hex
 {
 	my ($hex) = @_;
-	$hex =~ s/^0x//;
+	$hex =~ s/\A0x//;
 	return '0' x (length($hex) % 2) . $hex;
 }
 
