@@ -6,7 +6,6 @@ use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
 use Bitcoin::BIP39 qw(gen_bip39_mnemonic bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
-use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Key::ExtPublic;
@@ -166,7 +165,7 @@ sub _derive_key_partial
 		"key $child_num in sequence was found invalid"
 	) if $number->beq(0);
 
-	return (blessed $self)->new(
+	return $self->new(
 		key_instance => $number->as_bytes,
 		chain_code => $chain_code,
 		child_number => $child_num,
