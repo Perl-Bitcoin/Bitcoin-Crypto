@@ -23,239 +23,31 @@ has field 'operations' => (
 
 with qw(Bitcoin::Crypto::Role::Network);
 
-# list of significant opcodes
-our %op_codes = (
-	FALSE => {
-		code => "\x00",
-	},
-	PUSHDATA1 => {
-		code => "\x4c",
-	},
-	PUSHDATA2 => {
-		code => "\x4d",
-	},
-	PUSHDATA4 => {
-		code => "\x4e",
-	},
-	"1NEGATE" => {
-		code => "\x4f",
-	},
-	RESERVED => {
-		code => "\x50",
-	},
-	TRUE => {
-		code => "\x51",
-	},
-	NOP => {
-		code => "\x61",
-	},
-	VER => {
-		code => "\x62",
-	},
-	IF => {
-		code => "\x63",
-	},
-	NOTIF => {
-		code => "\x64",
-	},
-	VERIF => {
-		code => "\x65",
-	},
-	VERNOTIF => {
-		code => "\x66",
-	},
-	ELSE => {
-		code => "\x67",
-	},
-	ENDIF => {
-		code => "\x68",
-	},
-	VERIFY => {
-		code => "\x69",
-	},
-	RETURN => {
-		code => "\x6a",
-	},
-	TOALTSTACK => {
-		code => "\x6b",
-	},
-	FROMALTSTACK => {
-		code => "\x6c",
-	},
-	"2DROP" => {
-		code => "\x6d",
-	},
-	"2DUP" => {
-		code => "\x6e",
-	},
-	"3DUP" => {
-		code => "\x6f",
-	},
-	"2OVER" => {
-		code => "\x70",
-	},
-	"2ROT" => {
-		code => "\x71",
-	},
-	"2SWAP" => {
-		code => "\x72",
-	},
-	IFDUP => {
-		code => "\x73",
-	},
-	DEPTH => {
-		code => "\x74",
-	},
-	DROP => {
-		code => "\x75",
-	},
-	DUP => {
-		code => "\x76",
-	},
-	NIP => {
-		code => "\x77",
-	},
-	OVER => {
-		code => "\x78",
-	},
-	PICK => {
-		code => "\x79",
-	},
-	ROLL => {
-		code => "\x7a",
-	},
-	ROT => {
-		code => "\x7b",
-	},
-	SWAP => {
-		code => "\x7c",
-	},
-	TUCK => {
-		code => "\x7d",
-	},
-	SIZE => {
-		code => "\x82",
-	},
-	EQUAL => {
-		code => "\x87",
-	},
-	EQUALVERIFY => {
-		code => "\x88",
-	},
-	RESERVED1 => {
-		code => "\x89",
-	},
-	RESERVED2 => {
-		code => "\x8a",
-	},
-	"1ADD" => {
-		code => "\x8b",
-	},
-	"1SUB" => {
-		code => "\x8c",
-	},
-	NEGATE => {
-		code => "\x8f",
-	},
-	ABS => {
-		code => "\x90",
-	},
-	NOT => {
-		code => "\x91",
-	},
-	ONOTEQUAL => {
-		code => "\x92",
-	},
-	ADD => {
-		code => "\x93",
-	},
-	SUB => {
-		code => "\x94",
-	},
-	BOOLAND => {
-		code => "\x9a",
-	},
-	BOOLOR => {
-		code => "\x9b",
-	},
-	NUMEQUAL => {
-		code => "\x9c",
-	},
-	NUMEQUALVERIFY => {
-		code => "\x9d",
-	},
-	NUMNOTEQUAL => {
-		code => "\x9e",
-	},
-	LESSTHAN => {
-		code => "\x9f",
-	},
-	GREATERTHAN => {
-		code => "\xa0",
-	},
-	LESSTHANOREQUAL => {
-		code => "\xa1",
-	},
-	GREATERTHANOREQUAL => {
-		code => "\xa2",
-	},
-	MIN => {
-		code => "\xa3",
-	},
-	MAX => {
-		code => "\xa4",
-	},
-	WITHIN => {
-		code => "\xa5",
-	},
-	RIPEMD160 => {
-		code => "\xa6",
-	},
-	SHA1 => {
-		code => "\xa7",
-	},
-	SHA256 => {
-		code => "\xa8",
-	},
-	HASH160 => {
-		code => "\xa9",
-	},
-	HASH256 => {
-		code => "\xaa",
-	},
-	CODESEPARATOR => {
-		code => "\xab",
-	},
-	CHECKSIG => {
-		code => "\xac",
-	},
-	CHECKSIGVERIFY => {
-		code => "\xad",
-	},
-	CHECKMULTISIG => {
-		code => "\xae",
-	},
-	CHECKMULTISIGVERIFY => {
-		code => "\xaf",
-	},
-	CHECKLOCKTIMEVERFIY => {
-		code => "\xb1",
-	},
-	CHECKSEQUENCEVERIFY => {
-		code => "\xb2",
-	},
-);
+# list of significant opcodes from DATA section
+our %op_codes = do {
+	my @list;
+	while (my $line = <DATA>) {
+		chomp $line;
+		last if $line eq '__END__';
 
-$op_codes{0} = $op_codes{FALSE};
-$op_codes{1} = $op_codes{TRUE};
+		my @parts = split /\s+/, $line;
+		next if @parts == 0;
+		die 'too many DATA parts for script opcode'
+			if @parts > 2;
 
-for (2 .. 16) {
+		# add key
+		push @list, shift @parts;
 
-	# OP_N - starts with 0x52, up to 0x60
-	$op_codes{$_} = {
-		code => pack('C', 0x50 + $_),
-	};
-}
+		# rest of @parts are values
+		my ($code) = @parts;
+		push @list, {
+			code => pack('C', hex $code),
+		};
+	}
+
+	close DATA;
+	@list;
+};
 
 sub _get_op_code
 {
@@ -387,6 +179,99 @@ sub get_segwit_address
 }
 
 1;
+
+__DATA__
+
+0                    00
+FALSE                00
+PUSHDATA1            4c
+PUSHDATA2            4d
+PUSHDATA4            4e
+1NEGATE              4f
+RESERVED             50
+TRUE                 51
+1                    51
+2                    52
+3                    53
+4                    54
+5                    55
+6                    56
+7                    57
+8                    58
+9                    59
+10                   5a
+11                   5b
+12                   5c
+13                   5d
+14                   5e
+15                   5f
+16                   60
+NOP                  61
+VER                  62
+IF                   63
+NOTIF                64
+VERIF                65
+VERNOTIF             66
+ELSE                 67
+ENDIF                68
+VERIFY               69
+RETURN               6a
+TOALTSTACK           6b
+FROMALTSTACK         6c
+2DROP                6d
+2DUP                 6e
+3DUP                 6f
+2OVER                70
+2ROT                 71
+2SWAP                72
+IFDUP                73
+DEPTH                74
+DROP                 75
+DUP                  76
+NIP                  77
+OVER                 78
+PICK                 79
+ROLL                 7a
+ROT                  7b
+SWAP                 7c
+TUCK                 7d
+SIZE                 82
+EQUAL                87
+EQUALVERIFY          88
+RESERVED1            89
+RESERVED2            8a
+1ADD                 8b
+1SUB                 8c
+NEGATE               8f
+ABS                  90
+NOT                  91
+ONOTEQUAL            92
+ADD                  93
+SUB                  94
+BOOLAND              9a
+BOOLOR               9b
+NUMEQUAL             9c
+NUMEQUALVERIFY       9d
+NUMNOTEQUAL          9e
+LESSTHAN             9f
+GREATERTHAN          a0
+LESSTHANOREQUAL      a1
+GREATERTHANOREQUAL   a2
+MIN                  a3
+MAX                  a4
+WITHIN               a5
+RIPEMD160            a6
+SHA1                 a7
+SHA256               a8
+HASH160              a9
+HASH256              aa
+CODESEPARATOR        ab
+CHECKSIG             ac
+CHECKSIGVERIFY       ad
+CHECKMULTISIG        ae
+CHECKMULTISIGVERIFY  af
+CHECKLOCKTIMEVERFIY  b1
+CHECKSEQUENCEVERIFY  b2
 
 __END__
 =head1 NAME
