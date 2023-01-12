@@ -45,7 +45,7 @@ use Moo::Role;
 
 has param 'key_instance' => (
 	isa => InstanceOf ['Crypt::PK::ECC'],
-	coerce => sub { __create_key($_[0]) },
+	coerce => \&__create_key,
 );
 
 has param 'purpose' => (
