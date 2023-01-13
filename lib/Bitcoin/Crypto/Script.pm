@@ -7,6 +7,7 @@ use Moo;
 use Crypt::Digest::SHA256 qw(sha256);
 use Mooish::AttributeBuilder -standard;
 
+use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Config;
@@ -100,7 +101,6 @@ sub push_bytes
 		$self->add_operation("OP_$num");
 	}
 	else {
-		use bigint;
 		if ($len <= 75) {
 			$self->add_operation($len);
 		}
@@ -110,11 +110,11 @@ sub push_bytes
 		}
 		elsif ($len < (2 << 15)) {
 			$self->add_operation('OP_PUSHDATA2')
-				->add_raw(pack 'S', $len);
+				->add_raw(pack 'v', $len);
 		}
-		elsif ($len < (2 << 31)) {
+		elsif (Bitcoin::Crypto::Config::is_32bit || $len < (2 << 31)) {
 			$self->add_operation('OP_PUSHDATA4')
-				->add_raw(pack 'L', $len);
+				->add_raw(pack 'V', $len);
 		}
 		else {
 			Bitcoin::Crypto::Exception::ScriptPush->raise(
