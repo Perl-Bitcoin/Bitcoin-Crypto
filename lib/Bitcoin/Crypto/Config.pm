@@ -14,8 +14,12 @@ use constant {
 	compress_public_point => 1,
 	witness_version => 0,
 	max_witness_version => 16,
+};
 
+use constant {
 	ivsize => $Config{ivsize},
+	is_32bit => $Config{ivsize} == 4,
+	is_64bit => $Config{ivsize} >= 8,
 };
 
 1;

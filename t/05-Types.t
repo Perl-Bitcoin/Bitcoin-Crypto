@@ -34,7 +34,7 @@ subtest 'testing IntMaxBits[31]' => sub {
 
 subtest 'testing IntMaxBits[60]' => sub {
 	plan skip_all => 'requires 64 bit system'
-		unless Bitcoin::Crypto::Config::ivsize >= 8;
+		unless Bitcoin::Crypto::Config::is_64bit;
 
 	my $type = IntMaxBits [60];
 
