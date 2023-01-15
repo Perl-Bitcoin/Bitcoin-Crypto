@@ -28,7 +28,12 @@ sub witness_program
 {
 	my ($self) = @_;
 
-	return pack('C', Bitcoin::Crypto::Config::witness_version) . $self->key_hash;
+	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
+	$program
+		->add_operation('OP_' . Bitcoin::Crypto::Config::witness_version)
+		->push_bytes($self->key_hash);
+
+	return $program;
 }
 
 sub get_legacy_address
@@ -56,10 +61,7 @@ sub get_compat_address
 		'compat addresses can only be created with BIP44 in compat (BIP49) mode'
 	) unless $self->has_purpose(49);
 
-	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
-	$program->add_operation('OP_' . Bitcoin::Crypto::Config::witness_version)
-		->push_bytes($self->key_hash);
-	return $program->get_legacy_address;
+	return $self->witness_program->get_legacy_address;
 }
 
 sub get_segwit_address
@@ -75,7 +77,7 @@ sub get_segwit_address
 		'segwit addresses can only be created with BIP44 in segwit (BIP84) mode'
 	) unless $self->has_purpose(84);
 
-	return encode_segwit($self->network->segwit_hrp, $self->witness_program);
+	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run});
 }
 
 1;

@@ -6,6 +6,7 @@ use warnings;
 use Moo;
 use Crypt::Digest::SHA256 qw(sha256);
 use Mooish::AttributeBuilder -standard;
+use Try::Tiny;
 
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
@@ -14,59 +15,85 @@ use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Helpers qw(hash160 hash256 verify_bytestring);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(ArrayRef Str);
+use Bitcoin::Crypto::Script::Opcode;
+use Bitcoin::Crypto::Script::Runner;
 
 use namespace::clean;
 
-has field 'operations' => (
-	isa => ArrayRef [Str],
-	default => sub { [] },
+has field '_serialized' => (
+	isa => Str,
+	writer => 1,
+	default => '',
 );
 
 with qw(Bitcoin::Crypto::Role::Network);
 
-# list of significant opcodes from DATA section
-our %op_codes = do {
-	my @list;
-	while (my $line = <DATA>) {
-		chomp $line;
-		last if $line eq '__END__';
+sub operations
+{
+	my ($self) = @_;
 
-		my @parts = split /\s+/, $line;
-		next if @parts == 0;
-		die 'too many DATA parts for script opcode'
-			if @parts > 2;
+	my $serialized = $self->_serialized;
+	my @ops;
 
-		# add key
-		push @list, shift @parts;
+	my $data_push = sub {
+		my ($size) = @_;
 
-		# rest of @parts are values
-		my ($code) = @parts;
-		push @list, {
-			code => pack('C', hex $code),
+		Bitcoin::Crypto::Exception::ScriptSyntax(
+			'not enough bytes of data in the script'
+		) if length $serialized < $size;
+
+		return substr $serialized, 0, $size, '';
+	};
+
+	my %special_ops = (
+		OP_PUSHDATA1 => sub {
+			my $size = unpack 'C', substr $serialized, 0, 1, '';
+
+			return $data_push->($size);
+		},
+		OP_PUSHDATA2 => sub {
+			my $size = unpack 'v', substr $serialized, 0, 2, '';
+
+			return $data_push->($size);
+		},
+		OP_PUSHDATA4 => sub {
+			my $size = unpack 'V', substr $serialized, 0, 4, '';
+
+			return $data_push->($size);
+		},
+		# TODO: if, else, endif
+	);
+
+	while (length $serialized) {
+		my $this_byte = substr $serialized, 0, 1, '';
+
+		try {
+			my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code($this_byte);
+			my @to_push = ($opcode);
+
+			if (exists $special_ops{$opcode->name}) {
+				push @to_push, $special_ops{$opcode->name}->();
+			}
+
+			push @ops, \@to_push;
+		}
+		catch {
+			my $err = $_;
+
+			my $opcode_num = ord($this_byte);
+			unless ($opcode_num > 0 && $opcode_num <= 75) {
+				die $err;
+			}
+
+			# NOTE: compiling this into PUSHDATA1 for now
+			push @ops, [
+				Bitcoin::Crypto::Script::Opcode->get_opcode_by_name('OP_PUSHDATA1'),
+				$data_push->($opcode_num)
+			];
 		};
 	}
 
-	close DATA;
-	@list;
-};
-
-sub _get_op_code
-{
-	my ($context, $op_code) = @_;
-	if ($op_code =~ /\AOP_(.+)/) {
-		$op_code = $1;
-		return $op_codes{$op_code}{code};
-	}
-	elsif ($op_code =~ /\A[0-9]+\z/ && $op_code >= 1 && $op_code <= 75) {
-
-		# standard data push - 0x01 up to 0x4b
-		return pack('C', 0x00 + $op_code);
-	}
-	else {
-		Bitcoin::Crypto::Exception::ScriptOpcode->raise(
-			defined $op_code ? "unknown opcode $op_code" : 'undefined opcode variable'
-		);
-	}
+	return \@ops;
 }
 
 sub add_raw
@@ -74,15 +101,16 @@ sub add_raw
 	my ($self, $bytes) = @_;
 	verify_bytestring($bytes);
 
-	push @{$self->operations}, $bytes;
+	$self->_set_serialized($self->_serialized . $bytes);
 	return $self;
 }
 
 sub add_operation
 {
-	my ($self, $op_code) = @_;
-	my $val = $self->_get_op_code($op_code);
-	$self->add_raw($val);
+	my ($self, $name) = @_;
+	my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name($name);
+	$self->add_raw($opcode->code);
+
 	return $self;
 }
 
@@ -93,56 +121,89 @@ sub push_bytes
 
 	my $len = length $bytes;
 	Bitcoin::Crypto::Exception::ScriptPush->raise(
-		'empty data variable'
+		'empty push_bytes data argument'
 	) unless $len;
 
-	if ($bytes =~ /[\x00-\x10]/ && $len == 1) {
-		my $num = unpack 'C', $bytes;
-		$self->add_operation("OP_$num");
+	if ($len == 1 && ord($bytes) <= 0x10) {
+		$self->add_operation('OP_' . ord($bytes));
+	}
+	elsif ($len <= 75) {
+		$self
+			->add_raw(pack 'C', $len)
+			->add_raw($bytes);
+	}
+	elsif ($len < (1 << 8)) {
+		$self
+			->add_operation('OP_PUSHDATA1')
+			->add_raw(pack 'C', $len)
+			->add_raw($bytes);
+	}
+	elsif ($len < (1 << 16)) {
+		$self
+			->add_operation('OP_PUSHDATA2')
+			->add_raw(pack 'v', $len)
+			->add_raw($bytes);
+	}
+	elsif (Bitcoin::Crypto::Config::is_32bit || $len < (1 << 32)) {
+		$self
+			->add_operation('OP_PUSHDATA4')
+			->add_raw(pack 'V', $len)
+			->add_raw($bytes);
 	}
 	else {
-		if ($len <= 75) {
-			$self->add_operation($len);
-		}
-		elsif ($len < (2 << 7)) {
-			$self->add_operation('OP_PUSHDATA1')
-				->add_raw(pack 'C', $len);
-		}
-		elsif ($len < (2 << 15)) {
-			$self->add_operation('OP_PUSHDATA2')
-				->add_raw(pack 'v', $len);
-		}
-		elsif (Bitcoin::Crypto::Config::is_32bit || $len < (2 << 31)) {
-			$self->add_operation('OP_PUSHDATA4')
-				->add_raw(pack 'V', $len);
-		}
-		else {
-			Bitcoin::Crypto::Exception::ScriptPush->raise(
-				'too much data to push onto stack in one operation'
-			);
-		}
-		$self->add_raw($bytes);
+		Bitcoin::Crypto::Exception::ScriptPush->raise(
+			'too much data to push onto stack in one operation'
+		);
 	}
+
 	return $self;
 }
 
 sub get_script
 {
 	my ($self) = @_;
-	return join '', @{$self->operations};
+
+	return $self->_serialized;
 }
 
 sub get_script_hash
 {
 	my ($self) = @_;
-	return hash160($self->get_script);
+	return hash160($self->_serialized);
+}
+
+sub to_serialized
+{
+	my ($self) = @_;
+
+	return $self->_serialized;
+}
+
+sub from_serialized
+{
+	my ($class, $bytes) = @_;
+
+	return $class->new->add_raw($bytes);
+}
+
+sub run
+{
+	my ($self) = @_;
+
+	my $runner = Bitcoin::Crypto::Script::Runner->new;
+	return $runner->execute($self)->stack;
 }
 
 sub witness_program
 {
 	my ($self) = @_;
 
-	return pack('C', Bitcoin::Crypto::Config::witness_version) . sha256($self->get_script);
+	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
+	$program
+		->add_operation('OP_' . Bitcoin::Crypto::Config::witness_version)
+		->push_bytes(sha256($self->get_script));
+
+	return $program;
 }
 
 sub get_legacy_address
@@ -160,10 +221,7 @@ sub get_compat_address
 		'this network does not support segregated witness'
 	) unless $self->network->supports_segwit;
 
-	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
-	$program->add_operation('OP_' . Bitcoin::Crypto::Config::witness_version)
-		->push_bytes(sha256($self->get_script));
-	return $program->get_legacy_address;
+	return $self->witness_program->get_legacy_address;
 }
 
 sub get_segwit_address
@@ -175,103 +233,10 @@ sub get_segwit_address
 		'this network does not support segregated witness'
 	) unless $self->network->supports_segwit;
 
-	return encode_segwit($self->network->segwit_hrp, $self->witness_program);
+	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run});
 }
 
 1;
-
-__DATA__
-
-0                    00
-FALSE                00
-PUSHDATA1            4c
-PUSHDATA2            4d
-PUSHDATA4            4e
-1NEGATE              4f
-RESERVED             50
-TRUE                 51
-1                    51
-2                    52
-3                    53
-4                    54
-5                    55
-6                    56
-7                    57
-8                    58
-9                    59
-10                   5a
-11                   5b
-12                   5c
-13                   5d
-14                   5e
-15                   5f
-16                   60
-NOP                  61
-VER                  62
-IF                   63
-NOTIF                64
-VERIF                65
-VERNOTIF             66
-ELSE                 67
-ENDIF                68
-VERIFY               69
-RETURN               6a
-TOALTSTACK           6b
-FROMALTSTACK         6c
-2DROP                6d
-2DUP                 6e
-3DUP                 6f
-2OVER                70
-2ROT                 71
-2SWAP                72
-IFDUP                73
-DEPTH                74
-DROP                 75
-DUP                  76
-NIP                  77
-OVER                 78
-PICK                 79
-ROLL                 7a
-ROT                  7b
-SWAP                 7c
-TUCK                 7d
-SIZE                 82
-EQUAL                87
-EQUALVERIFY          88
-RESERVED1            89
-RESERVED2            8a
-1ADD                 8b
-1SUB                 8c
-NEGATE               8f
-ABS                  90
-NOT                  91
-ONOTEQUAL            92
-ADD                  93
-SUB                  94
-BOOLAND              9a
-BOOLOR               9b
-NUMEQUAL             9c
-NUMEQUALVERIFY       9d
-NUMNOTEQUAL          9e
-LESSTHAN             9f
-GREATERTHAN          a0
-LESSTHANOREQUAL      a1
-GREATERTHANOREQUAL   a2
-MIN                  a3
-MAX                  a4
-WITHIN               a5
-RIPEMD160            a6
-SHA1                 a7
-SHA256               a8
-HASH160              a9
-HASH256              aa
-CODESEPARATOR        ab
-CHECKSIG             ac
-CHECKSIGVERIFY       ad
-CHECKMULTISIG        ae
-CHECKMULTISIGVERIFY  af
-CHECKLOCKTIMEVERFIY  b1
-CHECKSEQUENCEVERIFY  b2
 
 __END__
 =head1 NAME
@@ -330,7 +295,7 @@ Throws an exception for unknown opcodes.
 	$script_object = $object->add_raw($bytes)
 
 Adds C<$bytes> at the end of a script.
-Useful when you need a value in a script that shouldn't be pushed to the execution stack, like the first four bytes after C<PUSHDATA4>.
+Can be used to import serialized scripts.
 
 Returns the object instance for chaining.
 
@@ -340,9 +305,11 @@ Returns the object instance for chaining.
 
 Pushes C<$bytes> to the execution stack at the end of a script, using a minimal push opcode.
 
-For example, running C<$script->push_bytes("\x03")> will have the same effect as C<$script->add_operation('OP_3')>.
+For example, running C<< $script->push_bytes("\x03") >> will have the same effect as C<< $script->add_operation('OP_3') >>.
 
 Throws an exception for data exceeding a 4 byte number in length.
+
+Note that no data longer than 520 bytes can be pushed onto the stack in one operation, but this method will not check for that.
 
 Returns the object instance for chaining.
 

@@ -80,11 +80,13 @@ sub as_string
 	my ($self) = @_;
 
 	my $raised = $self->message;
-	$raised =~ s/\s$//g;
+	$raised =~ s/\s+\z//;
+
 	my $caller = $self->caller;
 	if (defined $caller) {
 		$raised .= ' (raised at ' . $caller->[1] . ', line ' . $caller->[2] . ')';
 	}
+
 	return 'An error occured in Bitcoin subroutines: ' . $raised;
 }
 
@@ -197,6 +199,27 @@ sub as_string
 {
 
 	package Bitcoin::Crypto::Exception::ScriptPush;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
+}
+
+{
+
+	package Bitcoin::Crypto::Exception::ScriptSyntax;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
+}
+
+{
+
+	package Bitcoin::Crypto::Exception::ScriptExecute;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
+}
+
+{
+
+	package Bitcoin::Crypto::Exception::ScriptRuntime;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
