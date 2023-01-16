@@ -38,44 +38,88 @@ sub operations
 	my $data_push = sub {
 		my ($size) = @_;
 
-		Bitcoin::Crypto::Exception::ScriptSyntax(
+		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
 			'not enough bytes of data in the script'
 		) if length $serialized < $size;
 
 		return substr $serialized, 0, $size, '';
 	};
 
+	my %context = (
+		op_if => undef,
+		previous_context => undef,
+	);
+
 	my %special_ops = (
 		OP_PUSHDATA1 => sub {
+			my ($op) = @_;
 			my $size = unpack 'C', substr $serialized, 0, 1, '';
 
-			return $data_push->($size);
+			push @$op, $data_push->($size);
 		},
 		OP_PUSHDATA2 => sub {
+			my ($op) = @_;
 			my $size = unpack 'v', substr $serialized, 0, 2, '';
 
-			return $data_push->($size);
+			push @$op, $data_push->($size);
 		},
 		OP_PUSHDATA4 => sub {
+			my ($op) = @_;
 			my $size = unpack 'V', substr $serialized, 0, 4, '';
 
-			return $data_push->($size);
+			push @$op, $data_push->($size);
 		},
-		# TODO: if, else, endif
+		OP_IF => sub {
+			my ($op) = @_;
+
+			if ($context{op_if}) {
+				$context{previous_context} = \%context;
+			}
+			$context{op_if} = $op;
+		},
+		OP_ELSE => sub {
+			my ($op, $pos) = @_;
+
+			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+				'OP_ELSE found but no previous OP_IF'
+			) if !$context{op_if};
+
+			push @{$context{op_if}}, $pos;
+		},
+		OP_ENDIF => sub {
+			my ($op, $pos) = @_;
+
+			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+				'OP_ENDIF found but no previous OP_IF or OP_NOTIF'
+			) if !$context{op_if};
+
+			push @{$context{op_if}}, undef
+				if @{$context{op_if}} == 1;
+			push @{$context{op_if}}, $pos;
+
+			if ($context{previous_context}) {
+				%context = %{$context{previous_context}};
+			}
+			else {
+				$context{op_if} = undef;
+			}
+		},
 	);
+
+	$special_ops{OP_NOTIF} = $special_ops{OP_IF};
 
 	while (length $serialized) {
 		my $this_byte = substr $serialized, 0, 1, '';
 
 		try {
 			my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code($this_byte);
-			my @to_push = ($opcode);
+			my $to_push = [$opcode];
 
 			if (exists $special_ops{$opcode->name}) {
-				push @to_push, $special_ops{$opcode->name}->();
+				$special_ops{$opcode->name}->($to_push, scalar @ops);
 			}
 
-			push @ops, \@to_push;
+			push @ops, $to_push;
 		}
 		catch {
 			my $err = $_;
@@ -92,6 +136,10 @@ sub operations
 			];
 		};
 	}
+
+	Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+		'some OP_IFs were not closed'
+	) if $context{op_if};
 
 	return \@ops;
 }
