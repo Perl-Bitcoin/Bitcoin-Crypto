@@ -162,6 +162,11 @@ sub add_operation
 	return $self;
 }
 
+sub add
+{
+	goto \&add_operation;
+}
+
 sub push_bytes
 {
 	my ($self, $bytes) = @_;
@@ -205,6 +210,11 @@ sub push_bytes
 	}
 
 	return $self;
+}
+
+sub push
+{
+	goto \&push_bytes;
 }
 
 sub get_script
