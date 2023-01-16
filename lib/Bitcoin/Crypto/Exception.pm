@@ -6,6 +6,8 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 
+use Try::Tiny;
+
 use Bitcoin::Crypto::Types qw(Str Maybe ArrayRef);
 
 use namespace::clean;
@@ -35,7 +37,7 @@ sub raise
 {
 	my ($self, $error) = @_;
 
-	unless (ref $self) {
+	if (defined $error) {
 		$self = $self->new(message => $error);
 	}
 
@@ -51,26 +53,13 @@ sub trap_into
 {
 	my ($class, $sub) = @_;
 
-	# make sure we use class name
-	$class = ref $class
-		if ref $class;
-
 	my $ret;
-	my $error = do {
-		local $@;
-		my $failure = not eval {
-			$ret = $sub->();
-			return 1;
-		};
-
-		$@ || $failure;
-	};
-
-	if ($error) {
-
-		# make sure we stringify the error
-		$class->throw("$error");
+	try {
+		$ret = $sub->();
 	}
+	catch {
+		$class->raise("$_");
+	};
 
 	return $ret;
 }
