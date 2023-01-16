@@ -13,7 +13,7 @@ use Crypt::Digest::SHA1 qw(sha1);
 
 use Bitcoin::Crypto::Types qw(ArrayRef Str PositiveOrZeroInt);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Helpers qw(hash160 hash256);
+use Bitcoin::Crypto::Helpers qw(new_bigint pad_hex hash160 hash256);
 
 use namespace::clean;
 
@@ -41,18 +41,15 @@ sub _toint
 
 	return 0 if !length $bytes;
 
-	my $negative;
+	my $negative = !!0;
 	my $last = substr $bytes, -1, 1;
 	my $ord = ord $last;
 	if ($ord >= 0x80) {
 		$negative = !!1;
 		substr $bytes, -1, 1, chr($ord - 0x80);
 	}
-	else {
-		$negative = !!0;
-	}
 
-	my $value = new_bigint(reverse $bytes);
+	my $value = new_bigint(scalar reverse $bytes);
 	$value->bneg if $negative;
 
 	return $value;
@@ -71,15 +68,18 @@ sub _fromint
 
 	my $bytes = reverse pack 'H*', pad_hex($value->to_hex);
 
-	if ($negative) {
-		my $last = substr $bytes, -1, 1, '';
-		my $ord = ord $last;
-		if ($ord >= 0x80) {
-			$bytes .= $last . "\x80";
+	my $last = substr $bytes, -1, 1;
+	my $ord = ord $last;
+	if ($ord >= 0x80) {
+		if ($negative) {
+			$bytes .= "\x80";
 		}
 		else {
-			$bytes .= chr(0x80 + $ord);
+			$bytes .= "\x00";
 		}
+	}
+	elsif ($negative) {
+		substr $bytes, -1, 1, chr($ord + 0x80);
 	}
 
 	return $bytes;
