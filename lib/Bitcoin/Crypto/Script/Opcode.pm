@@ -29,7 +29,7 @@ sub execute
 {
 	my ($self, @args) = @_;
 
-	die $self->name . 'is not implemented'
+	die $self->name . ' is not implemented'
 		unless $self->implemented;
 
 	return $self->runner->(@args);
@@ -704,9 +704,6 @@ for my $num (1 .. 16) {
 	};
 }
 
-$opcodes{OP_FALSE} = $opcodes{OP_0};
-$opcodes{OP_TRUE} = $opcodes{OP_1};
-
 # runners for these are the same, since the script is complied
 $opcodes{OP_PUSHDATA4}{runner} =
 	$opcodes{OP_PUSHDATA1}{runner};
@@ -740,14 +737,29 @@ $opcodes{OP_CHECKMULTISIGVERIFY}{runner} = sub {
 	$opcodes{OP_VERIFY}{runner}->(@_);
 };
 
+my %opcodes_reverse = map { $opcodes{$_}{code}, $_ } keys %opcodes;
+
+# aliases are added after setting up reverse mapping to end up with
+# deterministic results of get_opcode_by_code. This means opcodes below will
+# never be returned by that method.
+$opcodes{OP_FALSE} = $opcodes{OP_0};
+$opcodes{OP_TRUE} = $opcodes{OP_1};
+
 %opcodes = map { $_, __PACKAGE__->new(name => $_, %{$opcodes{$_}}) } keys %opcodes;
-my %opcodes_reverse = map { $_->code, $_ } values %opcodes;
 
 sub get_opcode_by_code
 {
 	my ($self, $code) = @_;
 
-	return $opcodes_reverse{$code};
+	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
+		'undefined opcode code argument'
+	) unless defined $code;
+
+	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
+		"unknown opcode code " . unpack 'H*', $code
+	) unless exists $opcodes_reverse{$code};
+
+	return $opcodes{$opcodes_reverse{$code}};
 }
 
 sub get_opcode_by_name
@@ -755,7 +767,7 @@ sub get_opcode_by_name
 	my ($self, $opcode) = @_;
 
 	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
-		'undefined opcode argument'
+		'undefined opcode name argument'
 	) unless defined $opcode;
 
 	Bitcoin::Crypto::Exception::ScriptOpcode->raise(

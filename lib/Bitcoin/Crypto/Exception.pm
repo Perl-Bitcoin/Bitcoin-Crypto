@@ -76,7 +76,10 @@ sub as_string
 		$raised .= ' (raised at ' . $caller->[1] . ', line ' . $caller->[2] . ')';
 	}
 
-	return 'An error occured in Bitcoin subroutines: ' . $raised;
+	my $class = ref $self;
+	$class =~ s/Bitcoin::Crypto::Exception:://;
+
+	return "An error occured in Bitcoin subroutines: [$class] $raised"
 }
 
 {
