@@ -47,6 +47,7 @@ sub operations
 
 	my %context = (
 		op_if => undef,
+		op_else => undef,
 		previous_context => undef,
 	);
 
@@ -84,6 +85,8 @@ sub operations
 				'OP_ELSE found but no previous OP_IF'
 			) if !$context{op_if};
 
+			$context{op_else} = $op;
+
 			push @{$context{op_if}}, $pos;
 		},
 		OP_ENDIF => sub {
@@ -97,11 +100,15 @@ sub operations
 				if @{$context{op_if}} == 1;
 			push @{$context{op_if}}, $pos;
 
+			if ($context{op_else}) {
+				push @{$context{op_else}}, $pos;
+			}
+
 			if ($context{previous_context}) {
 				%context = %{$context{previous_context}};
 			}
 			else {
-				$context{op_if} = undef;
+				%context = ();
 			}
 		},
 	);

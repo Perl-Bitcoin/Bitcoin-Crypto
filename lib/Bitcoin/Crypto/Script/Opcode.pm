@@ -244,7 +244,7 @@ my %opcodes = (
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			push @$stack, scalar @$stack;
+			push @$stack, $runner->_fromint(scalar @$stack);
 		},
 	},
 	OP_DROP => {

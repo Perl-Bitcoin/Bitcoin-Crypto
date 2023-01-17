@@ -12,7 +12,7 @@ use Bitcoin::Crypto::Script;
 my @cases = (
 	{
 		ops => [qw(OP_1 OP_2 OP_2DUP OP_ROT OP_EQUAL OP_TOALTSTACK OP_EQUAL OP_FROMALTSTACK)],
-		stack => ["\x01", "\x01"],
+		stack => [chr 1, chr 1],
 	},
 
 	{
@@ -28,6 +28,36 @@ my @cases = (
 	{
 		ops => [qw(OP_RETURN OP_3 OP_4 OP_5 OP_6 OP_7 OP_8 OP_9 OP_10 OP_11 OP_12 OP_13 OP_14 OP_15 OP_16)],
 		exception => 1,
+	},
+
+	{
+		ops => [qw(OP_1 OP_2 OP_3 OP_4 OP_5 OP_6 OP_2ROT OP_2 OP_ROLL OP_3DUP OP_2OVER OP_2SWAP)],
+		stack => [chr 3, chr 4, chr 5, chr 1, chr 2, chr 6, chr 1, chr 6, chr 1, chr 2, chr 6],
+	},
+
+	{
+		ops => [qw(OP_5 OP_5 OP_2DROP OP_1 OP_2 OP_TUCK OP_1 OP_PICK)],
+		stack => [chr 2, chr 1, chr 2, chr 1],
+	},
+
+	{
+		ops => [qw(OP_10 OP_11 OP_12 OP_OVER OP_NIP OP_DEPTH OP_IFDUP OP_0 OP_IFDUP)],
+		stack => [chr 10, chr 11, chr 11, chr 3, chr 3, chr 0],
+	},
+
+	{
+		ops => [qw(OP_1 OP_IF dead OP_ELSE beef OP_ENDIF)],
+		stack => ["\xde\xad"],
+	},
+
+	{
+		ops => [qw(OP_0 OP_IF dead OP_ELSE beef OP_ENDIF)],
+		stack => ["\xbe\xef"],
+	},
+
+	{
+		ops => [qw(OP_0 OP_NOTIF dead OP_ELSE beef OP_ENDIF)],
+		stack => ["\xde\xad"],
 	},
 );
 
