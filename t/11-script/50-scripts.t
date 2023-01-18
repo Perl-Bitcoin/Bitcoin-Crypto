@@ -141,34 +141,38 @@ my @cases = (
 	},
 );
 
-foreach my $case_num (0 .. $#cases) {
-	my $case = $cases[$case_num];
-	my @ops = @{$case->{ops}};
+my $case_num = 0;
+foreach my $case (@cases) {
+	subtest "testing script execution for case $case_num" => sub {
+		my @ops = @{$case->{ops}};
 
-	my $script = Bitcoin::Crypto::Script->new;
-	foreach my $op (@ops) {
-		if ($op =~ m/^OP_/) {
-			$script->add($op);
+		my $script = Bitcoin::Crypto::Script->new;
+		foreach my $op (@ops) {
+			if ($op =~ m/^OP_/) {
+				$script->add($op);
+			}
+			else {
+				$script->push(pack 'H*', $op);
+				$op = 'OP_PUSHDATA1';
+			}
 		}
-		else {
-			$script->push(pack 'H*', $op);
-			$op = 'OP_PUSHDATA1';
-		}
-	}
 
-	ops_are($script, \@ops, "case $case_num ops ok");
+		ops_are($script, \@ops, "ops ok");
 
-	try {
-		stack_is($script, $case->{stack}, "case $case_num stack ok");
-	}
-	catch {
-		if ($case->{exception}) {
-			isa_ok $_, 'Bitcoin::Crypto::Exception::ScriptRuntime';
+		try {
+			stack_is($script, $case->{stack}, "stack ok");
 		}
-		else {
-			fail "case $case_num got exception: $_";
-		}
+		catch {
+			if ($case->{exception}) {
+				isa_ok $_, 'Bitcoin::Crypto::Exception::ScriptRuntime';
+			}
+			else {
+				fail "got exception: $_";
+			}
+		};
 	};
+
+	++$case_num;
 };
 
 done_testing;
