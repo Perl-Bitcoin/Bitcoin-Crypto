@@ -59,6 +59,86 @@ my @cases = (
 		ops => [qw(OP_0 OP_NOTIF dead OP_ELSE beef OP_ENDIF)],
 		stack => ["\xde\xad"],
 	},
+
+	{
+		ops => [qw(
+			OP_1 OP_1
+			OP_IF
+				OP_IF
+					dead
+				OP_ELSE
+					face
+				OP_ENDIF
+			OP_ELSE
+				OP_IF
+					beef
+				OP_ELSE
+					feed
+				OP_ENDIF
+			OP_ENDIF
+		)],
+		stack => ["\xde\xad"],
+	},
+
+	{
+		ops => [qw(
+			OP_0 OP_1
+			OP_IF
+				OP_IF
+					dead
+				OP_ELSE
+					face
+				OP_ENDIF
+			OP_ELSE
+				OP_IF
+					beef
+				OP_ELSE
+					feed
+				OP_ENDIF
+			OP_ENDIF
+		)],
+		stack => ["\xfa\xce"],
+	},
+
+	{
+		ops => [qw(
+			OP_1 OP_0
+			OP_IF
+				OP_IF
+					dead
+				OP_ELSE
+					face
+				OP_ENDIF
+			OP_ELSE
+				OP_IF
+					beef
+				OP_ELSE
+					feed
+				OP_ENDIF
+			OP_ENDIF
+		)],
+		stack => ["\xbe\xef"],
+	},
+
+	{
+		ops => [qw(
+			OP_0 OP_0
+			OP_IF
+				OP_IF
+					dead
+				OP_ELSE
+					face
+				OP_ENDIF
+			OP_ELSE
+				OP_IF
+					beef
+				OP_ELSE
+					feed
+				OP_ENDIF
+			OP_ENDIF
+		)],
+		stack => ["\xfe\xed"],
+	},
 );
 
 foreach my $case_num (0 .. $#cases) {

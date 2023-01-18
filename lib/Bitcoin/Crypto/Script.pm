@@ -7,6 +7,7 @@ use Moo;
 use Crypt::Digest::SHA256 qw(sha256);
 use Mooish::AttributeBuilder -standard;
 use Try::Tiny;
+use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Config;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
@@ -74,7 +75,9 @@ sub operations
 			my ($op) = @_;
 
 			if ($context{op_if}) {
-				$context{previous_context} = \%context;
+				%context = (
+					previous_context => { %context },
+				);
 			}
 			$context{op_if} = $op;
 		},
@@ -82,8 +85,12 @@ sub operations
 			my ($op, $pos) = @_;
 
 			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-				'OP_ELSE found but no previous OP_IF'
+				'OP_ELSE found but no previous OP_IF or OP_NOTIF'
 			) if !$context{op_if};
+
+			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+				'multiple OP_ELSE for a single OP_IF'
+			) if @{$context{op_if}} > 1;
 
 			$context{op_else} = $op;
 
@@ -114,39 +121,56 @@ sub operations
 	);
 
 	$special_ops{OP_NOTIF} = $special_ops{OP_IF};
+	my @debug_ops;
+	my $position = 0;
 
-	while (length $serialized) {
-		my $this_byte = substr $serialized, 0, 1, '';
+	try {
+		while (length $serialized) {
+			my $this_byte = substr $serialized, 0, 1, '';
 
-		try {
-			my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code($this_byte);
-			my $to_push = [$opcode];
+			try {
+				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code($this_byte);
+				push @debug_ops, $opcode->name;
+				my $to_push = [$opcode];
 
-			if (exists $special_ops{$opcode->name}) {
-				$special_ops{$opcode->name}->($to_push, scalar @ops);
+				if (exists $special_ops{$opcode->name}) {
+					$special_ops{$opcode->name}->($to_push, $position);
+				}
+
+				push @ops, $to_push;
 			}
+			catch {
+				my $err = $_;
 
-			push @ops, $to_push;
+				my $opcode_num = ord($this_byte);
+				unless ($opcode_num > 0 && $opcode_num <= 75) {
+					push @debug_ops, pack 'H*', $this_byte;
+					die $err;
+				}
+
+				# NOTE: compiling this into PUSHDATA1 for now
+				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name('OP_PUSHDATA1');
+				push @debug_ops, $opcode->name;
+
+				push @ops, [$opcode, $data_push->($opcode_num)];
+			};
+
+			$position += 1;
 		}
-		catch {
-			my $err = $_;
 
-			my $opcode_num = ord($this_byte);
-			unless ($opcode_num > 0 && $opcode_num <= 75) {
-				die $err;
-			}
-
-			# NOTE: compiling this into PUSHDATA1 for now
-			push @ops, [
-				Bitcoin::Crypto::Script::Opcode->get_opcode_by_name('OP_PUSHDATA1'),
-				$data_push->($opcode_num)
-			];
-		};
+		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+			'some OP_IFs were not closed'
+		) if $context{op_if};
 	}
+	catch {
+		my $ex = $_;
+		if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::ScriptSyntax')) {
+			$ex->set_script(\@debug_ops);
+			$ex->set_error_position($position);
+		}
 
-	Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-		'some OP_IFs were not closed'
-	) if $context{op_if};
+		die $ex;
+	};
 
 	return \@ops;
 }

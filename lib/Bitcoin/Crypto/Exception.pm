@@ -199,7 +199,37 @@ sub as_string
 
 	package Bitcoin::Crypto::Exception::ScriptSyntax;
 
-	use parent -norequire, 'Bitcoin::Crypto::Exception';
+	use Moo;
+	use Mooish::AttributeBuilder -standard;
+	use Bitcoin::Crypto::Types qw(PositiveInt ArrayRef);
+
+	extends 'Bitcoin::Crypto::Exception';
+
+	has field 'script' => (
+		isa => ArrayRef,
+		writer => 1,
+		predicate => 1,
+	);
+
+	has field 'error_position' => (
+		isa => PositiveInt,
+		writer => 1,
+		predicate => 1,
+	);
+
+	sub as_string
+	{
+		my ($self) = @_;
+		my $message = $self->SUPER::as_string;
+
+		if ($self->has_script && $self->has_error_position) {
+			my @script = @{$self->script};
+			$script[$self->error_position] = '> ' . $script[$self->error_position] . ' <-- here';
+			$message .= "\n" . join ' ', @script;
+		}
+
+		return $message;
+	}
 }
 
 {
