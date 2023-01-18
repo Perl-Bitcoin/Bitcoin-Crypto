@@ -18,7 +18,7 @@ subtest 'testing addition and subtraction on single byte' => sub {
 	);
 
 	my $script = Bitcoin::Crypto::Script->new;
-	$script->add($_) for @ops;
+	script_fill($script, @ops);
 
 	ops_are($script, \@ops);
 	stack_is($script, ["\x18"]);
@@ -26,6 +26,7 @@ subtest 'testing addition and subtraction on single byte' => sub {
 
 subtest 'testing addition and subtraction on two bytes' => sub {
 	my @ops = (
+		'ff01',
 		'OP_14',
 		'OP_SUB',
 		'OP_16',
@@ -33,10 +34,9 @@ subtest 'testing addition and subtraction on two bytes' => sub {
 	);
 
 	my $script = Bitcoin::Crypto::Script->new;
-	$script->push("\xff\x01");
-	$script->add($_) for @ops;
+	script_fill($script, @ops);
 
-	ops_are($script, ['OP_PUSHDATA1', @ops]);
+	ops_are($script, \@ops);
 	stack_is($script, ["\x01\x02"]);
 };
 

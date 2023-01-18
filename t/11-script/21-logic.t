@@ -10,40 +10,40 @@ use Bitcoin::Crypto::Script;
 
 subtest 'testing negation of true value' => sub {
 	my @ops = (
+		'ff0180',
 		'OP_NOT',
 	);
 
 	my $script = Bitcoin::Crypto::Script->new;
-	$script->push("\xff\x01\x80");
-	$script->add($_) for @ops;
+	script_fill($script, @ops);
 
-	ops_are($script, ['OP_PUSHDATA1', @ops]);
+	ops_are($script, \@ops);
 	stack_is($script, ["\x00"]);
 };
 
 subtest 'testing negation of false value' => sub {
 	my @ops = (
+		'000000',
 		'OP_NOT',
 	);
 
 	my $script = Bitcoin::Crypto::Script->new;
-	$script->push("\x00\x00\x00");
-	$script->add($_) for @ops;
+	script_fill($script, @ops);
 
-	ops_are($script, ['OP_PUSHDATA1', @ops]);
+	ops_are($script, \@ops);
 	stack_is($script, ["\x01"]);
 };
 
 subtest 'testing negation of false value (with negative 0)' => sub {
 	my @ops = (
+		'000080',
 		'OP_NOT',
 	);
 
 	my $script = Bitcoin::Crypto::Script->new;
-	$script->push("\x00\x00\x80");
-	$script->add($_) for @ops;
+	script_fill($script, @ops);
 
-	ops_are($script, ['OP_PUSHDATA1', @ops]);
+	ops_are($script, \@ops);
 	stack_is($script, ["\x01"]);
 };
 

@@ -10,9 +10,24 @@ use Test::More;
 use Bitcoin::Crypto::Script::Runner;
 
 our @EXPORT = qw(
+	script_fill
 	stack_is
 	ops_are
 );
+
+sub script_fill
+{
+	my $script = shift;
+	foreach my $op (@_) {
+		if ($op =~ m/^OP_/) {
+			$script->add($op);
+		}
+		else {
+			$script->push(pack 'H*', $op);
+			$op = 'OP_PUSHDATA1';
+		}
+	}
+}
 
 sub stack_is
 {

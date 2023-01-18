@@ -147,15 +147,7 @@ foreach my $case (@cases) {
 		my @ops = @{$case->{ops}};
 
 		my $script = Bitcoin::Crypto::Script->new;
-		foreach my $op (@ops) {
-			if ($op =~ m/^OP_/) {
-				$script->add($op);
-			}
-			else {
-				$script->push(pack 'H*', $op);
-				$op = 'OP_PUSHDATA1';
-			}
-		}
+		script_fill($script, @ops);
 
 		ops_are($script, \@ops, "ops ok");
 
