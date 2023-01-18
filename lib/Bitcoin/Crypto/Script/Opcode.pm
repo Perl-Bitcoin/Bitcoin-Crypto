@@ -153,14 +153,14 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 1;
-			push @{$runner->_alt_stack}, pop @$stack;
+			push @{$runner->alt_stack}, pop @$stack;
 		},
 	},
 	OP_FROMALTSTACK => {
 		code => "\x6c",
 		runner => sub {
 			my $runner = shift;
-			my $alt = $runner->_alt_stack;
+			my $alt = $runner->alt_stack;
 
 			die unless @$alt >= 1;
 			push @{$runner->stack}, pop @$alt;

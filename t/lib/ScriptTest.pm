@@ -20,7 +20,18 @@ sub stack_is
 	$message //= 'script executed stack ok';
 
 	$stack_aref = [map { unpack 'H*', $_ } @$stack_aref];
-	my $out_stack = [map { unpack 'H*', $_ } @{$script->run}];
+
+	my $out_stack;
+	if ($script->isa('Bitcoin::Crypto::Script')) {
+		$out_stack = [map { unpack 'H*', $_ } @{$script->run}];
+	}
+	elsif ($script->isa('Bitcoin::Crypto::Script::Runner')) {
+		$out_stack = [map { unpack 'H*', $_ } @{$script->stack}];
+	}
+	else {
+		die 'invalid argument to stack_is';
+	}
+
 	is_deeply $out_stack, $stack_aref, $message;
 }
 

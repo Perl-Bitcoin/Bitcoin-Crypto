@@ -20,19 +20,21 @@ use namespace::clean;
 has field 'stack' => (
 	isa => ArrayRef[Str],
 	writer => 1,
-	default => sub { [] },
 );
 
-has field '_alt_stack' => (
+has field 'alt_stack' => (
 	isa => ArrayRef[Str],
-	writer => 1,
-	default => sub { [] },
+	writer => -hidden,
 );
 
-has field '_pos' => (
+has field 'pos' => (
 	isa => PositiveOrZeroInt,
-	writer => 1,
-	default => sub { 0 },
+	writer => -hidden,
+);
+
+has field 'operations' => (
+	isa => ArrayRef[ArrayRef],
+	writer => -hidden,
 );
 
 sub _toint
@@ -109,11 +111,21 @@ sub _advance
 	my ($self, $count) = @_;
 	$count //= 1;
 
-	$self->_set_pos($self->_pos + $count);
+	$self->_set_pos($self->pos + $count);
 	return;
 }
 
 sub execute
+{
+	my ($self, $script) = @_;
+
+	$self->start($script);
+	1 while $self->step;
+
+	return $self;
+}
+
+sub start
 {
 	my ($self, $script) = @_;
 
@@ -124,19 +136,31 @@ sub execute
 	$self->set_stack([]);
 	$self->_set_alt_stack([]);
 	$self->_set_pos(0);
-
-	my @operations = @{$script->operations};
-
-	Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(sub {
-		while ($self->_pos < @operations) {
-			my ($op, @args) = @{$operations[$self->_pos]};
-
-			$op->execute($self, @args);
-			$self->_advance;
-		}
-	});
+	$self->_set_operations($script->operations);
 
 	return $self;
+}
+
+sub step
+{
+	my ($self) = @_;
+
+	my $pos = $self->pos;
+
+	return !!0
+		unless defined $pos;
+
+	return !!0
+		unless $pos < @{$self->operations};
+
+	Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(sub {
+		my ($op, @args) = @{$self->operations->[$pos]};
+
+		$op->execute($self, @args);
+	});
+
+	$self->_advance;
+	return !!1;
 }
 
 1;
