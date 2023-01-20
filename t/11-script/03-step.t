@@ -51,7 +51,7 @@ my @cases = (
 			[], # OP_IF
 			["\xde\xad"],
 			["\xde\xad"], # OP_ELSE
-			["\xde\xad"], # OP_ENDIF
+			# no OP_ENDIF, since we jumped past it
 		],
 	},
 );
@@ -75,6 +75,8 @@ for my $case (@cases) {
 			stack_is($runner, shift @steps, "stack step $step_no ok");
 			++$step_no;
 		}
+
+		ok !@steps, 'number of steps ok';
 	};
 
 	++$case_num;
