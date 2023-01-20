@@ -37,7 +37,7 @@ has field 'operations' => (
 	writer => -hidden,
 );
 
-sub _toint
+sub to_int
 {
 	my ($self, $bytes) = @_;
 
@@ -57,7 +57,7 @@ sub _toint
 	return $value;
 }
 
-sub _fromint
+sub from_int
 {
 	my ($self, $value) = @_;
 
@@ -87,7 +87,7 @@ sub _fromint
 	return $bytes;
 }
 
-sub _tobool
+sub to_bool
 {
 	my ($self, $bytes) = @_;
 
@@ -99,7 +99,7 @@ sub _tobool
 		&& $bytes ne $substr . "\x80";
 }
 
-sub _frombool
+sub from_bool
 {
 	my ($self, $value) = @_;
 
@@ -209,19 +209,102 @@ and returns its stack.
 
 =head3 stack
 
+Array reference - the stack which is used during script execution. Last item in
+this array is the stack top. Use C<< $runner->stack->[-1] >> to examine the stack top.
+
+Each item on the stack is a byte string. Use L</to_int> and L</to_bool> to
+transform it into an integer or boolean value in the same fashion bitcoin
+script interpreter does it.
+
 =head3 alt_stack
+
+Array reference - alt stack, used by C<OP_TOALTSTACK> and C<OP_FROMALTSTACK>.
+
+=head3 operations
+
+Array reference - An array of operations to be executed. Same as
+L<Bitcoin::Crypto::Script/operations> and automatically obtained by calling it.
 
 =head3 pos
 
-=head3 operations
+Positive integer - the position of the operation to be run in the next step
+(from L</operations>).
 
 =head2 Methods
 
 =head3 execute
 
+	my $runner = $runner->execute($script, $initial_stack = []);
+
+Executes the script in one go. Returns runner instance (for chaining).
+
+C<$script> must be an instance of L<Bitcoin::Crypto::Script>. If you only have
+a serialized script in a string, call
+L<Bitcoin::Crypto::Script/from_serialized> first to get a proper script
+instance. C<$initial_stack> will be used to pre-populate the stack before
+running the script.
+
+After the method returns call L</stack> to get execution stack. This can be
+done in a single line:
+
+	my $stack = $runner->execute($script)->stack;
+
+If errors occur, they will be thrown as exceptions. See L</EXCEPTIONS>.
+
 =head3 start
 
+	my $runner = $runner->start($script, $initial_stack = []);
+
+Same as L</execute>, but only sets initial runner state and does not actually
+execute any script opcodes. L</step> must be called to continue the execution.
+
 =head3 step
+
+	while ($runner->step) {
+		# do something after each step
+	}
+
+Executes the next script opcode. Returns a false value if the script finished
+the execution, and a true value otherwise.
+
+L</start> must be called before this method is called.
+
+Note that not every opcode will take a step to execute. This means that this script:
+
+	OP_1 OP_IF OP_PUSHDATA1 1 0x1f OP_ENDIF
+
+will take four steps to execute (C<OP_1> -> C<OP_IF> -> C<0x1f> -> C<OP_ENDIF>).
+
+This one however:
+
+	OP_1 OP_IF OP_PUSHDATA1 1 0x1f OP_ELSE OP_PUSHDATA1 2 0xe15e OP_ENDIF
+
+will also take four steps (C<OP_1> -> C<OP_IF> -> C<0x1f> -> C<OP_ELSE>).
+This happens because C<OP_ELSE> performs a jump past C<OP_ENDIF>.
+If the initial op was C<OP_0>, the execution would be C<OP_0> -> C<OP_IF> ->
+C<0xe15e> -> C<OP_ENDIF>. No C<OP_ELSE> since it was jumped over and reaching
+C<OP_ENDIF>.
+
+These details should not matter usually, but may be confusing if you would
+want to for example print your stack step by step. When in doubt, check C<<
+$runner->pos >>, which contains the position of the B<next> opcode to execute.
+
+=head2 Helper methods
+
+=head3 to_int, from_int
+
+	my $int = $runner->to_int($byte_vector);
+	my $byte_vector = $runner->from_int($int);
+
+These methods encode and decode numbers in format which is used on L</stack>.
+
+BigInts are used. C<to_int> will return an instance of L<Math::BigInt>, while
+C<from_int> can accept it (but it should also handle regular numbers just
+fine).
+
+=head3 to_bool, from_bool
+
+These methods encode and decode booleans in format which is used on L</stack>.
 
 =head1 CAVEATS
 

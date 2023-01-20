@@ -65,7 +65,7 @@ my %opcodes = (
 		runner => sub {
 			my $runner = shift;
 
-			push @{$runner->stack}, $runner->_fromint(-1);
+			push @{$runner->stack}, $runner->from_int(-1);
 		},
 	},
 	OP_RESERVED => {
@@ -87,7 +87,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 1;
-			if ($runner->_tobool(pop @$stack)) {
+			if ($runner->to_bool(pop @$stack)) {
 				# continue execution
 			}
 			else {
@@ -132,7 +132,7 @@ my %opcodes = (
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			die unless $runner->_tobool($stack->[-1]);
+			die unless $runner->to_bool($stack->[-1]);
 
 			# pop later so that problematic value can be seen on the stack
 			pop @$stack;
@@ -233,7 +233,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 1;
-			if ($runner->_tobool($stack->[-1])) {
+			if ($runner->to_bool($stack->[-1])) {
 				push @$stack, $stack->[-1];
 			}
 		},
@@ -244,7 +244,7 @@ my %opcodes = (
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			push @$stack, $runner->_fromint(scalar @$stack);
+			push @$stack, $runner->from_int(scalar @$stack);
 		},
 	},
 	OP_DROP => {
@@ -295,7 +295,7 @@ my %opcodes = (
 
 			die unless @$stack >= 2;
 
-			my $n = $runner->_toint(pop @$stack);
+			my $n = $runner->to_int(pop @$stack);
 			die if $n < 0 || $n >= @$stack;
 
 			push @$stack, $stack->[-1 * ($n + 1)];
@@ -309,7 +309,7 @@ my %opcodes = (
 
 			die unless @$stack >= 2;
 
-			my $n = $runner->_toint(pop @$stack);
+			my $n = $runner->to_int(pop @$stack);
 			die if $n < 0 || $n >= @$stack;
 
 			push @$stack, splice @$stack, -1 * ($n + 1), 1;
@@ -362,7 +362,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
-			push @$stack, $runner->_frombool(pop(@$stack) eq pop(@$stack));
+			push @$stack, $runner->from_bool(pop(@$stack) eq pop(@$stack));
 		},
 	},
 	OP_EQUALVERIFY => {
@@ -382,7 +382,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 1;
-			push @$stack, $runner->_fromint($runner->_toint(pop @$stack) + 1);
+			push @$stack, $runner->from_int($runner->to_int(pop @$stack) + 1);
 		},
 	},
 	OP_1SUB => {
@@ -392,7 +392,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 1;
-			push @$stack, $runner->_fromint($runner->_toint(pop @$stack) - 1);
+			push @$stack, $runner->from_int($runner->to_int(pop @$stack) - 1);
 		},
 	},
 	OP_NEGATE => {
@@ -402,7 +402,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 1;
-			push @$stack, $runner->_fromint($runner->_toint(pop @$stack) * -1);
+			push @$stack, $runner->from_int($runner->to_int(pop @$stack) * -1);
 		},
 	},
 	OP_ABS => {
@@ -412,7 +412,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 1;
-			push @$stack, $runner->_fromint(abs $runner->_toint(pop @$stack));
+			push @$stack, $runner->from_int(abs $runner->to_int(pop @$stack));
 		},
 	},
 	OP_NOT => {
@@ -422,7 +422,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 1;
-			push @$stack, $runner->_frombool($runner->_toint(pop @$stack) == 0);
+			push @$stack, $runner->from_bool($runner->to_int(pop @$stack) == 0);
 		},
 	},
 	OP_ONOTEQUAL => {
@@ -432,7 +432,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 1;
-			push @$stack, $runner->_frombool($runner->_toint(pop @$stack) != 0);
+			push @$stack, $runner->from_bool($runner->to_int(pop @$stack) != 0);
 		},
 	},
 	OP_ADD => {
@@ -442,9 +442,9 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
-			push @$stack, $runner->_fromint(
-				$runner->_toint(pop @$stack)
-				+ $runner->_toint(pop @$stack)
+			push @$stack, $runner->from_int(
+				$runner->to_int(pop @$stack)
+				+ $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -455,9 +455,9 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
-			push @$stack, $runner->_fromint(
-				-1 * $runner->_toint(pop @$stack)
-				+ $runner->_toint(pop @$stack)
+			push @$stack, $runner->from_int(
+				-1 * $runner->to_int(pop @$stack)
+				+ $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -468,9 +468,9 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
-			push @$stack, $runner->_frombool(
-				$runner->_toint(pop @$stack) != 0
-				&& $runner->_toint(pop @$stack) != 0
+			push @$stack, $runner->from_bool(
+				$runner->to_int(pop @$stack) != 0
+				&& $runner->to_int(pop @$stack) != 0
 			);
 		},
 	},
@@ -481,9 +481,9 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
-			push @$stack, $runner->_frombool(
-				$runner->_toint(pop @$stack) != 0
-				|| $runner->_toint(pop @$stack) != 0
+			push @$stack, $runner->from_bool(
+				$runner->to_int(pop @$stack) != 0
+				|| $runner->to_int(pop @$stack) != 0
 			);
 		},
 	},
@@ -494,9 +494,9 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
-			push @$stack, $runner->_frombool(
-				$runner->_toint(pop @$stack)
-				== $runner->_toint(pop @$stack)
+			push @$stack, $runner->from_bool(
+				$runner->to_int(pop @$stack)
+				== $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -511,9 +511,9 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
-			push @$stack, $runner->_frombool(
-				$runner->_toint(pop @$stack)
-				!= $runner->_toint(pop @$stack)
+			push @$stack, $runner->from_bool(
+				$runner->to_int(pop @$stack)
+				!= $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -524,9 +524,9 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
-			push @$stack, $runner->_frombool(
-				$runner->_toint(pop @$stack)
-				> $runner->_toint(pop @$stack)
+			push @$stack, $runner->from_bool(
+				$runner->to_int(pop @$stack)
+				> $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -537,9 +537,9 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
-			push @$stack, $runner->_frombool(
-				$runner->_toint(pop @$stack)
-				< $runner->_toint(pop @$stack)
+			push @$stack, $runner->from_bool(
+				$runner->to_int(pop @$stack)
+				< $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -550,9 +550,9 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
-			push @$stack, $runner->_frombool(
-				$runner->_toint(pop @$stack)
-				>= $runner->_toint(pop @$stack)
+			push @$stack, $runner->from_bool(
+				$runner->to_int(pop @$stack)
+				>= $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -563,9 +563,9 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
-			push @$stack, $runner->_frombool(
-				$runner->_toint(pop @$stack)
-				<= $runner->_toint(pop @$stack)
+			push @$stack, $runner->from_bool(
+				$runner->to_int(pop @$stack)
+				<= $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -577,7 +577,7 @@ my %opcodes = (
 
 			die unless @$stack >= 2;
 			my ($first, $second) = splice @$stack, -2, 2;
-			push @$stack, $runner->_toint($first) < $runner->_toint($second)
+			push @$stack, $runner->to_int($first) < $runner->to_int($second)
 				? $first : $second;
 		},
 	},
@@ -589,7 +589,7 @@ my %opcodes = (
 
 			die unless @$stack >= 2;
 			my ($first, $second) = splice @$stack, -2, 2;
-			push @$stack, $runner->_toint($first) > $runner->_toint($second)
+			push @$stack, $runner->to_int($first) > $runner->to_int($second)
 				? $first : $second;
 		},
 	},
@@ -600,8 +600,8 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 3;
-			my ($first, $second, $third) = map { $runner->_toint($_) } splice @$stack, -3, 3;
-			push @$stack, $runner->_frombool($first >= $second && $first < $third);
+			my ($first, $second, $third) = map { $runner->to_int($_) } splice @$stack, -3, 3;
+			push @$stack, $runner->from_bool($first >= $second && $first < $third);
 		},
 	},
 	OP_RIPEMD160 => {
@@ -699,7 +699,7 @@ for my $num (1 .. 16) {
 		code => chr(0x50 + $num),
 		runner => sub {
 			my $runner = shift;
-			push @{$runner->stack}, $runner->_fromint($num);
+			push @{$runner->stack}, $runner->from_int($num);
 		}
 	};
 }
