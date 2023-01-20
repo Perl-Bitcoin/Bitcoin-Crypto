@@ -357,9 +357,13 @@ You can use a script object to:
 
 =item * create a script from opcodes
 
-=item * serialize script into byte string
+=item * serialize a script into byte string
+
+=item * deserialize a script into a sequence of opcodes
 
 =item * create legacy (p2sh), compat (p2sh(p2wsh)) and segwit (p2wsh) adresses
+
+=item * execute the script
 
 =back
 
@@ -369,13 +373,31 @@ You can use a script object to:
 
 	$script_object = $class->new()
 
-A constructor. Returns new script instance.
+A constructor. Returns a new empty script instance.
 
-=head2 add_operation
+See L</from_serialized> if you want to import a serialized script instead.
+
+=head2 operations
+
+	$ops_aref = $object->operations;
+
+Returns an array reference of operations contained in a script:
+
+	[
+		['OP_XXX', ...],
+		...
+	]
+
+The first element of each subarray is the op name. The rest of elements are
+metadata and is dependant on the op type. This metadata is used during script execution.
+
+=head2 add_operation, add
 
 	$script_object = $object->add_operation($opcode)
 
 Adds a new opcode at the end of a script. Returns the object instance for chaining.
+
+C<add> is a shorter alias for C<add_operation>.
 
 Throws an exception for unknown opcodes.
 
@@ -383,16 +405,17 @@ Throws an exception for unknown opcodes.
 
 	$script_object = $object->add_raw($bytes)
 
-Adds C<$bytes> at the end of a script.
-Can be used to import serialized scripts.
+Adds C<$bytes> at the end of the script without processing them at all.
 
 Returns the object instance for chaining.
 
-=head2 push_bytes
+=head2 push_bytes, push
 
 	$script_object = $object->push_bytes($bytes)
 
 Pushes C<$bytes> to the execution stack at the end of a script, using a minimal push opcode.
+
+C<push> is a shorter alias for C<push_bytes>.
 
 For example, running C<< $script->push_bytes("\x03") >> will have the same effect as C<< $script->add_operation('OP_3') >>.
 
@@ -402,11 +425,21 @@ Note that no data longer than 520 bytes can be pushed onto the stack in one oper
 
 Returns the object instance for chaining.
 
-=head2 get_script
+=head2 to_serialized
 
 	$bytestring = $object->get_script()
 
 Returns a serialized script as byte string.
+
+=head2 from_serialized
+
+	$script = Bitcoin::Crypto::Script->from_serialized($bytestring);
+
+Creates a new script instance from a bytestring.
+
+=head2 get_script
+
+Same as L</to_serialized>.
 
 =head2 get_script_hash
 
@@ -440,6 +473,15 @@ Returns string containing Base58Check encoded script hash containing a witness p
 
 Returns string containing Bech32 encoded witness program (p2wsh address)
 
+=head2 run
+
+	my $result_stack = $object->run;
+
+Executes the script and returns the resulting script stack.
+
+This is a convenience method which constructs runner instance in the
+background. See L<Bitcoin::Crypto::Script::Runner> for details and advanced usage.
+
 =head1 EXCEPTIONS
 
 This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
@@ -450,6 +492,10 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =item * ScriptPush - data pushed to the execution stack is invalid
 
+=item * ScriptSyntax - script syntax is invalid
+
+=item * ScriptRuntime - script runtime error
+
 =item * NetworkConfig - incomplete or corrupted network configuration
 
 =back
@@ -458,7 +504,9 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =over 2
 
-=item L<Bitcoin::Crypto::Key::Private>
+=item L<Bitcoin::Crypto::Script::Runner>
+
+=item L<Bitcoin::Crypto::Script::Opcode>
 
 =item L<Bitcoin::Crypto::Network>
 

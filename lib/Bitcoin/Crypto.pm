@@ -139,7 +139,7 @@ You can work with any cryptocurrency as long as it is based on the same fundamen
 
 =item * serialize a Bitcoin script
 
-L<Bitcoin::Crypto::Script> will help you build and serialize a script, but not run it.
+L<Bitcoin::Crypto::Script> will help you build, serialize and run a script.
 
 =item * work with Bitcoin-related encodings
 
