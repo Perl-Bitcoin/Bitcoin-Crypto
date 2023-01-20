@@ -330,7 +330,7 @@ sub get_segwit_address
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Script - Bitcoin script representations
+Bitcoin::Crypto::Script - Bitcoin script instances
 
 =head1 SYNOPSIS
 
@@ -349,7 +349,7 @@ Bitcoin::Crypto::Script - Bitcoin script representations
 
 =head1 DESCRIPTION
 
-This class allows you to create a bitcoin script representations
+This class allows you to create Perl representation of a Bitcoin script.
 
 You can use a script object to:
 

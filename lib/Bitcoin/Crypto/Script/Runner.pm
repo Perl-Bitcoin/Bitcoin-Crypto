@@ -205,7 +205,7 @@ and returns its stack.
 
 =head1 INTERFACE
 
-=head2 Fields
+=head2 Attributes
 
 =head3 stack
 

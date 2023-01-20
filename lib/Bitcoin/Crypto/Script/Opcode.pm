@@ -779,3 +779,84 @@ sub get_opcode_by_name
 
 1;
 
+__END__
+
+=head1 NAME
+
+Bitcoin::Crypto::Script::Opcode - Bitcoin Script opcode
+
+=head1 SYNOPSIS
+
+	use Bitcoin::Crypto::Script::Opcode;
+
+	my $opcode1 = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code("\x00");
+	my $opcode2 = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name('OP_1');
+
+	print $opcode1->name; # 'OP_0'
+	print $opcode1->code; # "\x00"
+	print 'implemented' if $opcode1->implemented;
+
+=head1 DESCRIPTION
+
+This is both a library of opcodes and a small struct-like class for opcodes.
+
+=head1 INTERFACE
+
+=head2 Class (static) methods
+
+These methods are used to find an opcode.
+
+=head3 get_opcode_by_name
+
+	my $object = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name($name);
+
+Finds an opcode by its name (C<OP_XXX>) and returns an object instance.
+
+If opcode was not found an exception is raised (C<Bitcoin::Crypto::Exception::ScriptOpcode>).
+
+=head3 get_opcode_by_code
+
+	my $object = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code($bytestr);
+
+Finds an opcode by its code (bytestring of length 1) and returns an object instance.
+
+If opcode was not found an exception is raised (C<Bitcoin::Crypto::Exception::ScriptOpcode>).
+
+=head2 Attributes
+
+=head3 name
+
+The name of the opcode (C<OP_XXX>).
+
+=head3 code
+
+The code of the opcode - a bytestring of length 1.
+
+=head3 runner
+
+A coderef which can be used to execute this opcode.
+
+This is reserved for internal use only. If you want to know whether an opcode
+is implemented, call L</implemented>
+
+=head2 Methods
+
+=head3 execute
+
+Executes this opcode. Internal use only.
+
+=head3 implemented
+
+	my $bool = $object->implemented;
+
+Returns true if this opcode is implemented within C<Bitcoin::Crypto>.
+
+If an opcode is not implemented, a script containing it will refuse to run.
+Serialization and deseralization will still work though.
+
+=head1 CAVEATS
+
+=head1 SEE ALSO
+
+L<Bitcoin::Crypto::Script>
+
