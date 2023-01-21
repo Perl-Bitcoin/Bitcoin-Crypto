@@ -87,6 +87,18 @@ my @cases = (
 		[chr 0],
 	],
 
+	[
+		'equal',
+		[qw(OP_0 OP_0 OP_EQUAL 22 22 OP_EQUAL OP_0 80 OP_EQUAL)],
+		[chr 1, chr 1, chr 0],
+	],
+
+	[
+		'numequal',
+		[qw(OP_0 OP_0 OP_NUMEQUAL 22 22 OP_NUMEQUAL OP_0 80 OP_NUMEQUAL)],
+		[chr 1, chr 1, chr 1],
+	],
+
 );
 
 foreach my $case (@cases) {
