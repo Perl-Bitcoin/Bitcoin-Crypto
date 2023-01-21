@@ -61,6 +61,16 @@ my @cases = (
 	},
 
 	{
+		ops => [qw(f8 f8 OP_SUB OP_0 OP_EQUAL)],
+		stack => ["\x01"],
+	},
+
+	{
+		ops => [qw(f8 f8 OP_NEGATE OP_ADD OP_0 OP_EQUAL)],
+		stack => ["\x01"],
+	},
+
+	{
 		ops => [qw(
 			OP_1 OP_1
 			OP_IF

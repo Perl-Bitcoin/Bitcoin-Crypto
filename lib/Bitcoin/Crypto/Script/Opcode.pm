@@ -357,7 +357,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 1;
-			push @$stack, length $stack->[-1];
+			push @$stack, $runner->from_int(length $stack->[-1]);
 		},
 	},
 	OP_EQUAL => {
