@@ -93,6 +93,19 @@ my @cases = (
 		["\x23\x45", "\x02"],
 	],
 
+	[
+		'min',
+		[qw(OP_10 OP_5 OP_MIN)],
+		[chr 5],
+	],
+
+	[
+		'max',
+		[qw(OP_10 OP_5 OP_MAX)],
+		[chr 10],
+	],
+
+
 );
 
 foreach my $case (@cases) {
