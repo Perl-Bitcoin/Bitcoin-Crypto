@@ -8,30 +8,42 @@ use ScriptTest;
 
 use Bitcoin::Crypto::Script;
 
-subtest 'testing data push' => sub {
-	my $data = pack 'H*', '00010203';
+# four bytes
+my $data = pack 'H*', '00010203';
 
-	my @cases = (
-		$data x 10,
-		$data x 50,
-		$data x 90
-	);
-
-	my @ops = (
-		'OP_PUSHDATA1', # NOTE: simple push is implemented using PUSHDATA1
+my @cases = (
+	[
 		'OP_PUSHDATA1',
+		$data x 10,
+	],
+	[
+		'OP_PUSHDATA1',
+		$data x 50,
+	],
+	[
 		'OP_PUSHDATA2',
-	);
+		$data x 90,
+	],
+);
 
-	for my $case_num (0 .. $#cases) {
-		my $case = $cases[$case_num];
+foreach my $case (@cases) {
+	my ($op, $data) = @{$case};
 
+	subtest "testing $op" => sub {
 		my $script = Bitcoin::Crypto::Script->new
-			->push($case);
+			->push($data);
 
-		ops_are($script, [$ops[$case_num]], "ops $case_num ok");
-		stack_is($script, [$case], "stack $case_num ok");
-	}
+		ops_are($script, [$op], "ops ok");
+		stack_is($script, [$data], "stack ok");
+	};
+}
+
+subtest 'testing OP_1NEGATE' => sub {
+	my $script = Bitcoin::Crypto::Script->new
+		->add('OP_1NEGATE');
+
+	ops_are($script, ['OP_1NEGATE'], "ops ok");
+	stack_is($script, [chr 0x81], "stack ok");
 };
 
 done_testing;
