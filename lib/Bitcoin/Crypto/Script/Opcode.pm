@@ -7,8 +7,13 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 
+use Crypt::Digest::RIPEMD160 qw(ripemd160);
+use Crypt::Digest::SHA256 qw(sha256);
+use Crypt::Digest::SHA1 qw(sha1);
+
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Str StrLength CodeRef);
+use Bitcoin::Crypto::Helpers qw(hash160 hash256);
 
 use namespace::clean;
 

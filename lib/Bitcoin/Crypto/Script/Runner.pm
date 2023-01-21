@@ -7,13 +7,10 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 
 use Scalar::Util qw(blessed);
-use Crypt::Digest::RIPEMD160 qw(ripemd160);
-use Crypt::Digest::SHA256 qw(sha256);
-use Crypt::Digest::SHA1 qw(sha1);
 
 use Bitcoin::Crypto::Types qw(ArrayRef Str PositiveOrZeroInt);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Helpers qw(new_bigint pad_hex hash160 hash256);
+use Bitcoin::Crypto::Helpers qw(new_bigint pad_hex);
 
 use namespace::clean;
 
