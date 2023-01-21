@@ -473,9 +473,11 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
+
+			my $second = $runner->to_int(pop @$stack) != 0;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack) != 0
-				&& $runner->to_int(pop @$stack) != 0
+				&& $second
 			);
 		},
 	},
@@ -486,9 +488,11 @@ my %opcodes = (
 			my $stack = $runner->stack;
 
 			die unless @$stack >= 2;
+
+			my $second = $runner->to_int(pop @$stack) != 0;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack) != 0
-				|| $runner->to_int(pop @$stack) != 0
+				|| $second
 			);
 		},
 	},

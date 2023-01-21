@@ -8,44 +8,98 @@ use ScriptTest;
 
 use Bitcoin::Crypto::Script;
 
-subtest 'testing negation of true value' => sub {
-	my @ops = (
-		'ff0180',
-		'OP_NOT',
-	);
+my @cases = (
+	[
+		'negation of true value',
+		[qw(ff0180 OP_NOT)],
+		[chr 0],
+	],
 
-	my $script = Bitcoin::Crypto::Script->new;
-	script_fill($script, @ops);
+	[
+		'negation of true value (only true LSBit)',
+		[qw(010000 OP_NOT)],
+		[chr 0],
+	],
 
-	ops_are($script, \@ops);
-	stack_is($script, ["\x00"]);
-};
+	[
+		'negation of true value (only true MSByte)',
+		[qw(000001 OP_NOT)],
+		[chr 0],
+	],
 
-subtest 'testing negation of false value' => sub {
-	my @ops = (
-		'000000',
-		'OP_NOT',
-	);
+	[
+		'negation of false value',
+		[qw(000000 OP_NOT)],
+		[chr 1],
+	],
 
-	my $script = Bitcoin::Crypto::Script->new;
-	script_fill($script, @ops);
+	[
+		'negation of false value (with negative 0)',
+		[qw(000080 OP_NOT)],
+		[chr 1],
+	],
 
-	ops_are($script, \@ops);
-	stack_is($script, ["\x01"]);
-};
+	[
+		'booland 1 0',
+		[qw(OP_1 OP_0 OP_BOOLAND)],
+		[chr 0],
+	],
 
-subtest 'testing negation of false value (with negative 0)' => sub {
-	my @ops = (
-		'000080',
-		'OP_NOT',
-	);
+	[
+		'booland 1 1',
+		[qw(OP_1 OP_1 OP_BOOLAND)],
+		[chr 1],
+	],
 
-	my $script = Bitcoin::Crypto::Script->new;
-	script_fill($script, @ops);
+	[
+		'booland 0 1',
+		[qw(OP_0 OP_1 OP_BOOLAND)],
+		[chr 0],
+	],
 
-	ops_are($script, \@ops);
-	stack_is($script, ["\x01"]);
-};
+	[
+		'booland 0 0',
+		[qw(OP_0 80 OP_BOOLAND)],
+		[chr 0],
+	],
+
+	[
+		'boolor 1 0',
+		[qw(OP_1 OP_0 OP_BOOLOR)],
+		[chr 1],
+	],
+
+	[
+		'boolor 1 1',
+		[qw(OP_1 OP_1 OP_BOOLOR)],
+		[chr 1],
+	],
+
+	[
+		'boolor 0 1',
+		[qw(OP_0 OP_1 OP_BOOLOR)],
+		[chr 1],
+	],
+
+	[
+		'boolor 0 0',
+		[qw(OP_0 80 OP_BOOLOR)],
+		[chr 0],
+	],
+
+);
+
+foreach my $case (@cases) {
+	my ($name, $ops, $expected_stack) = @$case;
+
+	subtest "testing $name" => sub {
+		my $script = Bitcoin::Crypto::Script->new;
+		script_fill($script, @$ops);
+
+		ops_are($script, $ops);
+		stack_is($script, $expected_stack);
+	};
+}
 
 done_testing;
 
