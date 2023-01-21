@@ -11,6 +11,11 @@ use Bitcoin::Crypto::Script;
 
 my @cases = (
 	{
+		ops => [qw(OP_NOP)],
+		stack => [],
+	},
+
+	{
 		ops => [qw(OP_1 OP_2 OP_2DUP OP_ROT OP_EQUAL OP_TOALTSTACK OP_EQUAL OP_FROMALTSTACK)],
 		stack => [chr 1, chr 1],
 	},
