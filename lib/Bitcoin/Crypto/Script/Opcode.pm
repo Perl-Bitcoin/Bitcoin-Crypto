@@ -430,7 +430,7 @@ my %opcodes = (
 			push @$stack, $runner->from_bool($runner->to_int(pop @$stack) == 0);
 		},
 	},
-	OP_ONOTEQUAL => {
+	OP_0NOTEQUAL => {
 		code => "\x92",
 		runner => sub {
 			my $runner = shift;
