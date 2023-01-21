@@ -665,15 +665,15 @@ my %opcodes = (
 	},
 	OP_CODESEPARATOR => {
 		code => "\xab",
-		runner => sub {
-			my $runner = shift;
-		},
+		# runner => sub {
+		# 	my $runner = shift;
+		# },
 	},
 	OP_CHECKSIG => {
 		code => "\xac",
-		runner => sub {
-			my $runner = shift;
-		},
+		# runner => sub {
+		# 	my $runner = shift;
+		# },
 	},
 	OP_CHECKSIGVERIFY => {
 		code => "\xad",
@@ -681,9 +681,9 @@ my %opcodes = (
 	},
 	OP_CHECKMULTISIG => {
 		code => "\xae",
-		runner => sub {
-			my $runner = shift;
-		},
+		# runner => sub {
+		# 	my $runner = shift;
+		# },
 	},
 	OP_CHECKMULTISIGVERIFY => {
 		code => "\xaf",
@@ -691,15 +691,15 @@ my %opcodes = (
 	},
 	OP_CHECKLOCKTIMEVERFIY => {
 		code => "\xb1",
-		runner => sub {
-			my $runner = shift;
-		},
+		# runner => sub {
+		# 	my $runner = shift;
+		# },
 	},
 	OP_CHECKSEQUENCEVERIFY => {
 		code => "\xb2",
-		runner => sub {
-			my $runner = shift;
-		},
+		# runner => sub {
+		# 	my $runner = shift;
+		# },
 	},
 );
 
@@ -736,15 +736,15 @@ $opcodes{OP_NUMEQUALVERIFY}{runner} = sub {
 	$opcodes{OP_VERIFY}{runner}->(@_);
 };
 
-$opcodes{OP_CHECKSIGVERIFY}{runner} = sub {
-	$opcodes{OP_CHECKSIG}{runner}->(@_);
-	$opcodes{OP_VERIFY}{runner}->(@_);
-};
+# $opcodes{OP_CHECKSIGVERIFY}{runner} = sub {
+# 	$opcodes{OP_CHECKSIG}{runner}->(@_);
+# 	$opcodes{OP_VERIFY}{runner}->(@_);
+# };
 
-$opcodes{OP_CHECKMULTISIGVERIFY}{runner} = sub {
-	$opcodes{OP_CHECKMULTISIG}{runner}->(@_);
-	$opcodes{OP_VERIFY}{runner}->(@_);
-};
+# $opcodes{OP_CHECKMULTISIGVERIFY}{runner} = sub {
+# 	$opcodes{OP_CHECKMULTISIG}{runner}->(@_);
+# 	$opcodes{OP_VERIFY}{runner}->(@_);
+# };
 
 my %opcodes_reverse = map { $opcodes{$_}{code}, $_ } keys %opcodes;
 
