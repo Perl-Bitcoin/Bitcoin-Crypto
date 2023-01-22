@@ -22,5 +22,5 @@
 --brace-tightness=2
 --opening-token-right
 
--gal='first any sum sum0 reduce'
+-gal='first any sum sum0 reduce dies_ok lives_ok'
 
