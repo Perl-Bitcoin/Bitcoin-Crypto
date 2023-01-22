@@ -77,7 +77,7 @@ sub operations
 
 			if ($context{op_if}) {
 				%context = (
-					previous_context => { %context },
+					previous_context => {%context},
 				);
 			}
 			$context{op_if} = $op;

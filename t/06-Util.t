@@ -33,14 +33,12 @@ foreach my $case (keys %cases) {
 	if (defined $cases{$case}) {
 		lives_and {
 			is(validate_wif($case), $cases{$case})
-		}
-		'wif validation ok';
+		} 'wif validation ok';
 	}
 	else {
 		throws_ok {
 			validate_wif($case);
-		}
-		'Bitcoin::Crypto::Exception', 'wif validation failed as expected';
+		} 'Bitcoin::Crypto::Exception', 'wif validation failed as expected';
 	}
 }
 

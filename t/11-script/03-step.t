@@ -11,14 +11,16 @@ use Bitcoin::Crypto::Script::Runner;
 
 my @cases = (
 	{
-		ops => [qw(
-			OP_2
-			OP_0
-			OP_IFDUP
-			OP_TOALTSTACK
-			OP_DUP
-			OP_2DROP
-		)],
+		ops => [
+			qw(
+				OP_2
+				OP_0
+				OP_IFDUP
+				OP_TOALTSTACK
+				OP_DUP
+				OP_2DROP
+			)
+		],
 		steps => [
 			[chr 2],
 			[chr 2, chr 0],
@@ -30,28 +32,30 @@ my @cases = (
 	},
 
 	{
-		ops => [qw(
-			OP_10
-			OP_2
-			OP_ADD
-			OP_12
-			OP_EQUAL
-			OP_IF
+		ops => [
+			qw(
+				OP_10
+				OP_2
+				OP_ADD
+				OP_12
+				OP_EQUAL
+				OP_IF
 				dead
-			OP_ELSE
+				OP_ELSE
 				beef
-			OP_ENDIF
-		)],
+				OP_ENDIF
+			)
+		],
 		steps => [
 			[chr 10],
 			[chr 10, chr 2],
 			[chr 12],
 			[chr 12, chr 12],
 			[chr 1],
-			[], # OP_IF
+			[],    # OP_IF
 			["\xde\xad"],
-			["\xde\xad"], # OP_ELSE
-			# no OP_ENDIF, since we jumped past it
+			["\xde\xad"],    # OP_ELSE
+							 # no OP_ENDIF, since we jumped past it
 		],
 	},
 );

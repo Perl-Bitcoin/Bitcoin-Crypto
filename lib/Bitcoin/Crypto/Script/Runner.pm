@@ -15,12 +15,12 @@ use Bitcoin::Crypto::Helpers qw(new_bigint pad_hex);
 use namespace::clean;
 
 has field 'stack' => (
-	isa => ArrayRef[Str],
+	isa => ArrayRef [Str],
 	writer => -hidden,
 );
 
 has field 'alt_stack' => (
-	isa => ArrayRef[Str],
+	isa => ArrayRef [Str],
 	writer => -hidden,
 );
 
@@ -30,7 +30,7 @@ has field 'pos' => (
 );
 
 has field 'operations' => (
-	isa => ArrayRef[ArrayRef],
+	isa => ArrayRef [ArrayRef],
 	writer => -hidden,
 );
 
@@ -150,11 +150,13 @@ sub step
 	return !!0
 		unless $pos < @{$self->operations};
 
-	Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(sub {
-		my ($op, @args) = @{$self->operations->[$pos]};
+	Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(
+		sub {
+			my ($op, @args) = @{$self->operations->[$pos]};
 
-		$op->execute($self, @args);
-	});
+			$op->execute($self, @args);
+		}
+	);
 
 	$self->_advance;
 	return !!1;

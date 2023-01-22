@@ -9,12 +9,10 @@ BEGIN { use_ok('Bitcoin::Crypto::Exception') }
 subtest 'test exception throwing' => sub {
 	throws_ok {
 		Bitcoin::Crypto::Exception->raise('test_message');
-	}
-	'Bitcoin::Crypto::Exception', 'exception was raised';
+	} 'Bitcoin::Crypto::Exception', 'exception was raised';
 	throws_ok {
 		Bitcoin::Crypto::Exception->throw('test_message');
-	}
-	'Bitcoin::Crypto::Exception', 'exception was raised';
+	} 'Bitcoin::Crypto::Exception', 'exception was raised';
 	my $err = $@;
 
 	is($err->message, 'test_message', 'message ok');
@@ -25,8 +23,7 @@ subtest 'test exception throwing' => sub {
 subtest 'test exception raising' => sub {
 	throws_ok {
 		Bitcoin::Crypto::Exception::KeyCreate->raise('message');
-	}
-	'Bitcoin::Crypto::Exception::KeyCreate', 'exception was raised';
+	} 'Bitcoin::Crypto::Exception::KeyCreate', 'exception was raised';
 
 	note $@;
 };
@@ -51,8 +48,7 @@ subtest 'test exception trapping' => sub {
 		Bitcoin::Crypto::Exception->trap_into(
 			sub { die 'test'; }
 		);
-	}
-	'Bitcoin::Crypto::Exception', 'exception was trapped';
+	} 'Bitcoin::Crypto::Exception', 'exception was trapped';
 
 	lives_and {
 		is(
@@ -61,8 +57,7 @@ subtest 'test exception trapping' => sub {
 			),
 			54321
 		);
-	}
-	'trapped return value ok';
+	} 'trapped return value ok';
 
 	throws_ok {
 		Bitcoin::Crypto::Exception->trap_into(
@@ -71,8 +66,7 @@ subtest 'test exception trapping' => sub {
 				die 'test';
 			}
 		);
-	}
-	'Bitcoin::Crypto::Exception', 'exception was trapped despite DESTROY';
+	} 'Bitcoin::Crypto::Exception', 'exception was trapped despite DESTROY';
 
 	note $@;
 };

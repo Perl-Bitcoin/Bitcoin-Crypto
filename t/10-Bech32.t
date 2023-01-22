@@ -304,8 +304,7 @@ for my $test (@tests_bech32) {
 			my @result;
 			lives_ok {
 				@result = decode_bech32($test->{case});
-			}
-			'case decoded without errors';
+			} 'case decoded without errors';
 
 			is_deeply $result[1], $test->{data}, 'decode result ok';
 			is $result[2], Bitcoin::Crypto::Bech32->BECH32, 'result type ok';
@@ -314,8 +313,7 @@ for my $test (@tests_bech32) {
 		elsif (defined $test->{exception}) {
 			throws_ok {
 				decode_bech32($test->{case});
-			}
-			'Bitcoin::Crypto::Exception::' . $test->{exception}, 'decoding fails ok';
+			} 'Bitcoin::Crypto::Exception::' . $test->{exception}, 'decoding fails ok';
 		}
 	};
 }
@@ -326,8 +324,7 @@ for my $test (@tests_bech32m) {
 			my @result;
 			lives_ok {
 				@result = decode_bech32($test->{case});
-			}
-			'case decoded without errors';
+			} 'case decoded without errors';
 
 			is_deeply $result[1], $test->{data}, 'decode result ok';
 			is $result[2], Bitcoin::Crypto::Bech32->BECH32M, 'result type ok';
@@ -336,8 +333,7 @@ for my $test (@tests_bech32m) {
 		elsif (defined $test->{exception}) {
 			throws_ok {
 				decode_bech32($test->{case});
-			}
-			'Bitcoin::Crypto::Exception::' . $test->{exception}, 'decoding fails ok';
+			} 'Bitcoin::Crypto::Exception::' . $test->{exception}, 'decoding fails ok';
 		}
 	};
 }
@@ -349,8 +345,7 @@ for my $test (@tests_segwit, @tests_taproot) {
 			lives_ok {
 				$result = decode_segwit($test->{case});
 				($hrp) = decode_bech32($test->{case});
-			}
-			'case decoded without errors';
+			} 'case decoded without errors';
 
 			is unpack('H*', $result), $test->{data}, 'decode result ok';
 			is encode_segwit($hrp, pack 'H*', $test->{data}), lc $test->{case}, 'encode result ok';
@@ -358,8 +353,7 @@ for my $test (@tests_segwit, @tests_taproot) {
 		elsif (defined $test->{exception}) {
 			throws_ok {
 				decode_segwit($test->{case});
-			}
-			'Bitcoin::Crypto::Exception::' . $test->{exception}, 'decoding fails ok';
+			} 'Bitcoin::Crypto::Exception::' . $test->{exception}, 'decoding fails ok';
 		}
 	};
 }

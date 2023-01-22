@@ -239,8 +239,7 @@ for my $tdata (@test_data_error) {
 	throws_ok {
 		my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($tdata->[0]);
 		$base_key->derive_key($tdata->[1]);
-	}
-	'Bitcoin::Crypto::Exception', 'incorrect derivation failed with exception';
+	} 'Bitcoin::Crypto::Exception', 'incorrect derivation failed with exception';
 }
 
 done_testing;

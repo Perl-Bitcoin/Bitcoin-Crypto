@@ -78,6 +78,7 @@ sub get_path_info
 		my @path;
 
 		if (defined $rest && length $rest > 0) {
+
 			# remove leading slash (after $head)
 			substr $rest, 0, 1, '';
 

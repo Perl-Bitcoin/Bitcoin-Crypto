@@ -24,7 +24,7 @@ has param 'depth' => (
 );
 
 has param 'parent_fingerprint' => (
-	isa => StrLength[4, 4],
+	isa => StrLength [4, 4],
 	default => (pack 'x4'),
 );
 
@@ -34,7 +34,7 @@ has param 'child_number' => (
 );
 
 has param 'chain_code' => (
-	isa => StrLength[32, 32],
+	isa => StrLength [32, 32],
 );
 
 with qw(Bitcoin::Crypto::Role::Key);
@@ -117,7 +117,8 @@ sub from_serialized
 			Bitcoin::Crypto::Constants::bip44_legacy_purpose,
 			Bitcoin::Crypto::Constants::bip44_compat_purpose,
 			Bitcoin::Crypto::Constants::bip44_segwit_purpose
-			) {
+			)
+		{
 			$purpose = $check_purpose;
 
 			@found_networks = Bitcoin::Crypto::Network->find(

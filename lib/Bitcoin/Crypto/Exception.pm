@@ -79,7 +79,7 @@ sub as_string
 	my $class = ref $self;
 	$class =~ s/Bitcoin::Crypto::Exception:://;
 
-	return "An error occured in Bitcoin subroutines: [$class] $raised"
+	return "An error occured in Bitcoin subroutines: [$class] $raised";
 }
 
 {

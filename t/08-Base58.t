@@ -58,8 +58,7 @@ foreach my $case (@cases) {
 foreach my $case (@cases_error) {
 	throws_ok {
 		decode_base58check($case->[0]);
-	}
-	'Bitcoin::Crypto::Exception::' . $case->[1], 'invalid data raises an exception';
+	} 'Bitcoin::Crypto::Exception::' . $case->[1], 'invalid data raises an exception';
 }
 
 done_testing;

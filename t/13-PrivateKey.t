@@ -90,16 +90,16 @@ is(
 
 throws_ok {
 	$PrivateKey->from_hex($too_long_key);
-}
-'Bitcoin::Crypto::Exception::KeyCreate', 'Too long key got rejected';
+} 'Bitcoin::Crypto::Exception::KeyCreate', 'Too long key got rejected';
 
 # Incorrect data testing
-my $public_key = '04394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967c52ad62fe0b27e5acc0992fc8509e5041a06064ce967200b0b7288a4ab889bf22';
+my $public_key =
+	'04394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967c52ad62fe0b27e5acc0992fc8509e5041a06064ce967200b0b7288a4ab889bf22';
 
 throws_ok {
 	$PrivateKey->from_hex($public_key);
-}
-'Bitcoin::Crypto::Exception::KeyCreate', 'Public key got rejected';
+	}
+	'Bitcoin::Crypto::Exception::KeyCreate', 'Public key got rejected';
 
 done_testing;
 

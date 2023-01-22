@@ -141,8 +141,6 @@ my @cases = (
 		[chr 1, chr 1, chr 0, chr 0],
 	],
 
-
-
 );
 
 foreach my $case (@cases) {

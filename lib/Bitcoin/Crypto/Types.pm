@@ -4,11 +4,13 @@ use v5.10;
 use strict;
 use warnings;
 
-use Type::Library -extends => [ qw(
-	Types::Standard
-	Types::Common::Numeric
-	Types::Common::String
-) ];
+use Type::Library -extends => [
+	qw(
+		Types::Standard
+		Types::Common::Numeric
+		Types::Common::String
+	)
+];
 use Type::Coercion;
 
 # make sure Math::BigInt is properly loaded - this module loads it
@@ -17,11 +19,13 @@ use Bitcoin::Crypto::Constants;
 
 __PACKAGE__->add_type(
 	name => 'BIP44Purpose',
-	parent => Maybe [Enum->of(
-		Bitcoin::Crypto::Constants::bip44_legacy_purpose,
-		Bitcoin::Crypto::Constants::bip44_compat_purpose,
-		Bitcoin::Crypto::Constants::bip44_segwit_purpose
-		)],
+	parent => Maybe [
+		Enum->of(
+			Bitcoin::Crypto::Constants::bip44_legacy_purpose,
+			Bitcoin::Crypto::Constants::bip44_compat_purpose,
+			Bitcoin::Crypto::Constants::bip44_segwit_purpose
+		)
+	],
 );
 
 __PACKAGE__->add_type(
@@ -49,6 +53,7 @@ __PACKAGE__->add_type(
 		my $bits = shift;
 
 		return sub {
+
 			# for same bits as system, no need for special constraint
 			return (undef, qq{ 1 })
 				if Bitcoin::Crypto::Constants::ivsize * 8 == $bits;

@@ -105,7 +105,6 @@ my @cases = (
 		[chr 10],
 	],
 
-
 );
 
 foreach my $case (@cases) {

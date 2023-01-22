@@ -17,8 +17,7 @@ my $program = "\x0f\x00\xff";
 {
 	throws_ok {
 		validate_program($program);
-	}
-	qr/- warning/, 'warning was raised as exception';
+	} qr/- warning/, 'warning was raised as exception';
 	my $err = $@;
 
 	note($err);
@@ -40,8 +39,8 @@ $Bitcoin::Crypto::Segwit::validators{15} = sub {
 {
 	throws_ok {
 		validate_program($program);
-	}
-	'Bitcoin::Crypto::Exception::ValidationTest', 'exception was raised';
+		}
+		'Bitcoin::Crypto::Exception::ValidationTest', 'exception was raised';
 	my $err = $@;
 
 	note($err);

@@ -40,7 +40,6 @@ sub __create_key
 	return $key;
 }
 
-
 use Moo::Role;
 
 has param 'key_instance' => (

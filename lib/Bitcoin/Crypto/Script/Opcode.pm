@@ -22,7 +22,7 @@ has param 'name' => (
 );
 
 has param 'code' => (
-	isa => StrLength[1, 1],
+	isa => StrLength [1, 1],
 );
 
 has option 'runner' => (
@@ -59,10 +59,12 @@ my %opcodes = (
 	},
 	OP_PUSHDATA2 => {
 		code => "\x4d",
+
 		# see runner below
 	},
 	OP_PUSHDATA4 => {
 		code => "\x4e",
+
 		# see runner below
 	},
 	OP_1NEGATE => {
@@ -79,6 +81,7 @@ my %opcodes = (
 	OP_NOP => {
 		code => "\x61",
 		runner => sub {
+
 			# does nothing
 		},
 	},
@@ -93,6 +96,7 @@ my %opcodes = (
 
 			die unless @$stack >= 1;
 			if ($runner->to_bool(pop @$stack)) {
+
 				# continue execution
 			}
 			else {
@@ -107,6 +111,7 @@ my %opcodes = (
 	},
 	OP_NOTIF => {
 		code => "\x64",
+
 		# see runner below
 	},
 	OP_VERIF => {
@@ -117,6 +122,7 @@ my %opcodes = (
 	},
 	OP_ELSE => {
 		code => "\x67",
+
 		# should only get called when IF branch ops are depleted
 		runner => sub {
 			my ($runner, $endif_pos) = @_;
@@ -126,8 +132,10 @@ my %opcodes = (
 	},
 	OP_ENDIF => {
 		code => "\x68",
+
 		# should only get called when IF or ELSE branch ops are depleted
 		runner => sub {
+
 			# nothing to do here, will step to the next op
 		},
 	},
@@ -372,6 +380,7 @@ my %opcodes = (
 	},
 	OP_EQUALVERIFY => {
 		code => "\x88",
+
 		# see runner below
 	},
 	OP_RESERVED1 => {
@@ -449,7 +458,7 @@ my %opcodes = (
 			die unless @$stack >= 2;
 			push @$stack, $runner->from_int(
 				$runner->to_int(pop @$stack)
-				+ $runner->to_int(pop @$stack)
+					+ $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -462,7 +471,7 @@ my %opcodes = (
 			die unless @$stack >= 2;
 			push @$stack, $runner->from_int(
 				-1 * $runner->to_int(pop @$stack)
-				+ $runner->to_int(pop @$stack)
+					+ $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -477,7 +486,7 @@ my %opcodes = (
 			my $second = $runner->to_int(pop @$stack) != 0;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack) != 0
-				&& $second
+					&& $second
 			);
 		},
 	},
@@ -492,7 +501,7 @@ my %opcodes = (
 			my $second = $runner->to_int(pop @$stack) != 0;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack) != 0
-				|| $second
+					|| $second
 			);
 		},
 	},
@@ -505,12 +514,13 @@ my %opcodes = (
 			die unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
-				== $runner->to_int(pop @$stack)
+					== $runner->to_int(pop @$stack)
 			);
 		},
 	},
 	OP_NUMEQUALVERIFY => {
 		code => "\x9d",
+
 		# see runner below
 	},
 	OP_NUMNOTEQUAL => {
@@ -522,7 +532,7 @@ my %opcodes = (
 			die unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
-				!= $runner->to_int(pop @$stack)
+					!= $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -535,7 +545,7 @@ my %opcodes = (
 			die unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
-				> $runner->to_int(pop @$stack)
+					> $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -548,7 +558,7 @@ my %opcodes = (
 			die unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
-				< $runner->to_int(pop @$stack)
+					< $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -561,7 +571,7 @@ my %opcodes = (
 			die unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
-				>= $runner->to_int(pop @$stack)
+					>= $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -574,7 +584,7 @@ my %opcodes = (
 			die unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
-				<= $runner->to_int(pop @$stack)
+					<= $runner->to_int(pop @$stack)
 			);
 		},
 	},
@@ -665,38 +675,45 @@ my %opcodes = (
 	},
 	OP_CODESEPARATOR => {
 		code => "\xab",
+
 		# runner => sub {
 		# 	my $runner = shift;
 		# },
 	},
 	OP_CHECKSIG => {
 		code => "\xac",
+
 		# runner => sub {
 		# 	my $runner = shift;
 		# },
 	},
 	OP_CHECKSIGVERIFY => {
 		code => "\xad",
+
 		# see runner below
 	},
 	OP_CHECKMULTISIG => {
 		code => "\xae",
+
 		# runner => sub {
 		# 	my $runner = shift;
 		# },
 	},
 	OP_CHECKMULTISIGVERIFY => {
 		code => "\xaf",
+
 		# see runner below
 	},
 	OP_CHECKLOCKTIMEVERFIY => {
 		code => "\xb1",
+
 		# runner => sub {
 		# 	my $runner = shift;
 		# },
 	},
 	OP_CHECKSEQUENCEVERIFY => {
 		code => "\xb2",
+
 		# runner => sub {
 		# 	my $runner = shift;
 		# },
