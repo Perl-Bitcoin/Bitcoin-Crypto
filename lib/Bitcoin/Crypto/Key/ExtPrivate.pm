@@ -9,7 +9,7 @@ use Bitcoin::BIP39 qw(gen_bip39_mnemonic bip39_mnemonic_to_entropy entropy_to_bi
 
 use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Key::ExtPublic;
-use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(new_bigint pad_hex ensure_length verify_bytestring);
 use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
 use Bitcoin::Crypto::Exception;
@@ -137,7 +137,7 @@ sub _derive_key_partial
 		$hmac_data .= "\x00";
 
 		# key data - 32 bytes
-		$hmac_data .= ensure_length $self->raw_key, Bitcoin::Crypto::Config::key_max_length;
+		$hmac_data .= ensure_length $self->raw_key, Bitcoin::Crypto::Constants::key_max_length;
 	}
 	else {
 		# public key data - SEC compressed form

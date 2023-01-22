@@ -8,7 +8,7 @@ use Moo;
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
-use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(hash160);
 
 use namespace::clean;
@@ -30,7 +30,7 @@ sub witness_program
 
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
 	$program
-		->add_operation('OP_' . Bitcoin::Crypto::Config::segwit_witness_version)
+		->add_operation('OP_' . Bitcoin::Crypto::Constants::segwit_witness_version)
 		->push_bytes($self->key_hash);
 
 	return $program;

@@ -6,7 +6,7 @@ use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
 
-use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(new_bigint ensure_length add_ec_points);
 use Bitcoin::Crypto::Exception;
 

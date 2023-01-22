@@ -1,4 +1,4 @@
-package Bitcoin::Crypto::Config;
+package Bitcoin::Crypto::Constants;
 
 use v5.10;
 use strict;
@@ -6,17 +6,19 @@ use warnings;
 
 use Config;
 
+# These constants are used generally safe to use outside Bitcoin::Crypto code
+# if you need them
 use constant {
 	curve_name => 'secp256k1',
 	max_child_keys => (2 << 30),
 	key_max_length => 32,
 	wif_compressed_byte => "\x01",
-	compress_public_point => 1,
 	segwit_witness_version => 0,
 	taproot_witness_version => 1,
 	max_witness_version => 16,
 };
 
+# These constants are environment-specific and internal only
 use constant {
 	ivsize => $Config{ivsize},
 	is_32bit => $Config{ivsize} == 4,
@@ -24,6 +26,4 @@ use constant {
 };
 
 1;
-
-# Internal use only
 

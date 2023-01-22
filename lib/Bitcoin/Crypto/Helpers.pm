@@ -9,7 +9,7 @@ use Crypt::Digest::SHA256 qw(sha256);
 use List::Util qw(max);
 use Crypt::PK::ECC;
 
-use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 
 BEGIN {
@@ -97,8 +97,8 @@ sub add_ec_points
 {
 	my ($point1, $point2) = @_;
 
-	my $curve_size = Bitcoin::Crypto::Config::key_max_length;
-	my $curve_data = Crypt::PK::ECC->new->generate_key(Bitcoin::Crypto::Config::curve_name)->curve2hash;
+	my $curve_size = Bitcoin::Crypto::Constants::key_max_length;
+	my $curve_data = Crypt::PK::ECC->new->generate_key(Bitcoin::Crypto::Constants::curve_name)->curve2hash;
 	my $p = new_bigint(pack 'H*', $curve_data->{prime});
 	my $a = new_bigint(pack 'H*', $curve_data->{A});
 

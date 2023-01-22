@@ -9,7 +9,7 @@ use Unicode::Normalize;
 use Crypt::KeyDerivation qw(pbkdf2);
 use Encode qw(encode);
 
-use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Base58 qw(decode_base58check);
 
 our @EXPORT_OK = qw(
@@ -26,11 +26,11 @@ sub validate_wif
 	my ($wif) = @_;
 	my $byte_wif = decode_base58check($wif);
 	my $last_byte = substr $byte_wif, -1;
-	if (length $byte_wif == Bitcoin::Crypto::Config::key_max_length + 2) {
-		return $last_byte eq Bitcoin::Crypto::Config::wif_compressed_byte;
+	if (length $byte_wif == Bitcoin::Crypto::Constants::key_max_length + 2) {
+		return $last_byte eq Bitcoin::Crypto::Constants::wif_compressed_byte;
 	}
 	else {
-		return length $byte_wif == Bitcoin::Crypto::Config::key_max_length + 1;
+		return length $byte_wif == Bitcoin::Crypto::Constants::key_max_length + 1;
 	}
 }
 
@@ -38,7 +38,7 @@ sub get_key_type
 {
 	my ($entropy) = @_;
 
-	my $curve_size = Bitcoin::Crypto::Config::key_max_length;
+	my $curve_size = Bitcoin::Crypto::Constants::key_max_length;
 	my $octet = substr $entropy, 0, 1;
 
 	my $has_unc_oc = $octet eq "\x04" || $octet eq "\x06" || $octet eq "\x07";
@@ -78,9 +78,9 @@ sub get_path_info
 			for my $part (split '/', $rest) {
 				my $is_hardened = $part =~ tr/'//d;
 
-				return undef if $part >= Bitcoin::Crypto::Config::max_child_keys;
+				return undef if $part >= Bitcoin::Crypto::Constants::max_child_keys;
 
-				$part += Bitcoin::Crypto::Config::max_child_keys if $is_hardened;
+				$part += Bitcoin::Crypto::Constants::max_child_keys if $is_hardened;
 				push @path, $part;
 			}
 		}

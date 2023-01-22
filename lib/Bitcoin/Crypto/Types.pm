@@ -13,7 +13,7 @@ use Type::Coercion;
 
 # make sure Math::BigInt is properly loaded - this module loads it
 use Bitcoin::Crypto::Helpers;
-use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto::Constants;
 
 __PACKAGE__->add_type(
 	name => 'BIP44Purpose',
@@ -29,11 +29,11 @@ __PACKAGE__->add_type(
 
 		# for same bits as system, no need for special constraint
 		return sub { 1 }
-			if Bitcoin::Crypto::Config::ivsize * 8 == $bits;
+			if Bitcoin::Crypto::Constants::ivsize * 8 == $bits;
 
 		# can't handle
-		die 'IntMaxBits only handles up to ' . (Bitcoin::Crypto::Config::ivsize * 8) . ' bits on this system'
-			if Bitcoin::Crypto::Config::ivsize * 8 < $bits;
+		die 'IntMaxBits only handles up to ' . (Bitcoin::Crypto::Constants::ivsize * 8) . ' bits on this system'
+			if Bitcoin::Crypto::Constants::ivsize * 8 < $bits;
 
 		my $limit = 1 << $bits;
 		return sub {
@@ -47,7 +47,7 @@ __PACKAGE__->add_type(
 		return sub {
 			# for same bits as system, no need for special constraint
 			return (undef, qq{ 1 })
-				if Bitcoin::Crypto::Config::ivsize * 8 == $bits;
+				if Bitcoin::Crypto::Constants::ivsize * 8 == $bits;
 
 			my $varname = pop;
 

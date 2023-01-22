@@ -9,10 +9,10 @@ use Mooish::AttributeBuilder -standard;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 
-use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
-use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(hash160 hash256 verify_bytestring);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(ArrayRef Str);
@@ -228,7 +228,7 @@ sub push_bytes
 			->add_raw(pack 'v', $len)
 			->add_raw($bytes);
 	}
-	elsif (Bitcoin::Crypto::Config::is_32bit || $len < (1 << 32)) {
+	elsif (Bitcoin::Crypto::Constants::is_32bit || $len < (1 << 32)) {
 		$self
 			->add_operation('OP_PUSHDATA4')
 			->add_raw(pack 'V', $len)
@@ -289,7 +289,7 @@ sub witness_program
 
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
 	$program
-		->add_operation('OP_' . Bitcoin::Crypto::Config::segwit_witness_version)
+		->add_operation('OP_' . Bitcoin::Crypto::Constants::segwit_witness_version)
 		->push_bytes(sha256($self->get_script));
 
 	return $program;

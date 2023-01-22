@@ -6,7 +6,7 @@ use Test::Exception;
 
 BEGIN { use_ok('Bitcoin::Crypto::Types', qw(-types)) }
 
-use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto::Constants;
 
 subtest 'testing IntMaxBits[5]' => sub {
 	my $type = IntMaxBits [5];
@@ -34,7 +34,7 @@ subtest 'testing IntMaxBits[31]' => sub {
 
 subtest 'testing IntMaxBits[60]' => sub {
 	plan skip_all => 'requires 64 bit system'
-		unless Bitcoin::Crypto::Config::is_64bit;
+		unless Bitcoin::Crypto::Constants::is_64bit;
 
 	my $type = IntMaxBits [60];
 
