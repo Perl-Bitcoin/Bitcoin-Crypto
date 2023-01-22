@@ -16,6 +16,10 @@ use constant {
 	segwit_witness_version => 0,
 	taproot_witness_version => 1,
 	max_witness_version => 16,
+
+	bip44_legacy_purpose => 44,
+	bip44_compat_purpose => 49,
+	bip44_segwit_purpose => 84,
 };
 
 # These constants are environment-specific and internal only

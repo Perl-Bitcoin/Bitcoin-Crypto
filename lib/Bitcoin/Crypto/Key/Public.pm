@@ -42,7 +42,7 @@ sub get_legacy_address
 
 	Bitcoin::Crypto::Exception::AddressGenerate->raise(
 		'legacy addresses can only be created with BIP44 in legacy (BIP44) mode'
-	) unless $self->has_purpose(44);
+	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_legacy_purpose);
 
 	my $pkh = $self->network->p2pkh_byte . $self->key_hash;
 	return encode_base58check($pkh);
@@ -59,7 +59,7 @@ sub get_compat_address
 
 	Bitcoin::Crypto::Exception::AddressGenerate->raise(
 		'compat addresses can only be created with BIP44 in compat (BIP49) mode'
-	) unless $self->has_purpose(49);
+	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_compat_purpose);
 
 	return $self->witness_program->get_legacy_address;
 }
@@ -75,7 +75,7 @@ sub get_segwit_address
 
 	Bitcoin::Crypto::Exception::AddressGenerate->raise(
 		'segwit addresses can only be created with BIP44 in segwit (BIP84) mode'
-	) unless $self->has_purpose(84);
+	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_segwit_purpose);
 
 	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run});
 }

@@ -49,8 +49,8 @@ sub _get_network_extkey_version
 
 	my $name = 'ext';
 	$name .= $self->_is_private ? 'prv' : 'pub';
-	$name .= '_compat' if $purpose && $purpose eq 49;
-	$name .= '_segwit' if $purpose && $purpose eq 84;
+	$name .= '_compat' if $purpose && $purpose eq Bitcoin::Crypto::Constants::bip44_compat_purpose;
+	$name .= '_segwit' if $purpose && $purpose eq Bitcoin::Crypto::Constants::bip44_segwit_purpose;
 	$name .= '_version';
 
 	return $network->$name;
@@ -113,7 +113,11 @@ sub from_serialized
 		my $purpose;
 		my @found_networks;
 
-		for my $check_purpose (qw(44 49 84)) {
+		for my $check_purpose (
+			Bitcoin::Crypto::Constants::bip44_legacy_purpose,
+			Bitcoin::Crypto::Constants::bip44_compat_purpose,
+			Bitcoin::Crypto::Constants::bip44_segwit_purpose
+			) {
 			$purpose = $check_purpose;
 
 			@found_networks = Bitcoin::Crypto::Network->find(
