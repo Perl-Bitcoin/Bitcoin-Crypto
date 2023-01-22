@@ -7,6 +7,7 @@ use Test::Exception;
 use Bitcoin::Crypto qw(:all);
 use Bitcoin::Crypto::Base58 qw(:all);
 use Bitcoin::Crypto::Bech32 qw(:all);
+use Bitcoin::Crypto::Util qw(generate_mnemonic);
 
 throws_ok sub {
 	btc_pub->from_hex('not-a-hex');
@@ -32,7 +33,7 @@ throws_ok sub {
 	'Bitcoin::Crypto::Exception',
 	'invalid bytestring (reference) ok';
 
-my $master_key = btc_extprv->from_mnemonic(btc_extprv->generate_mnemonic);
+my $master_key = btc_extprv->from_mnemonic(generate_mnemonic);
 my $private_key = $master_key->get_basic_key;
 my $public_key = $private_key->get_public_key;
 

@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto qw(btc_extprv);
-use Bitcoin::Crypto::Util qw(get_path_info);
+use Bitcoin::Crypto::Util qw(generate_mnemonic get_path_info);
 
 BEGIN { use_ok('Bitcoin::Crypto::BIP44') }
 
@@ -31,8 +31,7 @@ subtest 'coin_type is a network' => sub {
 };
 
 subtest 'coin_type does network role' => sub {
-	my $mnemonic = btc_extprv->generate_mnemonic;
-	my $key = btc_extprv->from_mnemonic($mnemonic);
+	my $key = btc_extprv->from_mnemonic(generate_mnemonic);
 	$key->set_network('bitcoin_testnet');
 
 	my $bip44 = Bitcoin::Crypto::BIP44->new(

@@ -7,6 +7,7 @@ use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 
 use Bitcoin::Crypto::Helpers;    # loads Math::BigInt
+use Bitcoin::Crypto::Key::ExtPrivate;
 use utf8;
 
 BEGIN {
@@ -14,6 +15,8 @@ BEGIN {
 		'Bitcoin::Crypto::Util', qw(
 			validate_wif
 			get_path_info
+			generate_mnemonic
+			mnemonic_from_entropy
 			mnemonic_to_seed
 			hash160
 			hash256
@@ -107,6 +110,32 @@ subtest 'testing hash160 / hash256' => sub {
 	my $data = pack 'u', 'packed data...';
 	is(hash160($data), ripemd160(sha256($data)), 'hash160 ok');
 	is(hash256($data), sha256(sha256($data)), 'hash256 ok');
+};
+
+subtest 'testing generate_mnemonic / mnemonic_from_entropy' => sub {
+	# generating english mnemonics
+	for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
+		my @mnemonics = (
+			generate_mnemonic($bits, 'en'),
+			mnemonic_from_entropy("\x01" x ($bits / 8), 'en'),
+		);
+
+		foreach my $mnemonic (@mnemonics) {
+			my $length = $bits / 8 - 4;
+			ok($mnemonic =~ /^(\w+ ?){$length}$/, "generated mnemonic looks valid ($bits bits)");
+			lives_ok {
+				Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic, '', 'en');
+			} 'generated mnemonic can be imported';
+		}
+	}
+
+	throws_ok {
+		my $mnemonic = generate_mnemonic(129, 'en');
+	} 'Bitcoin::Crypto::Exception::MnemonicGenerate', 'invalid entropy dies';
+
+	throws_ok {
+		my $mnemonic = mnemonic_from_entropy("\x01" x 17, 'en');
+	} 'Bitcoin::Crypto::Exception::MnemonicGenerate', 'invalid entropy dies';
 };
 
 done_testing;
