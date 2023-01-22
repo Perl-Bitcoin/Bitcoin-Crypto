@@ -6,7 +6,7 @@ use Test::Exception;
 
 BEGIN { use_ok('Bitcoin::Crypto::Exception') }
 
-{
+subtest 'test exception throwing' => sub {
 	throws_ok {
 		Bitcoin::Crypto::Exception->raise('test_message');
 	}
@@ -20,16 +20,16 @@ BEGIN { use_ok('Bitcoin::Crypto::Exception') }
 	is($err->message, 'test_message', 'message ok');
 	ok("$err" =~ /test_message/, 'class stringified');
 	note("$err");
-}
+};
 
-{
+subtest 'test exception raising' => sub {
 	throws_ok {
 		Bitcoin::Crypto::Exception::KeyCreate->raise('message');
 	}
 	'Bitcoin::Crypto::Exception::KeyCreate', 'exception was raised';
 
 	note $@;
-}
+};
 
 {
 
@@ -46,7 +46,7 @@ BEGIN { use_ok('Bitcoin::Crypto::Exception') }
 	}
 }
 
-{
+subtest 'test exception trapping' => sub {
 	throws_ok {
 		Bitcoin::Crypto::Exception->trap_into(
 			sub { die 'test'; }
@@ -75,7 +75,7 @@ BEGIN { use_ok('Bitcoin::Crypto::Exception') }
 	'Bitcoin::Crypto::Exception', 'exception was trapped despite DESTROY';
 
 	note $@;
-}
+};
 
 done_testing;
 
