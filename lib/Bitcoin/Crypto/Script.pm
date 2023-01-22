@@ -289,7 +289,7 @@ sub witness_program
 
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
 	$program
-		->add_operation('OP_' . Bitcoin::Crypto::Config::witness_version)
+		->add_operation('OP_' . Bitcoin::Crypto::Config::segwit_witness_version)
 		->push_bytes(sha256($self->get_script));
 
 	return $program;

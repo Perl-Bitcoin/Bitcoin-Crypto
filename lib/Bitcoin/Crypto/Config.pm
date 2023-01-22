@@ -12,7 +12,8 @@ use constant {
 	key_max_length => 32,
 	wif_compressed_byte => "\x01",
 	compress_public_point => 1,
-	witness_version => 0,
+	segwit_witness_version => 0,
+	taproot_witness_version => 1,
 	max_witness_version => 16,
 };
 
