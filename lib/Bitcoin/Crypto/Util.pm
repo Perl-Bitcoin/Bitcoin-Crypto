@@ -126,7 +126,10 @@ Bitcoin::Crypto::Util - Basic utilities for working with bitcoin
 	use Bitcoin::Crypto::Util qw(
 		validate_wif
 		get_key_type
+		mnemonic_to_seed
 		get_path_info
+		hash160
+		hash256
 	);
 
 =head1 DESCRIPTION
@@ -182,6 +185,18 @@ Example:
 
 	my $path = "m/1/3'";
 	my $path_data = get_path_info($path);
+
+=head2 hash160
+
+	my $hash = hash160($data);
+
+This is hash160 used by Bitcoin (RIPEMD160 of SHA256)
+
+=head2 hash256
+
+	my $hash = hash256($data);
+
+This is hash256 used by Bitcoin (SHA256 of SHA256)
 
 =head1 SEE ALSO
 
