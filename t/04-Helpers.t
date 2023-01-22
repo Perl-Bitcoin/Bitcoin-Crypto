@@ -3,14 +3,11 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Bitcoin::Crypto::Helpers;    # loads Math::BigInt
-use Crypt::Digest::RIPEMD160 qw(ripemd160);
-use Crypt::Digest::SHA256 qw(sha256);
 
 BEGIN {
 	use_ok(
 		'Bitcoin::Crypto::Helpers',
-		qw(new_bigint pad_hex ensure_length verify_bytestring hash160 hash256)
+		qw(new_bigint pad_hex ensure_length verify_bytestring)
 	);
 }
 
@@ -39,10 +36,6 @@ dies_ok {
 	ensure_length pack('x5'), 4;
 }
 'packed data that was too long failed as expected';
-
-my $data = pack 'u', 'packed data...';
-is(hash160($data), ripemd160(sha256($data)), 'hash160 ok');
-is(hash256($data), sha256(sha256($data)), 'hash256 ok');
 
 lives_ok {
 	verify_bytestring(join '', map chr, 0 .. 255);

@@ -3,10 +3,13 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Exception;
+use Crypt::Digest::RIPEMD160 qw(ripemd160);
+use Crypt::Digest::SHA256 qw(sha256);
+
 use Bitcoin::Crypto::Helpers;    # loads Math::BigInt
 use utf8;
 
-BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info mnemonic_to_seed)) }
+BEGIN { use_ok('Bitcoin::Crypto::Util', qw(validate_wif get_path_info mnemonic_to_seed hash160 hash256)) }
 
 is mnemonic_to_seed(
 	'われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　らいう',
@@ -86,6 +89,10 @@ my @path_test_data = (
 for my $case (@path_test_data) {
 	is_deeply(get_path_info($case->[0]), $case->[1], "test case $case->[0]");
 }
+
+my $data = pack 'u', 'packed data...';
+is(hash160($data), ripemd160(sha256($data)), 'hash160 ok');
+is(hash256($data), sha256(sha256($data)), 'hash256 ok');
 
 done_testing;
 

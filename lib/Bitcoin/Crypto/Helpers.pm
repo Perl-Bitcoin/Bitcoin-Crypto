@@ -4,8 +4,6 @@ use v5.10;
 use strict;
 use warnings;
 use Exporter qw(import);
-use Crypt::Digest::RIPEMD160 qw(ripemd160);
-use Crypt::Digest::SHA256 qw(sha256);
 use List::Util qw(max);
 use Crypt::PK::ECC;
 
@@ -29,8 +27,6 @@ our @EXPORT_OK = qw(
 	pad_hex
 	ensure_length
 	verify_bytestring
-	hash160
-	hash256
 	add_ec_points
 );
 
@@ -72,20 +68,6 @@ sub verify_bytestring
 	Bitcoin::Crypto::Exception->raise(
 		'string contains characters with numeric values over 255 and cannot be used as a byte string'
 	) if (grep { ord($_) > 255 } @characters) > 0;
-}
-
-sub hash160
-{
-	my ($data) = @_;
-
-	return ripemd160(sha256($data));
-}
-
-sub hash256
-{
-	my ($data) = @_;
-
-	return sha256(sha256($data));
 }
 
 # Self-contained implementation on elliptic curve points addition.

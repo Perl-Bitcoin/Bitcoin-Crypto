@@ -6,7 +6,8 @@ use warnings;
 use Exporter qw(import);
 use Crypt::Misc qw(encode_b58b decode_b58b);
 
-use Bitcoin::Crypto::Helpers qw(new_bigint hash256 verify_bytestring);
+use Bitcoin::Crypto::Helpers qw(new_bigint verify_bytestring);
+use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Exception;
 
 our @EXPORT_OK = qw(

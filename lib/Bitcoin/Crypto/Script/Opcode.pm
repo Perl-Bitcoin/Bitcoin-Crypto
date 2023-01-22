@@ -13,7 +13,7 @@ use Crypt::Digest::SHA1 qw(sha1);
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Str StrLength CodeRef);
-use Bitcoin::Crypto::Helpers qw(hash160 hash256);
+use Bitcoin::Crypto::Util qw(hash160 hash256);
 
 use namespace::clean;
 

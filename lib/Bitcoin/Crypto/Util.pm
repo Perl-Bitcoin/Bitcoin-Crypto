@@ -8,15 +8,18 @@ use Crypt::PK::ECC;
 use Unicode::Normalize;
 use Crypt::KeyDerivation qw(pbkdf2);
 use Encode qw(encode);
+use Crypt::Digest::RIPEMD160 qw(ripemd160);
+use Crypt::Digest::SHA256 qw(sha256);
 
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Base58 qw(decode_base58check);
 
 our @EXPORT_OK = qw(
 	validate_wif
 	get_key_type
 	mnemonic_to_seed
 	get_path_info
+	hash160
+	hash256
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -24,7 +27,10 @@ our %EXPORT_TAGS = (all => [@EXPORT_OK]);
 sub validate_wif
 {
 	my ($wif) = @_;
-	my $byte_wif = decode_base58check($wif);
+
+	require Bitcoin::Crypto::Base58;
+	my $byte_wif = Bitcoin::Crypto::Base58::decode_base58check($wif);
+
 	my $last_byte = substr $byte_wif, -1;
 	if (length $byte_wif == Bitcoin::Crypto::Constants::key_max_length + 2) {
 		return $last_byte eq Bitcoin::Crypto::Constants::wif_compressed_byte;
@@ -92,6 +98,20 @@ sub get_path_info
 	}
 
 	return undef;
+}
+
+sub hash160
+{
+	my ($data) = @_;
+
+	return ripemd160(sha256($data));
+}
+
+sub hash256
+{
+	my ($data) = @_;
+
+	return sha256(sha256($data));
 }
 
 1;
