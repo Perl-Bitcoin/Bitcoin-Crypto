@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use Test::More;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
-use Bitcoin::Crypto::Config;
 
 BEGIN { use_ok('Bitcoin::Crypto::Key::Public') }
 

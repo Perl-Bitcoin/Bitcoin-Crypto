@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Exception;
-use Bitcoin::Crypto::Config;
+use Bitcoin::Crypto::Constants;
 use Encode qw(encode);
 use utf8;
 
@@ -81,11 +81,11 @@ my $too_long_key = 'a3bc641ce7ab9a2ec7697f32d3ade425d9785e8f23bea3501524852cda3c
 
 is(
 	length $PrivateKey->from_hex($short_key)->to_bytes(),
-	Bitcoin::Crypto::Config::key_max_length, 'Short key length OK'
+	Bitcoin::Crypto::Constants::key_max_length, 'Short key length OK'
 );
 is(
 	length $PrivateKey->from_hex($longer_key)->to_bytes(),
-	Bitcoin::Crypto::Config::key_max_length, 'Longer key length OK'
+	Bitcoin::Crypto::Constants::key_max_length, 'Longer key length OK'
 );
 
 throws_ok {
