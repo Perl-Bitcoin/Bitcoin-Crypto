@@ -21,7 +21,7 @@ __PACKAGE__->add_type(
 	name => 'BIP44Purpose',
 	parent => Maybe [
 		Enum->of(
-			Bitcoin::Crypto::Constants::bip44_legacy_purpose,
+			Bitcoin::Crypto::Constants::bip44_purpose,
 			Bitcoin::Crypto::Constants::bip44_compat_purpose,
 			Bitcoin::Crypto::Constants::bip44_segwit_purpose
 		)
