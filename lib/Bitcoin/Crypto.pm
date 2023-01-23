@@ -38,14 +38,6 @@ sub btc_script
 	return 'Bitcoin::Crypto::Script';
 }
 
-# OO interface
-
-sub extprv { goto \&btc_extprv }
-sub prv { goto \&btc_prv }
-sub extpub { goto \&btc_extpub }
-sub pub { goto \&btc_pub }
-sub script { goto \&btc_script }
-
 __END__
 
 =head1 NAME
@@ -186,16 +178,6 @@ Loads L<Bitcoin::Crypto::Key::Public>
 =head3 btc_script
 
 Loads L<Bitcoin::Crypto::Script>
-
-=head2 OO interface
-
-Alternatively, all function names mentioned above can be used without the C<btc_> prefix in OO style on the package's name.
-
-	use Bitcoin::Crypto;
-
-	# loads Bitcoin::Crypto::Key::Public and returns package name
-	# we can now use it to run its methods
-	my $public_key = Bitcoin::Crypto->pub->from_hex($hex_data);
 
 =head1 DISCLAIMER
 
