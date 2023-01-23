@@ -112,6 +112,17 @@ subtest 'testing hash160 / hash256' => sub {
 	is(hash256($data), sha256(sha256($data)), 'hash256 ok');
 };
 
+subtest 'testing mnemonic_from_entropy' => sub {
+	my $entropy = pack 'H*', '26994a6f6097b7d3615e7dc17ba10e580755ad034e3b4fa0a55de5aba652cb66';
+	my $mnemonic = mnemonic_from_entropy($entropy);
+
+	is $mnemonic, 'charge ski orange scorpion kiwi trust lyrics soul scrap tackle drum quote inspire story artwork shuffle exile ahead first slender risk city collect silver';
+
+	throws_ok {
+		my $mnemonic = mnemonic_from_entropy("\x01" x 17, 'en');
+	} 'Bitcoin::Crypto::Exception::MnemonicGenerate', 'invalid entropy dies';
+};
+
 subtest 'testing generate_mnemonic / mnemonic_from_entropy' => sub {
 	# generating english mnemonics
 	for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
@@ -133,9 +144,6 @@ subtest 'testing generate_mnemonic / mnemonic_from_entropy' => sub {
 		my $mnemonic = generate_mnemonic(129, 'en');
 	} 'Bitcoin::Crypto::Exception::MnemonicGenerate', 'invalid entropy dies';
 
-	throws_ok {
-		my $mnemonic = mnemonic_from_entropy("\x01" x 17, 'en');
-	} 'Bitcoin::Crypto::Exception::MnemonicGenerate', 'invalid entropy dies';
 };
 
 done_testing;
