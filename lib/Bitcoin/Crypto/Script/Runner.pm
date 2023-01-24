@@ -150,11 +150,14 @@ sub step
 	return !!0
 		unless $pos < @{$self->operations};
 
+	my ($op, @args) = @{$self->operations->[$pos]};
+
 	Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(
 		sub {
-			my ($op, @args) = @{$self->operations->[$pos]};
-
 			$op->execute($self, @args);
+		},
+		sub {
+			"error at pos $pos (" . $op->name . "): $_"
 		}
 	);
 
