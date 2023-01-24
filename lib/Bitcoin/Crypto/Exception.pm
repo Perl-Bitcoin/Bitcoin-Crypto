@@ -51,13 +51,16 @@ sub throw
 
 sub trap_into
 {
-	my ($class, $sub) = @_;
+	my ($class, $sub, $msg_sub) = @_;
 
 	my $ret;
 	try {
 		$ret = $sub->();
 	}
 	catch {
+		$class->raise($msg_sub->())
+			if $msg_sub;
+
 		$class->raise("$_");
 	};
 
@@ -336,13 +339,15 @@ An alias to C<raise>.
 
 =head2 trap_into
 
-	$sub_result = $class->trap_into($sub)
+	$sub_result = $class->trap_into($sub, $msg_sub = undef)
 
 Executes the subroutine given as the only parameter inside an C<eval>. Any exceptions thrown inside the subroutine C<$sub> will be re-thrown after turning them into objects of the given class. If no exception is thrown, method returns the value returned by C<$sub>.
 
 	my $result = Bitcoin::Crypto::Exception->trap_into(sub {
 		die 'something went wrong';
 	});
+
+If C<$msg_sub> is specified, it will be called to produce message for the new exception. C<$_> will be accessible with the previous exception. Will just use previous exception otherwise.
 
 =cut
 
