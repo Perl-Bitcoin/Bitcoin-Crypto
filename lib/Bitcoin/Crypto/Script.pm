@@ -13,7 +13,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(verify_bytestring);
+use Bitcoin::Crypto::Helpers qw(pad_hex verify_bytestring);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(ArrayRef Str);
@@ -274,6 +274,13 @@ sub from_serialized
 	my ($class, $bytes) = @_;
 
 	return $class->new->add_raw($bytes);
+}
+
+sub from_serialized_hex
+{
+	my ($class, $hex) = @_;
+
+	return $class->from_serialized(pack 'H*', pad_hex $hex);
 }
 
 sub run
