@@ -201,7 +201,7 @@ sub as_string
 
 	use Moo;
 	use Mooish::AttributeBuilder -standard;
-	use Bitcoin::Crypto::Types qw(PositiveInt ArrayRef);
+	use Bitcoin::Crypto::Types qw(PositiveOrZeroInt ArrayRef);
 
 	extends 'Bitcoin::Crypto::Exception';
 
@@ -212,7 +212,7 @@ sub as_string
 	);
 
 	has field 'error_position' => (
-		isa => PositiveInt,
+		isa => PositiveOrZeroInt,
 		writer => 1,
 		predicate => 1,
 	);
