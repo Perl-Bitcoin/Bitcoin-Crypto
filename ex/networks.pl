@@ -3,8 +3,9 @@ use strict;
 use warnings;
 use Bitcoin::Crypto::Key::ExtPrivate;
 use Bitcoin::Crypto::Network;
+use Bitcoin::Crypto::Util qw(generate_mnemonic);
 
-my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic;
+my $mnemonic = generate_mnemonic;
 
 # this key will be assigned to a default network, as well as
 # any other keys acquired using it
@@ -40,3 +41,4 @@ __END__
 This example is a step-by-step usage example of the network system from the perspective of an user (with networks already registered). Provided test cases explain how the network is propagated through an usual chain of element generation (extended key -> basic key, private key -> public key).
 
 See inline comments for explanations of the test cases provided.
+
