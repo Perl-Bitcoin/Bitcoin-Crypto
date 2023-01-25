@@ -41,24 +41,34 @@ my @cases_error = (
 	],
 );
 
+my $case_num = 0;
 foreach my $case (@cases) {
-	my $case_packed = pack('H*', $case->[0]);
-	is($case_packed, decode_base58check($case->[1]), 'valid decoding');
-	is($case->[1], encode_base58check($case_packed), 'valid encoding');
+	subtest "testing valid base58, case $case_num" => sub {
+		my $case_packed = pack('H*', $case->[0]);
+		is($case_packed, decode_base58check($case->[1]), 'valid decoding');
+		is($case->[1], encode_base58check($case_packed), 'valid encoding');
 
-	my $decoded_with_check = decode_base58($case->[1]);
-	is(substr($decoded_with_check, 0, -4), $case_packed, 'base58check value unchanged');
-	is(
-		pack('a4', sha256(sha256(substr $decoded_with_check, 0, -4))),
-		substr($decoded_with_check, -4),
-		'checksum is valid'
-	);
+		my $decoded_with_check = decode_base58($case->[1]);
+		is(substr($decoded_with_check, 0, -4), $case_packed, 'base58check value unchanged');
+		is(
+			pack('a4', sha256(sha256(substr $decoded_with_check, 0, -4))),
+			substr($decoded_with_check, -4),
+			'checksum is valid'
+		);
+	};
+
+	++$case_num;
 }
 
+$case_num = 0;
 foreach my $case (@cases_error) {
-	throws_ok {
-		decode_base58check($case->[0]);
-	} 'Bitcoin::Crypto::Exception::' . $case->[1], 'invalid data raises an exception';
+	subtest "testing invalid base58, case $case_num" => sub {
+		throws_ok {
+			decode_base58check($case->[0]);
+		} 'Bitcoin::Crypto::Exception::' . $case->[1], 'invalid data raises an exception';
+	};
+
+	++$case_num;
 }
 
 done_testing;
