@@ -214,7 +214,7 @@ sub _get_purpose_from_BIP44
 		unless blessed $path && $path->isa('Bitcoin::Crypto::BIP44');
 
 	return $self->purpose
-		if $path->get_from_account;
+		if $path->get_from_account || $path->public;
 
 	return $path->purpose;
 }

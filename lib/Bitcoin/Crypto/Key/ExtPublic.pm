@@ -9,12 +9,25 @@ use Crypt::Mac::HMAC qw(hmac);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(new_bigint ensure_length add_ec_points);
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::BIP44;
 
 use namespace::clean;
 
 with qw(Bitcoin::Crypto::Role::ExtendedKey);
 
 sub _is_private { 0 }
+
+sub derive_key_bip44
+{
+	my ($self, %data) = @_;
+	my $path = Bitcoin::Crypto::BIP44->new(
+		%data,
+		coin_type => $self,
+		public => 1,
+	);
+
+	return $self->derive_key($path);
+}
 
 sub _derive_key_partial
 {
@@ -154,6 +167,15 @@ See BIP32 document for details on derivation paths and methods.
 Note that public keys cannot derive private keys and your derivation path must start with M (capital m).
 
 Returns a new extended key instance - result of a derivation.
+
+=head2 derive_key_bip44
+
+	$derived_key_object = $object->derive_key_bip44(%data)
+
+A helper that constructs a L<Bitcoin::Crypto::BIP44> path from C<%data> and
+calls L</derive_key> with it. In extended public keys, bip44 is always
+constructed with C<public> setting - it will always derive starting from
+account, effectively only using C<change> and C<index> properties.
 
 =head2 get_fingerprint
 

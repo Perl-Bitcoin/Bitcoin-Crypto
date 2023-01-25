@@ -64,6 +64,16 @@ subtest 'get_path_info understands bip44' => sub {
 	};
 };
 
+subtest 'public derivation derives from account' => sub {
+	my $bip44 = Bitcoin::Crypto::BIP44->new(
+		change => 1,
+		index => 3,
+		public => 1,
+	);
+
+	is "$bip44", "M/1/3";
+};
+
 subtest 'bip44 can be used directly in key derivation' => sub {
 	my $key = btc_extprv->from_mnemonic(
 		'spawn impact body ask nothing warm farm novel host later basic subject point resist pilot'
@@ -128,6 +138,19 @@ subtest 'can derive from account key' => sub {
 	my $derived2 = $derived1->derive_key_bip44(index => 4, get_from_account => 1);
 
 	is $derived2->get_basic_key->to_wif, 'L5CXRMnEVSZ7j23VJ22mib3e4UWnb7utEpkDQtfTPn8DL9EEtTQZ';
+};
+
+subtest 'can derive public key' => sub {
+	my $key = btc_extprv->from_mnemonic(
+		'spawn impact body ask nothing warm farm novel host later basic subject point resist pilot'
+	);
+
+	my $derived1 = $key->derive_key_bip44(purpose => 84, account => 3, get_account => 1);
+	my $public = $derived1->get_public_key;
+
+	my $derived2 = $public->derive_key_bip44(index => 4, public => 1);
+
+	is $derived2->to_serialized_base58, 'zpub6vVTjHj2VYz8CjXyzC2NT94i1enJcx678vjo4MYBY76eYfye4NbT32eaxMhPrqvvt9v6sjGJwNrnUx1hdrBw9ymJeSxe9uqXzxtAHcx39iS';
 };
 
 done_testing;
