@@ -28,7 +28,7 @@ sub sign_message
 	};
 }
 
-sub verify
+sub verify_message
 {
 	my ($signature_hash) = @_;
 
@@ -52,12 +52,12 @@ my $mnemonic =
 my $private = btc_extprv->from_mnemonic($mnemonic)->derive_key("m/0'")->get_basic_key;
 
 my $signed_data = sign_message($private, "A quick brown fox jumped over a lazy dog");
-if (verify $signed_data) {
+if (verify_message $signed_data) {
 	say 'verification ok';
 }
 
 $signed_data->{message} = "I've been hijacked!";
-if (!verify $signed_data) {
+if (!verify_message $signed_data) {
 	say 'verification ok';
 }
 
