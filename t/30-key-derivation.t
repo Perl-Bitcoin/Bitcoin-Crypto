@@ -222,10 +222,6 @@ for my $seed (keys %test_data_private) {
 		my $pubkey = $key->get_public_key();
 		is($key->to_serialized_base58(), $tdata->{private}, 'private key ok');
 		is($pubkey->to_serialized_base58(), $tdata->{public}, 'public key ok');
-
-		(my $path_public = $tdata->{path}) =~ s/m/M/;
-		$key = $base_key->derive_key($path_public);
-		is($key->to_serialized_base58(), $tdata->{public}, 'private to public derivation ok');
 	}
 }
 

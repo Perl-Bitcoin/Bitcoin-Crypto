@@ -229,8 +229,8 @@ sub derive_key
 	) unless defined $path_info;
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
-		'cannot derive private key from public key'
-	) if !$self->_is_private && $path_info->{private};
+		'cannot derive key: key type mismatch'
+	) if !!$self->_is_private ne !!$path_info->{private};
 
 	my $key = $self;
 	for my $child_num (@{$path_info->{path}}) {
@@ -243,9 +243,6 @@ sub derive_key
 
 	$key->set_network($self->network);
 	$key->set_purpose($self->_get_purpose_from_BIP44($path));
-
-	$key = $key->get_public_key()
-		if $self->_is_private && !$path_info->{private};
 
 	return $key;
 }
