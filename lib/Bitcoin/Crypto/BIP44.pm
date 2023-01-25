@@ -76,6 +76,11 @@ has param 'get_from_account' => (
 	default => !!0,
 );
 
+has param 'public' => (
+	isa => Bool,
+	default => !!0,
+);
+
 use overload
 	q{""} => 'as_string',
 	fallback => 1;
@@ -87,14 +92,14 @@ sub as_string
 	# https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
 	# m / purpose' / coin_type' / account' / change / address_index
 
-	my $path = sprintf "m/%u'/%u'/%u'",
-		$self->purpose, $self->coin_type, $self->account;
+	my $path = $self->public ? 'M' : 'm';
+
+	$path = sprintf "%s/%u'/%u'/%u'",
+		$path, $self->purpose, $self->coin_type, $self->account
+		if !$self->public && !$self->get_from_account;
 
 	return $path
 		if $self->get_account;
-
-	$path = 'm'
-		if $self->get_from_account;
 
 	return sprintf "%s/%u/%u",
 		$path, $self->change, $self->index;
@@ -126,61 +131,91 @@ Bitcoin::Crypto::BIP44 - BIP44 implementation in Perl
 
 =head1 DESCRIPTION
 
-This class is a helper for constructing BIP44-compilant key derivation paths. BIP44 describes the mechanism the HD (Hierarchical Deterministic) wallets use to decide derivation paths for coins. BIP49 and BIP84 are constructed the same way, but used for compat and segwit addresses respectively.
+This class is a helper for constructing BIP44-compilant key derivation paths.
+BIP44 describes the mechanism the HD (Hierarchical Deterministic) wallets use
+to decide derivation paths for coins. BIP49 and BIP84 are constructed the same
+way, but used for compat and segwit addresses respectively.
 
-Each coin has its own C<coin_type> constant, a list of which is maintained here: L<https://github.com/satoshilabs/slips/blob/master/slip-0044.md>. L<Bitcoin::Crypto::Network> instances hold these constants under the C<bip44_coin> property.
+Each coin has its own C<coin_type> constant, a list of which is maintained
+here: L<https://github.com/satoshilabs/slips/blob/master/slip-0044.md>.
+L<Bitcoin::Crypto::Network> instances hold these constants under the
+C<bip44_coin> property.
 
-BIP44 objects stringify automatically and can be directly used in L<Bitcoin::Crypto::Key::ExtPrivate/derive_key> method. In return, any key object can be used as C<coin_type> in L</new>, which will automatically fetch coin_type number from the key's current network.
+BIP44 objects stringify automatically and can be directly used in
+L<Bitcoin::Crypto::Key::ExtPrivate/derive_key> method. In return, any key
+object can be used as C<coin_type> in L</new>, which will automatically fetch
+coin_type number from the key's current network.
 
 =head1 PROPERTIES
 
-Refer to L<https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki> for details of those properties.
+Refer to L<https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki> for
+details of those properties.
 
 All of these properties can be fetched using a method with the same name.
 
 =head2 purpose
 
-Purpose contains the BIP document number that you wish to use. Can be either C<44>, C<49> or C<84>.
+Purpose contains the BIP document number that you wish to use. Can be either
+C<44>, C<49> or C<84>.
 
 By default, number C<44> will be used.
 
 =head2 coin_type
 
-Needs to be a non-negative integer number. It should be less than C<2^31> (but will not check for that).
+Needs to be a non-negative integer number. It should be less than C<2^31> (but
+will not check for that).
 
-Will also accept key objects and network objects, as it is possible to fetch the constant for them. In this case, it might raise an exception if the network does not contain the C<bip44_coin> constant.
+Will also accept key objects and network objects, as it is possible to fetch
+the constant for them. In this case, it might raise an exception if the network
+does not contain the C<bip44_coin> constant.
 
 This value should be in line with the table of BIP44 constants mentioned above.
 
-By default, the value defined in the current default network will be used: see L<Bitcoin::Crypto::Network>.
+By default, the value defined in the current default network will be used: see
+L<Bitcoin::Crypto::Network>.
 
 =head2 account
 
-Needs to be a non-negative integer number. It should be less than C<2^31> (but will not check for that).
+Needs to be a non-negative integer number. It should be less than C<2^31> (but
+will not check for that).
 
 By default, the value C<0> is used.
 
 =head2 change
 
-Needs to be a number C<1> (for addresses to be used as change outputs) or C<0> (for addresses that are to be used only internally).
+Needs to be a number C<1> (for addresses to be used as change outputs) or C<0>
+(for addresses that are to be used only internally).
 
 By default, the value C<0> is used.
 
 =head2 index
 
-Needs to be a non-negative integer number. It should be less than C<2^31> (but will not check for that).
+Needs to be a non-negative integer number. It should be less than C<2^31> (but
+will not check for that).
 
 By default, the value C<0> is used.
 
+=head2 public
+
+Use C<public> if you want to derive a public extended key. This is a must when
+deriving BIP44 from extended public keys.
+
+Since it isn't possible to derive full BIP44 path with public derivation
+scheme, this will assume L</get_from_account>.
+
 =head2 get_account
 
-If passed C<1>, the resulting derivation path will only go as far as to the account part. L</index> and L</change> values will be ignored. Use this to get extended key for the account.
+If passed C<1>, the resulting derivation path will only go as far as to the
+account part. L</index> and L</change> values will be ignored. Use this to get
+extended key for the account.
 
 By default, you will get the full derivation path.
 
 =head2 get_from_account
 
-If passed C<1>, the resulting derivation path will start after the account part. L</purpose>, L</coin_type> and L</account> values will be ignored. Use this to further derive key that was only derived up to the account part.
+If passed C<1>, the resulting derivation path will start after the account
+part. L</purpose>, L</coin_type> and L</account> values will be ignored. Use
+this to further derive key that was only derived up to the account part.
 
 By default, you will get the full derivation path.
 
@@ -190,7 +225,8 @@ By default, you will get the full derivation path.
 
 	$key_object = $class->new(%data)
 
-This is a regular Moo constructor, which can be used to create the object. It takes arguments specified in L</PROPERTIES>.
+This is a standard Moo constructor, which can be used to create the object. It
+takes arguments specified in L</PROPERTIES>.
 
 Returns class instance.
 
@@ -198,13 +234,16 @@ Returns class instance.
 
 	$path = $object->as_string()
 
-Stringifies the object as BIP44-compilant key derivation path. Can be used indirectly by just stringifying the object.
+Stringifies the object as BIP44-compilant key derivation path. Can be used
+indirectly by just stringifying the object.
 
 =head1 EXCEPTIONS
 
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
 
-=over 2
+=over
 
 =item * NetworkConfig - incomplete or corrupted network configuration
 
@@ -212,13 +251,7 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =head1 SEE ALSO
 
-=over 2
+L<Bitcoin::Crypto::Key::ExtPrivate>
 
-=item L<Bitcoin::Crypto::Key::ExtPrivate>
-
-=item L<Bitcoin::Crypto::Network>
-
-=back
-
-=cut
+L<https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki>
 
