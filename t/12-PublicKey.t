@@ -56,6 +56,14 @@ for my $key (keys %cases) {
 		$cases_compressed{$pubkey->to_hex()},
 		'correctly created compressed address'
 	);
+
+	$pubkey->set_purpose(44);
+
+	is(
+		$pubkey->get_address(),
+		$cases_compressed{$pubkey->to_hex()},
+		'correctly guessed legacy address'
+	);
 }
 
 # SegWit readiness
@@ -66,6 +74,14 @@ for my $key (keys %cases_segwit_compat) {
 		$cases_segwit_compat{$key},
 		'correctly created segwit compat address'
 	);
+
+	$pubkey->set_purpose(49);
+
+	is(
+		$pubkey->get_address(),
+		$cases_segwit_compat{$key},
+		'correctly guessed segwit compat address'
+	);
 }
 
 for my $key (keys %cases_segwit_native) {
@@ -74,6 +90,14 @@ for my $key (keys %cases_segwit_native) {
 		$pubkey->get_segwit_address(),
 		$cases_segwit_native{$key},
 		'correctly created segwit native address'
+	);
+
+	$pubkey->set_purpose(84);
+
+	is(
+		$pubkey->get_address(),
+		$cases_segwit_native{$key},
+		'correctly guessed segwit native address'
 	);
 }
 

@@ -80,6 +80,25 @@ sub get_segwit_address
 	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run});
 }
 
+sub get_address
+{
+	my ($self) = @_;
+
+	return $self->get_segwit_address
+		if $self->has_purpose(Bitcoin::Crypto::Constants::bip44_segwit_purpose);
+
+	return $self->get_compat_address
+		if $self->has_purpose(Bitcoin::Crypto::Constants::bip44_compat_purpose);
+
+	return $self->get_legacy_address
+		if $self->has_purpose(Bitcoin::Crypto::Constants::bip44_purpose);
+
+	return $self->get_segwit_address
+		if $self->network->supports_segwit;
+
+	return $self->get_legacy_address;
+}
+
 1;
 
 __END__
@@ -119,8 +138,8 @@ You can use a public key to:
 
 =head2 new
 
-Constructor is reserved for internal and advanced use only. Use L</from_bytes> and
-L</from_hex> instead.
+Constructor is reserved for internal and advanced use only. Use L</from_bytes>
+and L</from_hex> instead.
 
 =head2 from_bytes
 
@@ -141,7 +160,8 @@ Does the opposite of C<from_bytes> on a target object
 
 	$key_object = $class->from_hex($hex)
 
-Use this method to create a public key instance from a hexadecimal number. Packs the number and runs it through C<from_bytes>.
+Use this method to create a public key instance from a hexadecimal number.
+Packs the number and runs it through C<from_bytes>.
 
 Returns class instance.
 
@@ -155,8 +175,8 @@ Does the opposite of from_hex on a target object
 
 	$key_object = $object->set_compressed($val)
 
-Change key's compression state to C<$val> (C<1>/C<0>). This will change the address.
-If C<$val> is omitted it is set to C<1>.
+Change key's compression state to C<$val> (boolean). This will change the
+address. If C<$val> is omitted it is set to C<true>.
 
 Returns current key instance.
 
@@ -164,7 +184,8 @@ Returns current key instance.
 
 	$key_object = $object->set_network($val)
 
-Change key's network state to C<$val>. It can be either network name present in L<Bitcoin::Crypto::Network> package or an instance of this class.
+Change key's network state to C<$val>. It can be either network name present in
+L<Bitcoin::Crypto::Network> package or an instance of this class.
 
 Returns current key instance.
 
@@ -172,13 +193,16 @@ Returns current key instance.
 
 	$signature_valid = $object->verify_message($message, $signature, $algo = 'sha256')
 
-Verifies C<$signature> against digest of C<$message> (with C<$algo> digest algorithm) using public key.
+Verifies C<$signature> against digest of C<$message> (with C<$algo> digest
+algorithm) using public key.
 
 C<$algo> must be available in Digest package.
 
 Returns boolean.
 
-Character encoding note: C<$message> should be encoded in the proper encoding before passing it to this method. Passing Unicode string will cause the function to fail. You can encode like this (for UTF-8):
+Character encoding note: C<$message> should be encoded in the proper encoding
+before passing it to this method. Passing Unicode string will cause the
+function to fail. You can encode like this (for UTF-8):
 
 	use Encode qw(encode);
 	$message = encode('UTF-8', $message);
@@ -187,40 +211,70 @@ Character encoding note: C<$message> should be encoded in the proper encoding be
 
 	$address_string = $object->get_legacy_address()
 
-Returns string containing Base58Check encoded public key hash (p2pkh address).
+Returns string containing Base58Check encoded public key hash (C<p2pkh> address).
 
-If the public key was obtained through BIP44 derivation scheme, this method will check whether the purpose was C<44> and raise an exception otherwise.
-If you wish to generate this address anyway, call L</clear_purpose>.
+If the public key was obtained through BIP44 derivation scheme, this method
+will check whether the purpose was C<44> and raise an exception otherwise. If
+you wish to generate this address anyway, call L</clear_purpose>.
 
 =head2 get_compat_address
 
 	$address_string = $object->get_compat_address()
 
-Returns string containing Base58Check encoded script hash containing a witness program for compatibility purposes (p2sh(p2wpkh) address)
+Returns string containing Base58Check encoded script hash containing a witness
+program for compatibility purposes (C<p2sh(p2wpkh)> address)
 
-If the public key was obtained through BIP44 derivation scheme, this method will check whether the purpose was C<49> and raise an exception otherwise.
-If you wish to generate this address anyway, call L</clear_purpose>.
+If the public key was obtained through BIP44 derivation scheme, this method
+will check whether the purpose was C<49> and raise an exception otherwise. If
+you wish to generate this address anyway, call L</clear_purpose>.
 
 =head2 get_segwit_address
 
 	$address_string = $object->get_segwit_address()
 
-Returns string containing Bech32 encoded witness program (p2wpkh address)
+Returns string containing Bech32 encoded witness program (C<p2wpkh> address)
 
-If the public key was obtained through BIP44 derivation scheme, this method will check whether the purpose was C<84> and raise an exception otherwise.
-If you wish to generate this address anyway, call L</clear_purpose>.
+If the public key was obtained through BIP44 derivation scheme, this method
+will check whether the purpose was C<84> and raise an exception otherwise. If
+you wish to generate this address anyway, call L</clear_purpose>.
+
+=head2 get_address
+
+	$address_string = $object->get_address()
+
+Returns a string containing the address. Tries to guess which address type most
+fitting:
+
+=over
+
+=item * If the key has a set purpose, generates type of address which matches
+the purpose
+
+=item * If the key doesn't have a purpose but the network supports segwit,
+returns segwit address
+
+=item * If the network doesn't support segwit, returns legacy address
+
+=back
+
+B<NOTE>: The rules this functions uses to choose the address type B<will>
+change when more up-to-date address types are implemented (like taproot). Use
+other address functions if this is not what you want.
 
 =head2 clear_purpose
 
 	$object->clear_purpose;
 
-Clears the purpose of this key instance, removing safety checks on address generation.
+Clears the purpose of this key instance, removing safety checks on address
+generation.
 
 =head1 EXCEPTIONS
 
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
 
-=over 2
+=over
 
 =item * KeyCreate - key couldn't be created correctly
 
@@ -234,17 +288,9 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =head1 SEE ALSO
 
-=over 2
+L<Bitcoin::Crypto::Key::Private>
 
-=item L<Bitcoin::Crypto::Key::Private>
+L<Bitcoin::Crypto::Base58>
 
-=item L<Bitcoin::Crypto::Network>
-
-=item L<Bitcoin::Crypto::Base58>
-
-=item L<Bitcoin::Crypto::Bech32>
-
-=back
-
-=cut
+L<Bitcoin::Crypto::Bech32>
 
