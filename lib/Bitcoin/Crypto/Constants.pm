@@ -20,6 +20,8 @@ use constant {
 	bip44_purpose => 44,
 	bip44_compat_purpose => 49,
 	bip44_segwit_purpose => 84,
+
+	units_per_coin => 100_000_000,
 };
 
 # These constants are environment-specific and internal only
