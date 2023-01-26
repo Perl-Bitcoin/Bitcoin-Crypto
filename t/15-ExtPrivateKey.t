@@ -133,7 +133,6 @@ foreach my $tdata (@test_data) {
 	is($basic_derived->to_wif(), $tdata->{basic}, 'derived basic private key ok');
 }
 
-
 # test for network in extended keys
 my $mnemonic = generate_mnemonic;
 my $key = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic);

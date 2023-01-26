@@ -109,7 +109,6 @@ sub mnemonic_from_entropy
 	);
 }
 
-
 sub get_path_info
 {
 	my ($path) = @_;

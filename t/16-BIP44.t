@@ -150,7 +150,8 @@ subtest 'can derive public key' => sub {
 
 	my $derived2 = $public->derive_key_bip44(index => 4, public => 1);
 
-	is $derived2->to_serialized_base58, 'zpub6vVTjHj2VYz8CjXyzC2NT94i1enJcx678vjo4MYBY76eYfye4NbT32eaxMhPrqvvt9v6sjGJwNrnUx1hdrBw9ymJeSxe9uqXzxtAHcx39iS';
+	is $derived2->to_serialized_base58,
+		'zpub6vVTjHj2VYz8CjXyzC2NT94i1enJcx678vjo4MYBY76eYfye4NbT32eaxMhPrqvvt9v6sjGJwNrnUx1hdrBw9ymJeSxe9uqXzxtAHcx39iS';
 };
 
 done_testing;

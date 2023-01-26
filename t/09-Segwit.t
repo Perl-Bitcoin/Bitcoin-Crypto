@@ -21,6 +21,7 @@ subtest 'validate segwit version 15 program without validator specified' => sub 
 };
 
 subtest 'validate segwit version 15 program with validator specified' => sub {
+
 	# use slightly changed validator from the documentation
 	local $Bitcoin::Crypto::Segwit::validators{15} = sub {
 		my ($data) = @_;

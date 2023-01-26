@@ -116,7 +116,8 @@ subtest 'testing mnemonic_from_entropy' => sub {
 	my $entropy = pack 'H*', '26994a6f6097b7d3615e7dc17ba10e580755ad034e3b4fa0a55de5aba652cb66';
 	my $mnemonic = mnemonic_from_entropy($entropy);
 
-	is $mnemonic, 'charge ski orange scorpion kiwi trust lyrics soul scrap tackle drum quote inspire story artwork shuffle exile ahead first slender risk city collect silver';
+	is $mnemonic,
+		'charge ski orange scorpion kiwi trust lyrics soul scrap tackle drum quote inspire story artwork shuffle exile ahead first slender risk city collect silver';
 
 	throws_ok {
 		my $mnemonic = mnemonic_from_entropy("\x01" x 17, 'en');
@@ -124,6 +125,7 @@ subtest 'testing mnemonic_from_entropy' => sub {
 };
 
 subtest 'testing generate_mnemonic / mnemonic_from_entropy' => sub {
+
 	# generating english mnemonics
 	for my $bits (map { 128 + $_ * 32 } 0 .. 4) {
 		my @mnemonics = (

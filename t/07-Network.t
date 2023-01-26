@@ -6,7 +6,6 @@ use Test::Exception;
 
 BEGIN { use_ok 'Bitcoin::Crypto::Network' }
 
-
 subtest 'registering invalid network fails' => sub {
 	my $starting_count = scalar Bitcoin::Crypto::Network->find;
 

@@ -157,7 +157,7 @@ sub step
 			$op->execute($self, @args);
 		},
 		sub {
-			"error at pos $pos (" . $op->name . "): $_"
+			"error at pos $pos (" . $op->name . "): $_";
 		}
 	);
 
