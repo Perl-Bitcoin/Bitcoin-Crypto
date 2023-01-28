@@ -20,6 +20,7 @@ my @test_data = (
 		lang => 'en',
 		basic => 'L3a57KGgirnCw4pRbg5kCeeLaB2YCiGKY3P4E4pYGgc9PgmhHHa3',
 	},
+
 	{
 		mnemonic =>
 			'castle illegal state cupboard pass creek critic impact business attract group flavor',
@@ -30,6 +31,7 @@ my @test_data = (
 		lang => 'en',
 		basic => 'L1CZbrUKVDMe7iBv3pVH2X5gpXj6Er4Tyec1Ra7tjJVwAFR5ZkWg',
 	},
+
 	{
 		mnemonic =>
 			'require lens exercise tank bind shadow detail pelican half same mountain breeze dinosaur secret army omit weasel myth luxury swarm company wrestle wide curious',
@@ -40,6 +42,7 @@ my @test_data = (
 		lang => 'en',
 		basic => 'KxD95rySyjzCxW2YMm3UE9eg8Yxs9YnHyqqVekjAoMU3Xacvq6C9',
 	},
+
 	{
 		mnemonic => 'annual burden skirt okay simple now wave hard spot exact merit original',
 		passphrase => 'hello',
@@ -50,6 +53,7 @@ my @test_data = (
 		lang => 'en',
 		basic => 'L1GoBvbdsmfnRyf36XB77JPU6M53iJD85pEq4ksxaeGkp1Mwccuf',
 	},
+
 	{
 		mnemonic =>
 			'daughter face ability round midnight sibling rifle gorilla spin busy legend wear',
@@ -61,6 +65,7 @@ my @test_data = (
 		lang => 'en',
 		basic => 'KxPSc1dT6ZKthyDVTah376AQMNJ7KGY3vAAjzA5xXWsQu2mTmUEh',
 	},
+
 	{
 		mnemonic =>
 			'daughter face ability round midnight sibling rifle gorilla spin busy legend wear',
@@ -72,6 +77,7 @@ my @test_data = (
 		lang => 'en',
 		basic => 'Kx8NSKQ4EqwzGDjQMEyoNAH72DrL7NrHtSfG2FLcNeyY1o1gXa2w',
 	},
+
 	{
 		mnemonic =>
 			'そつう　れきだい　ほんやく　わかす　りくつ　ばいか　ろせん　やちん　そつう　れきだい　ほんやく　わかめ',
@@ -82,6 +88,7 @@ my @test_data = (
 			'xprv9s21ZrQH143K3ra1D6uGQyST9UqtUscH99GK8MBh5RrgPkrQo83QG4o6H2YktwSKvoZRVXDQZQrSyCDpHdA2j8i3PW5M9LkauaaTKwym1Wf',
 		basic => 'L2qjBPXGZfsjMPueZkv2GuqqwRFpLpDz1Jhn7z6rgoR4zYTNqiQy',
 	},
+
 	{
 		mnemonic =>
 			'われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　らいう',
@@ -92,6 +99,7 @@ my @test_data = (
 			'xprv9s21ZrQH143K3XTGpC53cWswvhg6GVQ1dE1yty6F9VhBcE7rnXmStuKwtaZNXRxw5N7tsh1REyAxun1S5BCYvhD5pNwxWUMMZaHwjTmXFdb',
 		basic => 'L4yV63y42pbH68cJJu6wfriKdVgtTTJUm6cxJUQu4Mbsb9XEM2L4',
 	},
+
 	{
 		mnemonic =>
 			'くのう　てぬぐい　そんかい　すろっと　ちきゅう　ほあん　とさか　はくしゅ　ひびく　みえる　そざい　てんすう　たんぴん　くしょう　すいようび　みけん　きさらぎ　げざん　ふくざつ　あつかう　はやい　くろう　おやゆび　こすう',
@@ -102,55 +110,62 @@ my @test_data = (
 			'xprv9s21ZrQH143K2gbMb94GNwdogai6fA3vTrALH8eoNJKqPWn9KyeBMhUQLpsN5ePJkZdHsPmyDsECNLRaYiposqDDqsbk3ANk9hbsSgmVq7G',
 		basic => 'Ky6vrNCdFUhcqGhh2PtMnLsKXx7Q5T6vkiQStmneCFE5MAJwpYWa',
 	},
+
 );
 
-# testing for compatibility with other bip39 tools
+my $case_num = 0;
 foreach my $tdata (@test_data) {
-	my $from_mnemonic = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic(
-		$tdata->{mnemonic},
-		$tdata->{passphrase},
-		$tdata->{lang}
-	);
-	my $from_seed = Bitcoin::Crypto::Key::ExtPrivate->from_hex_seed($tdata->{seed});
-	my $exported = $from_mnemonic->to_serialized_base58();
-	is(
-		$exported,
-		encode_base58check($from_mnemonic->to_serialized()),
-		'serialization is consistent'
-	);
-	is($exported, $from_seed->to_serialized_base58(), 'importing is consistent');
-	is($exported, $tdata->{key}, 'valid extended key result');
+	subtest "testing basic serialization and derivation, case $case_num" => sub {
+		my $from_mnemonic = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic(
+			$tdata->{mnemonic},
+			$tdata->{passphrase},
+			$tdata->{lang}
+		);
+		my $from_seed = Bitcoin::Crypto::Key::ExtPrivate->from_hex_seed($tdata->{seed});
+		my $exported = $from_mnemonic->to_serialized_base58();
+		is(
+			$exported,
+			encode_base58check($from_mnemonic->to_serialized()),
+			'serialization is consistent'
+		);
+		is($exported, $from_seed->to_serialized_base58(), 'importing is consistent');
+		is($exported, $tdata->{key}, 'valid extended key result');
 
-	my $from_serialized = Bitcoin::Crypto::Key::ExtPrivate->from_serialized_base58($tdata->{key});
-	my $extpublic = $from_serialized->get_public_key();
-	my $basic_private = $from_serialized->get_basic_key();
-	my $basic_public = $extpublic->get_basic_key();
-	is(ref $basic_private, 'Bitcoin::Crypto::Key::Private', 'basic private key created');
-	is(ref $basic_public, 'Bitcoin::Crypto::Key::Public', 'basic public key created');
-	is($basic_private->get_public_key()->to_bytes(), $basic_public->to_bytes(), 'keys match');
+		my $from_serialized = Bitcoin::Crypto::Key::ExtPrivate->from_serialized_base58($tdata->{key});
+		my $extpublic = $from_serialized->get_public_key();
+		my $basic_private = $from_serialized->get_basic_key();
+		my $basic_public = $extpublic->get_basic_key();
+		is(ref $basic_private, 'Bitcoin::Crypto::Key::Private', 'basic private key created');
+		is(ref $basic_public, 'Bitcoin::Crypto::Key::Public', 'basic public key created');
+		is($basic_private->get_public_key()->to_bytes(), $basic_public->to_bytes(), 'keys match');
 
-	my $basic_derived = $from_serialized->derive_key("m/0")->get_basic_key();
-	is($basic_derived->to_wif(), $tdata->{basic}, 'derived basic private key ok');
+		my $basic_derived = $from_serialized->derive_key("m/0")->get_basic_key();
+		is($basic_derived->to_wif(), $tdata->{basic}, 'derived basic private key ok');
+	};
+
+	++$case_num;
 }
 
-# test for network in extended keys
-my $mnemonic = generate_mnemonic;
-my $key = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic);
-$key->set_network('bitcoin_testnet');
-is(
-	substr($key->to_serialized_base58, 0, 4),
-	'tprv', 'extended key used the new network data in exporting'
-);
-is($key->network->name, 'Bitcoin Testnet', 'extended key uses the new network');
-is(
-	$key->get_public_key()->network->name,
-	'Bitcoin Testnet',
-	'extended public key uses the new network'
-);
-$key = $key->derive_key("m/0'/1");
-is($key->network->name, 'Bitcoin Testnet', 'derived extended key used the new network data');
-my $basic_key = $key->get_basic_key;
-is($basic_key->network->name, 'Bitcoin Testnet', "basic key inherited extended key's network");
+subtest 'testing network handling' => sub {
+	my $mnemonic = generate_mnemonic;
+	my $key = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic);
+
+	$key->set_network('bitcoin_testnet');
+	is(
+		substr($key->to_serialized_base58, 0, 4),
+		'tprv', 'extended key used the new network data in exporting'
+	);
+	is($key->network->name, 'Bitcoin Testnet', 'extended key uses the new network');
+	is(
+		$key->get_public_key->network->name,
+		'Bitcoin Testnet',
+		'extended public key uses the new network'
+	);
+
+	$key = $key->derive_key("m/0'/1");
+	is($key->network->name, 'Bitcoin Testnet', 'derived extended key used the new network data');
+	is($key->get_basic_key->network->name, 'Bitcoin Testnet', "basic key inherited extended key's network");
+};
 
 done_testing;
 
