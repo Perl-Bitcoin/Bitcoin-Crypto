@@ -8,53 +8,58 @@ use Bitcoin::Crypto::Key::ExtPrivate;
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 
-my %test_data_private = (
-	'000102030405060708090a0b0c0d0e0f' => [
-		{
-			path => "m",
-			private =>
-				'xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi',
-			public =>
-				'xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8',
-		},
-		{
-			path => "m/0'",
-			private =>
-				'xprv9uHRZZhk6KAJC1avXpDAp4MDc3sQKNxDiPvvkX8Br5ngLNv1TxvUxt4cV1rGL5hj6KCesnDYUhd7oWgT11eZG7XnxHrnYeSvkzY7d2bhkJ7',
-			public =>
-				'xpub68Gmy5EdvgibQVfPdqkBBCHxA5htiqg55crXYuXoQRKfDBFA1WEjWgP6LHhwBZeNK1VTsfTFUHCdrfp1bgwQ9xv5ski8PX9rL2dZXvgGDnw',
-		},
-		{
-			path => "m/0'/1",
-			private =>
-				'xprv9wTYmMFdV23N2TdNG573QoEsfRrWKQgWeibmLntzniatZvR9BmLnvSxqu53Kw1UmYPxLgboyZQaXwTCg8MSY3H2EU4pWcQDnRnrVA1xe8fs',
-			public =>
-				'xpub6ASuArnXKPbfEwhqN6e3mwBcDTgzisQN1wXN9BJcM47sSikHjJf3UFHKkNAWbWMiGj7Wf5uMash7SyYq527Hqck2AxYysAA7xmALppuCkwQ',
-		},
-		{
-			path => "m/0'/1/2'",
-			private =>
-				'xprv9z4pot5VBttmtdRTWfWQmoH1taj2axGVzFqSb8C9xaxKymcFzXBDptWmT7FwuEzG3ryjH4ktypQSAewRiNMjANTtpgP4mLTj34bhnZX7UiM',
-			public =>
-				'xpub6D4BDPcP2GT577Vvch3R8wDkScZWzQzMMUm3PWbmWvVJrZwQY4VUNgqFJPMM3No2dFDFGTsxxpG5uJh7n7epu4trkrX7x7DogT5Uv6fcLW5',
-		},
-		{
-			path => "m/0'/1/2'/2",
-			private =>
-				'xprvA2JDeKCSNNZky6uBCviVfJSKyQ1mDYahRjijr5idH2WwLsEd4Hsb2Tyh8RfQMuPh7f7RtyzTtdrbdqqsunu5Mm3wDvUAKRHSC34sJ7in334',
-			public =>
-				'xpub6FHa3pjLCk84BayeJxFW2SP4XRrFd1JYnxeLeU8EqN3vDfZmbqBqaGJAyiLjTAwm6ZLRQUMv1ZACTj37sR62cfN7fe5JnJ7dh8zL4fiyLHV'
-		},
-		{
-			path => "m/0'/1/2'/2/1000000000",
-			private =>
-				'xprvA41z7zogVVwxVSgdKUHDy1SKmdb533PjDz7J6N6mV6uS3ze1ai8FHa8kmHScGpWmj4WggLyQjgPie1rFSruoUihUZREPSL39UNdE3BBDu76',
-			public =>
-				'xpub6H1LXWLaKsWFhvm6RVpEL9P4KfRZSW7abD2ttkWP3SSQvnyA8FSVqNTEcYFgJS2UaFcxupHiYkro49S8yGasTvXEYBVPamhGW6cFJodrTHy'
-		}
-	],
-	'fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542'
-		=> [
+my @test_data_private = (
+	{
+		seed => '000102030405060708090a0b0c0d0e0f',
+		data => [
+			{
+				path => "m",
+				private =>
+					'xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi',
+				public =>
+					'xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8',
+			},
+			{
+				path => "m/0'",
+				private =>
+					'xprv9uHRZZhk6KAJC1avXpDAp4MDc3sQKNxDiPvvkX8Br5ngLNv1TxvUxt4cV1rGL5hj6KCesnDYUhd7oWgT11eZG7XnxHrnYeSvkzY7d2bhkJ7',
+				public =>
+					'xpub68Gmy5EdvgibQVfPdqkBBCHxA5htiqg55crXYuXoQRKfDBFA1WEjWgP6LHhwBZeNK1VTsfTFUHCdrfp1bgwQ9xv5ski8PX9rL2dZXvgGDnw',
+			},
+			{
+				path => "m/0'/1",
+				private =>
+					'xprv9wTYmMFdV23N2TdNG573QoEsfRrWKQgWeibmLntzniatZvR9BmLnvSxqu53Kw1UmYPxLgboyZQaXwTCg8MSY3H2EU4pWcQDnRnrVA1xe8fs',
+				public =>
+					'xpub6ASuArnXKPbfEwhqN6e3mwBcDTgzisQN1wXN9BJcM47sSikHjJf3UFHKkNAWbWMiGj7Wf5uMash7SyYq527Hqck2AxYysAA7xmALppuCkwQ',
+			},
+			{
+				path => "m/0'/1/2'",
+				private =>
+					'xprv9z4pot5VBttmtdRTWfWQmoH1taj2axGVzFqSb8C9xaxKymcFzXBDptWmT7FwuEzG3ryjH4ktypQSAewRiNMjANTtpgP4mLTj34bhnZX7UiM',
+				public =>
+					'xpub6D4BDPcP2GT577Vvch3R8wDkScZWzQzMMUm3PWbmWvVJrZwQY4VUNgqFJPMM3No2dFDFGTsxxpG5uJh7n7epu4trkrX7x7DogT5Uv6fcLW5',
+			},
+			{
+				path => "m/0'/1/2'/2",
+				private =>
+					'xprvA2JDeKCSNNZky6uBCviVfJSKyQ1mDYahRjijr5idH2WwLsEd4Hsb2Tyh8RfQMuPh7f7RtyzTtdrbdqqsunu5Mm3wDvUAKRHSC34sJ7in334',
+				public =>
+					'xpub6FHa3pjLCk84BayeJxFW2SP4XRrFd1JYnxeLeU8EqN3vDfZmbqBqaGJAyiLjTAwm6ZLRQUMv1ZACTj37sR62cfN7fe5JnJ7dh8zL4fiyLHV'
+			},
+			{
+				path => "m/0'/1/2'/2/1000000000",
+				private =>
+					'xprvA41z7zogVVwxVSgdKUHDy1SKmdb533PjDz7J6N6mV6uS3ze1ai8FHa8kmHScGpWmj4WggLyQjgPie1rFSruoUihUZREPSL39UNdE3BBDu76',
+				public =>
+					'xpub6H1LXWLaKsWFhvm6RVpEL9P4KfRZSW7abD2ttkWP3SSQvnyA8FSVqNTEcYFgJS2UaFcxupHiYkro49S8yGasTvXEYBVPamhGW6cFJodrTHy'
+			}
+		],
+	},
+
+	{
+		seed => 'fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542',
+		data => [
 			{
 				path => "m",
 				private =>
@@ -113,8 +118,11 @@ my %test_data_private = (
 				'xpub7CKyknz6VJK48Sh67qPjCQLJmPhJkCFs3hFEXRTwiCKQ5cSbRetMdv517nY55HZsjFWcUZowJAzKNKNEL9PQsYo8QELXFVgvp7azxdao5H9',
 			}
 		],
-	'4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45d239319ac14f863b8d5ab5a0d0c64d2e8a1e7d1457df2e5a3c51c73235be'
-		=> [
+	},
+
+	{
+		seed => '4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45d239319ac14f863b8d5ab5a0d0c64d2e8a1e7d1457df2e5a3c51c73235be',
+		data => [
 			{
 				path => "m",
 				private =>
@@ -130,8 +138,11 @@ my %test_data_private = (
 				'xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBaohPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y',
 			}
 		],
-	'3ddd5602285899a946114506157c7997e5444528f3003f6134712147db19b678'
-		=> [
+	},
+
+	{
+		seed => '3ddd5602285899a946114506157c7997e5444528f3003f6134712147db19b678',
+		data => [
 			{
 				path => "m",
 				private =>
@@ -154,6 +165,7 @@ my %test_data_private = (
 				'xpub6BJA1jSqiukeaesWfxe6sNK9CCGaujFFSJLomWHprUL9DePQ4JDkM5d88n49sMGJxrhpjazuXYWdMf17C9T5XnxkopaeS7jGk1GyyVziaMt',
 			}
 		],
+	},
 );
 
 my @test_data_public = (
@@ -164,6 +176,7 @@ my @test_data_public = (
 		child =>
 			'xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8',
 	},
+
 	{
 		parent =>
 			'xpub6D4BDPcP2GT577Vvch3R8wDkScZWzQzMMUm3PWbmWvVJrZwQY4VUNgqFJPMM3No2dFDFGTsxxpG5uJh7n7epu4trkrX7x7DogT5Uv6fcLW5',
@@ -171,6 +184,7 @@ my @test_data_public = (
 		child =>
 			'xpub6H1LXWLaKsWFhvm6RVpEL9P4KfRZSW7abD2ttkWP3SSQvnyA8FSVqNTEcYFgJS2UaFcxupHiYkro49S8yGasTvXEYBVPamhGW6cFJodrTHy',
 	},
+
 	{
 		parent =>
 			'xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB',
@@ -178,6 +192,7 @@ my @test_data_public = (
 		child =>
 			'xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH',
 	},
+
 	{
 		parent =>
 			'xpub68Gmy5EdvgibQVfPdqkBBCHxA5htiqg55crXYuXoQRKfDBFA1WEjWgP6LHhwBZeNK1VTsfTFUHCdrfp1bgwQ9xv5ski8PX9rL2dZXvgGDnw',
@@ -185,6 +200,7 @@ my @test_data_public = (
 		child =>
 			'xpub6ASuArnXKPbfEwhqN6e3mwBcDTgzisQN1wXN9BJcM47sSikHjJf3UFHKkNAWbWMiGj7Wf5uMash7SyYq527Hqck2AxYysAA7xmALppuCkwQ',
 	},
+
 	{
 		parent =>
 			'xpub6FHa3pjLCk84BayeJxFW2SP4XRrFd1JYnxeLeU8EqN3vDfZmbqBqaGJAyiLjTAwm6ZLRQUMv1ZACTj37sR62cfN7fe5JnJ7dh8zL4fiyLHV',
@@ -199,43 +215,62 @@ my @test_data_error = (
 		'xpub6FHa3pjLCk84BayeJxFW2SP4XRrFd1JYnxeLeU8EqN3vDfZmbqBqaGJAyiLjTAwm6ZLRQUMv1ZACTj37sR62cfN7fe5JnJ7dh8zL4fiyLHV',
 		"m"
 	],
+
 	[
 		'xpub6FHa3pjLCk84BayeJxFW2SP4XRrFd1JYnxeLeU8EqN3vDfZmbqBqaGJAyiLjTAwm6ZLRQUMv1ZACTj37sR62cfN7fe5JnJ7dh8zL4fiyLHV',
 		"m/"
 	],
+
 	[
 		'xpub6FHa3pjLCk84BayeJxFW2SP4XRrFd1JYnxeLeU8EqN3vDfZmbqBqaGJAyiLjTAwm6ZLRQUMv1ZACTj37sR62cfN7fe5JnJ7dh8zL4fiyLHV',
 		"M/"
 	],
+
 	['xxyz', "m/1'/1"],
+
 	[
 		'xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7AANYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4',
 		"m/1'/1"
 	],
 );
 
-for my $seed (keys %test_data_private) {
-	my $test_vector = $test_data_private{$seed};
-	my $base_key = Bitcoin::Crypto::Key::ExtPrivate->from_seed(pack 'H*', pad_hex $seed);
-	for my $tdata (@$test_vector) {
-		my $key = $base_key->derive_key($tdata->{path});
-		my $pubkey = $key->get_public_key();
-		is($key->to_serialized_base58(), $tdata->{private}, 'private key ok');
-		is($pubkey->to_serialized_base58(), $tdata->{public}, 'public key ok');
-	}
+my $case_num = 0;
+for my $tdata (@test_data_private) {
+	subtest "testing private data, case $case_num" => sub {
+		my $test_vector = $tdata->{data};
+		my $base_key = Bitcoin::Crypto::Key::ExtPrivate->from_seed(pack 'H*', pad_hex $tdata->{seed});
+		for my $tdata (@$test_vector) {
+			my $key = $base_key->derive_key($tdata->{path});
+			my $pubkey = $key->get_public_key();
+			is($key->to_serialized_base58(), $tdata->{private}, 'private key ok');
+			is($pubkey->to_serialized_base58(), $tdata->{public}, 'public key ok');
+		}
+	};
+
+	++$case_num;
 }
 
+$case_num = 0;
 for my $tdata (@test_data_public) {
-	my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($tdata->{parent});
-	my $key = $base_key->derive_key($tdata->{path});
-	is($key->to_serialized_base58(), $tdata->{child}, 'key derivation ok');
+	subtest "testing public data, case $case_num" => sub {
+		my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($tdata->{parent});
+		my $key = $base_key->derive_key($tdata->{path});
+		is($key->to_serialized_base58(), $tdata->{child}, 'key derivation ok');
+	};
+
+	++$case_num;
 }
 
+$case_num = 0;
 for my $tdata (@test_data_error) {
-	throws_ok {
-		my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($tdata->[0]);
-		$base_key->derive_key($tdata->[1]);
-	} 'Bitcoin::Crypto::Exception', 'incorrect derivation failed with exception';
+	subtest "testing invalid data, case $case_num" => sub {
+		throws_ok {
+			my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($tdata->[0]);
+			$base_key->derive_key($tdata->[1]);
+		} 'Bitcoin::Crypto::Exception', 'incorrect derivation failed with exception';
+	};
+
+	++$case_num;
 }
 
 done_testing;
