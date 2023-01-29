@@ -29,6 +29,30 @@ __PACKAGE__->add_type(
 );
 
 __PACKAGE__->add_type(
+	name => 'ByteStr',
+	parent => Str,
+
+	constraint_generator => sub {
+		return sub {
+			my @characters = split //;
+
+			return (grep { ord > 255 } @characters) == 0;
+		};
+	},
+
+	inline_generator => sub {
+		return sub {
+			my $varname = pop;
+			return (undef, qq{ (grep { ord > 255 } split //, $varname) == 0 });
+		};
+	},
+
+	message => sub {
+		return 'Value is not a bytestring';
+	},
+);
+
+__PACKAGE__->add_type(
 	name => 'IntMaxBits',
 	parent => PositiveOrZeroInt,
 

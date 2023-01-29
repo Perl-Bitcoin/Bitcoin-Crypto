@@ -74,8 +74,8 @@ sub add_ec_points
 
 	my $curve_size = Bitcoin::Crypto::Constants::key_max_length;
 	my $curve_data = Crypt::PK::ECC->new->generate_key(Bitcoin::Crypto::Constants::curve_name)->curve2hash;
-	my $p = Math::BigInt->from_bytes(pack 'H*', $curve_data->{prime});
-	my $a = Math::BigInt->from_bytes(pack 'H*', $curve_data->{A});
+	my $p = Math::BigInt->from_hex($curve_data->{prime});
+	my $a = Math::BigInt->from_hex($curve_data->{A});
 
 	my $add_points = sub {
 		my ($x1, $x2, $y1, $lambda) = @_;

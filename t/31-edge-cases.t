@@ -43,15 +43,15 @@ subtest 'testing invalid verification algorithm' => sub {
 	} 'Bitcoin::Crypto::Exception::Verify';
 };
 
-subtest 'testing reference base58' => sub {
+subtest 'testing invalid base58' => sub {
 	throws_ok {
-		decode_base58(\0);
+		decode_base58('158ZaF+');
 	} 'Bitcoin::Crypto::Exception::Base58InputFormat';
 };
 
-subtest 'testing undefined bech32' => sub {
+subtest 'testing invalid bech32' => sub {
 	throws_ok {
-		decode_bech32(undef);
+		decode_bech32('bc1+-aaa');
 	} 'Bitcoin::Crypto::Exception::Bech32InputFormat';
 };
 

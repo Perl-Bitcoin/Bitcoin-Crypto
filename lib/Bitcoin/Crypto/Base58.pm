@@ -5,10 +5,12 @@ use strict;
 use warnings;
 use Exporter qw(import);
 use Crypt::Misc qw(encode_b58b decode_b58b);
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Helpers qw(verify_bytestring);
 use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Types qw(Str ByteStr);
 
 our @EXPORT_OK = qw(
 	encode_base58
@@ -21,32 +23,6 @@ our %EXPORT_TAGS = (all => [@EXPORT_OK]);
 
 my $CHECKSUM_SIZE = 4;
 
-sub encode_base58
-{
-	my ($bytes) = @_;
-	verify_bytestring($bytes);
-
-	return encode_b58b($bytes);
-}
-
-sub encode_base58check
-{
-	my ($bytes) = @_;
-	my $checksum = pack('a' . $CHECKSUM_SIZE, hash256($bytes));
-	return encode_base58($bytes . $checksum);
-}
-
-sub decode_base58
-{
-	my ($base58encoded) = @_;
-	my $decoded = decode_b58b($base58encoded);
-	Bitcoin::Crypto::Exception::Base58InputFormat->raise(
-		'illegal characters in base58 string'
-	) unless defined $decoded;
-
-	return $decoded;
-}
-
 sub verify_checksum
 {
 	my ($decoded) = @_;
@@ -55,11 +31,54 @@ sub verify_checksum
 	return unpack('a' . $CHECKSUM_SIZE, hash256($encoded_val)) eq $checksum;
 }
 
+signature_for encode_base58 => (
+	positional => [ByteStr],
+);
+
+sub encode_base58
+{
+	my ($bytes) = @_;
+
+	return encode_b58b($bytes);
+}
+
+signature_for encode_base58check => (
+	positional => [ByteStr],
+);
+
+sub encode_base58check
+{
+	my ($bytes) = @_;
+
+	my $checksum = pack('a' . $CHECKSUM_SIZE, hash256($bytes));
+	return encode_base58($bytes . $checksum);
+}
+
+signature_for decode_base58 => (
+	positional => [Str],
+);
+
+sub decode_base58
+{
+	my ($base58encoded) = @_;
+
+	my $decoded = decode_b58b($base58encoded);
+	Bitcoin::Crypto::Exception::Base58InputFormat->raise(
+		'illegal characters in base58 string'
+	) unless defined $decoded;
+
+	return $decoded;
+}
+
+signature_for decode_base58check => (
+	positional => [Str],
+);
+
 sub decode_base58check
 {
 	my ($base58encoded) = @_;
-	my $decoded = decode_base58($base58encoded);
 
+	my $decoded = decode_base58($base58encoded);
 	Bitcoin::Crypto::Exception::Base58InputChecksum->raise(
 		'incorrect base58check checksum'
 	) unless verify_checksum($decoded);
@@ -70,9 +89,10 @@ sub decode_base58check
 1;
 
 __END__
+
 =head1 NAME
 
-Bitcoin::Crypto::Base58 - Bitcoin's Base58 helpers
+Bitcoin::Crypto::Base58 - Bitcoin base58 helpers
 
 =head1 SYNOPSIS
 
