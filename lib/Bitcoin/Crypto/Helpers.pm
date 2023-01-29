@@ -23,18 +23,11 @@ BEGIN {
 }
 
 our @EXPORT_OK = qw(
-	new_bigint
 	pad_hex
 	ensure_length
 	verify_bytestring
 	add_ec_points
 );
-
-sub new_bigint
-{
-	my ($bytes) = @_;
-	return Math::BigInt->from_hex(unpack 'H*', $bytes);
-}
 
 sub pad_hex
 {
@@ -81,8 +74,8 @@ sub add_ec_points
 
 	my $curve_size = Bitcoin::Crypto::Constants::key_max_length;
 	my $curve_data = Crypt::PK::ECC->new->generate_key(Bitcoin::Crypto::Constants::curve_name)->curve2hash;
-	my $p = new_bigint(pack 'H*', $curve_data->{prime});
-	my $a = new_bigint(pack 'H*', $curve_data->{A});
+	my $p = Math::BigInt->from_bytes(pack 'H*', $curve_data->{prime});
+	my $a = Math::BigInt->from_bytes(pack 'H*', $curve_data->{A});
 
 	my $add_points = sub {
 		my ($x1, $x2, $y1, $lambda) = @_;
@@ -112,8 +105,8 @@ sub add_ec_points
 	};
 
 	my $format = "(a$curve_size)*";
-	my ($px1, $py1) = map { new_bigint($_) } unpack $format, substr $point1, 1;
-	my ($px2, $py2) = map { new_bigint($_) } unpack $format, substr $point2, 1;
+	my ($px1, $py1) = map { Math::BigInt->from_bytes($_) } unpack $format, substr $point1, 1;
+	my ($px2, $py2) = map { Math::BigInt->from_bytes($_) } unpack $format, substr $point2, 1;
 
 	my $ret = sub {
 		if ($px1->bcmp($px2)) {

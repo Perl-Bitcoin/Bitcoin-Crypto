@@ -7,7 +7,7 @@ use Moo;
 use Crypt::Mac::HMAC qw(hmac);
 
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(new_bigint ensure_length add_ec_points);
+use Bitcoin::Crypto::Helpers qw(ensure_length add_ec_points);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::BIP44;
 
@@ -46,8 +46,8 @@ sub _derive_key_partial
 	my $data = hmac('SHA512', $self->chain_code, $hmac_data);
 	my $chain_code = substr $data, 32, 32;
 
-	my $n_order = new_bigint(pack 'H*', $self->key_instance->curve2hash->{order});
-	my $number = new_bigint(substr $data, 0, 32);
+	my $n_order = Math::BigInt->from_hex($self->key_instance->curve2hash->{order});
+	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
 		"key $child_num in sequence was found invalid"
 	) if $number->bge($n_order);

@@ -7,7 +7,7 @@ use Test::Exception;
 BEGIN {
 	use_ok(
 		'Bitcoin::Crypto::Helpers',
-		qw(new_bigint pad_hex ensure_length verify_bytestring)
+		qw(pad_hex ensure_length verify_bytestring)
 	);
 }
 
@@ -18,15 +18,6 @@ subtest 'testing pad_hex' => sub {
 		my $from_bi = substr Math::BigInt->from_hex("0x$hex")->as_hex(), -length $hex;
 		my $from_pack = substr unpack('H*', pack('H*', pad_hex($hex))), -length $hex;
 		is($from_pack, $from_bi, 'hex packing ok');
-	}
-};
-
-subtest 'testing new_bigint' => sub {
-	my @bytes = ("\x01", "\xff" x 21, "\x00");
-
-	for my $case (@bytes) {
-		my $from_helpers = new_bigint($case);
-		is(pad_hex($from_helpers->as_hex), unpack('H*', $case), 'construction ok');
 	}
 };
 

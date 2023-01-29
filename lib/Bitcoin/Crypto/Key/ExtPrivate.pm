@@ -11,7 +11,7 @@ use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy);
 use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(new_bigint pad_hex ensure_length verify_bytestring);
+use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length verify_bytestring);
 use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
 use Bitcoin::Crypto::Exception;
 
@@ -134,9 +134,9 @@ sub _derive_key_partial
 	my $data = hmac('SHA512', $self->chain_code, $hmac_data);
 	my $chain_code = substr $data, 32, 32;
 
-	my $number = new_bigint(substr $data, 0, 32);
-	my $key_num = new_bigint($self->raw_key);
-	my $n_order = new_bigint(pack 'H*', $self->key_instance->curve2hash->{order});
+	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
+	my $key_num = Math::BigInt->from_bytes($self->raw_key);
+	my $n_order = Math::BigInt->from_hex($self->key_instance->curve2hash->{order});
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
 		"key $child_num in sequence was found invalid"

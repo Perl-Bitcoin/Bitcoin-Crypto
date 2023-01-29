@@ -10,7 +10,7 @@ use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Types qw(ArrayRef Str PositiveOrZeroInt);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Helpers qw(new_bigint pad_hex);
+use Bitcoin::Crypto::Helpers qw(pad_hex);
 
 use namespace::clean;
 
@@ -48,7 +48,7 @@ sub to_int
 		substr $bytes, -1, 1, chr($ord - 0x80);
 	}
 
-	my $value = new_bigint(scalar reverse $bytes);
+	my $value = Math::BigInt->from_bytes(scalar reverse $bytes);
 	$value->bneg if $negative;
 
 	return $value;
