@@ -8,7 +8,7 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto::Helpers qw(pad_hex verify_bytestring);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Object Str ByteStr ClassName);
+use Bitcoin::Crypto::Types qw(Object Str ByteStr);
 use Moo::Role;
 
 with qw(
@@ -28,7 +28,8 @@ around BUILDARGS => sub {
 };
 
 signature_for sign_message => (
-	positional => [Object, Str, Str, { default => 'sha256' }],
+	method => Object,
+	positional => [Str, Str, { default => 'sha256' }],
 );
 
 sub sign_message
@@ -63,7 +64,8 @@ sub sign_message
 }
 
 signature_for verify_message => (
-	positional => [Object, Str, ByteStr, Str, { default => 'sha256' }],
+	method => Object,
+	positional => [Str, ByteStr, Str, { default => 'sha256' }],
 );
 
 sub verify_message
@@ -78,7 +80,8 @@ sub verify_message
 }
 
 signature_for from_hex => (
-	positional => [ClassName, Str],
+	method => Str,
+	positional => [Str],
 );
 
 sub from_hex
@@ -88,7 +91,8 @@ sub from_hex
 }
 
 signature_for to_hex => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub to_hex
@@ -98,7 +102,8 @@ sub to_hex
 }
 
 signature_for from_bytes => (
-	positional => [ClassName, ByteStr],
+	method => Str,
+	positional => [ByteStr],
 );
 
 sub from_bytes
@@ -109,7 +114,8 @@ sub from_bytes
 }
 
 signature_for to_bytes => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub to_bytes

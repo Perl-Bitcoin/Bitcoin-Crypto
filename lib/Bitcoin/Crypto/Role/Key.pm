@@ -71,7 +71,8 @@ sub BUILD
 }
 
 signature_for has_purpose => (
-	positional => [Object, BIP44Purpose],
+	method => Object,
+	positional => [BIP44Purpose],
 );
 
 sub has_purpose
@@ -89,7 +90,8 @@ sub _create_key
 }
 
 signature_for raw_key => (
-	positional => [Object, Enum[qw(private public public_compressed)], { optional => 1 }],
+	method => Object,
+	positional => [Enum[qw(private public public_compressed)], { optional => 1 }],
 );
 
 sub raw_key

@@ -14,7 +14,7 @@ use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length verify_bytestring);
 use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
-use Bitcoin::Crypto::Types qw(Object ClassName Str ByteStr HashRef Maybe);
+use Bitcoin::Crypto::Types qw(Object Str ByteStr HashRef Maybe);
 use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
@@ -42,7 +42,8 @@ sub mnemonic_from_entropy
 }
 
 signature_for from_mnemonic => (
-	positional => [ClassName, Str, Maybe[Str], { default => '' }, Maybe[Str], { default => undef }],
+	method => Str,
+	positional => [Str, Maybe[Str], { default => '' }, Maybe[Str], { default => undef }],
 );
 
 sub from_mnemonic
@@ -67,7 +68,8 @@ sub from_mnemonic
 }
 
 signature_for from_seed => (
-	positional => [ClassName, ByteStr],
+	method => Str,
+	positional => [ByteStr],
 );
 
 sub from_seed
@@ -85,7 +87,8 @@ sub from_seed
 }
 
 signature_for from_hex_seed => (
-	positional => [ClassName, Str],
+	method => Str,
+	positional => [Str],
 );
 
 sub from_hex_seed
@@ -96,7 +99,8 @@ sub from_hex_seed
 }
 
 signature_for get_public_key => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub get_public_key
@@ -117,7 +121,8 @@ sub get_public_key
 }
 
 signature_for derive_key_bip44 => (
-	positional => [Object, HashRef, { slurpy => 1 }],
+	method => Object,
+	positional => [HashRef, { slurpy => 1 }],
 );
 
 sub derive_key_bip44

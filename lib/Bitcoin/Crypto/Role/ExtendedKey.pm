@@ -11,7 +11,7 @@ use Type::Params -sigs;
 use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Types qw(IntMaxBits StrLength Str Object ClassName Maybe ByteStr PositiveInt InstanceOf);
+use Bitcoin::Crypto::Types qw(IntMaxBits StrLength Str Object Maybe ByteStr PositiveInt InstanceOf);
 use Bitcoin::Crypto::Util qw(get_path_info hash160);
 use Bitcoin::Crypto::Helpers qw(ensure_length verify_bytestring);
 use Bitcoin::Crypto::Network;
@@ -58,7 +58,8 @@ sub _get_network_extkey_version
 }
 
 signature_for to_serialized => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub to_serialized
@@ -94,7 +95,8 @@ sub to_serialized
 }
 
 signature_for from_serialized => (
-	positional => [ClassName, ByteStr, Maybe[Str], { optional => 1 }],
+	method => Str,
+	positional => [ByteStr, Maybe[Str], { optional => 1 }],
 );
 
 sub from_serialized
@@ -173,7 +175,8 @@ sub from_serialized
 }
 
 signature_for to_serialized_base58 => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub to_serialized_base58
@@ -184,7 +187,8 @@ sub to_serialized_base58
 }
 
 signature_for from_serialized_base58 => (
-	positional => [ClassName, Str, Maybe[Str], { optional => 1 }],
+	method => Str,
+	positional => [Str, Maybe[Str], { optional => 1 }],
 );
 
 sub from_serialized_base58
@@ -194,7 +198,8 @@ sub from_serialized_base58
 }
 
 signature_for get_basic_key => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub get_basic_key
@@ -211,7 +216,8 @@ sub get_basic_key
 }
 
 signature_for get_fingerprint => (
-	positional => [Object, PositiveInt, { default => 4 }],
+	method => Object,
+	positional => [PositiveInt, { default => 4 }],
 );
 
 sub get_fingerprint
@@ -243,7 +249,8 @@ sub _get_purpose_from_BIP44
 }
 
 signature_for derive_key => (
-	positional => [Object, Str | InstanceOf['Bitcoin::Crypto::BIP44']],
+	method => Object,
+	positional => [Str | InstanceOf['Bitcoin::Crypto::BIP44']],
 );
 
 sub derive_key

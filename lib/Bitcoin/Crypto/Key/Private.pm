@@ -11,7 +11,7 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
-use Bitcoin::Crypto::Types qw(Object ClassName Str Maybe);
+use Bitcoin::Crypto::Types qw(Object Str Maybe);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Util qw(validate_wif);
@@ -25,7 +25,8 @@ with qw(Bitcoin::Crypto::Role::BasicKey);
 sub _is_private { 1 }
 
 signature_for to_wif => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub to_wif
@@ -46,7 +47,8 @@ sub to_wif
 }
 
 signature_for from_wif => (
-	positional => [ClassName, Str, Maybe[Str], { optional => 1 }],
+	method => Str,
+	positional => [Str, Maybe[Str], { optional => 1 }],
 );
 
 sub from_wif
@@ -92,7 +94,8 @@ sub from_wif
 }
 
 signature_for get_public_key => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub get_public_key

@@ -20,7 +20,8 @@ with qw(Bitcoin::Crypto::Role::BasicKey);
 sub _is_private { 0 }
 
 signature_for key_hash => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub key_hash
@@ -31,7 +32,8 @@ sub key_hash
 }
 
 signature_for witness_program => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub witness_program
@@ -47,7 +49,8 @@ sub witness_program
 }
 
 signature_for get_legacy_address => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub get_legacy_address
@@ -63,7 +66,8 @@ sub get_legacy_address
 }
 
 signature_for get_compat_address => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub get_compat_address
@@ -83,7 +87,8 @@ sub get_compat_address
 }
 
 signature_for get_segwit_address => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub get_segwit_address
@@ -103,7 +108,8 @@ sub get_segwit_address
 }
 
 signature_for get_address => (
-	positional => [Object],
+	method => Object,
+	positional => [],
 );
 
 sub get_address
