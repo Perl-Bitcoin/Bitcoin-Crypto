@@ -6,11 +6,12 @@ use warnings;
 use List::Util qw(first);
 use Scalar::Util qw(blessed);
 use Mooish::AttributeBuilder -standard;
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Types qw(IntMaxBits StrLength);
+use Bitcoin::Crypto::Types qw(IntMaxBits StrLength Str Object ClassName Maybe ByteStr PositiveInt InstanceOf);
 use Bitcoin::Crypto::Util qw(get_path_info hash160);
 use Bitcoin::Crypto::Helpers qw(ensure_length verify_bytestring);
 use Bitcoin::Crypto::Network;
@@ -56,6 +57,10 @@ sub _get_network_extkey_version
 	return $network->$name;
 }
 
+signature_for to_serialized => (
+	positional => [Object],
+);
+
 sub to_serialized
 {
 	my ($self) = @_;
@@ -88,10 +93,13 @@ sub to_serialized
 	return $serialized;
 }
 
+signature_for from_serialized => (
+	positional => [ClassName, ByteStr, Maybe[Str], { optional => 1 }],
+);
+
 sub from_serialized
 {
 	my ($class, $serialized, $network) = @_;
-	verify_bytestring($serialized);
 
 	# expected length is 78
 	if (defined $serialized && length $serialized == 78) {
@@ -164,6 +172,10 @@ sub from_serialized
 	}
 }
 
+signature_for to_serialized_base58 => (
+	positional => [Object],
+);
+
 sub to_serialized_base58
 {
 	my ($self) = @_;
@@ -171,11 +183,19 @@ sub to_serialized_base58
 	return encode_base58check $serialized;
 }
 
+signature_for from_serialized_base58 => (
+	positional => [ClassName, Str, Maybe[Str], { optional => 1 }],
+);
+
 sub from_serialized_base58
 {
 	my ($class, $base58, $network) = @_;
 	return $class->from_serialized(decode_base58check($base58), $network);
 }
+
+signature_for get_basic_key => (
+	positional => [Object],
+);
 
 sub get_basic_key
 {
@@ -190,10 +210,13 @@ sub get_basic_key
 	return $basic_key;
 }
 
+signature_for get_fingerprint => (
+	positional => [Object, PositiveInt, { default => 4 }],
+);
+
 sub get_fingerprint
 {
 	my ($self, $len) = @_;
-	$len //= 4;
 
 	my $pubkey = $self->raw_key('public_compressed');
 	my $identifier = hash160($pubkey);
@@ -218,6 +241,10 @@ sub _get_purpose_from_BIP44
 
 	return $path->purpose;
 }
+
+signature_for derive_key => (
+	positional => [Object, Str | InstanceOf['Bitcoin::Crypto::BIP44']],
+);
 
 sub derive_key
 {

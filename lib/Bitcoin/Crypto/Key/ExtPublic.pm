@@ -5,9 +5,11 @@ use strict;
 use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(ensure_length add_ec_points);
+use Bitcoin::Crypto::Types qw(Object HashRef);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::BIP44;
 
@@ -17,11 +19,15 @@ with qw(Bitcoin::Crypto::Role::ExtendedKey);
 
 sub _is_private { 0 }
 
+signature_for derive_key_bip44 => (
+	positional => [Object, HashRef, { slurpy => 1 }],
+);
+
 sub derive_key_bip44
 {
-	my ($self, %data) = @_;
+	my ($self, $data) = @_;
 	my $path = Bitcoin::Crypto::BIP44->new(
-		%data,
+		%{$data},
 		coin_type => $self,
 		public => 1,
 	);

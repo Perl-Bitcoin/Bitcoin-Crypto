@@ -4,8 +4,9 @@ use v5.10;
 use strict;
 use warnings;
 use Mooish::AttributeBuilder -standard;
+use Type::Params -sigs;
 
-use Bitcoin::Crypto::Types qw(Bool);
+use Bitcoin::Crypto::Types qw(Object Bool);
 use Moo::Role;
 
 has param 'compressed' => (
@@ -14,12 +15,13 @@ has param 'compressed' => (
 	writer => -hidden,
 );
 
+signature_for set_compressed => (
+	positional => [Object, Bool, { default => !!1 }],
+);
+
 sub set_compressed
 {
 	my ($self, $state) = @_;
-
-	$state = 1
-		if @_ == 1;
 
 	$self->_set_compressed($state);
 	return $self;

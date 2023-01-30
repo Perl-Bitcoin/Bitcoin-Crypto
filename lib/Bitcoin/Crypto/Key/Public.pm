@@ -4,10 +4,12 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
+use Bitcoin::Crypto::Types qw(Object);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(hash160);
 
@@ -17,12 +19,20 @@ with qw(Bitcoin::Crypto::Role::BasicKey);
 
 sub _is_private { 0 }
 
+signature_for key_hash => (
+	positional => [Object],
+);
+
 sub key_hash
 {
 	my ($self) = @_;
 	my $pubkey = $self->to_bytes();
 	return hash160($pubkey);
 }
+
+signature_for witness_program => (
+	positional => [Object],
+);
 
 sub witness_program
 {
@@ -36,6 +46,10 @@ sub witness_program
 	return $program;
 }
 
+signature_for get_legacy_address => (
+	positional => [Object],
+);
+
 sub get_legacy_address
 {
 	my ($self) = @_;
@@ -47,6 +61,10 @@ sub get_legacy_address
 	my $pkh = $self->network->p2pkh_byte . $self->key_hash;
 	return encode_base58check($pkh);
 }
+
+signature_for get_compat_address => (
+	positional => [Object],
+);
 
 sub get_compat_address
 {
@@ -64,6 +82,10 @@ sub get_compat_address
 	return $self->witness_program->get_legacy_address;
 }
 
+signature_for get_segwit_address => (
+	positional => [Object],
+);
+
 sub get_segwit_address
 {
 	my ($self) = @_;
@@ -79,6 +101,10 @@ sub get_segwit_address
 
 	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run});
 }
+
+signature_for get_address => (
+	positional => [Object],
+);
 
 sub get_address
 {
@@ -102,6 +128,7 @@ sub get_address
 1;
 
 __END__
+
 =head1 NAME
 
 Bitcoin::Crypto::Key::Public - Bitcoin public keys

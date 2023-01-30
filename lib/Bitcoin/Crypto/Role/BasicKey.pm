@@ -4,9 +4,11 @@ use v5.10;
 use strict;
 use warnings;
 use Carp qw(carp);
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Helpers qw(pad_hex verify_bytestring);
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Types qw(Object Str ByteStr ClassName);
 use Moo::Role;
 
 with qw(
@@ -25,6 +27,10 @@ around BUILDARGS => sub {
 	return $class->$orig(@params);
 };
 
+signature_for sign_message => (
+	positional => [Object, Str, Str, { default => 'sha256' }],
+);
+
 sub sign_message
 {
 	my ($self, $message, $algorithm) = @_;
@@ -33,16 +39,14 @@ sub sign_message
 		'cannot sign a message with a public key'
 	) unless $self->_is_private;
 
-	$algorithm //= 'sha256';
 	if (eval { require Crypt::Perl } && Crypt::Perl->VERSION gt '0.33') {
 		require Crypt::Perl::ECDSA::Parse;
 		$self->{_crypt_perl_prv} = Crypt::Perl::ECDSA::Parse::private($self->key_instance->export_key_der('private'))
 			if !exists $self->{_crypt_perl_prv};
 	}
 	else {
-		warn(
-			'Current implementation of CryptX signature generation does not produce deterministic results. For better security, install the Crypt::Perl module.'
-		);
+		carp
+			'Current implementation of CryptX signature generation does not produce deterministic results. For better security, install the Crypt::Perl module.';
 	}
 
 	return Bitcoin::Crypto::Exception::Sign->trap_into(
@@ -58,12 +62,14 @@ sub sign_message
 	);
 }
 
+signature_for verify_message => (
+	positional => [Object, Str, ByteStr, Str, { default => 'sha256' }],
+);
+
 sub verify_message
 {
 	my ($self, $message, $signature, $algorithm) = @_;
-	verify_bytestring($signature);
 
-	$algorithm //= 'sha256';
 	return Bitcoin::Crypto::Exception::Verify->trap_into(
 		sub {
 			$self->key_instance->verify_message($signature, $message, $algorithm);
@@ -71,11 +77,19 @@ sub verify_message
 	);
 }
 
+signature_for from_hex => (
+	positional => [ClassName, Str],
+);
+
 sub from_hex
 {
 	my ($class, $val) = @_;
 	return $class->from_bytes(pack 'H*', pad_hex($val));
 }
+
+signature_for to_hex => (
+	positional => [Object],
+);
 
 sub to_hex
 {
@@ -83,13 +97,20 @@ sub to_hex
 	return unpack 'H*', $self->to_bytes();
 }
 
+signature_for from_bytes => (
+	positional => [ClassName, ByteStr],
+);
+
 sub from_bytes
 {
 	my ($class, $bytes) = @_;
-	verify_bytestring($bytes);
 
 	return $class->new(key_instance => $bytes);
 }
+
+signature_for to_bytes => (
+	positional => [Object],
+);
 
 sub to_bytes
 {

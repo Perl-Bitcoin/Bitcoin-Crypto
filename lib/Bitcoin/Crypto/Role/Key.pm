@@ -6,8 +6,9 @@ use warnings;
 use Crypt::PK::ECC;
 use Scalar::Util qw(blessed);
 use Mooish::AttributeBuilder -standard;
+use Type::Params -sigs;
 
-use Bitcoin::Crypto::Types qw(InstanceOf BIP44Purpose);
+use Bitcoin::Crypto::Types qw(Object InstanceOf BIP44Purpose Enum);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
@@ -69,6 +70,10 @@ sub BUILD
 	) unless $self->key_instance->is_private == $self->_is_private;
 }
 
+signature_for has_purpose => (
+	positional => [Object, BIP44Purpose],
+);
+
 sub has_purpose
 {
 	my ($self, $purpose) = @_;
@@ -82,6 +87,10 @@ sub _create_key
 	shift;
 	goto \&__create_key;
 }
+
+signature_for raw_key => (
+	positional => [Object, Enum[qw(private public public_compressed)], { optional => 1 }],
+);
 
 sub raw_key
 {

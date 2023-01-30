@@ -18,7 +18,7 @@ subtest 'testing invalid hex' => sub {
 subtest 'testing undef as a bytestring' => sub {
 	throws_ok {
 		btc_pub->from_bytes(undef);
-	} 'Bitcoin::Crypto::Exception';
+	} qr/not a bytestring/;
 };
 
 subtest 'testing empty string as a bytestring' => sub {
@@ -30,7 +30,7 @@ subtest 'testing empty string as a bytestring' => sub {
 subtest 'testing reference as a bytestring' => sub {
 	throws_ok {
 		btc_pub->from_bytes(['11']);
-	} 'Bitcoin::Crypto::Exception';
+	} qr/not a bytestring/;
 };
 
 subtest 'testing invalid verification algorithm' => sub {

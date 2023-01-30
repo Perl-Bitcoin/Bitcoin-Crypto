@@ -7,9 +7,11 @@ use Moo;
 use Crypt::PK::ECC;
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
 use List::Util qw(first);
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
+use Bitcoin::Crypto::Types qw(Object ClassName Str Maybe);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Util qw(validate_wif);
@@ -21,6 +23,10 @@ use namespace::clean;
 with qw(Bitcoin::Crypto::Role::BasicKey);
 
 sub _is_private { 1 }
+
+signature_for to_wif => (
+	positional => [Object],
+);
 
 sub to_wif
 {
@@ -38,6 +44,10 @@ sub to_wif
 
 	return encode_base58check($wifdata);
 }
+
+signature_for from_wif => (
+	positional => [ClassName, Str, Maybe[Str], { optional => 1 }],
+);
 
 sub from_wif
 {
@@ -80,6 +90,10 @@ sub from_wif
 	$instance->set_network(@found_networks);
 	return $instance;
 }
+
+signature_for get_public_key => (
+	positional => [Object],
+);
 
 sub get_public_key
 {

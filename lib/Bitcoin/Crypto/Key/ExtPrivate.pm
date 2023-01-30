@@ -7,12 +7,14 @@ use Moo;
 use Crypt::Mac::HMAC qw(hmac);
 use Carp qw(carp);
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy);
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length verify_bytestring);
 use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
+use Bitcoin::Crypto::Types qw(Object ClassName Str ByteStr HashRef Maybe);
 use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
@@ -39,6 +41,10 @@ sub mnemonic_from_entropy
 	goto \&Bitcoin::Crypto::Util::mnemonic_from_entropy;
 }
 
+signature_for from_mnemonic => (
+	positional => [ClassName, Str, Maybe[Str], { default => '' }, Maybe[Str], { default => undef }],
+);
+
 sub from_mnemonic
 {
 	my ($class, $mnemonic, $password, $lang) = @_;
@@ -60,10 +66,13 @@ sub from_mnemonic
 	return $class->from_seed(mnemonic_to_seed($mnemonic, $password));
 }
 
+signature_for from_seed => (
+	positional => [ClassName, ByteStr],
+);
+
 sub from_seed
 {
 	my ($class, $seed) = @_;
-	verify_bytestring($seed);
 
 	my $bytes = hmac('SHA512', 'Bitcoin seed', $seed);
 	my $key = substr $bytes, 0, 32;
@@ -75,12 +84,20 @@ sub from_seed
 	);
 }
 
+signature_for from_hex_seed => (
+	positional => [ClassName, Str],
+);
+
 sub from_hex_seed
 {
 	my ($class, $seed) = @_;
 
 	return $class->from_seed(pack 'H*', pad_hex $seed);
 }
+
+signature_for get_public_key => (
+	positional => [Object],
+);
 
 sub get_public_key
 {
@@ -99,11 +116,15 @@ sub get_public_key
 	return $public;
 }
 
+signature_for derive_key_bip44 => (
+	positional => [Object, HashRef, { slurpy => 1 }],
+);
+
 sub derive_key_bip44
 {
-	my ($self, %data) = @_;
+	my ($self, $data) = @_;
 	my $path = Bitcoin::Crypto::BIP44->new(
-		%data,
+		%{$data},
 		coin_type => $self,
 	);
 
