@@ -11,8 +11,10 @@ use Encode qw(encode);
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::BIP39 qw(gen_bip39_mnemonic entropy_to_bip39_mnemonic);
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Types qw(Str ByteStr InstanceOf Maybe PositiveInt);
 use Bitcoin::Crypto::Exception;
 
 our @EXPORT_OK = qw(
@@ -27,6 +29,10 @@ our @EXPORT_OK = qw(
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
+
+signature_for validate_wif => (
+	positional => [Str],
+);
 
 sub validate_wif
 {
@@ -43,6 +49,10 @@ sub validate_wif
 		return length $byte_wif == Bitcoin::Crypto::Constants::key_max_length + 1;
 	}
 }
+
+signature_for get_key_type => (
+	positional => [ByteStr],
+);
 
 sub get_key_type
 {
@@ -64,6 +74,10 @@ sub get_key_type
 	return;
 }
 
+signature_for mnemonic_to_seed => (
+	positional => [Str, Maybe[Str], { optional => 1 }],
+);
+
 sub mnemonic_to_seed
 {
 	my ($mnemonic, $password) = @_;
@@ -74,12 +88,14 @@ sub mnemonic_to_seed
 	return pbkdf2($mnemonic, $password, 2048, 'SHA512', 64);
 }
 
+signature_for generate_mnemonic => (
+	positional => [PositiveInt, { default => 128 }, Str, { default => 'en' }],
+);
+
 sub generate_mnemonic
 {
 	my ($len, $lang) = @_;
 	my ($min_len, $len_div, $max_len) = (128, 32, 256);
-	$len //= $min_len;
-	$lang //= 'en';
 
 	# bip39 specification values
 	Bitcoin::Crypto::Exception::MnemonicGenerate->raise(
@@ -94,10 +110,13 @@ sub generate_mnemonic
 	);
 }
 
+signature_for mnemonic_from_entropy => (
+	positional => [ByteStr, Str, { default => 'en' }],
+);
+
 sub mnemonic_from_entropy
 {
 	my ($entropy, $lang) = @_;
-	$lang //= 'en';
 
 	return Bitcoin::Crypto::Exception::MnemonicGenerate->trap_into(
 		sub {
@@ -108,6 +127,10 @@ sub mnemonic_from_entropy
 		}
 	);
 }
+
+signature_for get_path_info => (
+	positional => [Str | InstanceOf['Bitcoin::Crypto::BIP44']],
+);
 
 sub get_path_info
 {
@@ -140,12 +163,20 @@ sub get_path_info
 	return undef;
 }
 
+signature_for hash160 => (
+	positional => [ByteStr],
+);
+
 sub hash160
 {
 	my ($data) = @_;
 
 	return ripemd160(sha256($data));
 }
+
+signature_for hash256 => (
+	positional => [ByteStr],
+);
 
 sub hash256
 {
