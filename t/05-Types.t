@@ -59,5 +59,14 @@ subtest 'testing BIP44Purpose' => sub {
 	}
 };
 
+subtest 'testing ByteStr' => sub {
+	my $type = ByteStr;
+
+	ok $type->check(join '', map chr, 0 .. 255), 'byte range ok';
+	ok $type->check(''), 'empty string ok';
+	ok !$type->check(chr(255) . chr(256)), 'non-byte string check ok';
+	ok !$type->check(undef), 'undef check ok';
+};
+
 done_testing;
 

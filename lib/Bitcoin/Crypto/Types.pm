@@ -32,19 +32,12 @@ __PACKAGE__->add_type(
 	name => 'ByteStr',
 	parent => Str,
 
-	constraint_generator => sub {
-		return sub {
-			my @characters = split //;
+	constraint => qq{ (grep { ord > 255 } split //) == 0 },
 
-			return (grep { ord > 255 } @characters) == 0;
-		};
-	},
+	inline => sub {
+		my $varname = pop;
 
-	inline_generator => sub {
-		return sub {
-			my $varname = pop;
-			return (undef, qq{ (grep { ord > 255 } split //, $varname) == 0 });
-		};
+		return (undef, qq{ (grep { ord > 255 } split //, $varname) == 0 });
 	},
 
 	message => sub {
