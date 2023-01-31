@@ -7,7 +7,6 @@ use Exporter qw(import);
 use Crypt::Misc qw(encode_b58b decode_b58b);
 use Type::Params -sigs;
 
-use Bitcoin::Crypto::Helpers qw(verify_bytestring);
 use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Str ByteStr);

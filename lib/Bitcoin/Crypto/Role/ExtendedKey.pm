@@ -12,7 +12,7 @@ use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types qw(IntMaxBits StrLength Str Object Maybe ByteStr PositiveInt InstanceOf);
 use Bitcoin::Crypto::Util qw(get_path_info hash160);
-use Bitcoin::Crypto::Helpers qw(ensure_length verify_bytestring);
+use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Exception;

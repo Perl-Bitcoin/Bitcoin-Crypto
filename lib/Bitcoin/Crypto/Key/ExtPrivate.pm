@@ -12,7 +12,7 @@ use Type::Params -sigs;
 use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length verify_bytestring);
+use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length);
 use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
 use Bitcoin::Crypto::Types qw(Object Str ByteStr HashRef Maybe);
 use Bitcoin::Crypto::Exception;

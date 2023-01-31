@@ -7,7 +7,6 @@ use Exporter qw(import);
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Helpers qw(verify_bytestring);
 use Bitcoin::Crypto::Segwit qw(validate_program);
 use Bitcoin::Crypto::Types qw(ByteStr Str Enum ArrayRef Int);
 

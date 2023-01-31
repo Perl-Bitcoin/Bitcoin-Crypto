@@ -7,7 +7,7 @@ use Test::Exception;
 BEGIN {
 	use_ok(
 		'Bitcoin::Crypto::Helpers',
-		qw(pad_hex ensure_length verify_bytestring)
+		qw(pad_hex ensure_length)
 	);
 }
 
@@ -32,20 +32,6 @@ subtest 'testing ensure_length' => sub {
 	} 'packed data that was too long failed as expected';
 };
 
-subtest 'testing verify_bytestring' => sub {
-	lives_ok {
-		verify_bytestring(join '', map chr, 0 .. 255);
-		verify_bytestring('');
-	} 'byte string check ok';
-
-	dies_ok {
-		verify_bytesting(chr(255) . chr(256));
-	} 'byte string check ok';
-
-	dies_ok {
-		verify_bytesting(undef);
-	} 'byte string check ok';
-};
 
 done_testing;
 

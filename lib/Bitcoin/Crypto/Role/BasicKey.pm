@@ -6,7 +6,7 @@ use warnings;
 use Carp qw(carp);
 use Type::Params -sigs;
 
-use Bitcoin::Crypto::Helpers qw(pad_hex verify_bytestring);
+use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Object Str ByteStr);
 use Moo::Role;

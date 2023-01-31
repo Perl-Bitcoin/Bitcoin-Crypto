@@ -25,7 +25,6 @@ BEGIN {
 our @EXPORT_OK = qw(
 	pad_hex
 	ensure_length
-	verify_bytestring
 	add_ec_points
 );
 
@@ -46,21 +45,6 @@ sub ensure_length
 	) if $missing < 0;
 
 	return pack("x$missing") . $packed;
-}
-
-sub verify_bytestring
-{
-	my ($string) = @_;
-
-	Bitcoin::Crypto::Exception->raise(
-		'invalid input value, expected string'
-	) if !defined $string || ref $string;
-
-	my @characters = split //, $string;
-
-	Bitcoin::Crypto::Exception->raise(
-		'string contains characters with numeric values over 255 and cannot be used as a byte string'
-	) if (grep { ord($_) > 255 } @characters) > 0;
 }
 
 # Self-contained implementation on elliptic curve points addition.
