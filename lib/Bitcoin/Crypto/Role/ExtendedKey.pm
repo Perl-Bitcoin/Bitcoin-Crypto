@@ -3,7 +3,6 @@ package Bitcoin::Crypto::Role::ExtendedKey;
 use v5.10;
 use strict;
 use warnings;
-use List::Util qw(first);
 use Scalar::Util qw(blessed);
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
@@ -138,7 +137,8 @@ sub from_serialized
 					return $this_version && $this_version eq $version;
 				}
 			);
-			@found_networks = first { $_ eq $network } @found_networks if defined $network;
+			@found_networks = grep { $_ eq $network } @found_networks
+				if defined $network;
 
 			last if @found_networks > 0;
 		}

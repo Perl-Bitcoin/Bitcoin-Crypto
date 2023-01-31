@@ -6,7 +6,6 @@ use warnings;
 use Moo;
 use Crypt::PK::ECC;
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
-use List::Util qw(first);
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Key::Public;
@@ -71,8 +70,7 @@ sub from_wif
 	my $wif_network_byte = substr $decoded, 0, 1;
 	my @found_networks =
 		Bitcoin::Crypto::Network->find(sub { shift->wif_byte eq $wif_network_byte });
-	@found_networks = first { $_ eq $network }
-		@found_networks
+	@found_networks = grep { $_ eq $network } @found_networks
 		if defined $network;
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(
