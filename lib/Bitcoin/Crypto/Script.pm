@@ -8,6 +8,7 @@ use Crypt::Digest::SHA256 qw(sha256);
 use Mooish::AttributeBuilder -standard;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
@@ -16,7 +17,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(pad_hex verify_bytestring);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(ArrayRef Str);
+use Bitcoin::Crypto::Types qw(ArrayRef Str Object ByteStr);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
 
@@ -29,6 +30,11 @@ has field '_serialized' => (
 );
 
 with qw(Bitcoin::Crypto::Role::Network);
+
+signature_for operations => (
+	method => Object,
+	positional => [],
+);
 
 sub operations
 {
@@ -176,18 +182,28 @@ sub operations
 	return \@ops;
 }
 
+signature_for add_raw => (
+	method => Object,
+	positional => [ByteStr],
+);
+
 sub add_raw
 {
 	my ($self, $bytes) = @_;
-	verify_bytestring($bytes);
 
 	$self->_set_serialized($self->_serialized . $bytes);
 	return $self;
 }
 
+signature_for add_operation => (
+	method => Object,
+	positional => [Str],
+);
+
 sub add_operation
 {
 	my ($self, $name) = @_;
+
 	my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name($name);
 	$self->add_raw($opcode->code);
 
@@ -199,10 +215,14 @@ sub add
 	goto \&add_operation;
 }
 
+signature_for push_bytes => (
+	method => Object,
+	positional => [ByteStr],
+);
+
 sub push_bytes
 {
 	my ($self, $bytes) = @_;
-	verify_bytestring($bytes);
 
 	my $len = length $bytes;
 	Bitcoin::Crypto::Exception::ScriptPush->raise(
@@ -249,6 +269,11 @@ sub push
 	goto \&push_bytes;
 }
 
+signature_for get_script => (
+	method => Object,
+	positional => [],
+);
+
 sub get_script
 {
 	my ($self) = @_;
@@ -256,11 +281,21 @@ sub get_script
 	return $self->_serialized;
 }
 
+signature_for get_script_hash => (
+	method => Object,
+	positional => [],
+);
+
 sub get_script_hash
 {
 	my ($self) = @_;
 	return hash160($self->_serialized);
 }
+
+signature_for to_serialized => (
+	method => Object,
+	positional => [],
+);
 
 sub to_serialized
 {
@@ -269,12 +304,23 @@ sub to_serialized
 	return $self->_serialized;
 }
 
+signature_for from_serialized => (
+	method => Str,
+	positional => [Str],
+	# no need to validate ByteStr, as it will be passed to add_raw
+);
+
 sub from_serialized
 {
 	my ($class, $bytes) = @_;
 
 	return $class->new->add_raw($bytes);
 }
+
+signature_for from_serialized_hex => (
+	method => Str,
+	positional => [Str],
+);
 
 sub from_serialized_hex
 {
@@ -283,6 +329,11 @@ sub from_serialized_hex
 	return $class->from_serialized(pack 'H*', pad_hex $hex);
 }
 
+signature_for run => (
+	method => Object,
+	positional => [],
+);
+
 sub run
 {
 	my ($self) = @_;
@@ -290,6 +341,11 @@ sub run
 	my $runner = Bitcoin::Crypto::Script::Runner->new;
 	return $runner->execute($self)->stack;
 }
+
+signature_for witness_program => (
+	method => Object,
+	positional => [],
+);
 
 sub witness_program
 {
@@ -303,11 +359,21 @@ sub witness_program
 	return $program;
 }
 
+signature_for get_legacy_address => (
+	method => Object,
+	positional => [],
+);
+
 sub get_legacy_address
 {
 	my ($self) = @_;
 	return encode_base58check($self->network->p2sh_byte . $self->get_script_hash);
 }
+
+signature_for get_compat_address => (
+	method => Object,
+	positional => [],
+);
 
 sub get_compat_address
 {
@@ -320,6 +386,11 @@ sub get_compat_address
 
 	return $self->witness_program->get_legacy_address;
 }
+
+signature_for get_segwit_address => (
+	method => Object,
+	positional => [],
+);
 
 sub get_segwit_address
 {

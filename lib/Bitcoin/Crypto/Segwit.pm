@@ -4,10 +4,11 @@ use v5.10;
 use strict;
 use warnings;
 use Exporter qw(import);
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(verify_bytestring);
+use Bitcoin::Crypto::Types qw(ByteStr);
 
 our @EXPORT_OK = qw(
 	validate_program
@@ -36,10 +37,13 @@ sub common_validator
 	return;
 }
 
+signature_for validate_program => (
+	positional => [ByteStr],
+);
+
 sub validate_program
 {
 	my ($program) = @_;
-	verify_bytestring($program);
 
 	my $version = unpack 'C', $program;
 	Bitcoin::Crypto::Exception::SegwitProgram->raise(

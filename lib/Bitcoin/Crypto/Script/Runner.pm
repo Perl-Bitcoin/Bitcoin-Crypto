@@ -5,10 +5,11 @@ use strict;
 use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
+use Type::Params -sigs;
 
 use Scalar::Util qw(blessed);
 
-use Bitcoin::Crypto::Types qw(ArrayRef Str PositiveOrZeroInt);
+use Bitcoin::Crypto::Types qw(ArrayRef Str ByteStr Object InstanceOf PositiveOrZeroInt);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 
@@ -112,6 +113,11 @@ sub _advance
 	return;
 }
 
+signature_for execute => (
+	method => Object,
+	positional => [InstanceOf['Bitcoin::Crypto::Script'], ArrayRef[ByteStr], { default => [] }],
+);
+
 sub execute
 {
 	my ($self, $script, $initial_stack) = @_;
@@ -122,21 +128,27 @@ sub execute
 	return $self;
 }
 
+signature_for start => (
+	method => Object,
+	positional => [InstanceOf['Bitcoin::Crypto::Script'], ArrayRef[ByteStr], { default => [] }],
+);
+
 sub start
 {
 	my ($self, $script, $initial_stack) = @_;
 
-	Bitcoin::Crypto::Exception::ScriptExecute->raise(
-		'invalid argument passed to script runner, not a script instance'
-	) unless blessed $script && $script->isa('Bitcoin::Crypto::Script');
-
-	$self->_set_stack($initial_stack // []);
+	$self->_set_stack($initial_stack);
 	$self->_set_alt_stack([]);
 	$self->_set_pos(0);
 	$self->_set_operations($script->operations);
 
 	return $self;
 }
+
+signature_for step => (
+	method => Object,
+	positional => [],
+);
 
 sub step
 {
@@ -168,6 +180,7 @@ sub step
 1;
 
 __END__
+
 =head1 NAME
 
 Bitcoin::Crypto::Script::Runner - Bitcoin script runner
