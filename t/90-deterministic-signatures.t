@@ -8,7 +8,7 @@ use Encode qw(encode);
 use utf8;
 
 BEGIN {
-	unless (eval { require Crypt::Perl } && Crypt::Perl->VERSION gt '0.33') {
+	unless (btc_prv->HAS_DETERMINISTIC_SIGNATURES) {
 		plan skip_all => 'These tests require Crypt::Perl 0.34';
 	}
 }
