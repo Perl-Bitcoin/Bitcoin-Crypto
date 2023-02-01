@@ -1,4 +1,4 @@
-package Bitcoin::Crypto::Role::DSA;
+package Bitcoin::Crypto::Role::SignVerify;
 
 use v5.10;
 use strict;

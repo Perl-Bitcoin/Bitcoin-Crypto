@@ -14,7 +14,7 @@ use Moo::Role;
 with qw(
 	Bitcoin::Crypto::Role::Key
 	Bitcoin::Crypto::Role::Compressed
-	Bitcoin::Crypto::Role::DSA
+	Bitcoin::Crypto::Role::SignVerify
 );
 
 around BUILDARGS => sub {
