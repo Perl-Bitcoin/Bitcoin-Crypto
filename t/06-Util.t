@@ -14,6 +14,7 @@ BEGIN {
 	use_ok(
 		'Bitcoin::Crypto::Util', qw(
 			validate_wif
+			validate_segwit
 			get_path_info
 			generate_mnemonic
 			mnemonic_from_entropy
@@ -146,6 +147,27 @@ subtest 'testing generate_mnemonic / mnemonic_from_entropy' => sub {
 		my $mnemonic = generate_mnemonic(129, 'en');
 	} 'Bitcoin::Crypto::Exception::MnemonicGenerate', 'invalid entropy dies';
 
+};
+
+# segwit program passing common length valiadion (no version)
+my $program = "\x55\xff\x33";
+
+subtest 'should fail validation of segwit version 0 program' => sub {
+	throws_ok {
+		validate_segwit("\x00" . $program);
+	} 'Bitcoin::Crypto::Exception::SegwitProgram';
+};
+
+subtest 'should pass validation of segwit version 1 program' => sub {
+	lives_ok {
+		validate_segwit("\x01" . $program);
+	};
+};
+
+subtest 'should pass validation of segwit version 15 program' => sub {
+	lives_ok {
+		validate_segwit("\x0f" . $program);
+	};
 };
 
 done_testing;

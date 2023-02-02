@@ -6,9 +6,6 @@ use Test::Exception;
 
 BEGIN { use_ok('Bitcoin::Crypto::Bech32', qw(:all)) }
 
-# silence warnings (no validator for segwit version)
-local $SIG{__WARN__} = sub { };
-
 # BECH32 / BECH32M
 my @tests_bech32 = (
 	{
@@ -379,10 +376,7 @@ my @tests_segwit = (
 for my $test (@tests_bech32) {
 	subtest "testing $test->{type} $test->{case}" => sub {
 		if (defined $test->{data}) {
-			my @result;
-			lives_ok {
-				@result = decode_bech32($test->{case});
-			} 'case decoded without errors';
+			my @result = decode_bech32($test->{case});
 
 			is_deeply $result[1], $test->{data}, 'decode result ok';
 			is $result[2], $test->{type}, 'result type ok';

@@ -19,6 +19,7 @@ use Bitcoin::Crypto::Exception;
 
 our @EXPORT_OK = qw(
 	validate_wif
+	validate_segwit
 	get_key_type
 	generate_mnemonic
 	mnemonic_from_entropy
@@ -48,6 +49,46 @@ sub validate_wif
 	else {
 		return length $byte_wif == Bitcoin::Crypto::Constants::key_max_length + 1;
 	}
+}
+
+signature_for validate_segwit => (
+	positional => [ByteStr],
+);
+
+sub validate_segwit
+{
+	my ($program) = @_;
+
+	my $version = unpack 'C', $program;
+	Bitcoin::Crypto::Exception::SegwitProgram->raise(
+		'incorrect witness program version ' . ($version // '[null]')
+	) unless defined $version && $version >= 0 && $version <= Bitcoin::Crypto::Constants::max_witness_version;
+
+	$program = substr $program, 1;
+
+	# common validator
+	Bitcoin::Crypto::Exception::SegwitProgram->raise(
+		'incorrect witness program length'
+	) unless length $program >= 2 && length $program <= 40;
+
+	if ($version == 0) {
+		# SegWit validator
+		Bitcoin::Crypto::Exception::SegwitProgram->raise(
+			'incorrect witness program length (segwit)'
+		) unless length $program == 20 || length $program == 32;
+	}
+	elsif ($version == 1) {
+		# Taproot validator
+
+		# taproot outputs are 32 bytes, but other lengths "remain unencumbered"
+		# do not throw this exception to make bip350 test suite pass (10-Bech32.t)
+
+		# Bitcoin::Crypto::Exception::SegwitProgram->raise(
+		# 	'incorrect witness program length (taproot)'
+		# ) unless length $program == 32;
+	}
+
+	return $version;
 }
 
 signature_for get_key_type => (
@@ -196,6 +237,7 @@ Bitcoin::Crypto::Util - Utilities for working with Bitcoin
 
 	use Bitcoin::Crypto::Util qw(
 		validate_wif
+		validate_segwit
 		get_key_type
 		generate_mnemonic
 		mnemonic_from_entropy
@@ -218,6 +260,23 @@ part of other, more specialized packages.
 
 Ensures Base58 encoded string looks like encoded private key in WIF format.
 Throws an exception if C<$str> is not valid base58.
+
+=head2 validate_segwit
+
+	$segwit_version = validate_segwit($program)
+
+Performs a segwit program validation on C<$program>, which is expected to be a
+byte string in which the first byte is a segwit version.
+
+The function returns the detected segwit program version. Note that it does not
+perform any more checks than ensuring the byte string is in correct format.
+
+The current implementation is in line with validations for segwit versions C<0>
+and C<1>. Future segwit version addresses will work just fine, but no special
+validation will be performed until implemented.
+
+Raises an exception (C<Bitcoin::Crypto::Exception::SegwitProgram>) on error.
+Returns the detected segwit program version.
 
 =head2 get_key_type
 

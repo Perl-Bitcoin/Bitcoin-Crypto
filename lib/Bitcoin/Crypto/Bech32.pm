@@ -7,7 +7,7 @@ use Exporter qw(import);
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Segwit qw(validate_program);
+use Bitcoin::Crypto::Util qw(validate_segwit);
 use Bitcoin::Crypto::Types qw(ByteStr Str Enum ArrayRef Int);
 
 our @EXPORT_OK = qw(
@@ -255,7 +255,7 @@ sub encode_segwit
 {
 	my ($hrp, $bytes) = @_;
 
-	my $version = validate_program($bytes);
+	my $version = validate_segwit($bytes);
 	return encode_bech32($hrp, [$version, @{translate_8to5(substr $bytes, 1)}], $version == 0 ? BECH32 : BECH32M);
 }
 
@@ -287,7 +287,7 @@ sub decode_segwit
 		|| ($ver > 0 && $type ne BECH32M);
 
 	my $bytes = pack('C', $ver) . translate_5to8 $data;
-	validate_program($bytes);
+	validate_segwit($bytes);
 
 	return $bytes;
 }

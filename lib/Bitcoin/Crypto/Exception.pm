@@ -172,13 +172,6 @@ sub as_string
 
 {
 
-	package Bitcoin::Crypto::Exception::ValidationTest;
-
-	use parent -norequire, 'Bitcoin::Crypto::Exception';
-}
-
-{
-
 	package Bitcoin::Crypto::Exception::ScriptOpcode;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';
