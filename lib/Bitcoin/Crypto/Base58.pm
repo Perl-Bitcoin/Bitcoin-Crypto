@@ -112,7 +112,8 @@ Implementation of Base58Check algorithm and alias to CryptX C<encode_b58b> / C<d
 
 =head1 FUNCTIONS
 
-This module is based on Exporter. None of the functions are exported by default. C<:all> tag exists that exports all the functions at once.
+This module is based on Exporter. None of the functions are exported by
+default. Use C<:all> tag to import all the functions at once.
 
 =head2 encode_base58
 
@@ -131,18 +132,18 @@ L<Crypt::Misc/decode_b58b> with some error checking.
 
 =head2 decode_base58check
 
-Base58 with checksum validation. These functions are used with Bitcoin legacy /
-compatibility addresses.
+Base58 with checksum validation. These functions are used with legacy /
+compatibility addresses as well as WIF strings and extended key serialization.
 
 Arguments are the same as base functions mentioned above.
 
-Additional errors (other than illegal characters) are thrown.
-
 =head1 EXCEPTIONS
 
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
 
-=over 2
+=over
 
 =item * Base58InputFormat - input was not suitable for base58 operations due to invalid format
 
@@ -152,15 +153,7 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =head1 SEE ALSO
 
-=over 2
+L<Crypt::Misc>
 
-=item L<Crypt::Misc>
-
-=item L<Bitcoin::Crypto::Key::Private>
-
-=item L<Bitcoin::Crypto::Key::Public>
-
-=back
-
-=cut
+L<Bitcoin::Crypto::Bech32>
 
