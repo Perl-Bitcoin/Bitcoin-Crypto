@@ -298,7 +298,7 @@ __END__
 
 =head1 NAME
 
-Bitcoin::Crypto::Bech32 - Bitcoin Bech32 implementation in Perl
+Bitcoin::Crypto::Bech32 - Bitcoin Bech32 implementation
 
 =head1 SYNOPSIS
 
@@ -323,7 +323,8 @@ Bitcoin::Crypto::Bech32 - Bitcoin Bech32 implementation in Perl
 	my $data_with_version = decode_segwit($segwit_address);
 
 	# handles custom Bech32 encoding
-	my $bech32str = encode_bech32('hello', [28, 25, 31, 0, 5], Bitcoin::Crypto::Bech32->BECH32); # should start with hello1
+	# should start with hello1
+	my $bech32str = encode_bech32('hello', [28, 25, 31, 0, 5], 'bech32');
 	my ($hrp, $data_aref, $type) = decode_bech32($bech32str);
 
 =head1 DESCRIPTION
@@ -342,37 +343,45 @@ The module has a couple of layers of encoding, namely:
 
 =back
 
-For Bech32-encoded SegWit addresses, use I<encode_segwit> and I<decode_segwit>.
+For Bech32-encoded SegWit addresses, use L</encode_segwit> and L</decode_segwit>.
 For custom uses of Bech32 (not in context of Bitcoin SegWit addresses), use
-I<encode_bech32> and I<decode_bech32>.
+L</encode_bech32> and L</decode_bech32>.
 
 B<If in doubt, use segwit functions, not bech32 functions!>
 
 =head1 FUNCTIONS
 
-This module is based on Exporter. None of the functions are exported by default. C<:all> tag exists that exports all the functions at once.
+This module is based on Exporter. None of the functions are exported by
+default. Use C<:all> tag to import all the functions at once.
 
 =head2 encode_segwit
 
-	my $encoded_address = encode_segwit($hrp, $segwit_program);
-
 =head2 decode_segwit
+
+	my $encoded_address = encode_segwit($hrp, $segwit_program);
 
 	my $segwit_program = decode_segwit($encoded_address);
 
-Bech32 encoding / decoding valid for SegWit addresses. Does not validate the human readable part.
+Bech32 encoding / decoding valid for SegWit addresses. Human readable part
+validation is not included.
 
-These functions also perform segwit program validation, see L<Bitcoin::Crypto::Segwit>.
+These functions also perform segwit program validation, see
+L<Bitcoin::Crypto::Segwit>.
 
-Encoding takes two arguments which are a human readable part and a bytestring.
+Encoding takes two arguments which are a human readable part and a bytestring
+(segwit program).
 
-Decoding takes bech32-encoded string. Returns the entire encoded data (bytestring) along with the segwit program version byte.
+Decoding takes bech32-encoded string. Returns the entire encoded data
+(bytestring) along with the segwit program version byte.
+
+Encoding scheme (C<bech32> or C<bech32m>) is chosen based on version included
+in the segwit program.
 
 =head2 encode_bech32
 
-	my $encoded_bech32 = encode_bech32($hrp, \@data, $type = 'bech32m');
-
 =head2 decode_bech32
+
+	my $encoded_bech32 = encode_bech32($hrp, \@data, $type = 'bech32m');
 
 	my ($hrp, $data_aref, $type) = decode_bech32($encoded_bech32);
 
@@ -384,38 +393,48 @@ Encoding takes up to three arguments which are:
 
 =item * a human readable part
 
-=item * an array reference of integer values to be encoded in bech32 (each must be between 0 and 31)
+=item * an array reference of integer values to be encoded in bech32 (each must
+be between 0 and 31)
 
-=item * optional type, which may be C<'bech32'> or C<'bech32m'> (available in constant values Bitcoin::Crypto::Bech32::BECH32 and Bitcoin::Crypto::Bech32::BECH32M)
-
-If omitted, the type will be equal to C<'bech32m'>, which has more robust checksum.
+=item * optional type, which may be C<'bech32'> or C<'bech32m'> (also available
+in constant values Bitcoin::Crypto::Bech32::BECH32 and
+Bitcoin::Crypto::Bech32::BECH32M)
 
 =back
 
-Decoding takes a single parameter: a bech32-encoded string and returns a list which has the same elements as arguments to C<encode_bech32> function.
+If omitted, the type will be equal to C<'bech32m'>, which has more robust checksum.
 
-This means you can feed both bech32 and bech32m encodings to C<decode_bech32> and the function will identify and return the type for you.
+Decoding takes a single parameter: a bech32-encoded string and returns a list
+which has the same values as arguments to C<encode_bech32> function, including
+C<$type>. This means you can feed both bech32 and bech32m encodings to
+C<decode_bech32> and the function will identify and return the type for you.
 
-B<These methods are not meant to work with Bitcoin SegWit addresses, use encode_segwit and decode_segwit for that instead>
+B<< These methods are not meant to work with Bitcoin SegWit addresses, use
+C<encode_segwit> and C<decode_segwit> for that instead. >>
 
 =head2 translate_5to8
 
-	my $bytestr = translate_5to8(\@int_array);
-
 =head2 translate_8to5
+
+	my $bytestr = translate_5to8(\@int_array);
 
 	my $int_aref = translate_8to5($bytestr);
 
-These are helper functions that implement 5-bit to 8-bit encoding used in bech32 segwit addresses. C<translate_8to5> is used during encoding, and C<translate_5to8> during decoding. They can be used as means to store full byte data in bech32 strings, like so:
+These are helper functions that implement 5-bit to 8-bit encoding used in
+bech32 segwit addresses. C<translate_8to5> is used during encoding, and
+C<translate_5to8> during decoding. They are used as means to store full byte
+data in bech32 strings, like so:
 
 	my $data = encode_bech32('hrp', translate_8to5($bytes));
 	my $decoded = translate_5to8(decode_bech32($data));
 
 =head1 EXCEPTIONS
 
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
 
-=over 2
+=over
 
 =item * Bech32InputFormat - input was not suitable for bech32 operations due to invalid format
 
@@ -427,13 +446,7 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =head1 SEE ALSO
 
-=over 2
+L<Bitcoin::Crypto::Base58>
 
-=item L<Bitcoin::Crypto::Base58>
-
-=item L<Bitcoin::Crypto::Segwit>
-
-=item L<Bitcoin::Crypto::Key::Public>
-
-=back
+L<Bitcoin::Crypto::Segwit>
 
