@@ -21,10 +21,22 @@ our %validators = (
 		my ($data) = @_;
 
 		Bitcoin::Crypto::Exception::SegwitProgram->raise(
-			'incorrect witness program length'
+			'incorrect witness program length (segwit)'
 		) unless length $data == 20 || length $data == 32;
 		return;
 	},
+
+	1 => sub {
+		my ($data) = @_;
+
+		# taproot outputs are 32 bytes, but other lengths "remain unencumbered"
+		# do not throw this exception to make bip350 test suite pass (10-Bech32.t)
+		# Bitcoin::Crypto::Exception::SegwitProgram->raise(
+		# 	'incorrect witness program length (taproot)'
+		# ) unless length $data == 32;
+
+		return;
+	}
 );
 
 sub common_validator
