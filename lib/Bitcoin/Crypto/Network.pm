@@ -3,12 +3,13 @@ package Bitcoin::Crypto::Network;
 use v5.10;
 use strict;
 use warnings;
+
 use Moo;
-use Scalar::Util qw(blessed);
 use Mooish::AttributeBuilder -standard;
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Str StrLength Int);
+use Bitcoin::Crypto::Types qw(Object HashRef CodeRef Str StrLength Int);
 
 use namespace::clean;
 
@@ -76,23 +77,31 @@ has param 'bip44_coin' => (
 	required => 0,
 );
 
+signature_for register => (
+	method => 1,
+	positional => [HashRef, { slurpy => 1 }],
+);
+
 sub register
 {
-	my ($self, %config) = @_;
-	if (!blessed $self) {
-		$self = $self->new(%config);
+	my ($self, $config) = @_;
+
+	if (!ref $self) {
+		$self = $self->new($config);
 	}
+
 	$networks{$self->id} = $self;
 	return $self;
 }
 
+signature_for set_default => (
+	method => Object,
+	positional => [],
+);
+
 sub set_default
 {
 	my ($self) = @_;
-
-	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		'network must be an instance of Bitcoin::Crypto::Network'
-	) unless blessed($self);
 
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
 		'the network needs to be registered before becoming the default one'
@@ -102,12 +111,22 @@ sub set_default
 	return $self;
 }
 
+signature_for supports_segwit => (
+	method => Object,
+	positional => [],
+);
+
 sub supports_segwit
 {
 	my ($self) = @_;
 
 	return defined $self->segwit_hrp;
 }
+
+signature_for find => (
+	method => Str,
+	positional => [CodeRef, { optional => 1 }],
+);
 
 sub find
 {
@@ -116,18 +135,19 @@ sub find
 	return keys %networks
 		unless defined $sub;
 
-	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		'argument passed to Bitcoin::Crypto::Network->find must be a coderef returning boolean'
-	) unless ref $sub eq 'CODE';
-
 	return grep { $sub->($networks{$_}) } keys %networks;
 }
+
+signature_for get => (
+	method => Str,
+	positional => [Str, { default => sub { $default_network } }],
+);
 
 sub get
 {
 	my ($class, $id) = @_;
 
-	my $network = $networks{$id // $default_network};
+	my $network = $networks{$id};
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
 		"network $id is not registered"
 	) unless defined $network;
