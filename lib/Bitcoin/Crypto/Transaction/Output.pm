@@ -26,21 +26,21 @@ sub to_serialized
 {
 	my ($self) = @_;
 
-	# output should be as follows:
+	# output should be serialized as follows:
 	# - value, 8 bytes
 	# - locking script length, 1-9 bytes
 	# - locking script
-	my $output = '';
+	my $serialized = '';
 
 	# NOTE: little endian
 	my $value = reverse $self->value->as_bytes;
-	$output .= ensure_length($value, 8);
+	$serialized .= ensure_length($value, 8);
 
 	my $script = $self->locking_script->get_script;
-	$input .= pack_varint(length $script);
-	$output .= $script;
+	$serialized .= pack_varint(length $script);
+	$serialized .= $script;
 
-	return $output;
+	return $serialized;
 }
 
 sub from_serialized

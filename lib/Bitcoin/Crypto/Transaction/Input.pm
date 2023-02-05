@@ -33,25 +33,25 @@ sub to_serialized
 {
 	my ($self) = @_;
 
-	# input should be as follows:
+	# input should be serialized as follows:
 	# - transaction hash, 32 bytes
 	# - transaction output index, 4 bytes
 	# - signature script length, 1-9 bytes
 	# - signature script
 	# - sequence number, 4 bytes
-	my $input = '';
+	my $serialized = '';
 
-	$input .= $self->transaction_hash;
+	$serialized .= $self->transaction_hash;
 
-	$input .= pack 'V', $self->transaction_output_index;
+	$serialized .= pack 'V', $self->transaction_output_index;
 
 	my $script = $self->signature_script->get_script;
-	$input .= pack_varint(length $script);
-	$input .= $script;
+	$serialized .= pack_varint(length $script);
+	$serialized .= $script;
 
-	$input .= pack 'V', $self->sequence_number;
+	$serialized .= pack 'V', $self->sequence_number;
 
-	return $input;
+	return $serialized;
 }
 
 sub from_serialized
