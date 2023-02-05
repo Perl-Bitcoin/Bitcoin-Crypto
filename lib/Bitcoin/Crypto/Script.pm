@@ -8,6 +8,7 @@ use Crypt::Digest::SHA256 qw(sha256);
 use Mooish::AttributeBuilder -standard;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
+use Carp qw(carp);
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Constants;
@@ -281,15 +282,21 @@ sub get_script
 	return $self->_serialized;
 }
 
-signature_for get_script_hash => (
+signature_for get_hash => (
 	method => Object,
 	positional => [],
 );
 
-sub get_script_hash
+sub get_hash
 {
 	my ($self) = @_;
 	return hash160($self->_serialized);
+}
+
+sub get_script_hash
+{
+	carp "Bitcoin::Crypto::Script->get_script_hash is deprecated. Use Bitcoin::Crypto::Script->get_hash instead.";
+	goto \&get_hash;
 }
 
 signature_for to_serialized => (
@@ -367,7 +374,7 @@ signature_for get_legacy_address => (
 sub get_legacy_address
 {
 	my ($self) = @_;
-	return encode_base58check($self->network->p2sh_byte . $self->get_script_hash);
+	return encode_base58check($self->network->p2sh_byte . $self->get_hash);
 }
 
 signature_for get_compat_address => (
@@ -520,9 +527,9 @@ Creates a new script instance from a bytestring.
 
 Same as L</to_serialized>.
 
-=head2 get_script_hash
+=head2 get_hash
 
-	$bytestring = $object->get_script_hash()
+	$bytestring = $object->get_hash()
 
 Returns a serialized script parsed with C<HASH160> (ripemd160 of sha256).
 
