@@ -3,9 +3,9 @@ package Bitcoin::Crypto::Exception;
 use v5.10;
 use strict;
 use warnings;
+
 use Moo;
 use Mooish::AttributeBuilder -standard;
-
 use Try::Tiny;
 
 use Bitcoin::Crypto::Types qw(Str Maybe ArrayRef);
@@ -262,51 +262,57 @@ sub as_string
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Exception - Exception class for Bitcoin::Crypto purposes
+Bitcoin::Crypto::Exception - Internal exception classes for Bitcoin::Crypto
 
 =head1 SYNOPSIS
 
-	use Try::Tiny;
-
 	try {
 		decode_segwit('Not a segwit address');
-	} catch {
-		my $error = $_;
-
+	}
+	catch ($error) {
 		# $error is an instance of Bitcoin::Crypto::Exception and stringifies automatically
 		warn "$error";
 
-		# but also contains some information about the problem to avoid regex matching
+		# it also contains some information about the problem to avoid regex matching
 		if ($error->isa('Bitcoin::Crypto::Exception::Bech32InputFormat')) {
 			log $error->message;
 		}
-	};
+	}
 
 =head1 DESCRIPTION
 
-A wrapper class with automatic stringification and standarized raising.
-Contains many other inline packages that identify parts that went wrong (like Bitcoin::Crypto::Exception::Sign for errors in signature generation).
-See individual Bitcoin::Crypto packages documentation to see the exception classes to check for extra control flow when needed.
+An exception wrapper class with automatic stringification and standarized
+raising.
 
-=head1 FUNCTIONS
+Contains inline packages that identify parts that went wrong (like
+C<Bitcoin::Crypto::Exception::Sign> for errors in signature generation). Search
+individual Bitcoin::Crypto packages documentation for a list the exception
+classes to check for extra control flow when needed.
+
+=head1 OBJECT INTERFACE
 
 =head2 message
 
 	$error_string = $object->message()
 
-Returns the error message (a string).
+Returns the wrapped error message (a string). Note: this is the raw message,
+not the serialized form like in L</as_string>.
 
 =head2 caller
 
 	$caller_aref = $object->caller()
 
-Returns an array ref containing: package name, file name and line number (same as C<[caller()]> perl expression). It will contain the data for the first code from outside Bitcoin::Crypto which called it. May be undefined if it cannot find a calling source.
+Returns an array ref containing: package name, file name and line number (same
+as C<[caller()]> perl expression). It will point to the first place from
+outside Bitcoin::Crypto which called it. May be undefined if it cannot find a
+calling source.
 
 =head2 as_string
 
 	$error_info = $object->as_string()
 
-Stringifies the error, using the C<message> method, C<caller> method and some extra text for context.
+Stringifies the error, using the L</message> method, L</caller> method and some
+extra text for context.
 
 =head2 raise
 
@@ -315,17 +321,14 @@ Stringifies the error, using the C<message> method, C<caller> method and some ex
 
 Creates a new instance and throws it. If used on an object, throws it right away.
 
-	use Try::Tiny;
-
 	try {
 		# throws, but will be catched
 		Bitcoin::Crypto::Exception->raise('something went wrong');
-	} catch {
-		my $exception = $_;
-
+	}
+	catch ($exception) {
 		# throws again
 		$exception->raise;
-	};
+	}
 
 =head2 throw
 
@@ -335,13 +338,17 @@ An alias to C<raise>.
 
 	$sub_result = $class->trap_into($sub, $msg_sub = undef)
 
-Executes the subroutine given as the only parameter inside an C<eval>. Any exceptions thrown inside the subroutine C<$sub> will be re-thrown after turning them into objects of the given class. If no exception is thrown, method returns the value returned by C<$sub>.
+Executes the given subroutine in an exception-trapping environment. Any
+exceptions thrown inside the subroutine C<$sub> will be re-thrown after turning
+them into objects of the given C<::Exception> class. If no exception is thrown,
+method returns the value returned by C<$sub>.
 
 	my $result = Bitcoin::Crypto::Exception->trap_into(sub {
 		die 'something went wrong';
 	});
 
-If C<$msg_sub> is specified, it will be called to produce message for the new exception. C<$_> will be accessible with the previous exception. Will just use previous exception otherwise.
+If C<$msg_sub> is specified, it will be called to produce message for the new
+exception. C<$_> will be accessible with the previous exception.
 
-=cut
+If not, it will just use previous exception otherwise.
 
