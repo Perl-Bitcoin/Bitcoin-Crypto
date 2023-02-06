@@ -33,8 +33,8 @@ sub to_serialized
 	my $serialized = '';
 
 	# NOTE: little endian
-	my $value = reverse $self->value->as_bytes;
-	$serialized .= ensure_length($value, 8);
+	my $value = $self->value->as_bytes;
+	$serialized .= reverse ensure_length($value, 8);
 
 	my $script = $self->locking_script->get_script;
 	$serialized .= pack_varint(length $script);

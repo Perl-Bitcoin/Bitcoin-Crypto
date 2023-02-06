@@ -12,7 +12,7 @@ use Bitcoin::Crypto::Helpers qw(pack_varint);
 use Bitcoin::Crypto::Types qw(Str IntMaxBits ByteStr InstanceOf);
 
 has param 'transaction_hash' => (
-	isa => ByteStr,
+	isa => ByteStr->where(q{ length $_ == 32 }),
 );
 
 has param 'transaction_output_index' => (
@@ -41,7 +41,7 @@ sub to_serialized
 	# - sequence number, 4 bytes
 	my $serialized = '';
 
-	$serialized .= $self->transaction_hash;
+	$serialized .= scalar reverse $self->transaction_hash;
 
 	$serialized .= pack 'V', $self->transaction_output_index;
 
