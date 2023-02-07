@@ -15,6 +15,7 @@ subtest 'should serialize transactions' => sub {
 		transaction_hash => pack('H*', 'a34b7271d2add50bb6eaeaaaffaebe33bf4e3fe0454ca5d46ab64e6dbbbf1174'),
 		transaction_output_index => 0,
 		signature_script => '',
+		value => 198959,
 	);
 
 	$tx->add_output(
@@ -41,7 +42,7 @@ subtest 'should serialize transactions' => sub {
 
 	is unpack('H*', $tx->to_serialized_witness), $expected, 'serialized ok';
 	is unpack('H*', $tx->get_hash), $tx_hash, 'hash ok';
-	is $tx->fee(198959), 429, 'fee ok';
+	is $tx->fee, 429, 'fee ok';
 };
 
 done_testing;

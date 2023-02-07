@@ -200,7 +200,16 @@ sub get_hash
 
 sub fee
 {
-	my ($self, $input_value) = @_;
+	my ($self) = @_;
+
+	my $input_value = 0;
+	foreach my $input (@{$self->inputs}) {
+		Bitcoin::Crypto::Exception::Transaction->raise(
+			'one of the inputs has no value - cannot calculate fee'
+		) unless $input->has_value;
+
+		$input_value += $input->value;
+	}
 
 	my $output_value = 0;
 	foreach my $output (@{$self->outputs}) {

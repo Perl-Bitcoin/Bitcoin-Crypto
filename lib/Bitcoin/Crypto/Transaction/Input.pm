@@ -9,7 +9,7 @@ use Mooish::AttributeBuilder -standard;
 
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Helpers qw(pack_varint);
-use Bitcoin::Crypto::Types qw(Str IntMaxBits ByteStr InstanceOf);
+use Bitcoin::Crypto::Types qw(Str IntMaxBits Int ByteStr InstanceOf);
 
 has param 'transaction_hash' => (
 	isa => ByteStr->where(q{ length $_ == 32 }),
@@ -27,6 +27,12 @@ has param 'signature_script' => (
 has param 'sequence_number' => (
 	isa => IntMaxBits[32],
 	default => 0xffffffff,
+);
+
+has option 'value' => (
+	coerce => (InstanceOf['Math::BigInt'])
+		->where(q{$_ > 0})
+		->plus_coercions(Int, q{ Math::BigInt->new($_) }),
 );
 
 sub to_serialized
