@@ -160,38 +160,42 @@ see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bit
 
 =head2 new
 
-Constructor is reserved for internal and advanced use only. Use L</from_bytes>,
-L</from_hex> and L</from_wif> instead.
+Constructor is reserved for internal and advanced use only. Use L</from_str>
+or L</from_wif> instead.
+
+=head2 from_str
+
+	$key_object = $class->from_str($serialized)
+
+This creates a new key from string data. Argument C<$serialized> is a
+formatable bytestring containing the private key entropy.
+
+Returns a new key object instance.
+
+=head2 to_str
+
+	$serialized = $key_object->to_str()
+
+This returns a public key in ASN X9.62 format. The result is a bytestring which
+can be further formated with C<format_as> utility.
+
+The result will vary depending on compression state: see L</set_compressed>
 
 =head2 from_bytes
 
-	$key_object = $class->from_bytes($data)
-
-Use this method to create a PrivateKey instance from a byte string.
-Data C<$data> will be used as a private key entropy.
-
-Returns class instance.
+Deprecated. Use C<< $key->from_str($data) >> instead.
 
 =head2 to_bytes
 
-	$bytestring = $object->to_bytes()
-
-Does the opposite of from_bytes on a target object
+Deprecated. Use C<< $key->to_str($data) >> instead.
 
 =head2 from_hex
 
-	$key_object = $class->from_hex($hex)
-
-Use this method to create a PrivateKey instance from a hexadecimal number.
-Number C<$hex> will be used as a private key entropy.
-
-Returns class instance.
+Deprecated. Use C<< $key->from_str([hex => $data]) >> instead.
 
 =head2 to_hex
 
-	$hex_string = $object->to_hex()
-
-Does the opposite of from_hex on a target object
+Deprecated. Use C<< format_as [hex => $key->to_str($data)] >> instead.
 
 =head2 from_wif
 

@@ -143,7 +143,7 @@ Bitcoin::Crypto::Key::Public - Bitcoin public keys
 
 	use Bitcoin::Crypto::Key::Public;
 
-	$pub = Bitcoin::Crypto::Key::Public->from_hex($asn_hex);
+	$pub = Bitcoin::Crypto::Key::Public->from_str([hex => $asn_hex]);
 
 	# verify signature (it has to be byte string, see perlpacktut)
 
@@ -159,7 +159,7 @@ This class allows you to create a public key instance.
 
 You can use a public key to:
 
-=over 2
+=over
 
 =item * verify messages
 
@@ -171,38 +171,42 @@ You can use a public key to:
 
 =head2 new
 
-Constructor is reserved for internal and advanced use only. Use L</from_bytes>
-and L</from_hex> instead.
+Constructor is reserved for internal and advanced use only. Use L</from_str>
+instead.
+
+=head2 from_str
+
+	$key_object = $class->from_str($serialized)
+
+This creates a new key from string data. Argument C<$serialized> is a
+formatable bytestring which must represent a public key in ASN X9.62 format.
+
+Returns a new key object instance.
+
+=head2 to_str
+
+	$serialized = $key_object->to_str()
+
+This returns a public key in ASN X9.62 format. The result is a bytestring which
+can be further formated with C<format_as> utility.
+
+The result will vary depending on compression state: see L</set_compressed>
 
 =head2 from_bytes
 
-	$key_object = $class->from_bytes($data)
-
-Use this method to create a PublicKey instance from a byte string.
-Data C<$data> must represent a public key in ASN X9.62 format.
-
-Returns class instance.
+Deprecated. Use C<< $key->from_str($data) >> instead.
 
 =head2 to_bytes
 
-	$bytestring = $object->to_bytes()
-
-Does the opposite of C<from_bytes> on a target object
+Deprecated. Use C<< $key->to_str($data) >> instead.
 
 =head2 from_hex
 
-	$key_object = $class->from_hex($hex)
-
-Use this method to create a public key instance from a hexadecimal number.
-Packs the number and runs it through C<from_bytes>.
-
-Returns class instance.
+Deprecated. Use C<< $key->from_str([hex => $data]) >> instead.
 
 =head2 to_hex
 
-	$hex_string = $object->to_hex()
-
-Does the opposite of from_hex on a target object
+Deprecated. Use C<< format_as [hex => $key->to_str($data)] >> instead.
 
 =head2 set_compressed
 
