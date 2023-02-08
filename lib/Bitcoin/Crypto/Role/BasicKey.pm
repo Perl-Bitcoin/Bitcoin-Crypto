@@ -8,7 +8,7 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Object Str ByteStr);
+use Bitcoin::Crypto::Types qw(Object Str ByteStr FormatStr);
 use Moo::Role;
 
 with qw(
@@ -70,6 +70,30 @@ signature_for to_bytes => (
 sub to_bytes
 {
 	my ($self) = @_;
+	return $self->raw_key;
+}
+
+signature_for from_str => (
+	method => Str,
+	positional => [ByteStr],
+);
+
+sub from_str
+{
+	my ($class, $bytes) = @_;
+
+	return $class->new(key_instance => $bytes);
+}
+
+signature_for to_str => (
+	method => Object,
+	positional => [FormatStr, { optional => 1 }],
+);
+
+sub to_str
+{
+	my ($self, $type) = @_;
+
 	return $self->raw_key;
 }
 

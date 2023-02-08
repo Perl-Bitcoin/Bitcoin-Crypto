@@ -28,7 +28,24 @@ __PACKAGE__->add_type(
 	],
 );
 
-__PACKAGE__->add_type(
+my $formatstr = __PACKAGE__->add_type(
+	name => 'FormatStr',
+	parent => Enum->of(
+		'bytes',
+		'hex',
+		'base58',
+	)
+);
+
+my $formatdesc = __PACKAGE__->add_type(
+	name => 'FormatDesc',
+	parent => Tuple->of(
+		$formatstr,
+		Str,
+	)
+);
+
+my $bytestr = __PACKAGE__->add_type(
 	name => 'ByteStr',
 	parent => Str,
 
@@ -43,6 +60,10 @@ __PACKAGE__->add_type(
 	message => sub {
 		return 'Value is not a bytestring';
 	},
+);
+
+$bytestr->coercion->add_type_coercions(
+	$formatdesc, q{ Bitcoin::Crypto::Helpers::parse_formatdesc($_) }
 );
 
 __PACKAGE__->add_type(
@@ -87,6 +108,8 @@ __PACKAGE__->add_type(
 		return "Value does not fit in $bits bits";
 	},
 );
+
+__PACKAGE__->make_immutable;
 
 1;
 

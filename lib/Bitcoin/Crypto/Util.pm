@@ -14,7 +14,7 @@ use Bitcoin::BIP39 qw(gen_bip39_mnemonic entropy_to_bip39_mnemonic);
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Types qw(Str ByteStr InstanceOf Maybe PositiveInt);
+use Bitcoin::Crypto::Types qw(Str ByteStr FormatStr InstanceOf Maybe PositiveInt);
 use Bitcoin::Crypto::Exception;
 
 our @EXPORT_OK = qw(
@@ -25,6 +25,7 @@ our @EXPORT_OK = qw(
 	mnemonic_from_entropy
 	mnemonic_to_seed
 	get_path_info
+	format_as
 	hash160
 	hash256
 );
@@ -202,6 +203,25 @@ sub get_path_info
 	}
 
 	return undef;
+}
+
+signature_for format_as => (
+	positional => [FormatStr, ByteStr],
+);
+
+sub format_as
+{
+	my ($format, $data) = @_;
+
+	if ($format eq 'hex') {
+		$data = unpack 'H*', $data;
+	}
+	elsif ($format eq 'base58') {
+		require Bitcoin::Crypto::Base58;
+		$data = Bitcoin::Crypto::Base58::encode_base58check($data);
+	}
+
+	return $data;
 }
 
 signature_for hash160 => (

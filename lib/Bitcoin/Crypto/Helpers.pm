@@ -185,6 +185,23 @@ sub add_ec_points
 		: undef;
 }
 
+# not exported - used exclusively by the internal FormatDesc type
+
+sub parse_formatdesc
+{
+	my ($type, $data) = @{$_[0]};
+
+	if ($type eq 'hex') {
+		$data = pack 'H*', pad_hex $data;
+	}
+	elsif ($type eq 'base58') {
+		require Bitcoin::Crypto::Base58;
+		$data = Bitcoin::Crypto::Base58::decode_base58check($data);
+	}
+
+	return $data;
+}
+
 1;
 
 # Internal use only

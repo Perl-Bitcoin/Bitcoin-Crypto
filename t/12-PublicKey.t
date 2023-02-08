@@ -2,7 +2,7 @@ use v5.10;
 use strict;
 use warnings;
 use Test::More;
-use Bitcoin::Crypto::Helpers qw(pad_hex);
+use Bitcoin::Crypto::Util qw(format_as);
 use Bitcoin::Crypto qw(btc_pub);
 
 BEGIN { use_ok('Bitcoin::Crypto::Key::Public') }
@@ -78,14 +78,14 @@ my %validation_case = (
 my $case_num = 0;
 foreach my $case (@cases_compression) {
 	subtest "testing basic creation of keys, case $case_num" => sub {
-		my $pubkey = btc_pub->from_hex($case->{uncompressed});
+		my $pubkey = btc_pub->from_str([hex => $case->{uncompressed}]);
 
 		$pubkey->set_compressed(0);
-		is($pubkey->to_hex, $case->{uncompressed}, 'imported and exported correctly');
+		is(format_as(hex => $pubkey->to_str), $case->{uncompressed}, 'imported and exported correctly');
 		is($pubkey->get_legacy_address, $case->{uncompressed_address}, 'correctly created address');
 
 		$pubkey->set_compressed;
-		is($pubkey->to_hex, $case->{compressed}, 'exported compressed key correctly');
+		is(format_as(hex => $pubkey->to_str), $case->{compressed}, 'exported compressed key correctly');
 		is(
 			$pubkey->get_legacy_address,
 			$case->{compressed_address},
@@ -106,7 +106,7 @@ foreach my $case (@cases_compression) {
 $case_num = 0;
 foreach my $case (@cases_segwit) {
 	subtest "testing SegWit readiness, case $case_num" => sub {
-		my $pubkey = btc_pub->from_hex($case->{pubkey});
+		my $pubkey = btc_pub->from_str([hex => $case->{pubkey}]);
 
 		is(
 			$pubkey->get_compat_address,
@@ -143,20 +143,19 @@ foreach my $case (@cases_segwit) {
 subtest 'verify message using pubkey' => sub {
 	my $message = 'Perl test script';
 
-	my $pub = btc_pub->from_hex($validation_case{uncompressed});
+	my $pub = btc_pub->from_str([hex => $validation_case{uncompressed}]);
 	$pub->set_compressed(0);
 
-	my $pub_compressed = btc_pub->from_hex($validation_case{compressed});
-	my $random_pub = btc_pub->from_hex($cases_compression[0]{compressed});
-	my $sig = pack 'H*', pad_hex($validation_case{sig});
+	my $pub_compressed = btc_pub->from_str([hex => $validation_case{compressed}]);
+	my $random_pub = btc_pub->from_str([hex => $cases_compression[0]{compressed}]);
 
-	ok($pub->verify_message($message, $sig), 'verified message correctly');
-	ok($pub_compressed->verify_message($message, $sig), 'compressed verified message correctly');
-	ok(!$random_pub->verify_message($message, $sig), 'verification fails with different pubkey');
+	ok($pub->verify_message($message, [hex => $validation_case{sig}]), 'verified message correctly');
+	ok($pub_compressed->verify_message($message, [hex => $validation_case{sig}]), 'compressed verified message correctly');
+	ok(!$random_pub->verify_message($message, [hex => $validation_case{sig}]), 'verification fails with different pubkey');
 };
 
 subtest 'generate addresses from non-default network' => sub {
-	my $pub = btc_pub->from_hex($validation_case{uncompressed});
+	my $pub = btc_pub->from_str([hex => $validation_case{uncompressed}]);
 	$pub->set_compressed(0);
 
 	my $should_be_pub = $pub->set_network('bitcoin_testnet');
