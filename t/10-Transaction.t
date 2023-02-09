@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
-use Bitcoin::Crypto::Util qw(format_as);
+use Bitcoin::Crypto::Util qw(to_format);
 
 BEGIN { use_ok('Bitcoin::Crypto::Transaction') }
 
@@ -42,8 +42,8 @@ subtest 'should serialize transactions' => sub {
 		[hex => '023a95ab5d95fd2ca4a849e66124e55a549a6e7573dfed0b7356f74ac3862f3901']
 	);
 
-	is format_as [hex => $tx->to_serialized_witness], $expected, 'serialized ok';
-	is format_as [hex => $tx->get_hash], $tx_hash, 'hash ok';
+	is to_format [hex => $tx->to_serialized_witness], $expected, 'serialized ok';
+	is to_format [hex => $tx->get_hash], $tx_hash, 'hash ok';
 	is $tx->fee, 429, 'fee ok';
 };
 

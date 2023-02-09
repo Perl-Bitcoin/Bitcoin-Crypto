@@ -177,7 +177,7 @@ Returns a new key object instance.
 	$serialized = $key_object->to_str()
 
 This returns a public key in ASN X9.62 format. The result is a bytestring which
-can be further formated with C<format_as> utility.
+can be further formated with C<to_format> utility.
 
 The result will vary depending on compression state: see L</set_compressed>
 
@@ -195,7 +195,7 @@ Deprecated. Use C<< $key->from_str([hex => $data]) >> instead.
 
 =head2 to_hex
 
-Deprecated. Use C<< format_as [hex => $key->to_str($data)] >> instead.
+Deprecated. Use C<< to_format [hex => $key->to_str($data)] >> instead.
 
 =head2 from_wif
 

@@ -7,7 +7,7 @@ use Encode qw(encode);
 
 use Bitcoin::Crypto qw(btc_prv);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(format_as);
+use Bitcoin::Crypto::Util qw(to_format);
 use utf8;
 
 BEGIN { use_ok('Bitcoin::Crypto::Key::Private') }
@@ -33,8 +33,8 @@ for my $case (@cases) {
 	subtest "should convert private to public, case $case_num" => sub {
 		my $privkey = btc_prv->from_str([hex => $case->{priv}])->set_compressed(0);
 
-		is(format_as [hex => $privkey->to_str], $case->{priv}, 'imported and exported correctly');
-		is(format_as [hex => $privkey->get_public_key->to_str], $case->{pub}, 'correctly created public key');
+		is(to_format [hex => $privkey->to_str], $case->{priv}, 'imported and exported correctly');
+		is(to_format [hex => $privkey->get_public_key->to_str], $case->{pub}, 'correctly created public key');
 	};
 
 	++$case_num;
@@ -69,7 +69,7 @@ subtest 'should import and export WIF' => sub {
 	my $wif_raw_key = '972e85e7e3345cb7e6a5f812aa5f5bea82005e3ded7b32d9d56f5ab2504f1648';
 	my $wif = '5JxsKGzCoJwaWEjQvfNqD4qPEoUQ696BUEq68Y68WQ2GNR6zrxW';
 	my $testnet_wif = '92jVu1okPY1iUJEhZ1Gk5fPLtTq7FJdNpBh3DASdr8mK9SZXqy3';
-	is(format_as [hex => btc_prv->from_wif($wif)->to_str], $wif_raw_key, 'imported WIF correctly');
+	is(to_format [hex => btc_prv->from_wif($wif)->to_str], $wif_raw_key, 'imported WIF correctly');
 	is(
 		btc_prv->from_str([hex => $wif_raw_key])->set_compressed(0)->to_wif, $wif,
 		'exported WIF correctly'
@@ -80,7 +80,7 @@ subtest 'should import and export WIF' => sub {
 		'Recognized non-default network'
 	);
 	is(
-		format_as [hex => btc_prv->from_wif($testnet_wif)->to_str],
+		to_format [hex => btc_prv->from_wif($testnet_wif)->to_str],
 		$wif_raw_key, 'imported non-default network WIF correctly'
 	);
 	is(

@@ -25,7 +25,7 @@ our @EXPORT_OK = qw(
 	mnemonic_from_entropy
 	mnemonic_to_seed
 	get_path_info
-	format_as
+	to_format
 	hash160
 	hash256
 );
@@ -206,7 +206,7 @@ sub get_path_info
 }
 
 # use signature, not signature_for, because of the prototype
-sub format_as ($)
+sub to_format ($)
 {
 	state $sig = signature(positional => [Tuple[FormatStr, ByteStr]]);
 	my ($format, $data) = @{($sig->(@_))[0]};

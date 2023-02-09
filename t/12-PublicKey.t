@@ -2,7 +2,7 @@ use v5.10;
 use strict;
 use warnings;
 use Test::More;
-use Bitcoin::Crypto::Util qw(format_as);
+use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto qw(btc_pub);
 
 BEGIN { use_ok('Bitcoin::Crypto::Key::Public') }
@@ -81,11 +81,11 @@ foreach my $case (@cases_compression) {
 		my $pubkey = btc_pub->from_str([hex => $case->{uncompressed}]);
 
 		$pubkey->set_compressed(0);
-		is(format_as [hex => $pubkey->to_str], $case->{uncompressed}, 'imported and exported correctly');
+		is(to_format [hex => $pubkey->to_str], $case->{uncompressed}, 'imported and exported correctly');
 		is($pubkey->get_legacy_address, $case->{uncompressed_address}, 'correctly created address');
 
 		$pubkey->set_compressed;
-		is(format_as [hex => $pubkey->to_str], $case->{compressed}, 'exported compressed key correctly');
+		is(to_format [hex => $pubkey->to_str], $case->{compressed}, 'exported compressed key correctly');
 		is(
 			$pubkey->get_legacy_address,
 			$case->{compressed_address},

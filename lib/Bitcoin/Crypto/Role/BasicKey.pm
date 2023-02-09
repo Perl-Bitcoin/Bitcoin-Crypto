@@ -8,7 +8,7 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Object Str ByteStr FormatStr);
-use Bitcoin::Crypto::Util qw(format_as);
+use Bitcoin::Crypto::Util qw(to_format);
 use Moo::Role;
 
 with qw(
@@ -67,8 +67,8 @@ sub to_hex
 	my ($self) = @_;
 
 	my $class = ref $self;
-	carp "$class->to_hex() is now deprecated. Use Bitcoin::Crypto::Util::format_as [hex => $class->to_str()] instead";
-	return format_as [hex => $self->to_str];
+	carp "$class->to_hex() is now deprecated. Use Bitcoin::Crypto::Util::to_format [hex => $class->to_str()] instead";
+	return to_format [hex => $self->to_str];
 }
 
 sub from_bytes
