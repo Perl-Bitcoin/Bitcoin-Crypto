@@ -18,7 +18,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(ArrayRef Str Object ByteStr);
+use Bitcoin::Crypto::Types qw(ArrayRef Str Object ByteStr Any);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
 
@@ -313,7 +313,7 @@ sub to_serialized
 
 signature_for from_serialized => (
 	method => Str,
-	positional => [Str],
+	positional => [Any],
 	# no need to validate ByteStr, as it will be passed to add_raw
 );
 

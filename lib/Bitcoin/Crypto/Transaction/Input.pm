@@ -12,7 +12,10 @@ use Bitcoin::Crypto::Helpers qw(pack_varint);
 use Bitcoin::Crypto::Types qw(Str IntMaxBits Int ByteStr InstanceOf);
 
 has param 'transaction_hash' => (
-	isa => ByteStr->where(q{ length $_ == 32 }),
+	coerce => ByteStr->create_child_type(
+		constraint => q{ length $_ == 32},
+		coercion => 1
+	),
 );
 
 has param 'transaction_output_index' => (
@@ -21,7 +24,7 @@ has param 'transaction_output_index' => (
 
 has param 'signature_script' => (
 	coerce => (InstanceOf ['Bitcoin::Crypto::Script'])
-		->plus_coercions(ByteStr, q{ Bitcoin::Crypto::Script->from_serialized($_) }),
+		->plus_coercions(ByteStr->coercibles, q{ Bitcoin::Crypto::Script->from_serialized($_) }),
 );
 
 has param 'sequence_number' => (

@@ -19,7 +19,7 @@ has param 'value' => (
 
 has param 'locking_script' => (
 	coerce => (InstanceOf ['Bitcoin::Crypto::Script'])
-		->plus_coercions(ByteStr, q{ Bitcoin::Crypto::Script->from_serialized($_) }),
+		->plus_coercions(ByteStr->coercibles, q{ Bitcoin::Crypto::Script->from_serialized($_) }),
 );
 
 sub to_serialized
