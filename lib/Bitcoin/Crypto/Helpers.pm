@@ -6,6 +6,7 @@ use warnings;
 use Exporter qw(import);
 use List::Util qw(max);
 use Crypt::PK::ECC;
+use Carp qw(carp);
 
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
@@ -28,7 +29,21 @@ our @EXPORT_OK = qw(
 	add_ec_points
 	pack_varint
 	unpack_varint
+	carp_once
 );
+
+our @CARP_NOT;
+my %warned;
+
+sub carp_once
+{
+	my ($msg) = @_;
+
+	return if $warned{$msg};
+	$warned{$msg} = 1;
+	local @CARP_NOT = ((caller)[0]);
+	carp ($msg);
+}
 
 sub pad_hex
 {

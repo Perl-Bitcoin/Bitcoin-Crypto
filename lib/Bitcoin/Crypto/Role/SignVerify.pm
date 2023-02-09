@@ -4,10 +4,10 @@ use v5.10;
 use strict;
 use warnings;
 use Mooish::AttributeBuilder -standard;
-use Carp qw(carp);
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Types qw(Object Str ByteStr InstanceOf);
+use Bitcoin::Crypto::Helpers qw(carp_once);
 use Moo::Role;
 
 use constant HAS_DETERMINISTIC_SIGNATURES => eval { require Crypt::Perl } && Crypt::Perl->VERSION gt '0.33';
@@ -45,7 +45,7 @@ sub sign_message
 				return $self->_crypt_perl_prv->$sub($message);
 			}
 			else {
-				carp 'Current implementation of CryptX signature generation does not produce deterministic results. For better security, install the Crypt::Perl module.';
+				carp_once 'Current implementation of CryptX signature generation does not produce deterministic results. For better security, install the Crypt::Perl module.';
 				return $self->key_instance->sign_message($message, $algorithm);
 			}
 		}

@@ -5,14 +5,13 @@ use strict;
 use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
-use Carp qw(carp);
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy);
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length);
+use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length carp_once);
 use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
 use Bitcoin::Crypto::Types qw(Object Str ByteStr HashRef Maybe);
 use Bitcoin::Crypto::Exception;
@@ -26,8 +25,8 @@ sub _is_private { 1 }
 sub generate_mnemonic
 {
 	shift;
-	carp 'Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic is deprecated.'
-		. 'use generate_mnemonic function from Bitcoin::Crypto::Util instead.';
+	carp_once 'Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic is deprecated.'
+		. ' Use generate_mnemonic function from Bitcoin::Crypto::Util instead.';
 
 	goto \&Bitcoin::Crypto::Util::generate_mnemonic;
 }
@@ -35,8 +34,8 @@ sub generate_mnemonic
 sub mnemonic_from_entropy
 {
 	shift;
-	carp 'Bitcoin::Crypto::Key::ExtPrivate->mnemonic_from_entropy is deprecated.'
-		. 'use mnemonic_from_entropy function from Bitcoin::Crypto::Util instead.';
+	carp_once 'Bitcoin::Crypto::Key::ExtPrivate->mnemonic_from_entropy is deprecated.'
+		. ' Use mnemonic_from_entropy function from Bitcoin::Crypto::Util instead.';
 
 	goto \&Bitcoin::Crypto::Util::mnemonic_from_entropy;
 }
