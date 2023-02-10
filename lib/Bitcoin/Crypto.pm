@@ -47,29 +47,29 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 =head1 SYNOPSIS
 
 	use Bitcoin::Crypto qw(btc_extprv);
-	use Bitcoin::Crypto::Util qw(generate_mnemonic);
+	use Bitcoin::Crypto::Util qw(generate_mnemonic to_format);
 
 	# extended keys are used for mnemonic generation and key derivation
-	my $mnemonic = generate_mnemonic();
+	my $mnemonic = generate_mnemonic;
 	say "your mnemonic code is: $mnemonic";
 
 	my $master_key = btc_extprv->from_mnemonic($mnemonic);
 	my $derived_key = $master_key->derive_key("m/0'");
 
 	# basic keys are used for signatures and addresses
-	my $priv = $derived_key->get_basic_key();
-	my $pub = $priv->get_public_key();
+	my $priv = $derived_key->get_basic_key;
+	my $pub = $priv->get_public_key;
 
-	say 'private key: ' . $priv->to_wif();
-	say 'public key: ' . $pub->to_hex();
-	say 'address: ' . $pub->get_segwit_address();
+	say 'private key: ' . $priv->to_wif;
+	say 'public key: ' . to_format [hex => $pub->to_str];
+	say 'address: ' . $pub->get_segwit_address;
 
 	my $message = 'Hello CPAN';
 	my $signature = $priv->sign_message($message);
 
 	if ($pub->verify_message($message, $signature)) {
 		say "successfully signed message '$message'";
-		say 'signature: ' . unpack 'H*', $signature;
+		say 'signature: ' . to_format [hex => $signature];
 	}
 
 =head1 DESCRIPTION
@@ -185,7 +185,7 @@ be used as follows:
 
 	# loads Bitcoin::Crypto::Key::Public and returns package name
 	# we can now use it to run its methods
-	my $public_key = btc_pub->from_hex($hex_data);
+	my $public_key = btc_pub->from_str([hex => $hex_data]);
 
 =head3 btc_extprv
 

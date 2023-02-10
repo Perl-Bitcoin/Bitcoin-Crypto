@@ -2,6 +2,7 @@ use v5.10;
 use strict;
 use warnings;
 use Bitcoin::Crypto qw(btc_extprv btc_pub);
+use Bitcoin::Crypto::Util qw(to_format);
 
 sub sign_message
 {
@@ -23,8 +24,8 @@ sub sign_message
 	return {
 		message => $message,
 		algorithm => $algo,
-		signature => unpack("H*", $signature),
-		public_key => $public->to_hex,
+		signature => to_format [hex => $signature],
+		public_key => to_format [hex => $public->to_str],
 	};
 }
 
@@ -33,15 +34,12 @@ sub verify_message
 	my ($signature_hash) = @_;
 
 	# re-create public key from hexadecimal data
-	my $public = btc_pub->from_hex($signature_hash->{public_key});
-
-	# get a bytestring signature from hexadecimal
-	my $signature_bytes = pack "H*", $signature_hash->{signature};
+	my $public = btc_pub->from_str([hex => $signature_hash->{public_key}]);
 
 	# perform a verification againts the public key
 	return $public->verify_message(
 		$signature_hash->{message},
-		$signature_bytes,
+		[hex => $signature_hash->{signature}],
 		$signature_hash->{algorithm}
 	);
 }

@@ -6,7 +6,7 @@ use Test::Exception;
 
 use utf8;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
-use Bitcoin::Crypto::Util qw(generate_mnemonic);
+use Bitcoin::Crypto::Util qw(generate_mnemonic to_format);
 BEGIN { use_ok('Bitcoin::Crypto::Key::ExtPrivate') }
 
 my @test_data = (
@@ -135,9 +135,15 @@ foreach my $tdata (@test_data) {
 		my $extpublic = $from_serialized->get_public_key();
 		my $basic_private = $from_serialized->get_basic_key();
 		my $basic_public = $extpublic->get_basic_key();
+
 		is(ref $basic_private, 'Bitcoin::Crypto::Key::Private', 'basic private key created');
 		is(ref $basic_public, 'Bitcoin::Crypto::Key::Public', 'basic public key created');
-		is($basic_private->get_public_key()->to_bytes(), $basic_public->to_bytes(), 'keys match');
+
+		is(
+			to_format [hex => $basic_private->get_public_key()->to_str],
+			to_format [hex => $basic_public->to_str],
+			'keys match'
+		);
 
 		my $basic_derived = $from_serialized->derive_key("m/0")->get_basic_key();
 		is($basic_derived->to_wif(), $tdata->{basic}, 'derived basic private key ok');

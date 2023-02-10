@@ -31,7 +31,7 @@ signature_for to_wif => (
 sub to_wif
 {
 	my ($self) = @_;
-	my $bytes = $self->to_bytes();
+	my $bytes = $self->to_str();
 
 	# wif network - 1B
 	my $wifdata = $self->network->wif_byte;
@@ -85,7 +85,7 @@ sub from_wif
 		"couldn't find network for WIF byte $wif_network_byte"
 	) if @found_networks == 0;
 
-	my $instance = $class->from_bytes($private);
+	my $instance = $class->from_str($private);
 	$instance->set_compressed($compressed);
 	$instance->set_network(@found_networks);
 	return $instance;

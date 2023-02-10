@@ -27,8 +27,8 @@ signature_for key_hash => (
 sub key_hash
 {
 	my ($self) = @_;
-	my $pubkey = $self->to_bytes();
-	return hash160($pubkey);
+
+	return hash160($self->to_str);
 }
 
 signature_for witness_program => (

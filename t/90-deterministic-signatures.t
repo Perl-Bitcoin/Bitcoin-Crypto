@@ -13,7 +13,7 @@ BEGIN {
 	}
 }
 
-my $key = btc_prv->from_hex('b7331fd4ff8c53d31fa7d1625df7de451e55dc53337db64bee3efadb7fdd28d9');
+my $key = btc_prv->from_str([hex => 'b7331fd4ff8c53d31fa7d1625df7de451e55dc53337db64bee3efadb7fdd28d9']);
 my @messages = ('Perl test script', '', 'a', "_ś\x1f " x 250);
 
 my $case_num = 0;
