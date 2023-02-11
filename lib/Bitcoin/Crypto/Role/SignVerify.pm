@@ -27,7 +27,7 @@ has field '_crypt_perl_prv' => (
 
 signature_for sign_message => (
 	method => Object,
-	positional => [Str, Str, { default => 'sha256' }],
+	positional => [ByteStr, Str, { default => 'sha256' }],
 );
 
 sub sign_message
@@ -54,7 +54,7 @@ sub sign_message
 
 signature_for verify_message => (
 	method => Object,
-	positional => [Str, ByteStr, Str, { default => 'sha256' }],
+	positional => [ByteStr, ByteStr, Str, { default => 'sha256' }],
 );
 
 sub verify_message
