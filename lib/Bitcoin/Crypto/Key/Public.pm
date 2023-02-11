@@ -194,7 +194,7 @@ The result will vary depending on compression state: see L</set_compressed>
 
 =head2 from_bytes
 
-Deprecated. Use C<< $key->from_str($data) >> instead.
+Deprecated. Use C<< $class->from_str($data) >> instead.
 
 =head2 to_bytes
 
@@ -202,7 +202,7 @@ Deprecated. Use C<< $key->to_str($data) >> instead.
 
 =head2 from_hex
 
-Deprecated. Use C<< $key->from_str([hex => $data]) >> instead.
+Deprecated. Use C<< $class->from_str([hex => $data]) >> instead.
 
 =head2 to_hex
 
