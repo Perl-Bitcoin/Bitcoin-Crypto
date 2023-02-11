@@ -6,7 +6,7 @@ use Test::Exception;
 
 use Bitcoin::Crypto::Key::ExtPrivate;
 use Bitcoin::Crypto::Key::ExtPublic;
-use Bitcoin::Crypto::Helpers qw(pad_hex);
+use Bitcoin::Crypto::Util qw(to_format);
 
 my @test_data_private = (
 	{
@@ -240,12 +240,12 @@ my $case_num = 0;
 for my $tdata (@test_data_private) {
 	subtest "testing private data, case $case_num" => sub {
 		my $test_vector = $tdata->{data};
-		my $base_key = Bitcoin::Crypto::Key::ExtPrivate->from_seed(pack 'H*', pad_hex $tdata->{seed});
+		my $base_key = Bitcoin::Crypto::Key::ExtPrivate->from_seed([hex => $tdata->{seed}]);
 		for my $tdata (@$test_vector) {
 			my $key = $base_key->derive_key($tdata->{path});
 			my $pubkey = $key->get_public_key();
-			is($key->to_serialized_base58(), $tdata->{private}, 'private key ok');
-			is($pubkey->to_serialized_base58(), $tdata->{public}, 'public key ok');
+			is(to_format [base58 => $key->to_serialized], $tdata->{private}, 'private key ok');
+			is(to_format [base58 => $pubkey->to_serialized], $tdata->{public}, 'public key ok');
 		}
 	};
 
@@ -255,9 +255,9 @@ for my $tdata (@test_data_private) {
 $case_num = 0;
 for my $tdata (@test_data_public) {
 	subtest "testing public data, case $case_num" => sub {
-		my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($tdata->{parent});
+		my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized([base58 => $tdata->{parent}]);
 		my $key = $base_key->derive_key($tdata->{path});
-		is($key->to_serialized_base58(), $tdata->{child}, 'key derivation ok');
+		is(to_format [base58 => $key->to_serialized], $tdata->{child}, 'key derivation ok');
 	};
 
 	++$case_num;
@@ -267,7 +267,7 @@ $case_num = 0;
 for my $tdata (@test_data_error) {
 	subtest "testing invalid data, case $case_num" => sub {
 		throws_ok {
-			my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($tdata->[0]);
+			my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized([base58 => $tdata->[0]]);
 			$base_key->derive_key($tdata->[1]);
 		} 'Bitcoin::Crypto::Exception', 'incorrect derivation failed with exception';
 	};

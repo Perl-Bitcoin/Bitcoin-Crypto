@@ -4,6 +4,7 @@ use warnings;
 use Test::More;
 
 use Bitcoin::Crypto qw(btc_extprv btc_prv);
+use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Network;
 
 # all test data will use this mnemonic and BIP44 derivation path
@@ -68,8 +69,8 @@ for my $case (@predefined_networks) {
 
 		if ($case->{account_prv}) {
 			my $derived = $master_key->derive_key_bip44(get_account => 1);
-			is $derived->to_serialized_base58, $case->{account_prv}, 'account extended private key ok';
-			is $derived->get_public_key->to_serialized_base58, $case->{account_pub},
+			is to_format [base58 => $derived->to_serialized], $case->{account_prv}, 'account extended private key ok';
+			is to_format [base58 => $derived->get_public_key->to_serialized], $case->{account_pub},
 				'account extended public key ok';
 		}
 

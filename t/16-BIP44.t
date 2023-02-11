@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto qw(btc_extprv);
-use Bitcoin::Crypto::Util qw(generate_mnemonic get_path_info);
+use Bitcoin::Crypto::Util qw(generate_mnemonic get_path_info to_format);
 
 BEGIN { use_ok('Bitcoin::Crypto::BIP44') }
 
@@ -125,7 +125,7 @@ subtest 'can derive account key' => sub {
 	);
 
 	my $derived = $key->derive_key_bip44(account => 3, get_account => 1);
-	is $derived->to_serialized_base58,
+	is to_format [base58 => $derived->to_serialized],
 		'xprv9yuRwketYqkKMDaaiJ9TmygWzquPJV8Bfw7cENzYtbgcnhg8ZFgjxDS9bQaXT5RcNfWf5QiwGD4573SvWnQpKvw8ZqCehftBSmHNkaM83cf';
 };
 
@@ -150,7 +150,7 @@ subtest 'can derive public key' => sub {
 
 	my $derived2 = $public->derive_key_bip44(index => 4, public => 1);
 
-	is $derived2->to_serialized_base58,
+	is to_format [base58 => $derived2->to_serialized],
 		'zpub6vVTjHj2VYz8CjXyzC2NT94i1enJcx678vjo4MYBY76eYfye4NbT32eaxMhPrqvvt9v6sjGJwNrnUx1hdrBw9ymJeSxe9uqXzxtAHcx39iS';
 };
 

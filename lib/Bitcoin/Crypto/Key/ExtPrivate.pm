@@ -191,21 +191,22 @@ Bitcoin::Crypto::Key::ExtPrivate - Bitcoin extended private keys
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto::Key::ExtPrivate;
+	use Bitcoin::Crypto qw(btc_extprv);
+	use Bitcoin::Crypto::Util qw(generate_mnemonic to_format)
 
 	# generate mnemonic words first
-	my $mnemonic = Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic;
+	my $mnemonic = generate_mnemonic;
 	print "Your mnemonic is: $mnemonic";
 
 	# create ExtPrivateKey from mnemonic (without password)
-	my $key = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic);
-	my $ser_key = $key->to_serialized_base58;
+	my $key = btc_extprv->from_mnemonic($mnemonic);
+	my $ser_key = to_format [base58 => $key->to_serialized];
 	print "Your exported master key is: $ser_key";
 
 	# derive child private key
 	my $path = "m/0'";
 	my $child_key = $key->derive_key($path);
-	my $ser_child_key = $child_key->to_serialized_base58;
+	my $ser_child_key = to_format [base58 => $child_key->to_serialized];
 	print "Your exported $path child key is: $ser_child_key";
 
 	# create basic keypair
@@ -235,8 +236,7 @@ see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bit
 =head2 new
 
 Constructor is reserved for internal and advanced use only. Use
-L</from_mnemonic>, L</from_seed>, L</from_serialized> and
-L</from_serialized_base58> instead.
+L</from_mnemonic>, L</from_seed> or L</from_serialized> instead.
 
 =head2 generate_mnemonic
 
@@ -284,9 +284,7 @@ Returns the key serialized in format specified in BIP32 as byte string.
 
 =head2 to_serialized_base58
 
-	$serialized_base58 = $object->to_serialized_base58()
-
-Behaves the same as C<to_serialized>, but performs Base58Check encoding on the resulting byte string.
+Deprecated. Use C<< to_format [base58 => $key->to_serialized] >> instead.
 
 =head2 from_serialized
 
@@ -298,9 +296,7 @@ Dies on errors. If multiple networks match serialized data specify C<$network> m
 
 =head2 from_serialized_base58
 
-	$key_object = $class->from_serialized_base58($base58, $network = undef)
-
-Same as C<from_serialized>, but performs Base58Check decoding on C<$base58> argument.
+Deprecated. Use C<< $class->from_serialized([base58 => $base58]) >> instead.
 
 =head2 set_network
 

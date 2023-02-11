@@ -41,7 +41,7 @@ my @cases = (
 my $case_num = 0;
 for my $case (@cases) {
 	subtest "testing deserialization and addresses, case $case_num" => sub {
-		my $master_pubkey = Bitcoin::Crypto::Key::ExtPublic->from_serialized_base58($case->{key});
+		my $master_pubkey = Bitcoin::Crypto::Key::ExtPublic->from_serialized([base58 => $case->{key}]);
 		for my $i (0 .. @{$case->{addresses}} - 1) {
 			my $derived = $master_pubkey->derive_key("M/$i");
 			is($derived->get_basic_key()->get_legacy_address(), $case->{addresses}[$i], 'address is valid');

@@ -73,14 +73,14 @@ subtest 'should not handle importing unknown wif with network parameter' => sub 
 subtest 'should not handle importing unknown serialized prv' => sub {
 	my $ser = 'Ltpv71G8qDifUiNetg7qxKgZqxMZM1Dy8zeEb7Bz14gE1ZJdVY5xnHEyREwWRYpKTJHD3rS9T3YDvyRNcWaeBp64XWSsDWNST2co9S4eU1Cxz7c';
 	throws_ok {
-		my $key = btc_extprv->from_serialized_base58($ser);
+		my $key = btc_extprv->from_serialized([base58 => $ser]);
 	} 'Bitcoin::Crypto::Exception::NetworkConfig';
 };
 
 subtest 'should not handle importing unknown serialized prv with network parameter' => sub {
 	my $ser = 'Ltpv71G8qDifUiNetg7qxKgZqxMZM1Dy8zeEb7Bz14gE1ZJdVY5xnHEyREwWRYpKTJHD3rS9T3YDvyRNcWaeBp64XWSsDWNST2co9S4eU1Cxz7c';
 	throws_ok {
-		my $key = btc_extprv->from_serialized_base58($ser, 'bitcoin');
+		my $key = btc_extprv->from_serialized([base58 => $ser], 'bitcoin');
 	} 'Bitcoin::Crypto::Exception::KeyCreate';
 };
 
@@ -112,7 +112,7 @@ subtest 'should handle importing wif (multiple networks) with network parameter'
 
 subtest 'should handle importing serialized prv (multiple networks) with network parameter' => sub {
 	my $ser = 'xprv9xoYZivLq3T7RYS1sN5uhzQDyGk7gkfvgUKgD7gzwtUGbPu8LxMexvZE39x4Te5r62ekj9aNrjxcfDm4Di3qmHLKeacnmkfQWY8Xubba1Ya';
-	my $key = btc_extprv->from_serialized_base58($ser, 'bitcoin2');
+	my $key = btc_extprv->from_serialized([base58 => $ser], 'bitcoin2');
 	is $key->network->id, 'bitcoin2';
 };
 

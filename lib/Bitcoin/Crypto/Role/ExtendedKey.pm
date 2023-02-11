@@ -11,10 +11,9 @@ use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types qw(IntMaxBits StrLength Str Object Maybe ByteStr PositiveInt InstanceOf);
-use Bitcoin::Crypto::Util qw(get_path_info hash160);
-use Bitcoin::Crypto::Helpers qw(ensure_length);
+use Bitcoin::Crypto::Util qw(get_path_info hash160 to_format);
+use Bitcoin::Crypto::Helpers qw(ensure_length carp_once);
 use Bitcoin::Crypto::Network;
-use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Exception;
 use Moo::Role;
 
@@ -174,29 +173,6 @@ sub from_serialized
 	}
 }
 
-signature_for to_serialized_base58 => (
-	method => Object,
-	positional => [],
-);
-
-sub to_serialized_base58
-{
-	my ($self) = @_;
-	my $serialized = $self->to_serialized();
-	return encode_base58check $serialized;
-}
-
-signature_for from_serialized_base58 => (
-	method => Str,
-	positional => [Str, Maybe[Str], { optional => 1 }],
-);
-
-sub from_serialized_base58
-{
-	my ($class, $base58, $network) = @_;
-	return $class->from_serialized(decode_base58check($base58), $network);
-}
-
 signature_for get_basic_key => (
 	method => Object,
 	positional => [],
@@ -280,6 +256,28 @@ sub derive_key
 
 	return $key;
 }
+
+### DEPRECATED
+
+sub to_serialized_base58
+{
+	my ($self) = @_;
+
+	my $class = ref $self;
+	carp_once "$class->to_serialized_base58 is now deprecated. Use to_format [base58 => $class->to_serialized] instead";
+
+	return to_format [base58 => $self->to_serialized];
+}
+
+sub from_serialized_base58
+{
+	my ($class, $base58, $network) = @_;
+
+	carp_once "$class->from_serialized_base58(\$base58) is now deprecated. Use $class->from_serialized([base58 => \$base58]) instead";
+
+	return $class->from_serialized([base58 => $base58], $network);
+}
+
 
 1;
 

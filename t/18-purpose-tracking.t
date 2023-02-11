@@ -5,6 +5,7 @@ use Test::More;
 use Test::Exception;
 
 use Bitcoin::Crypto qw(btc_extprv btc_extpub);
+use Bitcoin::Crypto::Util qw(to_format);
 
 my $master_key = btc_extprv->from_mnemonic(
 	'anger head salmon dress include render fatigue remain torch bind piece usage loud leopard corn'
@@ -43,14 +44,14 @@ for my $purpose (qw(44 49 84)) {
 		}
 
 		my ($serprv, $serpub) = @{$expected_serializations{$purpose}};
-		is $derived->to_serialized_base58, $serprv, 'serialized prv ok';
-		is $derived->get_public_key->to_serialized_base58, $serpub, 'serialized pub ok';
+		is to_format [base58 => $derived->to_serialized], $serprv, 'serialized prv ok';
+		is to_format [base58 => $derived->get_public_key->to_serialized], $serpub, 'serialized pub ok';
 
-		is btc_extprv->from_serialized_base58($serprv)->purpose, $purpose, 'unserialized prv purpose ok';
-		is btc_extprv->from_serialized_base58($serprv)->to_serialized, $derived->to_serialized,
+		is btc_extprv->from_serialized([base58 => $serprv])->purpose, $purpose, 'unserialized prv purpose ok';
+		is btc_extprv->from_serialized([base58 => $serprv])->to_serialized, $derived->to_serialized,
 			'unserialized prv ok';
-		is btc_extpub->from_serialized_base58($serpub)->purpose, $purpose, 'unserialized pub purpose ok';
-		is btc_extpub->from_serialized_base58($serpub)->to_serialized, $derived->get_public_key->to_serialized,
+		is btc_extpub->from_serialized([base58 => $serpub])->purpose, $purpose, 'unserialized pub purpose ok';
+		is btc_extpub->from_serialized([base58 => $serpub])->to_serialized, $derived->get_public_key->to_serialized,
 			'unserialized pub ok';
 	};
 

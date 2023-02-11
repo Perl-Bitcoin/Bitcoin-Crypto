@@ -5,7 +5,6 @@ use Test::More;
 use Test::Exception;
 
 use utf8;
-use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Util qw(generate_mnemonic to_format);
 BEGIN { use_ok('Bitcoin::Crypto::Key::ExtPrivate') }
 
@@ -122,16 +121,12 @@ foreach my $tdata (@test_data) {
 			$tdata->{lang}
 		);
 		my $from_seed = Bitcoin::Crypto::Key::ExtPrivate->from_seed([hex => $tdata->{seed}]);
-		my $exported = $from_mnemonic->to_serialized_base58();
-		is(
-			$exported,
-			encode_base58check($from_mnemonic->to_serialized()),
-			'serialization is consistent'
-		);
-		is($exported, $from_seed->to_serialized_base58(), 'importing is consistent');
+		my $exported = to_format [base58 => $from_mnemonic->to_serialized];
+
+		is($exported, to_format [base58 => $from_seed->to_serialized], 'importing is consistent');
 		is($exported, $tdata->{key}, 'valid extended key result');
 
-		my $from_serialized = Bitcoin::Crypto::Key::ExtPrivate->from_serialized_base58($tdata->{key});
+		my $from_serialized = Bitcoin::Crypto::Key::ExtPrivate->from_serialized([base58 => $tdata->{key}]);
 		my $extpublic = $from_serialized->get_public_key();
 		my $basic_private = $from_serialized->get_basic_key();
 		my $basic_public = $extpublic->get_basic_key();
@@ -158,7 +153,7 @@ subtest 'testing network handling' => sub {
 
 	$key->set_network('bitcoin_testnet');
 	is(
-		substr($key->to_serialized_base58, 0, 4),
+		substr(to_format [base58 => $key->to_serialized], 0, 4),
 		'tprv', 'extended key used the new network data in exporting'
 	);
 	is($key->network->name, 'Bitcoin Testnet', 'extended key uses the new network');

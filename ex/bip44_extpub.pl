@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use Bitcoin::Crypto qw(btc_extprv btc_extpub);
+use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Constants;
 use Getopt::Long;
 use Pod::Usage;
@@ -40,10 +41,10 @@ if ($generate) {
 	my $derived = $extprv->derive_key_bip44(purpose => $purpose, get_account => 1);
 	$extpub = $derived->get_public_key;
 
-	say $extpub->to_serialized_base58;
+	say to_format [base58 => $extpub->to_serialized];
 }
 else {
-	$extpub = btc_extpub->from_serialized_base58(shift);
+	$extpub = btc_extpub->from_serialized([base58 => shift]);
 }
 
 foreach my $i (0 .. $count - 1) {
