@@ -383,6 +383,21 @@ undef if C<$path> is not a valid path, otherwise returns the structure:
 		],
 	}
 
+=head2 to_format
+
+	$encoded = to_format [$format => $bytes];
+
+Unpacks bytestring C<$bytes> into the given C<$format>. Use this to avoid
+manual unpacking.
+
+Supported C<$format> values are:
+
+C<bytes>, does nothing
+
+C<hex>, encodes as a hexadecimal string (no C<0x> prefix)
+
+C<base58>, uses base58 and includes the checksum (base58check)
+
 =head2 hash160
 
 	my $hash = hash160($data);

@@ -21,6 +21,7 @@ BEGIN {
 			mnemonic_to_seed
 			hash160
 			hash256
+			to_format
 		)
 	);
 }
@@ -168,6 +169,18 @@ subtest 'should pass validation of segwit version 15 program' => sub {
 	lives_ok {
 		validate_segwit("\x0f" . $program);
 	};
+};
+
+subtest 'to_format should handle bytes' => sub {
+	is to_format [bytes => "\x00\xff\x55"], "\x00\xff\x55";
+};
+
+subtest 'to_format should handle hexadecimals' => sub {
+	is to_format [hex => "\x00\xff\x55"], '00ff55';
+};
+
+subtest 'to_format should handle base58' => sub {
+	is to_format [base58 => "\x00\xff\x55"], '13C9fhDMSM';
 };
 
 done_testing;
