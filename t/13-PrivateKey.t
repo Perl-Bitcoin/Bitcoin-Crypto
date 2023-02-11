@@ -10,8 +10,6 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(to_format);
 use utf8;
 
-BEGIN { use_ok('Bitcoin::Crypto::Key::Private') }
-
 # silence warnings
 local $SIG{__WARN__} = sub { };
 

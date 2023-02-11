@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::More;
 
-BEGIN { use_ok('Bitcoin::Crypto::Key::ExtPublic') }
+use Bitcoin::Crypto qw(btc_extpub);
 
 my @cases = (
 	{
@@ -41,7 +41,7 @@ my @cases = (
 my $case_num = 0;
 for my $case (@cases) {
 	subtest "testing deserialization and addresses, case $case_num" => sub {
-		my $master_pubkey = Bitcoin::Crypto::Key::ExtPublic->from_serialized([base58 => $case->{key}]);
+		my $master_pubkey = btc_extpub->from_serialized([base58 => $case->{key}]);
 		for my $i (0 .. @{$case->{addresses}} - 1) {
 			my $derived = $master_pubkey->derive_key("M/$i");
 			is($derived->get_basic_key()->get_legacy_address(), $case->{addresses}[$i], 'address is valid');

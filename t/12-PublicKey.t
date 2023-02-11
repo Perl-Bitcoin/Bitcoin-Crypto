@@ -5,8 +5,6 @@ use Test::More;
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto qw(btc_pub);
 
-BEGIN { use_ok('Bitcoin::Crypto::Key::Public') }
-
 my @cases_compression = (
 	{
 		uncompressed =>

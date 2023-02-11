@@ -5,8 +5,8 @@ use Test::More;
 use Test::Exception;
 
 use utf8;
+use Bitcoin::Crypto qw(btc_extprv);
 use Bitcoin::Crypto::Util qw(generate_mnemonic to_format);
-BEGIN { use_ok('Bitcoin::Crypto::Key::ExtPrivate') }
 
 my @test_data = (
 	{
@@ -115,18 +115,18 @@ my @test_data = (
 my $case_num = 0;
 foreach my $tdata (@test_data) {
 	subtest "testing basic serialization and derivation, case $case_num" => sub {
-		my $from_mnemonic = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic(
+		my $from_mnemonic = btc_extprv->from_mnemonic(
 			$tdata->{mnemonic},
 			$tdata->{passphrase},
 			$tdata->{lang}
 		);
-		my $from_seed = Bitcoin::Crypto::Key::ExtPrivate->from_seed([hex => $tdata->{seed}]);
+		my $from_seed = btc_extprv->from_seed([hex => $tdata->{seed}]);
 		my $exported = to_format [base58 => $from_mnemonic->to_serialized];
 
 		is($exported, to_format [base58 => $from_seed->to_serialized], 'importing is consistent');
 		is($exported, $tdata->{key}, 'valid extended key result');
 
-		my $from_serialized = Bitcoin::Crypto::Key::ExtPrivate->from_serialized([base58 => $tdata->{key}]);
+		my $from_serialized = btc_extprv->from_serialized([base58 => $tdata->{key}]);
 		my $extpublic = $from_serialized->get_public_key();
 		my $basic_private = $from_serialized->get_basic_key();
 		my $basic_public = $extpublic->get_basic_key();
@@ -149,7 +149,7 @@ foreach my $tdata (@test_data) {
 
 subtest 'testing network handling' => sub {
 	my $mnemonic = generate_mnemonic;
-	my $key = Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic);
+	my $key = btc_extprv->from_mnemonic($mnemonic);
 
 	$key->set_network('bitcoin_testnet');
 	is(
