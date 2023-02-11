@@ -27,6 +27,10 @@ my @cases = (
 		'Bitcoin::Crypto::Script',
 		\&btc_script,
 	],
+	[
+		'Bitcoin::Crypto::Transaction',
+		\&btc_transaction,
+	],
 );
 
 foreach my $case (@cases) {

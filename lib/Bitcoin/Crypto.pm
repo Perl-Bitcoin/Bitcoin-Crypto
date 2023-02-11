@@ -5,7 +5,15 @@ use strict;
 use warnings;
 use Exporter qw(import);
 
-our @EXPORT_OK = qw(btc_extprv btc_prv btc_extpub btc_pub btc_script);
+our @EXPORT_OK = qw(
+	btc_extprv
+	btc_prv
+	btc_extpub
+	btc_pub
+	btc_script
+	btc_transaction
+);
+
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
 
 sub btc_extprv
@@ -36,6 +44,12 @@ sub btc_script
 {
 	require Bitcoin::Crypto::Script;
 	return 'Bitcoin::Crypto::Script';
+}
+
+sub btc_transaction
+{
+	require Bitcoin::Crypto::Transaction;
+	return 'Bitcoin::Crypto::Transaction';
 }
 
 __END__
@@ -206,6 +220,10 @@ Loads L<Bitcoin::Crypto::Key::Public>
 =head3 btc_script
 
 Loads L<Bitcoin::Crypto::Script>
+
+=head3 btc_transaction
+
+Loads L<Bitcoin::Crypto::Transaction>
 
 =head1 DISCLAIMER
 
