@@ -83,6 +83,11 @@ sub add_output
 	return $self;
 }
 
+signature_for to_serialized => (
+	method => Object,
+	positional => [],
+);
+
 sub to_serialized
 {
 	my ($self) = @_;
@@ -129,6 +134,11 @@ sub to_serialized
 
 	return $serialized;
 }
+
+signature_for to_serialized_witness => (
+	method => Object,
+	positional => [],
+);
 
 sub to_serialized_witness
 {
@@ -191,12 +201,22 @@ sub to_serialized_witness
 	return $serialized;
 }
 
+signature_for get_hash => (
+	method => Object,
+	positional => [],
+);
+
 sub get_hash
 {
 	my ($self) = @_;
 
 	return scalar reverse hash256($self->to_serialized);
 }
+
+signature_for fee => (
+	method => Object,
+	positional => [],
+);
 
 sub fee
 {

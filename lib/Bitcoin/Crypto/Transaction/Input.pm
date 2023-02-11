@@ -6,10 +6,11 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Helpers qw(pack_varint);
-use Bitcoin::Crypto::Types qw(Str IntMaxBits Int ByteStr InstanceOf);
+use Bitcoin::Crypto::Types qw(Str IntMaxBits Int ByteStr InstanceOf Object);
 
 has param 'transaction_hash' => (
 	coerce => ByteStr->create_child_type(
@@ -36,6 +37,11 @@ has option 'value' => (
 	coerce => (InstanceOf['Math::BigInt'])
 		->where(q{$_ > 0})
 		->plus_coercions(Int, q{ Math::BigInt->new($_) }),
+);
+
+signature_for to_serialized => (
+	method => Object,
+	positional => [],
 );
 
 sub to_serialized

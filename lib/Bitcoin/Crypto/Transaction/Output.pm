@@ -6,9 +6,10 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
+use Type::Params -sigs;
 
 use Bitcoin::Crypto::Script;
-use Bitcoin::Crypto::Types qw(Int ByteStr InstanceOf);
+use Bitcoin::Crypto::Types qw(Int ByteStr InstanceOf Object);
 use Bitcoin::Crypto::Helpers qw(pack_varint ensure_length); # loads BigInt
 
 has param 'value' => (
@@ -20,6 +21,11 @@ has param 'value' => (
 has param 'locking_script' => (
 	coerce => (InstanceOf ['Bitcoin::Crypto::Script'])
 		->plus_coercions(ByteStr->coercibles, q{ Bitcoin::Crypto::Script->from_serialized($_) }),
+);
+
+signature_for to_serialized => (
+	method => Object,
+	positional => [],
 );
 
 sub to_serialized
