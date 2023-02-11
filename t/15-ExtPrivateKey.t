@@ -121,7 +121,7 @@ foreach my $tdata (@test_data) {
 			$tdata->{passphrase},
 			$tdata->{lang}
 		);
-		my $from_seed = Bitcoin::Crypto::Key::ExtPrivate->from_hex_seed($tdata->{seed});
+		my $from_seed = Bitcoin::Crypto::Key::ExtPrivate->from_seed([hex => $tdata->{seed}]);
 		my $exported = $from_mnemonic->to_serialized_base58();
 		is(
 			$exported,

@@ -11,7 +11,7 @@ use Type::Params -sigs;
 use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length carp_once);
+use Bitcoin::Crypto::Helpers qw(ensure_length carp_once);
 use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
 use Bitcoin::Crypto::Types qw(Object Str ByteStr HashRef Maybe);
 use Bitcoin::Crypto::Exception;
@@ -83,18 +83,6 @@ sub from_seed
 		key_instance => $key,
 		chain_code => $cc,
 	);
-}
-
-signature_for from_hex_seed => (
-	method => Str,
-	positional => [Str],
-);
-
-sub from_hex_seed
-{
-	my ($class, $seed) = @_;
-
-	return $class->from_seed(pack 'H*', pad_hex $seed);
 }
 
 signature_for get_public_key => (
@@ -183,6 +171,17 @@ sub _derive_key_partial
 	);
 }
 
+### DEPRECATED
+
+sub from_hex_seed
+{
+	my ($class, $seed) = @_;
+
+	carp_once "$class->from_hex_seed(\$seed) is now deprecated. Use $class->from_seed([hex => \$seed]) instead";
+
+	return $class->from_seed([hex => $seed]);
+}
+
 1;
 
 __END__
@@ -236,7 +235,7 @@ see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bit
 =head2 new
 
 Constructor is reserved for internal and advanced use only. Use
-L</from_mnemonic>, L</from_seed>, L</from_hex_seed>, L</from_serialized> and
+L</from_mnemonic>, L</from_seed>, L</from_serialized> and
 L</from_serialized_base58> instead.
 
 =head2 generate_mnemonic
@@ -275,9 +274,7 @@ Creates and returns a new key from seed, which can be any data of any length. C<
 
 =head2 from_hex_seed
 
-	$key_object = $class->from_hex_seed($seed)
-
-Same as C<from_seed>, but C<$seed> is treated as hex string.
+Deprecated. Use C<< $class->from_seed([hex => $seed]) >> instead.
 
 =head2 to_serialized
 
