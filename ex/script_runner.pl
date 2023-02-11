@@ -5,7 +5,8 @@ use warnings;
 use Data::Dumper;
 $Data::Dumper::Terse = 'stack';
 
-use Bitcoin::Crypto::Script;
+use Bitcoin::Crypto qw(btc_script);
+use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Script::Runner;
 
 sub print_stack
@@ -16,7 +17,7 @@ sub print_stack
 	say Dumper(
 		[
 			map {
-				unpack 'H*', $_
+				to_format [hex => $_]
 			} @{$runner->stack}
 		]
 	);
@@ -27,7 +28,7 @@ my $script_hex = <STDIN>;
 chomp $script_hex;
 
 my $runner = Bitcoin::Crypto::Script::Runner->new;
-my $script = Bitcoin::Crypto::Script->from_serialized_hex($script_hex);
+my $script = btc_script->from_serialized([hex => $script_hex]);
 $runner->start($script);
 
 say 'starting the runtime...';
