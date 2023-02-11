@@ -323,18 +323,6 @@ sub from_serialized
 	return $class->new->add_raw($bytes);
 }
 
-signature_for from_serialized_hex => (
-	method => Str,
-	positional => [Str],
-);
-
-sub from_serialized_hex
-{
-	my ($class, $hex) = @_;
-
-	return $class->from_serialized(pack 'H*', pad_hex $hex);
-}
-
 signature_for run => (
 	method => Object,
 	positional => [],
