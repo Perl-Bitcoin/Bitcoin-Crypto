@@ -14,7 +14,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(pad_hex carp_once);
+use Bitcoin::Crypto::Helpers qw(carp_once);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(ArrayRef Str Object ByteStr Any);
