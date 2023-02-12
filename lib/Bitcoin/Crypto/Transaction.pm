@@ -101,8 +101,6 @@ sub to_serialized
 	# - lock time, 4 bytes
 	my $serialized = '';
 
-	my @witness = @{$self->witness};
-
 	$serialized .= pack 'V', $self->version;
 
 	# Process inputs
@@ -237,6 +235,54 @@ sub fee
 	}
 
 	return $input_value - $output_value;
+}
+
+signature_for fee_rate => (
+	method => Object,
+	positional => [],
+);
+
+sub fee_rate
+{
+	my ($self) = @_;
+
+	my $fee = $self->fee;
+	my $size = $self->virtual_size;
+
+	# TODO: BigInt does not play nice here (division)
+	return "$fee" / $size;
+}
+
+signature_for virtual_size => (
+	method => Object,
+	positional => [],
+);
+
+sub virtual_size
+{
+	my ($self) = @_;
+
+	my $base = length $self->to_serialized;
+	my $with_witness = length $self->to_serialized_witness;
+	my $witness = $with_witness - $base;
+
+	return $base + $witness / 4;
+}
+
+signature_for weight => (
+	method => Object,
+	positional => [],
+);
+
+sub weight
+{
+	my ($self) = @_;
+
+	my $base = length $self->to_serialized;
+	my $with_witness = length $self->to_serialized_witness;
+	my $witness = $with_witness - $base;
+
+	return $base * 4 + $witness;
 }
 
 1;

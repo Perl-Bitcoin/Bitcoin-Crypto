@@ -44,6 +44,9 @@ subtest 'should serialize transactions' => sub {
 	is to_format [hex => $tx->to_serialized_witness], $expected, 'serialized ok';
 	is to_format [hex => $tx->get_hash], $tx_hash, 'hash ok';
 	is $tx->fee, 429, 'fee ok';
+	is substr($tx->fee_rate, 0, 4), '2.99', 'fee ok';
+	is substr($tx->virtual_size, 0, 6), '143.25', 'vB weight ok';
+	is $tx->weight, '573', 'WU weight ok';
 };
 
 done_testing;
