@@ -140,6 +140,19 @@ subtest 'can derive from account key' => sub {
 	is $derived2->get_basic_key->to_wif, 'L5CXRMnEVSZ7j23VJ22mib3e4UWnb7utEpkDQtfTPn8DL9EEtTQZ';
 };
 
+subtest 'deriving from account yields the same result' => sub {
+	my $key = btc_extprv->from_mnemonic(
+		'spawn impact body ask nothing warm farm novel host later basic subject point resist pilot'
+	);
+
+	my $derived1 = $key->derive_key_bip44(purpose => 84, account => 3, get_account => 1);
+	my $derived2 = $derived1->derive_key_bip44(index => 4, get_from_account => 1);
+
+	my $full_derived = $key->derive_key_bip44(purpose => 84, account => 3, index => 4);
+
+	is $derived2->get_basic_key->to_wif, $full_derived->get_basic_key->to_wif;
+};
+
 subtest 'can derive public key' => sub {
 	my $key = btc_extprv->from_mnemonic(
 		'spawn impact body ask nothing warm farm novel host later basic subject point resist pilot'
