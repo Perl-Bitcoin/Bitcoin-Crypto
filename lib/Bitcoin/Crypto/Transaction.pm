@@ -13,7 +13,14 @@ use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Helpers qw(pack_varint);
-use Bitcoin::Crypto::Types qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr);
+use Bitcoin::Crypto::Types qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveOrZeroInt Enum);
+
+use constant SIGHASH_VALUES => {
+	ALL => 0x01,
+	NONE => 0x02,
+	SINGLE => 0x03,
+	ANYONECANPAY => 0x80,
+};
 
 has param 'version' => (
 	isa => IntMaxBits[32],
@@ -85,12 +92,13 @@ sub add_output
 
 signature_for to_serialized => (
 	method => Object,
-	positional => [],
+	named => [input_sigs => ArrayRef[ByteStr], { optional => 1 }],
+	named_to_list => 1,
 );
 
 sub to_serialized
 {
-	my ($self) = @_;
+	my ($self, $input_sigs) = @_;
 
 	# transaction should be serialized as follows:
 	# - version, 4 bytes
@@ -109,12 +117,17 @@ sub to_serialized
 		'transaction has no inputs'
 	) if @inputs == 0;
 
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'given input sigs must have the same number of inputs'
+	) if $input_sigs && @inputs != @{$input_sigs};
+
 	# TODO: each input should have its own witness?
 
 	$serialized .= pack_varint(scalar @inputs);
-	foreach my $item (@inputs) {
+	foreach my $item_no (0 .. $#inputs) {
+		my $item = $inputs[$item_no];
 		# TODO: signature script should be empty if there's witness data?
-		$serialized .= $item->to_serialized;
+		$serialized .= $item->to_serialized($input_sigs ? (input_sig => $input_sigs->[$item_no]): ());
 	}
 
 	# Process outputs
@@ -209,6 +222,30 @@ sub get_hash
 	my ($self) = @_;
 
 	return scalar reverse hash256($self->to_serialized);
+}
+
+signature_for get_digest => (
+	method => Object,
+	positional => [
+		PositiveOrZeroInt,
+		Enum[qw(ALL NONE SINGLE ANYONECANPAY)], { default => 'ALL' }
+	],
+);
+
+sub get_digest
+{
+	my ($self, $input_number, $sighash) = @_;
+
+	# Generate input sigs for signing
+	my @inputs = map { "\x00" } @{$self->inputs};
+	@inputs[$input_number] = ''; # TODO handle last output script somehow
+
+	my $serialized = $self->to_serialized(input_sigs => \@inputs);
+	$serialized .= pack 'V', SIGHASH_VALUES->{$sighash};
+
+	# TODO: handle sighashes other than ALL
+
+	return hash256($serialized);
 }
 
 signature_for fee => (

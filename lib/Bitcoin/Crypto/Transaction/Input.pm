@@ -24,6 +24,7 @@ has param 'transaction_output_index' => (
 );
 
 has param 'signature_script' => (
+	writer => 1,
 	coerce => (InstanceOf ['Bitcoin::Crypto::Script'])
 		->plus_coercions(ByteStr->coercibles, q{ Bitcoin::Crypto::Script->from_serialized($_) }),
 );
@@ -41,12 +42,13 @@ has option 'value' => (
 
 signature_for to_serialized => (
 	method => Object,
-	positional => [],
+	named => [input_sig => ByteStr, { optional => 1 }],
+	named_to_list => 1,
 );
 
 sub to_serialized
 {
-	my ($self) = @_;
+	my ($self, $input_sig) = @_;
 
 	# input should be serialized as follows:
 	# - transaction hash, 32 bytes
@@ -60,7 +62,7 @@ sub to_serialized
 
 	$serialized .= pack 'V', $self->transaction_output_index;
 
-	my $script = $self->signature_script->get_script;
+	my $script = $input_sig // $self->signature_script->get_script;
 	$serialized .= pack_varint(length $script);
 	$serialized .= $script;
 
