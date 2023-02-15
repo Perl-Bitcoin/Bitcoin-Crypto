@@ -13,7 +13,7 @@ use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Helpers qw(pack_varint);
-use Bitcoin::Crypto::Types qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveOrZeroInt Enum);
+use Bitcoin::Crypto::Types qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveOrZeroInt Enum BitcoinScript);
 
 use constant SIGHASH_VALUES => {
 	ALL => 0x01,
@@ -228,24 +228,25 @@ signature_for get_digest => (
 	method => Object,
 	positional => [
 		PositiveOrZeroInt,
+		BitcoinScript,
 		Enum[qw(ALL NONE SINGLE ANYONECANPAY)], { default => 'ALL' }
 	],
 );
 
 sub get_digest
 {
-	my ($self, $input_number, $sighash) = @_;
+	my ($self, $input_number, $input_script, $sighash) = @_;
 
 	# Generate input sigs for signing
 	my @inputs = map { "\x00" } @{$self->inputs};
-	@inputs[$input_number] = ''; # TODO handle last output script somehow
+	$inputs[$input_number] = $input_script->to_serialized;
 
 	my $serialized = $self->to_serialized(input_sigs => \@inputs);
 	$serialized .= pack 'V', SIGHASH_VALUES->{$sighash};
 
 	# TODO: handle sighashes other than ALL
 
-	return hash256($serialized);
+	return $serialized;
 }
 
 signature_for fee => (

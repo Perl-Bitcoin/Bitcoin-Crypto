@@ -49,6 +49,7 @@ sub pad_hex
 {
 	my ($hex) = @_;
 	$hex =~ s/\A0x//;
+	$hex =~ tr/0-9a-fA-F//cd;
 	return '0' x (length($hex) % 2) . $hex;
 }
 

@@ -49,5 +49,39 @@ subtest 'should serialize transactions' => sub {
 	is $tx->weight, '573', 'WU weight ok';
 };
 
+subtest 'should digest transactions (old OP_CHECKSIG style)' => sub {
+	my $tx = btc_transaction->new;
+	my $tx_hash = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16';
+	my $tx_digest = '0100000001c997a5e56e104102fa209c6a852dd90660a20b2d9c352423edce25857fcd37040000000043410411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3acffffffff0200ca9a3b00000000434104ae1a62fe09c5f51b13905f07f06b99a2f7159b2225f374cd378d71302fa28414e7aab37397f554a7df5f142c21c1b7303b8a0626f1baded5c72a704f7e6cd84cac00286bee0000000043410411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3ac0000000001000000';
+
+	my $previous_script = btc_script->new
+			->push([hex => '0411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3'])
+			->add('OP_CHECKSIG');
+
+	$tx->add_input(
+		transaction_hash => [hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'],
+		transaction_output_index => 0,
+		signature_script => btc_script->new
+			->push([hex => '304402204e45e16932b8af514961a1d3a1a25fdf3f4f7732e9d624c6c61548ab5fb8cd410220181522ec8eca07de4860a4acdd12909d831cc56cbbac4622082221a8768d1d0901']),
+	);
+
+	$tx->add_output(
+		value => 10_00000000,
+		locking_script => btc_script->new
+			->push([hex => '04ae1a62fe09c5f51b13905f07f06b99a2f7159b2225f374cd378d71302fa28414e7aab37397f554a7df5f142c21c1b7303b8a0626f1baded5c72a704f7e6cd84c'])
+			->add('OP_CHECKSIG')
+	);
+
+	$tx->add_output(
+		value => 40_00000000,
+		locking_script => btc_script->new
+			->push([hex => '0411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3'])
+			->add('OP_CHECKSIG')
+	);
+
+	is to_format [hex => $tx->get_hash], $tx_hash, 'hash ok';
+	is to_format [hex => $tx->get_digest(0 => $previous_script)], $tx_digest, 'digest ok';
+};
+
 done_testing;
 

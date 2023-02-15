@@ -66,6 +66,15 @@ $bytestr->coercion->add_type_coercions(
 	$formatdesc, q{ Bitcoin::Crypto::Helpers::parse_formatdesc($_) }
 );
 
+my $script = __PACKAGE__->add_type(
+	name => 'BitcoinScript',
+	parent => InstanceOf->of('Bitcoin::Crypto::Script'),
+);
+
+$script->coercion->add_type_coercions(
+	$bytestr->coercibles, q{ Bitcoin::Crypto::Script->from_serialized($_) }
+);
+
 __PACKAGE__->add_type(
 	name => 'IntMaxBits',
 	parent => PositiveOrZeroInt,
