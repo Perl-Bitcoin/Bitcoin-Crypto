@@ -95,6 +95,14 @@ sub as_string
 
 {
 
+	package Bitcoin::Crypto::Exception::UTXO;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
+
+}
+
+{
+
 	package Bitcoin::Crypto::Exception::Sign;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';

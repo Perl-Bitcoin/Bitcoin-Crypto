@@ -92,13 +92,13 @@ sub add_output
 
 signature_for to_serialized => (
 	method => Object,
-	named => [input_sigs => ArrayRef[ByteStr], { optional => 1 }],
+	named => [sign_no => PositiveOrZeroInt, { optional => 1 }],
 	named_to_list => 1,
 );
 
 sub to_serialized
 {
-	my ($self, $input_sigs) = @_;
+	my ($self, $sign_no) = @_;
 
 	# transaction should be serialized as follows:
 	# - version, 4 bytes
@@ -118,8 +118,8 @@ sub to_serialized
 	) if @inputs == 0;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
-		'given input sigs must have the same number of inputs'
-	) if $input_sigs && @inputs != @{$input_sigs};
+		"can't find input with index $sign_no"
+	) if defined $sign_no && !$inputs[$sign_no];
 
 	# TODO: each input should have its own witness?
 
@@ -127,7 +127,7 @@ sub to_serialized
 	foreach my $item_no (0 .. $#inputs) {
 		my $item = $inputs[$item_no];
 		# TODO: signature script should be empty if there's witness data?
-		$serialized .= $item->to_serialized($input_sigs ? (input_sig => $input_sigs->[$item_no]): ());
+		$serialized .= $item->to_serialized(defined $sign_no ? (for_signing => $sign_no == $item_no) : ());
 	}
 
 	# Process outputs
@@ -179,6 +179,7 @@ sub to_serialized_witness
 	) if @inputs == 0;
 
 	# TODO: each input should have its own witness?
+	# TODO: coinbase transaction may have no inputs!
 
 	$serialized .= pack_varint(scalar @inputs);
 	foreach my $item (@inputs) {
@@ -228,20 +229,15 @@ signature_for get_digest => (
 	method => Object,
 	positional => [
 		PositiveOrZeroInt,
-		BitcoinScript,
 		Enum[qw(ALL NONE SINGLE ANYONECANPAY)], { default => 'ALL' }
 	],
 );
 
 sub get_digest
 {
-	my ($self, $input_number, $input_script, $sighash) = @_;
+	my ($self, $input_number, $sighash) = @_;
 
-	# Generate input sigs for signing
-	my @inputs = map { "\x00" } @{$self->inputs};
-	$inputs[$input_number] = $input_script->to_serialized;
-
-	my $serialized = $self->to_serialized(input_sigs => \@inputs);
+	my $serialized = $self->to_serialized(sign_no => $input_number);
 	$serialized .= pack 'V', SIGHASH_VALUES->{$sighash};
 
 	# TODO: handle sighashes other than ALL
@@ -260,11 +256,7 @@ sub fee
 
 	my $input_value = 0;
 	foreach my $input (@{$self->inputs}) {
-		Bitcoin::Crypto::Exception::Transaction->raise(
-			'one of the inputs has no value - cannot calculate fee'
-		) unless $input->has_value;
-
-		$input_value += $input->value;
+		$input_value += $input->utxo->output->value;
 	}
 
 	my $output_value = 0;

@@ -9,18 +9,13 @@ use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Script;
+use Bitcoin::Crypto::Transaction::UTXO;
 use Bitcoin::Crypto::Helpers qw(pack_varint);
-use Bitcoin::Crypto::Types qw(Str IntMaxBits Int ByteStr InstanceOf Object BitcoinScript);
+use Bitcoin::Crypto::Types qw(IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined);
 
-has param 'transaction_hash' => (
-	coerce => ByteStr->create_child_type(
-		constraint => q{ length $_ == 32},
-		coercion => 1
-	),
-);
-
-has param 'transaction_output_index' => (
-	isa => IntMaxBits[32],
+has param 'utxo' => (
+	coerce => (InstanceOf['Bitcoin::Crypto::Transaction::UTXO'])
+		->plus_coercions(ArrayRef, q{ Bitcoin::Crypto::Transaction::UTXO->get(@$_) })
 );
 
 has param 'signature_script' => (
@@ -28,26 +23,20 @@ has param 'signature_script' => (
 	coerce => BitcoinScript,
 );
 
-has param 'sequence_number' => (
+has param 'sequence_no' => (
 	isa => IntMaxBits[32],
 	default => 0xffffffff,
 );
 
-has option 'value' => (
-	coerce => (InstanceOf['Math::BigInt'])
-		->where(q{$_ > 0})
-		->plus_coercions(Int, q{ Math::BigInt->new($_) }),
-);
-
 signature_for to_serialized => (
 	method => Object,
-	named => [input_sig => ByteStr, { optional => 1 }],
+	named => [for_signing => Defined & Bool, { optional => 1 }],
 	named_to_list => 1,
 );
 
 sub to_serialized
 {
-	my ($self, $input_sig) = @_;
+	my ($self, $for_signing) = @_;
 
 	# input should be serialized as follows:
 	# - transaction hash, 32 bytes
@@ -57,15 +46,20 @@ sub to_serialized
 	# - sequence number, 4 bytes
 	my $serialized = '';
 
-	$serialized .= scalar reverse $self->transaction_hash;
+	my $utxo = $self->utxo;
+	$serialized .= scalar reverse $utxo->txid;
+	$serialized .= pack 'V', $utxo->output_index;
 
-	$serialized .= pack 'V', $self->transaction_output_index;
+	my $script = defined $for_signing
+		? $for_signing
+			? $utxo->output->locking_script->to_serialized
+			: "\x00"
+		: $self->signature_script->to_serialized;
 
-	my $script = $input_sig // $self->signature_script->get_script;
 	$serialized .= pack_varint(length $script);
 	$serialized .= $script;
 
-	$serialized .= pack 'V', $self->sequence_number;
+	$serialized .= pack 'V', $self->sequence_no;
 
 	return $serialized;
 }
