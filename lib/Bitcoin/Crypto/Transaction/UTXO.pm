@@ -44,6 +44,19 @@ sub register
 	return $self;
 }
 
+signature_for unregister => (
+	method => Object,
+	positional => [],
+);
+
+sub unregister
+{
+	my ($self) = @_;
+
+	delete $utxos{$self->txid}[$self->output_index];
+	return $self;
+}
+
 signature_for get => (
 	method => Str,
 	positional => [ByteStr, PositiveOrZeroInt],

@@ -11,6 +11,7 @@ use Type::Params -sigs;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
+use Bitcoin::Crypto::Transaction::UTXO;
 use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Helpers qw(pack_varint);
 use Bitcoin::Crypto::Types qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveOrZeroInt Enum BitcoinScript);
@@ -313,6 +314,32 @@ sub weight
 	my $witness = $with_witness - $base;
 
 	return $base * 4 + $witness;
+}
+
+signature_for update_utxos => (
+	method => Object,
+	positional => [],
+);
+
+sub update_utxos
+{
+	my ($self) = @_;
+
+	foreach my $input (@{$self->inputs}) {
+		$input->utxo->unregister;
+	}
+
+	foreach my $output_index (0 .. $#{$self->outputs}) {
+		my $output = $self->outputs->[$output_index];
+
+		Bitcoin::Crypto::Transaction::UTXO->new(
+			txid => $self->get_hash,
+			output_index => $output_index,
+			output => $output,
+		)->register;
+	}
+
+	return $self;
 }
 
 1;
