@@ -11,13 +11,13 @@ use Scalar::Util qw(blessed);
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Base58 qw(encode_base58check);
-use Bitcoin::Crypto::Bech32 qw(encode_segwit);
+use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
+use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(carp_once);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(ArrayRef Str Object ByteStr Any);
+use Bitcoin::Crypto::Types qw(ArrayRef Str Object ByteStr Any ScriptType);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
 
@@ -29,7 +29,86 @@ has field '_serialized' => (
 	default => '',
 );
 
+has option 'type' => (
+	isa => ScriptType,
+);
+
 with qw(Bitcoin::Crypto::Role::Network);
+
+sub _build
+{
+	my ($self, $address) = @_;
+	my $type = $self->type;
+
+	state $types = do {
+		my %map = (
+			P2PK => sub {
+				my ($self, $address) = @_;
+
+				$self
+					->push($address)
+					->add('OP_CHECKSIG')
+			},
+
+			P2PKH => sub {
+				my ($self, $address) = @_;
+
+				$self
+					->add('OP_DUP')
+					->add('OP_HASH160')
+					->push(substr decode_base58check($address), 1)
+					->add('OP_EQUALVERIFY')
+					->add('OP_CHECKSIG')
+			},
+
+			P2SH => sub {
+				my ($self, $address) = @_;
+
+				$self
+					->add('OP_HASH160')
+					->push(substr decode_base58check($address), 1)
+					->add('OP_EQUAL')
+			},
+
+			P2WPKH => sub {
+				my ($self, $address) = @_;
+
+				my $data = decode_segwit $address;
+				my $version = substr $data, 0, 1, '';
+
+				Bitcoin::Crypto::Exception::SegwitProgram->raise(
+					'P2WPKH script only handles witness version 0'
+				) unless $version eq chr 0;
+
+				$self
+					->add('OP_0')
+					->push($data)
+			},
+		);
+
+		# P2WSH is the same as P2WPKH, but the data length is different
+		# (we don't check data here anyway)
+		$map{P2WSH} = $map{P2WPKH};
+
+		\%map;
+	};
+
+	$types->{$type}->($self, $address);
+	return;
+}
+
+sub BUILD
+{
+	my ($self, $args) = @_;
+
+	if ($self->has_type) {
+		Bitcoin::Crypto::Exception::ScriptPush->raise(
+			'Script with a "type" also requires an "address"'
+		) unless $args->{address};
+
+		$self->_build($args->{address});
+	}
+}
 
 signature_for operations => (
 	method => Object,

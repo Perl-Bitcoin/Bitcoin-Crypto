@@ -17,7 +17,7 @@ subtest 'should serialize transactions' => sub {
 		txid => [hex => 'a34b7271d2add50bb6eaeaaaffaebe33bf4e3fe0454ca5d46ab64e6dbbbf1174'],
 		output_index => 0,
 		output => {
-			locking_script => [hex => '0014f1bdcec605558e8e919f3fd7f013613269113fd4'],
+			locking_script => [P2WPKH => 'bc1q7x7ua3s92k8gayvl8ltlqympxf53z075z486r2'],
 			value => 198959,
 		},
 	)->register;
@@ -32,19 +32,12 @@ subtest 'should serialize transactions' => sub {
 
 	$tx->add_output(
 		value => 194670,
-		locking_script => btc_script->new
-			->add('OP_DUP')
-			->add('OP_HASH160')
-			->push([hex => 'cf0d26e32df5b94905a7f372e4db12132be29f8e'])
-			->add('OP_EQUALVERIFY')
-			->add('OP_CHECKSIG')
+		locking_script => [P2PKH => '1KsndX7cJH645NfWDqDYvkBWzJV6vKSDTB'],
 	);
 
 	$tx->add_output(
 		value => 3860,
-		locking_script => btc_script->new
-			->push(chr 0)
-			->push([hex => '28487e88a2870efdd700526a8904cfd78293a678'])
+		locking_script => [P2WPKH => 'bc1q9py8az9zsu80m4cq2f4gjpx067pf8fnckxdxhd'],
 	);
 
 	$tx->add_witness(
@@ -67,9 +60,7 @@ subtest 'should digest transactions (old OP_CHECKSIG style)' => sub {
 		txid => [hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'],
 		output_index => 0,
 		output => {
-			locking_script => btc_script->new
-				->push([hex => '0411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3'])
-				->add('OP_CHECKSIG'),
+			locking_script => [P2PK => [hex => '0411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3']],
 			value => 50_00000000,
 		},
 	)->register;
@@ -85,16 +76,12 @@ subtest 'should digest transactions (old OP_CHECKSIG style)' => sub {
 
 	$tx->add_output(
 		value => 10_00000000,
-		locking_script => btc_script->new
-			->push([hex => '04ae1a62fe09c5f51b13905f07f06b99a2f7159b2225f374cd378d71302fa28414e7aab37397f554a7df5f142c21c1b7303b8a0626f1baded5c72a704f7e6cd84c'])
-			->add('OP_CHECKSIG')
+		locking_script => [P2PK => [hex => '04ae1a62fe09c5f51b13905f07f06b99a2f7159b2225f374cd378d71302fa28414e7aab37397f554a7df5f142c21c1b7303b8a0626f1baded5c72a704f7e6cd84c']],
 	);
 
 	$tx->add_output(
 		value => 40_00000000,
-		locking_script => btc_script->new
-			->push([hex => '0411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3'])
-			->add('OP_CHECKSIG')
+		locking_script => [P2PK => [hex => '0411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3']],
 	);
 
 	is to_format [hex => $tx->get_hash], $expected_txid, 'hash ok';

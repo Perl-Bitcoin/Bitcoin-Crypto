@@ -66,13 +66,27 @@ $bytestr->coercion->add_type_coercions(
 	$formatdesc, q{ Bitcoin::Crypto::Helpers::parse_formatdesc($_) }
 );
 
+my $scripttype = __PACKAGE__->add_type(
+	name => 'ScriptType',
+	parent => Enum->of(qw(P2PK P2PKH P2SH P2WPKH P2WSH))
+);
+
+my $scriptdesc = __PACKAGE__->add_type(
+	name => 'ScriptDesc',
+	parent => Tuple->of(
+		$scripttype,
+		Defined,
+	)
+);
+
 my $script = __PACKAGE__->add_type(
 	name => 'BitcoinScript',
 	parent => InstanceOf->of('Bitcoin::Crypto::Script'),
 );
 
 $script->coercion->add_type_coercions(
-	$bytestr->coercibles, q{ Bitcoin::Crypto::Script->from_serialized($_) }
+	$scriptdesc, q{ Bitcoin::Crypto::Script->new(type => $_->[0], address => $_->[1]) },
+	$bytestr->coercibles, q{ Bitcoin::Crypto::Script->from_serialized($_) },
 );
 
 __PACKAGE__->add_type(
