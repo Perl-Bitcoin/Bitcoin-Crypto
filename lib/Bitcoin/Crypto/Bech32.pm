@@ -105,7 +105,7 @@ sub verify_checksum_bech32m
 }
 
 signature_for split_bech32 => (
-	positional => [ByteStr],
+	positional => [Str],
 );
 
 sub split_bech32
