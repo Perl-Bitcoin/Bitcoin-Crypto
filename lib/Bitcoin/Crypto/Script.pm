@@ -41,7 +41,26 @@ sub _build
 	my $type = $self->type;
 
 	state $types = do {
-		my %map = (
+		my $witness = sub {
+				my ($self, $address, $name, $version, $length) = @_;
+
+				my $data = decode_segwit $address;
+				my $this_version = substr $data, 0, 1, '';
+
+				Bitcoin::Crypto::Exception::SegwitProgram->raise(
+					"$name script only handles witness version $version"
+				) unless $this_version eq chr $version;
+
+				Bitcoin::Crypto::Exception::SegwitProgram->raise(
+					"$name script should contain $length bytes"
+				) unless length $data eq $length;
+
+				$self
+					->push(chr $version)
+					->push($data)
+		};
+
+		{
 			P2PK => sub {
 				my ($self, $address) = @_;
 
@@ -71,26 +90,13 @@ sub _build
 			},
 
 			P2WPKH => sub {
-				my ($self, $address) = @_;
-
-				my $data = decode_segwit $address;
-				my $version = substr $data, 0, 1, '';
-
-				Bitcoin::Crypto::Exception::SegwitProgram->raise(
-					'P2WPKH script only handles witness version 0'
-				) unless $version eq chr 0;
-
-				$self
-					->add('OP_0')
-					->push($data)
+				$witness->(@_, 'P2WPKH', 0, 20);
 			},
-		);
 
-		# P2WSH is the same as P2WPKH, but the data length is different
-		# (we don't check data here anyway)
-		$map{P2WSH} = $map{P2WPKH};
-
-		\%map;
+			P2WSH => sub {
+				$witness->(@_, 'P2WSH', 0, 32);
+			},
+		}
 	};
 
 	$types->{$type}->($self, $address);
