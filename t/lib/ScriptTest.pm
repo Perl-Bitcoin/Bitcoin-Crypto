@@ -37,7 +37,10 @@ sub stack_is
 	$stack_aref = [map { unpack 'H*', $_ } @$stack_aref];
 
 	my $out_stack;
-	if ($script->isa('Bitcoin::Crypto::Script')) {
+	if (ref $script eq 'CODE') {
+		$out_stack = [map { unpack 'H*', $_ } @{$script->()}];
+	}
+	elsif ($script->isa('Bitcoin::Crypto::Script')) {
 		$out_stack = [map { unpack 'H*', $_ } @{$script->run}];
 	}
 	elsif ($script->isa('Bitcoin::Crypto::Script::Runner')) {

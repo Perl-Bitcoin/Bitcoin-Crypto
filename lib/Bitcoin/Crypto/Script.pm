@@ -17,7 +17,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(carp_once);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(ArrayRef Str Object ByteStr Any ScriptType);
+use Bitcoin::Crypto::Types qw(ArrayRef HashRef Str Object ByteStr Any ScriptType);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
 
@@ -410,14 +410,14 @@ sub from_serialized
 
 signature_for run => (
 	method => Object,
-	positional => [],
+	positional => [HashRef, { slurpy => 1 }],
 );
 
 sub run
 {
-	my ($self) = @_;
+	my ($self, $runner_args) = @_;
 
-	my $runner = Bitcoin::Crypto::Script::Runner->new;
+	my $runner = Bitcoin::Crypto::Script::Runner->new($runner_args);
 	return $runner->execute($self)->stack;
 }
 
@@ -633,12 +633,13 @@ Returns string containing Bech32 encoded witness program (p2wsh address)
 
 =head2 run
 
-	my $result_stack = $object->run;
+	my $result_stack = $object->run(%runner_args);
 
 Executes the script and returns the resulting script stack.
 
 This is a convenience method which constructs runner instance in the
-background. See L<Bitcoin::Crypto::Script::Runner> for details and advanced usage.
+background. C<%runner_args> are used in runner object construction. See
+L<Bitcoin::Crypto::Script::Runner> for details and advanced usage.
 
 =head1 EXCEPTIONS
 

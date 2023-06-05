@@ -35,6 +35,10 @@ has field 'operations' => (
 	writer => -hidden,
 );
 
+has option 'transaction' => (
+	isa => InstanceOf['Bitcoin::Crypto::Transaction'],
+);
+
 sub to_int
 {
 	my ($self, $bytes) = @_;
@@ -222,7 +226,18 @@ and returns its stack.
 
 =head2 Attributes
 
+=head3 transaction
+
+Instance of L<Bitcoin::Crypto::Transaction>. It is optional, but some opcodes
+will refuse to function without it.
+
+I<predicate:> C<has_transaction>
+
+I<writer:> C<set_transaction>
+
 =head3 stack
+
+B<Not assignable in the constructor>
 
 Array reference - the stack which is used during script execution. Last item in
 this array is the stack top. Use C<< $runner->stack->[-1] >> to examine the stack top.
@@ -233,19 +248,34 @@ script interpreter does it.
 
 =head3 alt_stack
 
+B<Not assignable in the constructor>
+
 Array reference - alt stack, used by C<OP_TOALTSTACK> and C<OP_FROMALTSTACK>.
 
 =head3 operations
+
+B<Not assignable in the constructor>
 
 Array reference - An array of operations to be executed. Same as
 L<Bitcoin::Crypto::Script/operations> and automatically obtained by calling it.
 
 =head3 pos
 
+B<Not assignable in the constructor>
+
 Positive integer - the position of the operation to be run in the next step
 (from L</operations>).
 
 =head2 Methods
+
+=head3 new
+
+	$runner = Bitcoin::Crypto::Script::Runner->new(%data)
+
+This is a standard Moo constructor, which can be used to create the object. It
+takes arguments specified in L</Attributes>.
+
+Returns class instance.
 
 =head3 execute
 
@@ -323,8 +353,7 @@ These methods encode and decode booleans in format which is used on L</stack>.
 
 =head1 CAVEATS
 
-Not all opcodes are implemented. An example of unimplemented opcode is
-C<OP_CHECKLOCKTIMEVERIFY>, which would require access to transaction data.
+Not all opcodes are implemented. (TODO: which ones?)
 
 OP_0 and OP_FALSE push byte vector C<0x00> to the stack, not null-size byte
 vector.

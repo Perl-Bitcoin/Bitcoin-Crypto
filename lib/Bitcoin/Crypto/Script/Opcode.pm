@@ -707,9 +707,17 @@ my %opcodes = (
 	OP_CHECKLOCKTIMEVERFIY => {
 		code => "\xb1",
 
-		# runner => sub {
-		# 	my $runner = shift;
-		# },
+		runner => sub {
+			my $runner = shift;
+			die unless $runner->has_transaction;
+
+			my $stack = $runner->stack;
+			die unless @$stack >= 1;
+
+			die if $runner->to_int($stack->[-1]) > $runner->transaction->locktime;
+
+			pop @$stack;
+		},
 	},
 	OP_CHECKSEQUENCEVERIFY => {
 		code => "\xb2",
