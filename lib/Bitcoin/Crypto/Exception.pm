@@ -297,32 +297,44 @@ C<Bitcoin::Crypto::Exception::Sign> for errors in signature generation). Search
 individual Bitcoin::Crypto packages documentation for a list the exception
 classes to check for extra control flow when needed.
 
-=head1 OBJECT INTERFACE
+=head1 INTERFACE
 
-=head2 message
+=head2 Attributes
 
-	$error_string = $object->message()
+=head3 message
 
-Returns the wrapped error message (a string). Note: this is the raw message,
+The wrapped error message (a string). Note: this is the raw message,
 not the serialized form like in L</as_string>.
 
-=head2 caller
+=head3 caller
 
-	$caller_aref = $object->caller()
+B<Not assignable in the constructor>
 
-Returns an array ref containing: package name, file name and line number (same
+An array ref containing: package name, file name and line number (same
 as C<[caller()]> perl expression). It will point to the first place from
 outside Bitcoin::Crypto which called it. May be undefined if it cannot find a
 calling source.
 
-=head2 as_string
+=head2 Methods
+
+=head3 new
+
+	$runner = Bitcoin::Crypto::Exception->new(%data)
+
+This is a standard Moo constructor, which can be used to create the object. It
+takes arguments specified in L</Attributes>. For exceptions, it's probably
+better to use L</raise> instead.
+
+Returns class instance.
+
+=head3 as_string
 
 	$error_info = $object->as_string()
 
 Stringifies the error, using the L</message> method, L</caller> method and some
 extra text for context.
 
-=head2 raise
+=head3 raise
 
 	$object->raise()
 	$class->raise($message)
@@ -338,11 +350,11 @@ Creates a new instance and throws it. If used on an object, throws it right away
 		$exception->raise;
 	}
 
-=head2 throw
+=head3 throw
 
 An alias to C<raise>.
 
-=head2 trap_into
+=head3 trap_into
 
 	$sub_result = $class->trap_into($sub, $msg_sub = undef)
 

@@ -178,7 +178,7 @@ Returns a new extended key instance - result of a derivation.
 A helper that constructs a L<Bitcoin::Crypto::BIP44> path from C<%data> and
 calls L</derive_key> with it. In extended public keys, bip44 is always
 constructed with C<public> setting - it will always derive starting from
-account, effectively only using C<change> and C<index> properties.
+account, effectively only using C<change> and C<index> attributes.
 
 =head2 get_fingerprint
 

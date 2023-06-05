@@ -332,7 +332,7 @@ Returns a new extended key instance - result of a derivation.
 
 	$derived_key_object = $object->derive_key_bip44(%data)
 
-A helper that constructs a L<Bitcoin::Crypto::BIP44> path from C<%data> and calls L</derive_key> with it. Refer to L<Bitcoin::Crypto::BIP44/PROPERTIES> to see what you can include in C<%data>.
+A helper that constructs a L<Bitcoin::Crypto::BIP44> path from C<%data> and calls L</derive_key> with it. Refer to L<Bitcoin::Crypto::BIP44/Attributes> to see what you can include in C<%data>.
 
 Using this method instead of specifying BIP44 path yourself will make sure all features of BIP44 derivation will be enabled, like different prefixes for extended keys (C<xprv> / C<yprv> / C<zprv>) and address type generation checking.
 

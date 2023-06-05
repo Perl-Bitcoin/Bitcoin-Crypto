@@ -146,21 +146,23 @@ L<Bitcoin::Crypto::Key::ExtPrivate/derive_key> method. In return, any key
 object can be used as C<coin_type> in L</new>, which will automatically fetch
 coin_type number from the key's current network.
 
-=head1 PROPERTIES
+=head1 INTERFACE
+
+=head2 Attributes
 
 Refer to L<https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki> for
-details of those properties.
+details of those attributes.
 
-All of these properties can be fetched using a method with the same name.
+All of these attributes can be fetched using a method with the same name.
 
-=head2 purpose
+=head3 purpose
 
 Purpose contains the BIP document number that you wish to use. Can be either
 C<44>, C<49> or C<84>.
 
 By default, number C<44> will be used.
 
-=head2 coin_type
+=head3 coin_type
 
 Needs to be a non-negative integer number. It should be less than C<2^31> (but
 will not check for that).
@@ -174,28 +176,28 @@ This value should be in line with the table of BIP44 constants mentioned above.
 By default, the value defined in the current default network will be used: see
 L<Bitcoin::Crypto::Network>.
 
-=head2 account
+=head3 account
 
 Needs to be a non-negative integer number. It should be less than C<2^31> (but
 will not check for that).
 
 By default, the value C<0> is used.
 
-=head2 change
+=head3 change
 
 Needs to be a number C<1> (for addresses to be used as change outputs) or C<0>
 (for addresses that are to be used only internally).
 
 By default, the value C<0> is used.
 
-=head2 index
+=head3 index
 
 Needs to be a non-negative integer number. It should be less than C<2^31> (but
 will not check for that).
 
 By default, the value C<0> is used.
 
-=head2 public
+=head3 public
 
 Use C<public> if you want to derive a public extended key. This is a must when
 deriving BIP44 from extended public keys.
@@ -203,7 +205,7 @@ deriving BIP44 from extended public keys.
 Since it isn't possible to derive full BIP44 path with public derivation
 scheme, this will assume L</get_from_account>.
 
-=head2 get_account
+=head3 get_account
 
 If passed C<1>, the resulting derivation path will only go as far as to the
 account part. L</index> and L</change> values will be ignored. Use this to get
@@ -211,7 +213,7 @@ extended key for the account.
 
 By default, you will get the full derivation path.
 
-=head2 get_from_account
+=head3 get_from_account
 
 If passed C<1>, the resulting derivation path will start after the account
 part. L</purpose>, L</coin_type> and L</account> values will be ignored. Use
@@ -219,18 +221,18 @@ this to further derive key that was only derived up to the account part.
 
 By default, you will get the full derivation path.
 
-=head1 METHODS
+=head2 Methods
 
-=head2 new
+=head3 new
 
-	$key_object = $class->new(%data)
+	$bip_object = $class->new(%data)
 
 This is a standard Moo constructor, which can be used to create the object. It
-takes arguments specified in L</PROPERTIES>.
+takes arguments specified in L</Attributes>.
 
 Returns class instance.
 
-=head2 as_string
+=head3 as_string
 
 	$path = $object->as_string()
 
