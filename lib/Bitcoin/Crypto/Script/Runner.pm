@@ -168,13 +168,11 @@ sub step
 
 	my ($op, @args) = @{$self->operations->[$pos]};
 
-	Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(
+	Bitcoin::Crypto::Exception::ScriptRuntime->trap_foreign_into(
 		sub {
 			$op->execute($self, @args);
 		},
-		sub {
-			"error at pos $pos (" . $op->name . "): $_";
-		}
+		"error at pos $pos (" . $op->name . ")"
 	);
 
 	$self->_advance;

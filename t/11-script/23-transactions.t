@@ -19,35 +19,33 @@ my @cases = (
 		undef,
 		['5553', 'OP_CHECKLOCKTIMEVERFIY'],
 		[],
-		0,
+		'Bitcoin::Crypto::Exception::Transaction',
 	],
 	[
 		'locktime - zero',
 		{locktime => 0},
 		['5553', 'OP_CHECKLOCKTIMEVERFIY'],
 		[],
-		0,
+		'Bitcoin::Crypto::Exception::ScriptInvalid',
 	],
 	[
 		'locktime - satisfied',
 		{locktime => 21333},
 		['5553', 'OP_CHECKLOCKTIMEVERFIY'],
 		[],
-		1,
+		undef,
 	],
 	[
 		'locktime - unsatisfied',
 		{locktime => 21332},
 		['5553', 'OP_CHECKLOCKTIMEVERFIY'],
 		[],
-		0,
+		'Bitcoin::Crypto::Exception::ScriptInvalid',
 	],
 );
 
 foreach my $case (@cases) {
-	my ($hash_name, $args, $ops, $expected_stack, $lives) = @$case;
-	$lives //= 1;
-	$args //= {};
+	my ($hash_name, $args, $ops, $expected_stack, $exception) = @$case;
 
 	subtest "testing $hash_name" => sub {
 		my $script = Bitcoin::Crypto::Script->new;
@@ -57,14 +55,20 @@ foreach my $case (@cases) {
 		ops_are($script, $ops);
 
 		try {
-			stack_is(sub { $script->run(transaction => btc_transaction->new($args)) }, $expected_stack);
+			stack_is(sub { $script->run($args ? (transaction => btc_transaction->new($args)) : ()) }, $expected_stack);
+			fail "should've died" if $exception;
 		}
 		catch {
-			note "died: $_";
-			$alive = 0;
-		};
+			my $ex = $_;
 
-		ok !!$lives eq !!$alive, "should've " . ($lives ? 'lived' : 'died');
+			if ($exception) {
+				isa_ok $ex, $exception;
+			}
+			else {
+				note "died: $ex";
+				fail "should've lived";
+			}
+		};
 	};
 }
 

@@ -7,6 +7,7 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 use Try::Tiny;
+use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Types qw(Str Maybe ArrayRef);
 
@@ -18,6 +19,7 @@ use overload
 
 has param 'message' => (
 	isa => Str,
+	writer => -hidden,
 );
 
 has field 'caller' => (
@@ -51,17 +53,40 @@ sub throw
 
 sub trap_into
 {
-	my ($class, $sub, $msg_sub) = @_;
+	my ($class, $sub, $prefix) = @_;
 
 	my $ret;
 	try {
 		$ret = $sub->();
 	}
 	catch {
-		$class->raise($msg_sub->())
-			if $msg_sub;
+		my $ex = $_;
+		$class->raise($prefix ? "$prefix: $ex" : "$ex");
+	};
 
-		$class->raise("$_");
+	return $ret;
+}
+
+sub trap_foreign_into
+{
+	my ($class, $sub, $prefix) = @_;
+
+	my $ret;
+	try {
+		$ret = $sub->();
+	}
+	catch {
+		my $ex = $_;
+
+		if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception')) {
+			$ex->_set_message("$prefix: " . $ex->message)
+				if $prefix;
+
+			$ex->raise;
+		}
+		else {
+			$class->raise($prefix ? "$prefix: $ex" : "$ex");
+		}
 	};
 
 	return $ret;
@@ -239,16 +264,16 @@ sub as_string
 
 {
 
-	package Bitcoin::Crypto::Exception::ScriptExecute;
+	package Bitcoin::Crypto::Exception::ScriptRuntime;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
-	package Bitcoin::Crypto::Exception::ScriptRuntime;
+	package Bitcoin::Crypto::Exception::ScriptInvalid;
 
-	use parent -norequire, 'Bitcoin::Crypto::Exception';
+	use parent -norequire, 'Bitcoin::Crypto::Exception::ScriptRuntime';
 }
 
 {
@@ -356,7 +381,7 @@ An alias to C<raise>.
 
 =head3 trap_into
 
-	$sub_result = $class->trap_into($sub, $msg_sub = undef)
+	$sub_result = $class->trap_into($sub, $prefix)
 
 Executes the given subroutine in an exception-trapping environment. Any
 exceptions thrown inside the subroutine C<$sub> will be re-thrown after turning
@@ -367,8 +392,13 @@ method returns the value returned by C<$sub>.
 		die 'something went wrong';
 	});
 
-If C<$msg_sub> is specified, it will be called to produce message for the new
-exception. C<$_> will be accessible with the previous exception.
+C<$prefix> can be specified to better format the message.
 
-If not, it will just use previous exception otherwise.
+=head3 trap_foreign_into
+
+	$sub_result = $class->trap_foreign_into($sub, $prefix)
+
+Same as L</trap_into>, but does not modify the thrown exception if it is
+blessed into I<Bitcoin::Crypto::Exception> descendant (other than adding a
+prefix to its message).
 
