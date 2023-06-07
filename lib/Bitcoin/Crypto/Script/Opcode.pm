@@ -12,7 +12,7 @@ use Crypt::Digest::SHA256 qw(sha256);
 use Crypt::Digest::SHA1 qw(sha1);
 
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Str StrLength CodeRef);
+use Bitcoin::Crypto::Types qw(Str StrLength CodeRef Bool);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 
 # some private helpers for opcodes
@@ -20,13 +20,6 @@ use Bitcoin::Crypto::Util qw(hash160 hash256);
 sub stack_error
 {
 	die 'stack error';
-}
-
-sub no_transaction
-{
-	Bitcoin::Crypto::Exception::Transaction->raise(
-		'no transaction is set for the script runner'
-	);
 }
 
 sub invalid_script
@@ -44,6 +37,11 @@ has param 'name' => (
 
 has param 'code' => (
 	isa => StrLength [1, 1],
+);
+
+has param 'needs_transaction' => (
+	isa => Bool,
+	default => 0,
 );
 
 has option 'runner' => (
@@ -727,10 +725,10 @@ my %opcodes = (
 	},
 	OP_CHECKLOCKTIMEVERFIY => {
 		code => "\xb1",
+		needs_transaction => 1,
 
 		runner => sub {
 			my $runner = shift;
-			no_transaction unless $runner->has_transaction;
 
 			my $stack = $runner->stack;
 			stack_error unless @$stack >= 1;

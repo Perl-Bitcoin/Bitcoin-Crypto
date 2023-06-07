@@ -61,24 +61,8 @@ sub trap_into
 	}
 	catch {
 		my $ex = $_;
-		$class->raise($prefix ? "$prefix: $ex" : "$ex");
-	};
 
-	return $ret;
-}
-
-sub trap_foreign_into
-{
-	my ($class, $sub, $prefix) = @_;
-
-	my $ret;
-	try {
-		$ret = $sub->();
-	}
-	catch {
-		my $ex = $_;
-
-		if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception')) {
+		if (blessed $ex && $ex->isa($class)) {
 			$ex->_set_message("$prefix: " . $ex->message)
 				if $prefix;
 
@@ -393,12 +377,4 @@ method returns the value returned by C<$sub>.
 	});
 
 C<$prefix> can be specified to better format the message.
-
-=head3 trap_foreign_into
-
-	$sub_result = $class->trap_foreign_into($sub, $prefix)
-
-Same as L</trap_into>, but does not modify the thrown exception if it is
-blessed into I<Bitcoin::Crypto::Exception> descendant (other than adding a
-prefix to its message).
 

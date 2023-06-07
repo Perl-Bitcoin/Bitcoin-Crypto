@@ -168,7 +168,11 @@ sub step
 
 	my ($op, @args) = @{$self->operations->[$pos]};
 
-	Bitcoin::Crypto::Exception::ScriptRuntime->trap_foreign_into(
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'no transaction is set for the script runner'
+	) if $op->needs_transaction && !$self->has_transaction;
+
+	Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(
 		sub {
 			$op->execute($self, @args);
 		},
