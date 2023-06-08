@@ -694,10 +694,12 @@ my %opcodes = (
 	},
 	OP_CODESEPARATOR => {
 		code => "\xab",
+		needs_transaction => 1,
 
-		# runner => sub {
-		# 	my $runner = shift;
-		# },
+		runner => sub {
+			my $runner = shift;
+			$runner->_register_codeseparator;
+		},
 	},
 	OP_CHECKSIG => {
 		code => "\xac",

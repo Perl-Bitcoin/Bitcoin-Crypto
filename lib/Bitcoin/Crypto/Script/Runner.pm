@@ -15,6 +15,10 @@ use Bitcoin::Crypto::Helpers qw(pad_hex);
 
 use namespace::clean;
 
+has option 'transaction' => (
+	isa => InstanceOf['Bitcoin::Crypto::Transaction'],
+);
+
 has field 'stack' => (
 	isa => ArrayRef [Str],
 	writer => -hidden,
@@ -35,8 +39,9 @@ has field 'operations' => (
 	writer => -hidden,
 );
 
-has option 'transaction' => (
-	isa => InstanceOf['Bitcoin::Crypto::Transaction'],
+has field '_codeseparator' => (
+	isa => PositiveOrZeroInt,
+	writer => 1,
 );
 
 sub to_int
@@ -117,6 +122,14 @@ sub _advance
 	return;
 }
 
+sub _register_codeseparator
+{
+	my ($self) = @_;
+
+	$self->_set_codeseparator($self->pos);
+	return;
+}
+
 signature_for execute => (
 	method => Object,
 	positional => [InstanceOf['Bitcoin::Crypto::Script'], ArrayRef[ByteStr], { default => [] }],
@@ -144,6 +157,7 @@ sub start
 	$self->_set_stack($initial_stack);
 	$self->_set_alt_stack([]);
 	$self->_set_pos(0);
+	$self->_register_codeseparator;
 	$self->_set_operations($script->operations);
 
 	return $self;
