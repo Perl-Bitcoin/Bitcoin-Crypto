@@ -7,6 +7,7 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
+use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
@@ -70,7 +71,8 @@ sub add_input
 {
 	my ($self, $data) = @_;
 
-	$data = Bitcoin::Crypto::Transaction::Input->new($data);
+	$data = Bitcoin::Crypto::Transaction::Input->new($data)
+		unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction::Input');
 
 	push @{$self->inputs}, $data;
 	return $self;
@@ -85,7 +87,8 @@ sub add_output
 {
 	my ($self, $data) = @_;
 
-	$data = Bitcoin::Crypto::Transaction::Output->new($data);
+	$data = Bitcoin::Crypto::Transaction::Output->new($data)
+		unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction::Output');
 
 	push @{$self->outputs}, $data;
 	return $self;
