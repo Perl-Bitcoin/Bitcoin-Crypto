@@ -10,9 +10,6 @@ use ScriptTest;
 use Bitcoin::Crypto qw(btc_transaction);
 use Bitcoin::Crypto::Script;
 
-my $input = 'test input!';
-my $input_hex = unpack 'H*', $input;
-
 my @cases = (
 	[
 		'locktime - no transaction',
