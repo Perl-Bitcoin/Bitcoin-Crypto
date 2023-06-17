@@ -11,6 +11,7 @@ use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 use Crypt::Digest::SHA1 qw(sha1);
 
+use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Str StrLength CodeRef Bool);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
@@ -703,10 +704,24 @@ my %opcodes = (
 	},
 	OP_CHECKSIG => {
 		code => "\xac",
+		needs_transaction => 1,
 
-		# runner => sub {
-		# 	my $runner = shift;
-		# },
+		runner => sub {
+			my $runner = shift;
+
+			my $stack = $runner->stack;
+			stack_error unless @$stack >= 2;
+
+			my $sig = shift @$stack;
+			my $raw_pubkey = shift @$stack;
+			my $hashtype = substr $sig, -1, 1, '';
+
+			my $digest = $runner->transaction->get_digest(unpack 'C', $hashtype);
+			my $pubkey = btc_pub->from_str($raw_pubkey);
+
+			my $result = $pubkey->verify_message($digest, $sig, 'hash256');
+			push @$stack, $runner->from_bool($result);
+		},
 	},
 	OP_CHECKSIGVERIFY => {
 		code => "\xad",
@@ -783,10 +798,10 @@ $opcodes{OP_NUMEQUALVERIFY}{runner} = sub {
 	$opcodes{OP_VERIFY}{runner}->(@_);
 };
 
-# $opcodes{OP_CHECKSIGVERIFY}{runner} = sub {
-# 	$opcodes{OP_CHECKSIG}{runner}->(@_);
-# 	$opcodes{OP_VERIFY}{runner}->(@_);
-# };
+$opcodes{OP_CHECKSIGVERIFY}{runner} = sub {
+	$opcodes{OP_CHECKSIG}{runner}->(@_);
+	$opcodes{OP_VERIFY}{runner}->(@_);
+};
 
 # $opcodes{OP_CHECKMULTISIGVERIFY}{runner} = sub {
 # 	$opcodes{OP_CHECKMULTISIG}{runner}->(@_);

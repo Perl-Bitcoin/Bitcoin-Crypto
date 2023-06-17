@@ -147,21 +147,27 @@ sub operations
 	my %special_ops = (
 		OP_PUSHDATA1 => sub {
 			my ($op) = @_;
-			my $size = unpack 'C', substr $serialized, 0, 1, '';
+			my $raw_size = substr $serialized, 0, 1, '';
+			my $size = unpack 'C', $raw_size;
 
 			push @$op, $data_push->($size);
+			$op->[1] .= $raw_size . $op->[2];
 		},
 		OP_PUSHDATA2 => sub {
 			my ($op) = @_;
-			my $size = unpack 'v', substr $serialized, 0, 2, '';
+			my $raw_size = substr $serialized, 0, 2, '';
+			my $size = unpack 'v', $raw_size;
 
 			push @$op, $data_push->($size);
+			$op->[1] .= $raw_size . $op->[2];
 		},
 		OP_PUSHDATA4 => sub {
 			my ($op) = @_;
-			my $size = unpack 'V', substr $serialized, 0, 4, '';
+			my $raw_size = substr $serialized, 0, 4, '';
+			my $size = unpack 'V', $raw_size;
 
 			push @$op, $data_push->($size);
+			$op->[1] .= $raw_size . $op->[2];
 		},
 		OP_IF => sub {
 			my ($op) = @_;
@@ -182,7 +188,7 @@ sub operations
 
 			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
 				'multiple OP_ELSE for a single OP_IF'
-			) if @{$context{op_if}} > 1;
+			) if @{$context{op_if}} > 2;
 
 			$context{op_else} = $op;
 
@@ -196,7 +202,7 @@ sub operations
 			) if !$context{op_if};
 
 			push @{$context{op_if}}, undef
-				if @{$context{op_if}} == 1;
+				if @{$context{op_if}} == 2;
 			push @{$context{op_if}}, $pos;
 
 			if ($context{op_else}) {
@@ -223,7 +229,7 @@ sub operations
 			try {
 				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code($this_byte);
 				push @debug_ops, $opcode->name;
-				my $to_push = [$opcode];
+				my $to_push = [$opcode, $this_byte];
 
 				if (exists $special_ops{$opcode->name}) {
 					$special_ops{$opcode->name}->($to_push, $position);
@@ -236,15 +242,16 @@ sub operations
 
 				my $opcode_num = ord($this_byte);
 				unless ($opcode_num > 0 && $opcode_num <= 75) {
-					push @debug_ops, pack 'H*', $this_byte;
+					push @debug_ops, unpack 'H*', $this_byte;
 					die $err;
 				}
 
-				# NOTE: compiling this into PUSHDATA1 for now
+				# NOTE: compiling standard data push into PUSHDATA1 for now
 				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name('OP_PUSHDATA1');
 				push @debug_ops, $opcode->name;
 
-				push @ops, [$opcode, $data_push->($opcode_num)];
+				my $raw_data = $data_push->($opcode_num);
+				push @ops, [$opcode, $this_byte . $raw_data, $raw_data];
 			};
 
 			$position += 1;
@@ -542,11 +549,11 @@ See L</from_serialized> if you want to import a serialized script instead.
 Returns an array reference of operations contained in a script:
 
 	[
-		['OP_XXX', ...],
+		[OP_XXX (Object), ...],
 		...
 	]
 
-The first element of each subarray is the op name. The rest of elements are
+The first element of each subarray is the L<Bitcoin::Crypto::Script::Opcode> object. The rest of elements are
 metadata and is dependant on the op type. This metadata is used during script execution.
 
 =head2 add_operation, add
@@ -633,13 +640,12 @@ Returns string containing Bech32 encoded witness program (p2wsh address)
 
 =head2 run
 
-	my $result_stack = $object->run(%runner_args);
+	my $result_stack = $object->run()
 
 Executes the script and returns the resulting script stack.
 
 This is a convenience method which constructs runner instance in the
-background. C<%runner_args> are used in runner object construction. See
-L<Bitcoin::Crypto::Script::Runner> for details and advanced usage.
+background. This helper is only meant to run simple scripts.
 
 =head1 EXCEPTIONS
 

@@ -24,6 +24,7 @@ sub script_fill
 		}
 		else {
 			$script->push(pack 'H*', $op);
+			# hack opcode back into the caller to pass in 'ops_are'
 			$op = 'OP_PUSHDATA1';
 		}
 	}
@@ -36,11 +37,12 @@ sub stack_is
 
 	$stack_aref = [map { unpack 'H*', $_ } @$stack_aref];
 
-	my $out_stack;
 	if (ref $script eq 'CODE') {
-		$out_stack = [map { unpack 'H*', $_ } @{$script->()}];
+		$script = $script->();
 	}
-	elsif ($script->isa('Bitcoin::Crypto::Script')) {
+
+	my $out_stack;
+	if ($script->isa('Bitcoin::Crypto::Script')) {
 		$out_stack = [map { unpack 'H*', $_ } @{$script->run}];
 	}
 	elsif ($script->isa('Bitcoin::Crypto::Script::Runner')) {

@@ -28,6 +28,13 @@ signature_for to_serialized => (
 	positional => [],
 );
 
+sub is_standard
+{
+	my ($self) = @_;
+
+	return $self->locking_script->has_type;
+}
+
 sub to_serialized
 {
 	my ($self) = @_;

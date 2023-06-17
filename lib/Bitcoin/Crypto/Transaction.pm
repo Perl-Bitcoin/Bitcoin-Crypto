@@ -15,7 +15,8 @@ use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Transaction::UTXO;
 use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Helpers qw(pack_varint);
-use Bitcoin::Crypto::Types qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveOrZeroInt Enum BitcoinScript);
+use Bitcoin::Crypto::Types qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveInt PositiveOrZeroInt Enum BitcoinScript);
+use Bitcoin::Crypto::Script::Transaction;
 
 use constant SIGHASH_VALUES => {
 	ALL => 0x01,
@@ -96,13 +97,16 @@ sub add_output
 
 signature_for to_serialized => (
 	method => Object,
-	named => [sign_no => PositiveOrZeroInt, { optional => 1 }],
-	named_to_list => 1,
+	named => [
+		_signing_index => PositiveOrZeroInt, { optional => 1 },
+		_signing_subscript => ByteStr, { optional => 1 },
+	],
 );
 
 sub to_serialized
 {
-	my ($self, $sign_no) = @_;
+	my ($self, $args) = @_;
+	my $sign_no = $args->_signing_index;
 
 	# transaction should be serialized as follows:
 	# - version, 4 bytes
@@ -125,13 +129,24 @@ sub to_serialized
 		"can't find input with index $sign_no"
 	) if defined $sign_no && !$inputs[$sign_no];
 
-	# TODO: each input should have its own witness?
+	my $serialize_args = {};
+	my @input_args = map { +{input => $_, args => $serialize_args} } @inputs;
+
+	if (defined $sign_no) {
+		# replace args reference of the input which we are signing
+		$input_args[$sign_no]{args} = {
+			signing => !!1,
+			defined $args->_signing_subscript ? (signing_subscript => $args->_signing_subscript) : (),
+		};
+
+		# this will change args of every other input (via reference)
+		$serialize_args->{signing} = !!0;
+	}
 
 	$serialized .= pack_varint(scalar @inputs);
-	foreach my $item_no (0 .. $#inputs) {
-		my $item = $inputs[$item_no];
+	foreach my $input (@input_args) {
 		# TODO: signature script should be empty if there's witness data?
-		$serialized .= $item->to_serialized(defined $sign_no ? (for_signing => $sign_no == $item_no) : ());
+		$serialized .= $input->{input}->to_serialized(%{$input->{args}});
 	}
 
 	# Process outputs
@@ -231,19 +246,35 @@ sub get_hash
 
 signature_for get_digest => (
 	method => Object,
-	positional => [
-		PositiveOrZeroInt,
-		Enum[qw(ALL NONE SINGLE ANYONECANPAY)], { default => 'ALL' }
+	named => [
+		signing_index => PositiveOrZeroInt,
+		signing_subscript => ByteStr, { optional => 1 },
+		sighash => PositiveInt, { default => SIGHASH_VALUES->{ALL} }
 	],
 );
 
 sub get_digest
 {
-	my ($self, $input_number, $sighash) = @_;
+	my ($self, $args) = @_;
 
-	my $serialized = $self->to_serialized(sign_no => $input_number);
-	$serialized .= pack 'V', SIGHASH_VALUES->{$sighash};
+	my $serialized = $self->to_serialized(
+		_signing_index => $args->signing_index,
+		defined $args->signing_subscript ? (_signing_subscript => $args->signing_subscript) : (),
+	);
 
+	my $procedure = $args->sighash & 31;
+	my $anyonecanpay = $args->sighash & SIGHASH_VALUES->{ANYONECANPAY};
+
+	if ($procedure == SIGHASH_VALUES->{NONE}) {
+		# TODO
+	}
+	elsif ($procedure == SIGHASH_VALUES->{SINGLE}) {
+		# TODO
+	}
+
+	$serialized .= pack 'V', $args->sighash;
+
+	# TODO: sighash can be both ANYONECANPAY and other value at the same time
 	# TODO: handle sighashes other than ALL
 
 	return $serialized;
@@ -343,6 +374,51 @@ sub update_utxos
 	}
 
 	return $self;
+}
+
+signature_for verify_inputs => (
+	method => Object,
+	positional => [],
+);
+
+sub verify_inputs
+{
+	my ($self) = @_;
+
+	my $script_transaction = Bitcoin::Crypto::Script::Transaction->new(
+		transaction => $self,
+	);
+
+	my $script_runner = Bitcoin::Crypto::Script::Runner->new(
+		transaction => $script_transaction,
+	);
+
+	$script_transaction->set_runner($script_runner);
+
+	my $input_index = 0;
+	foreach my $input (@{$self->inputs}) {
+		$script_transaction->set_input_index($input_index);
+
+		Bitcoin::Crypto::Exception::ScriptInvalid->trap_into(
+			sub {
+				# execute input to get initial stack
+				$script_runner->execute($input->signature_script);
+				my $stack = $script_runner->stack;
+
+				# execute previous output
+				$script_runner->execute($input->utxo->output->locking_script, $stack);
+				my $stack_top = $script_runner->stack->[-1];
+
+				die 'script yielded failure'
+					unless $stack_top && $script_runner->to_bool($stack_top);
+			},
+			"transaction input $input_index verification has failed"
+		);
+
+		$input_index += 1;
+	}
+
+	return;
 }
 
 1;

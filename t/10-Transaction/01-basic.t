@@ -85,7 +85,7 @@ subtest 'should digest transactions (old OP_CHECKSIG style)' => sub {
 	);
 
 	is to_format [hex => $tx->get_hash], $expected_txid, 'hash ok';
-	is to_format [hex => $tx->get_digest(0)], $expected, 'digest ok';
+	is to_format [hex => $tx->get_digest(signing_index => 0)], $expected, 'digest ok';
 };
 
 subtest 'should update UTXOs' => sub {

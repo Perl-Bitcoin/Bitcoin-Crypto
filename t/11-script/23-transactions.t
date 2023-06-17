@@ -9,6 +9,8 @@ use ScriptTest;
 
 use Bitcoin::Crypto qw(btc_transaction);
 use Bitcoin::Crypto::Script;
+use Bitcoin::Crypto::Script::Runner;
+use Bitcoin::Crypto::Script::Transaction;
 
 my @cases = (
 	[
@@ -41,6 +43,7 @@ my @cases = (
 	],
 );
 
+my $runner = Bitcoin::Crypto::Script::Runner->new;
 foreach my $case (@cases) {
 	my ($hash_name, $args, $ops, $expected_stack, $exception) = @$case;
 
@@ -48,11 +51,28 @@ foreach my $case (@cases) {
 		my $script = Bitcoin::Crypto::Script->new;
 		my $alive = 1;
 
+		my $run_sub = sub {
+			if ($args) {
+				my $transaction = btc_transaction->new($args);
+				my $script_transaction = Bitcoin::Crypto::Script::Transaction->new(
+					transaction => $transaction,
+					runner => $runner,
+				);
+
+				$runner->set_transaction($script_transaction);
+			}
+			else {
+				$runner->clear_transaction;
+			}
+
+			return $runner->execute($script);
+		};
+
 		script_fill($script, @$ops);
 		ops_are($script, $ops);
 
 		try {
-			stack_is(sub { $script->run($args ? (transaction => btc_transaction->new($args)) : ()) }, $expected_stack);
+			stack_is($run_sub, $expected_stack);
 			fail "should've died" if $exception;
 		}
 		catch {

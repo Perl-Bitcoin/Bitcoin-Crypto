@@ -8,6 +8,7 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto::Types qw(Object Str ByteStr InstanceOf);
 use Bitcoin::Crypto::Helpers qw(carp_once);
+use Crypt::Digest::SHA256 qw(sha256);
 use Moo::Role;
 
 use constant HAS_DETERMINISTIC_SIGNATURES => eval { require Crypt::Perl } && Crypt::Perl->VERSION gt '0.33';
@@ -38,6 +39,11 @@ sub sign_message
 		'cannot sign a message with a public key'
 	) unless $self->_is_private;
 
+	if ($algorithm eq 'hash256') {
+		$algorithm = 'sha256';
+		$message = sha256($message);
+	}
+
 	return Bitcoin::Crypto::Exception::Sign->trap_into(
 		sub {
 			if (HAS_DETERMINISTIC_SIGNATURES) {
@@ -60,6 +66,11 @@ signature_for verify_message => (
 sub verify_message
 {
 	my ($self, $message, $signature, $algorithm) = @_;
+
+	if ($algorithm eq 'hash256') {
+		$algorithm = 'sha256';
+		$message = sha256($message);
+	}
 
 	return Bitcoin::Crypto::Exception::Verify->trap_into(
 		sub {

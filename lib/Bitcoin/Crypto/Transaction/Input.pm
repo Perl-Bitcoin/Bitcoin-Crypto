@@ -11,7 +11,7 @@ use Type::Params -sigs;
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Transaction::UTXO;
 use Bitcoin::Crypto::Helpers qw(pack_varint);
-use Bitcoin::Crypto::Types qw(IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined);
+use Bitcoin::Crypto::Types qw(ByteStr IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined);
 
 has param 'utxo' => (
 	coerce => (InstanceOf['Bitcoin::Crypto::Transaction::UTXO'])
@@ -30,13 +30,15 @@ has param 'sequence_no' => (
 
 signature_for to_serialized => (
 	method => Object,
-	named => [for_signing => Defined & Bool, { optional => 1 }],
-	named_to_list => 1,
+	named => [
+		signing => Defined & Bool, { optional => 1 },
+		signing_subscript => ByteStr, { optional => 1 },
+	],
 );
 
 sub to_serialized
 {
-	my ($self, $for_signing) = @_;
+	my ($self, $args) = @_;
 
 	# input should be serialized as follows:
 	# - transaction hash, 32 bytes
@@ -50,11 +52,24 @@ sub to_serialized
 	$serialized .= scalar reverse $utxo->txid;
 	$serialized .= pack 'V', $utxo->output_index;
 
-	my $script = defined $for_signing
-		? $for_signing
-			? $utxo->output->locking_script->to_serialized
-			: "\x00"
-		: $self->signature_script->to_serialized;
+	my $script;
+	if (defined $args->signing) {
+		if ($args->signing) {
+			$script = $args->signing_subscript;
+			$script //= $utxo->output->locking_script->to_serialized
+				if $utxo->output->is_standard;
+
+			Bitcoin::Crypto::Exception::Transaction->raise(
+				"can't guess the subscript from a non-standard transaction"
+			) unless defined $script;
+		}
+		else {
+			$script //= "\x00";
+		}
+	}
+	else {
+		$script = $self->signature_script->to_serialized;
+	}
 
 	$serialized .= pack_varint(length $script);
 	$serialized .= $script;

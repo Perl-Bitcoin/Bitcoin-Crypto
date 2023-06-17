@@ -16,7 +16,9 @@ use Bitcoin::Crypto::Helpers qw(pad_hex);
 use namespace::clean;
 
 has option 'transaction' => (
-	isa => InstanceOf['Bitcoin::Crypto::Transaction'],
+	isa => InstanceOf['Bitcoin::Crypto::Script::Transaction'],
+	writer => 1,
+	clearer => 1,
 );
 
 has field 'stack' => (
@@ -180,7 +182,7 @@ sub step
 	return !!0
 		unless $pos < @{$self->operations};
 
-	my ($op, @args) = @{$self->operations->[$pos]};
+	my ($op, $raw_op, @args) = @{$self->operations->[$pos]};
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'no transaction is set for the script runner'
@@ -195,6 +197,29 @@ sub step
 
 	$self->_advance;
 	return !!1;
+}
+
+signature_for subscript => (
+	method => Object,
+	positional => [],
+);
+
+sub subscript
+{
+	my ($self) = @_;
+	my $start = $self->_codeseparator;
+	my @operations = @{$self->operations};
+
+	my $result = '';
+	foreach my $operation (@operations[$start .. $#operations]) {
+		my ($op, $raw_op) = @$operation;
+		next if $op->name eq 'OP_CODESEPARATOR';
+		$result .= $raw_op;
+	}
+
+	# NOTE: signature is not removed from the subscript, since runner doesn't know what it is
+
+	return $result;
 }
 
 1;
@@ -349,6 +374,13 @@ C<OP_ENDIF>.
 These details should not matter usually, but may be confusing if you would
 want to for example print your stack step by step. When in doubt, check C<<
 $runner->pos >>, which contains the position of the B<next> opcode to execute.
+
+=head3 subscript
+
+	my $subscript = $runner->subscript;
+
+Returns current subscript - part of the running script from after the last
+codeseparator, with all other codeseparators removed.
 
 =head2 Helper methods
 
