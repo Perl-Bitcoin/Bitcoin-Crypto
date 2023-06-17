@@ -148,8 +148,14 @@ subtest 'verify message using pubkey' => sub {
 	my $random_pub = btc_pub->from_str([hex => $cases_compression[0]{compressed}]);
 
 	ok($pub->verify_message($message, [hex => $validation_case{sig}]), 'verified message correctly');
-	ok($pub_compressed->verify_message($message, [hex => $validation_case{sig}]), 'compressed verified message correctly');
-	ok(!$random_pub->verify_message($message, [hex => $validation_case{sig}]), 'verification fails with different pubkey');
+	ok(
+		$pub_compressed->verify_message($message, [hex => $validation_case{sig}]),
+		'compressed verified message correctly'
+	);
+	ok(
+		!$random_pub->verify_message($message, [hex => $validation_case{sig}]),
+		'verification fails with different pubkey'
+	);
 };
 
 subtest 'generate addresses from non-default network' => sub {

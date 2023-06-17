@@ -47,7 +47,7 @@ sub to_wif
 
 signature_for from_wif => (
 	method => Str,
-	positional => [Str, Maybe[Str], { optional => 1 }],
+	positional => [Str, Maybe [Str], {optional => 1}],
 );
 
 sub from_wif

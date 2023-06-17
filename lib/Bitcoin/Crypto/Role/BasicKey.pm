@@ -67,7 +67,8 @@ sub to_hex
 	my ($self) = @_;
 
 	my $class = ref $self;
-	carp_once "$class->to_hex() is now deprecated. Use Bitcoin::Crypto::Util::to_format [hex => $class->to_str()] instead";
+	carp_once
+		"$class->to_hex() is now deprecated. Use Bitcoin::Crypto::Util::to_format [hex => $class->to_str()] instead";
 	return to_format [hex => $self->to_str];
 }
 

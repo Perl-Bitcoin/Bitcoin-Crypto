@@ -124,7 +124,6 @@ my @tests_bech32 = (
 		data => []
 	},
 
-
 	# negative tests
 	{
 		case => "\x201nwldj5",
@@ -269,7 +268,6 @@ my @tests_segwit = (
 		case => 'bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqzk5jj0',
 		data => '0179be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
 	},
-
 
 	# negative segwit tests
 	{

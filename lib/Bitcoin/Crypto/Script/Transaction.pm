@@ -13,10 +13,12 @@ use Bitcoin::Crypto::Exception;
 use namespace::clean;
 
 has param 'transaction' => (
-	isa => InstanceOf['Bitcoin::Crypto::Transaction'],
-	handles => [qw(
-		locktime
-	)],
+	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],
+	handles => [
+		qw(
+			locktime
+		)
+	],
 );
 
 has param 'input_index' => (
@@ -26,7 +28,7 @@ has param 'input_index' => (
 );
 
 has field 'runner' => (
-	isa => InstanceOf['Bitcoin::Crypto::Script::Runner'],
+	isa => InstanceOf ['Bitcoin::Crypto::Script::Runner'],
 	writer => 1,
 	weak_ref => 1,
 );

@@ -94,7 +94,7 @@ sub to_serialized
 
 signature_for from_serialized => (
 	method => Str,
-	positional => [ByteStr, Maybe[Str], { optional => 1 }],
+	positional => [ByteStr, Maybe [Str], {optional => 1}],
 );
 
 sub from_serialized
@@ -193,7 +193,7 @@ sub get_basic_key
 
 signature_for get_fingerprint => (
 	method => Object,
-	positional => [PositiveInt, { default => 4 }],
+	positional => [PositiveInt, {default => 4}],
 );
 
 sub get_fingerprint
@@ -226,7 +226,7 @@ sub _get_purpose_from_BIP44
 
 signature_for derive_key => (
 	method => Object,
-	positional => [Str | InstanceOf['Bitcoin::Crypto::BIP44']],
+	positional => [Str | InstanceOf ['Bitcoin::Crypto::BIP44']],
 );
 
 sub derive_key
@@ -273,11 +273,11 @@ sub from_serialized_base58
 {
 	my ($class, $base58, $network) = @_;
 
-	carp_once "$class->from_serialized_base58(\$base58) is now deprecated. Use $class->from_serialized([base58 => \$base58]) instead";
+	carp_once
+		"$class->from_serialized_base58(\$base58) is now deprecated. Use $class->from_serialized([base58 => \$base58]) instead";
 
 	return $class->from_serialized([base58 => $base58], $network);
 }
-
 
 1;
 

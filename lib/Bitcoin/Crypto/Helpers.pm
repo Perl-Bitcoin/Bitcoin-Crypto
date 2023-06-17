@@ -42,7 +42,7 @@ sub carp_once
 	return if $warned{$msg};
 	$warned{$msg} = 1;
 	local @CARP_NOT = ((caller)[0]);
-	carp ($msg);
+	carp($msg);
 }
 
 sub pad_hex

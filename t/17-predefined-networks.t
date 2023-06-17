@@ -69,7 +69,8 @@ for my $case (@predefined_networks) {
 
 		if ($case->{account_prv}) {
 			my $derived = $master_key->derive_key_bip44(get_account => 1);
-			is to_format [base58 => $derived->to_serialized], $case->{account_prv}, 'account extended private key ok';
+			is to_format [base58 => $derived->to_serialized], $case->{account_prv},
+				'account extended private key ok';
 			is to_format [base58 => $derived->get_public_key->to_serialized], $case->{account_pub},
 				'account extended public key ok';
 		}

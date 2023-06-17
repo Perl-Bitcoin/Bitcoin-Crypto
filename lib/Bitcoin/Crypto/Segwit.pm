@@ -19,7 +19,8 @@ our %validators = (
 
 sub validate_program
 {
-	carp_once "Bitcoin::Crypto::Segwit::validate_program is deprecated. Use Bitcoin::Crypto::Util::validate_segwit instead.";
+	carp_once
+		"Bitcoin::Crypto::Segwit::validate_program is deprecated. Use Bitcoin::Crypto::Util::validate_segwit instead.";
 	goto \&Bitcoin::Crypto::Util::validate_segwit;
 }
 

@@ -15,7 +15,8 @@ use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Transaction::UTXO;
 use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Helpers qw(pack_varint);
-use Bitcoin::Crypto::Types qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveInt PositiveOrZeroInt Enum BitcoinScript);
+use Bitcoin::Crypto::Types
+	qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveInt PositiveOrZeroInt Enum BitcoinScript);
 use Bitcoin::Crypto::Script::Transaction;
 
 use constant SIGHASH_VALUES => {
@@ -26,33 +27,33 @@ use constant SIGHASH_VALUES => {
 };
 
 has param 'version' => (
-	isa => IntMaxBits[32],
+	isa => IntMaxBits [32],
 	default => 1,
 );
 
 has param 'witness' => (
-	isa => ArrayRef[ArrayRef[ByteStr]],
+	isa => ArrayRef [ArrayRef [ByteStr]],
 	default => sub { [] },
 );
 
 has field 'inputs' => (
-	isa => ArrayRef[InstanceOf['Bitcoin::Crypto::Transaction::Input']],
+	isa => ArrayRef [InstanceOf ['Bitcoin::Crypto::Transaction::Input']],
 	default => sub { [] },
 );
 
 has field 'outputs' => (
-	isa => ArrayRef[InstanceOf['Bitcoin::Crypto::Transaction::Output']],
+	isa => ArrayRef [InstanceOf ['Bitcoin::Crypto::Transaction::Output']],
 	default => sub { [] },
 );
 
 has param 'locktime' => (
-	isa => IntMaxBits[32],
+	isa => IntMaxBits [32],
 	default => 0,
 );
 
 signature_for add_witness => (
 	method => Object,
-	positional => [ArrayRef[ByteStr], { slurpy => 1 }],
+	positional => [ArrayRef [ByteStr], {slurpy => 1}],
 );
 
 sub add_witness
@@ -65,7 +66,7 @@ sub add_witness
 
 signature_for add_input => (
 	method => Object,
-	positional => [HashRef, { slurpy => 1 }],
+	positional => [HashRef, {slurpy => 1}],
 );
 
 sub add_input
@@ -81,7 +82,7 @@ sub add_input
 
 signature_for add_output => (
 	method => Object,
-	positional => [HashRef, { slurpy => 1 }],
+	positional => [HashRef, {slurpy => 1}],
 );
 
 sub add_output
@@ -98,8 +99,10 @@ sub add_output
 signature_for to_serialized => (
 	method => Object,
 	named => [
-		_signing_index => PositiveOrZeroInt, { optional => 1 },
-		_signing_subscript => ByteStr, { optional => 1 },
+		_signing_index => PositiveOrZeroInt,
+		{optional => 1},
+		_signing_subscript => ByteStr,
+		{optional => 1},
 	],
 );
 
@@ -133,6 +136,7 @@ sub to_serialized
 	my @input_args = map { +{input => $_, args => $serialize_args} } @inputs;
 
 	if (defined $sign_no) {
+
 		# replace args reference of the input which we are signing
 		$input_args[$sign_no]{args} = {
 			signing => !!1,
@@ -145,6 +149,7 @@ sub to_serialized
 
 	$serialized .= pack_varint(scalar @inputs);
 	foreach my $input (@input_args) {
+
 		# TODO: signature script should be empty if there's witness data?
 		$serialized .= $input->{input}->to_serialized(%{$input->{args}});
 	}
@@ -202,6 +207,7 @@ sub to_serialized_witness
 
 	$serialized .= pack_varint(scalar @inputs);
 	foreach my $item (@inputs) {
+
 		# TODO: signature script should be empty if there's witness data?
 		$serialized .= $item->to_serialized;
 	}
@@ -248,8 +254,10 @@ signature_for get_digest => (
 	method => Object,
 	named => [
 		signing_index => PositiveOrZeroInt,
-		signing_subscript => ByteStr, { optional => 1 },
-		sighash => PositiveInt, { default => SIGHASH_VALUES->{ALL} }
+		signing_subscript => ByteStr,
+		{optional => 1},
+		sighash => PositiveInt,
+		{default => SIGHASH_VALUES->{ALL}}
 	],
 );
 
@@ -266,9 +274,11 @@ sub get_digest
 	my $anyonecanpay = $args->sighash & SIGHASH_VALUES->{ANYONECANPAY};
 
 	if ($procedure == SIGHASH_VALUES->{NONE}) {
+
 		# TODO
 	}
 	elsif ($procedure == SIGHASH_VALUES->{SINGLE}) {
+
 		# TODO
 	}
 

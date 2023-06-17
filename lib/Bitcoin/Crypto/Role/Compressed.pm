@@ -17,7 +17,7 @@ has param 'compressed' => (
 
 signature_for set_compressed => (
 	method => Object,
-	positional => [Bool, { default => !!1 }],
+	positional => [Bool, {default => !!1}],
 );
 
 sub set_compressed

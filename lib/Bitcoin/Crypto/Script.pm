@@ -42,22 +42,22 @@ sub _build
 
 	state $types = do {
 		my $witness = sub {
-				my ($self, $address, $name, $version, $length) = @_;
+			my ($self, $address, $name, $version, $length) = @_;
 
-				my $data = decode_segwit $address;
-				my $this_version = substr $data, 0, 1, '';
+			my $data = decode_segwit $address;
+			my $this_version = substr $data, 0, 1, '';
 
-				Bitcoin::Crypto::Exception::SegwitProgram->raise(
-					"$name script only handles witness version $version"
-				) unless $this_version eq chr $version;
+			Bitcoin::Crypto::Exception::SegwitProgram->raise(
+				"$name script only handles witness version $version"
+			) unless $this_version eq chr $version;
 
-				Bitcoin::Crypto::Exception::SegwitProgram->raise(
-					"$name script should contain $length bytes"
-				) unless length $data eq $length;
+			Bitcoin::Crypto::Exception::SegwitProgram->raise(
+				"$name script should contain $length bytes"
+			) unless length $data eq $length;
 
-				$self
-					->push(chr $version)
-					->push($data)
+			$self
+				->push(chr $version)
+				->push($data);
 		};
 
 		{
@@ -66,7 +66,7 @@ sub _build
 
 				$self
 					->push($address)
-					->add('OP_CHECKSIG')
+					->add('OP_CHECKSIG');
 			},
 
 			P2PKH => sub {
@@ -77,7 +77,7 @@ sub _build
 					->add('OP_HASH160')
 					->push(substr decode_base58check($address), 1)
 					->add('OP_EQUALVERIFY')
-					->add('OP_CHECKSIG')
+					->add('OP_CHECKSIG');
 			},
 
 			P2SH => sub {
@@ -86,7 +86,7 @@ sub _build
 				$self
 					->add('OP_HASH160')
 					->push(substr decode_base58check($address), 1)
-					->add('OP_EQUAL')
+					->add('OP_EQUAL');
 			},
 
 			P2WPKH => sub {
@@ -96,7 +96,7 @@ sub _build
 			P2WSH => sub {
 				$witness->(@_, 'P2WSH', 0, 32);
 			},
-		}
+		};
 	};
 
 	$types->{$type}->($self, $address);
@@ -405,6 +405,7 @@ sub to_serialized
 signature_for from_serialized => (
 	method => Str,
 	positional => [Any],
+
 	# no need to validate ByteStr, as it will be passed to add_raw
 );
 
@@ -417,7 +418,7 @@ sub from_serialized
 
 signature_for run => (
 	method => Object,
-	positional => [HashRef, { slurpy => 1 }],
+	positional => [HashRef, {slurpy => 1}],
 );
 
 sub run

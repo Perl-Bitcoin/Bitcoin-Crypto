@@ -19,16 +19,16 @@ requires qw(
 );
 
 has field '_crypt_perl_prv' => (
-	isa => InstanceOf['Crypt::Perl::ECDSA::PrivateKey'],
+	isa => InstanceOf ['Crypt::Perl::ECDSA::PrivateKey'],
 	lazy => sub {
 		require Crypt::Perl::ECDSA::Parse;
-		return Crypt::Perl::ECDSA::Parse::private($_[0]->key_instance->export_key_der('private'))
+		return Crypt::Perl::ECDSA::Parse::private($_[0]->key_instance->export_key_der('private'));
 	}
 );
 
 signature_for sign_message => (
 	method => Object,
-	positional => [ByteStr, Str, { default => 'sha256' }],
+	positional => [ByteStr, Str, {default => 'sha256'}],
 );
 
 sub sign_message
@@ -51,7 +51,8 @@ sub sign_message
 				return $self->_crypt_perl_prv->$sub($message);
 			}
 			else {
-				carp_once 'Current implementation of CryptX signature generation does not produce deterministic results. For better security, install the Crypt::Perl module.';
+				carp_once
+					'Current implementation of CryptX signature generation does not produce deterministic results. For better security, install the Crypt::Perl module.';
 				return $self->key_instance->sign_message($message, $algorithm);
 			}
 		}
@@ -60,7 +61,7 @@ sub sign_message
 
 signature_for verify_message => (
 	method => Object,
-	positional => [ByteStr, ByteStr, Str, { default => 'sha256' }],
+	positional => [ByteStr, ByteStr, Str, {default => 'sha256'}],
 );
 
 sub verify_message

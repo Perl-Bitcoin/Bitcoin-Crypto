@@ -16,7 +16,7 @@ use Bitcoin::Crypto::Helpers qw(pad_hex);
 use namespace::clean;
 
 has option 'transaction' => (
-	isa => InstanceOf['Bitcoin::Crypto::Script::Transaction'],
+	isa => InstanceOf ['Bitcoin::Crypto::Script::Transaction'],
 	writer => 1,
 	clearer => 1,
 );
@@ -134,7 +134,7 @@ sub _register_codeseparator
 
 signature_for execute => (
 	method => Object,
-	positional => [InstanceOf['Bitcoin::Crypto::Script'], ArrayRef[ByteStr], { default => [] }],
+	positional => [InstanceOf ['Bitcoin::Crypto::Script'], ArrayRef [ByteStr], {default => []}],
 );
 
 sub execute
@@ -149,7 +149,7 @@ sub execute
 
 signature_for start => (
 	method => Object,
-	positional => [InstanceOf['Bitcoin::Crypto::Script'], ArrayRef[ByteStr], { default => [] }],
+	positional => [InstanceOf ['Bitcoin::Crypto::Script'], ArrayRef [ByteStr], {default => []}],
 );
 
 sub start

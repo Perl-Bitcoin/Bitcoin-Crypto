@@ -14,7 +14,7 @@ use Bitcoin::Crypto::Helpers qw(pack_varint);
 use Bitcoin::Crypto::Types qw(ByteStr IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined);
 
 has param 'utxo' => (
-	coerce => (InstanceOf['Bitcoin::Crypto::Transaction::UTXO'])
+	coerce => (InstanceOf ['Bitcoin::Crypto::Transaction::UTXO'])
 		->plus_coercions(ArrayRef, q{ Bitcoin::Crypto::Transaction::UTXO->get(@$_) })
 );
 
@@ -24,15 +24,17 @@ has param 'signature_script' => (
 );
 
 has param 'sequence_no' => (
-	isa => IntMaxBits[32],
+	isa => IntMaxBits [32],
 	default => 0xffffffff,
 );
 
 signature_for to_serialized => (
 	method => Object,
 	named => [
-		signing => Defined & Bool, { optional => 1 },
-		signing_subscript => ByteStr, { optional => 1 },
+		signing => Defined & Bool,
+		{optional => 1},
+		signing_subscript => ByteStr,
+		{optional => 1},
 	],
 );
 

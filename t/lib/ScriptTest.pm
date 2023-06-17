@@ -24,6 +24,7 @@ sub script_fill
 		}
 		else {
 			$script->push(pack 'H*', $op);
+
 			# hack opcode back into the caller to pass in 'ops_are'
 			$op = 'OP_PUSHDATA1';
 		}

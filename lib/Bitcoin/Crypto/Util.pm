@@ -73,12 +73,14 @@ sub validate_segwit
 	) unless length $program >= 2 && length $program <= 40;
 
 	if ($version == 0) {
+
 		# SegWit validator
 		Bitcoin::Crypto::Exception::SegwitProgram->raise(
 			'incorrect witness program length (segwit)'
 		) unless length $program == 20 || length $program == 32;
 	}
 	elsif ($version == 1) {
+
 		# Taproot validator
 
 		# taproot outputs are 32 bytes, but other lengths "remain unencumbered"
@@ -117,7 +119,7 @@ sub get_key_type
 }
 
 signature_for mnemonic_to_seed => (
-	positional => [Str, Maybe[Str], { optional => 1 }],
+	positional => [Str, Maybe [Str], {optional => 1}],
 );
 
 sub mnemonic_to_seed
@@ -131,7 +133,7 @@ sub mnemonic_to_seed
 }
 
 signature_for generate_mnemonic => (
-	positional => [PositiveInt, { default => 128 }, Str, { default => 'en' }],
+	positional => [PositiveInt, {default => 128}, Str, {default => 'en'}],
 );
 
 sub generate_mnemonic
@@ -153,7 +155,7 @@ sub generate_mnemonic
 }
 
 signature_for mnemonic_from_entropy => (
-	positional => [ByteStr, Str, { default => 'en' }],
+	positional => [ByteStr, Str, {default => 'en'}],
 );
 
 sub mnemonic_from_entropy
@@ -171,7 +173,7 @@ sub mnemonic_from_entropy
 }
 
 signature_for get_path_info => (
-	positional => [Str | InstanceOf['Bitcoin::Crypto::BIP44']],
+	positional => [Str | InstanceOf ['Bitcoin::Crypto::BIP44']],
 );
 
 sub get_path_info
@@ -208,7 +210,7 @@ sub get_path_info
 # use signature, not signature_for, because of the prototype
 sub to_format ($)
 {
-	state $sig = signature(positional => [Tuple[FormatStr, ByteStr]]);
+	state $sig = signature(positional => [Tuple [FormatStr, ByteStr]]);
 	my ($format, $data) = @{($sig->(@_))[0]};
 
 	if ($format eq 'hex') {

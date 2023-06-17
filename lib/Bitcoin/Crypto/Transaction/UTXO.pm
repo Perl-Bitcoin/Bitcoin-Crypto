@@ -23,11 +23,11 @@ has param 'txid' => (
 );
 
 has param 'output_index' => (
-	isa => IntMaxBits[32],
+	isa => IntMaxBits [32],
 );
 
 has param 'output' => (
-	coerce => (InstanceOf['Bitcoin::Crypto::Transaction::Output'])
+	coerce => (InstanceOf ['Bitcoin::Crypto::Transaction::Output'])
 		->plus_coercions(HashRef q{ Bitcoin::Crypto::Transaction::Output->new($_) }),
 );
 

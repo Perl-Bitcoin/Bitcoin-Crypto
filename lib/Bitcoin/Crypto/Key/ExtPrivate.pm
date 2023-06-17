@@ -42,7 +42,7 @@ sub mnemonic_from_entropy
 
 signature_for from_mnemonic => (
 	method => Str,
-	positional => [Str, Maybe[Str], { default => '' }, Maybe[Str], { default => undef }],
+	positional => [Str, Maybe [Str], {default => ''}, Maybe [Str], {default => undef}],
 );
 
 sub from_mnemonic
@@ -109,7 +109,7 @@ sub get_public_key
 
 signature_for derive_key_bip44 => (
 	method => Object,
-	positional => [HashRef, { slurpy => 1 }],
+	positional => [HashRef, {slurpy => 1}],
 );
 
 sub derive_key_bip44

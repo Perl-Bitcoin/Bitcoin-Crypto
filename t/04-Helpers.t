@@ -52,6 +52,5 @@ subtest 'testing varint four bytes' => sub {
 	is unpack_varint("\xfe\x61\x25\x01\x00"), 75105, 'unpacking ok';
 };
 
-
 done_testing;
 

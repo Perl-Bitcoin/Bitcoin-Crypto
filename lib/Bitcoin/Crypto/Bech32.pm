@@ -154,7 +154,7 @@ sub split_bech32
 }
 
 signature_for translate_5to8 => (
-	positional => [ArrayRef[Int]],
+	positional => [ArrayRef [Int]],
 );
 
 # used during segwit address decoding
@@ -227,7 +227,7 @@ sub decode_base32
 }
 
 signature_for encode_bech32 => (
-	positional => [Str, ArrayRef[Int], Enum[BECH32M, BECH32], { default => BECH32M }],
+	positional => [Str, ArrayRef [Int], Enum [BECH32M, BECH32], {default => BECH32M}],
 );
 
 sub encode_bech32

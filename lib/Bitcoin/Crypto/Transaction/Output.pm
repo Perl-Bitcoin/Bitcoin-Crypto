@@ -10,11 +10,11 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Types qw(Int BitcoinScript InstanceOf Object);
-use Bitcoin::Crypto::Helpers qw(pack_varint ensure_length); # loads BigInt
+use Bitcoin::Crypto::Helpers qw(pack_varint ensure_length);    # loads BigInt
 
 has param 'value' => (
 	writer => 1,
-	coerce => (InstanceOf['Math::BigInt'])
+	coerce => (InstanceOf ['Math::BigInt'])
 		->where(q{$_ > 0})
 		->plus_coercions(Int, q{ Math::BigInt->new($_) }),
 );
