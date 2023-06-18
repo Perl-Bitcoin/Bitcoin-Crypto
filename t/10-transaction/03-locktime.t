@@ -61,7 +61,7 @@ Bitcoin::Crypto::Transaction::UTXO->new(
 	output_index => 0,
 	output => {
 		locking_script => btc_script->new
-			->add('OP_CHECKLOCKTIMEVERFIY')
+			->add('OP_CHECKLOCKTIMEVERIFY')
 			->add('OP_TRUE'),
 		value => 1000,
 	},

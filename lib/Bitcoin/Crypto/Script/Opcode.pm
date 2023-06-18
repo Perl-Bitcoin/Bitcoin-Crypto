@@ -741,7 +741,7 @@ my %opcodes = (
 
 		# see runner below
 	},
-	OP_CHECKLOCKTIMEVERFIY => {
+	OP_CHECKLOCKTIMEVERIFY => {
 		code => "\xb1",
 		needs_transaction => 1,
 
