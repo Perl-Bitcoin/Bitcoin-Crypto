@@ -27,6 +27,8 @@ subtest 'should verify transactions (P2PK)' => sub {
 		},
 	)->register;
 
+	my $expected_txid = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16';
+
 	$tx->add_input(
 		utxo => [[hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'], 0],
 		signature_script => btc_script->new
@@ -58,6 +60,7 @@ subtest 'should verify transactions (P2PK)' => sub {
 		],
 	);
 
+	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
 	lives_ok { $tx->verify_inputs } 'input verification ok';
 };
 
@@ -72,6 +75,8 @@ subtest 'should verify transactions (P2PKH)' => sub {
 			value => 139615,
 		},
 	)->register;
+
+	my $expected_txid = '1fe80a48f4746b214987fb8bef35046882b801a524df92dc1e3917b541bdd9d7';
 
 	$tx->add_input(
 		utxo => [[hex => '5fb32a2b34f497274419100cfa8f79c21029e8a415936366b2b058b992f55fdf'], 5],
@@ -90,6 +95,7 @@ subtest 'should verify transactions (P2PKH)' => sub {
 		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
 	);
 
+	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
 	lives_ok { $tx->verify_inputs } 'input verification ok';
 };
 
