@@ -17,6 +17,8 @@ has param 'transaction' => (
 	handles => [
 		qw(
 			locktime
+			inputs
+			outputs
 		)
 	],
 );

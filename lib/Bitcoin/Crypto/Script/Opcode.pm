@@ -15,6 +15,7 @@ use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Str StrLength CodeRef Bool);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
+use Bitcoin::Crypto::Transaction::Input;
 
 # some private helpers for opcodes
 
@@ -746,6 +747,7 @@ my %opcodes = (
 
 		runner => sub {
 			my $runner = shift;
+			my $transaction = $runner->transaction;
 
 			my $stack = $runner->stack;
 			stack_error unless @$stack >= 1;
@@ -766,7 +768,9 @@ my %opcodes = (
 			invalid_script
 				if $c1 > $c2;
 
-			# TODO: nSequence
+			my $input = $transaction->inputs->[$transaction->input_index];
+			invalid_script
+				if $input->sequence_no == Bitcoin::Crypto::Transaction::Input::MAX_NSEQUENCE;
 
 			pop @$stack;
 		},

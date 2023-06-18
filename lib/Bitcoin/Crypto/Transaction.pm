@@ -398,6 +398,7 @@ sub verify
 		transaction => $self,
 	);
 
+	my $max_nsequence_inputs = 0;
 	my $input_index = 0;
 	foreach my $input (@{$self->inputs}) {
 		$script_runner->transaction->set_input_index($input_index);
@@ -419,6 +420,22 @@ sub verify
 		);
 
 		$input_index += 1;
+		$max_nsequence_inputs += $input->sequence_no == Bitcoin::Crypto::Transaction::Input::MAX_NSEQUENCE;
+	}
+
+	# locktime checking
+	if ($max_nsequence_inputs != @{$self->inputs}) {
+		my $locktime = $self->locktime;
+		my $height_threshold = 500_000000;
+
+		if ($locktime >= $height_threshold) {
+			Bitcoin::Crypto::Exception::Transaction->raise(
+				'locktime was not satisfied'
+			) if $locktime > time;
+		}
+		else {
+			warn "no access to blockchain - skipping the locktime height check";
+		}
 	}
 
 	return;
