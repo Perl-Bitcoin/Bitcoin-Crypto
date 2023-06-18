@@ -4,9 +4,6 @@ use warnings;
 use Test::More;
 use Try::Tiny;
 
-use lib 't/lib';
-use ScriptTest;
-
 use Bitcoin::Crypto qw(btc_transaction btc_script);
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Script::Runner;
