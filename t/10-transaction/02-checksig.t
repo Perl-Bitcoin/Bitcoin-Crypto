@@ -61,7 +61,7 @@ subtest 'should verify transactions (P2PK)' => sub {
 	);
 
 	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
-	lives_ok { $tx->verify_inputs } 'input verification ok';
+	lives_ok { $tx->verify } 'input verification ok';
 };
 
 subtest 'should verify transactions (P2PKH)' => sub {
@@ -96,7 +96,7 @@ subtest 'should verify transactions (P2PKH)' => sub {
 	);
 
 	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
-	lives_ok { $tx->verify_inputs } 'input verification ok';
+	lives_ok { $tx->verify } 'input verification ok';
 };
 
 done_testing;

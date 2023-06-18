@@ -385,12 +385,12 @@ sub update_utxos
 	return $self;
 }
 
-signature_for verify_inputs => (
+signature_for verify => (
 	method => Object,
 	positional => [],
 );
 
-sub verify_inputs
+sub verify
 {
 	my ($self) = @_;
 
