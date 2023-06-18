@@ -12,11 +12,16 @@ use Scalar::Util qw(blessed);
 use Bitcoin::Crypto::Types qw(ArrayRef Str ByteStr Object InstanceOf PositiveOrZeroInt);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
+use Bitcoin::Crypto::Script::Transaction;
 
 use namespace::clean;
 
 has option 'transaction' => (
-	isa => InstanceOf ['Bitcoin::Crypto::Script::Transaction'],
+	coerce => (InstanceOf ['Bitcoin::Crypto::Script::Transaction'])
+		->plus_coercions(
+			InstanceOf ['Bitcoin::Crypto::Transaction'],
+			q{Bitcoin::Crypto::Script::Transaction->new(transaction => $_)}
+		),
 	writer => 1,
 	clearer => 1,
 );

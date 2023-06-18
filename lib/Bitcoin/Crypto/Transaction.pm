@@ -17,7 +17,6 @@ use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Helpers qw(pack_varint);
 use Bitcoin::Crypto::Types
 	qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveInt PositiveOrZeroInt Enum BitcoinScript);
-use Bitcoin::Crypto::Script::Transaction;
 
 use constant SIGHASH_VALUES => {
 	ALL => 0x01,
@@ -395,19 +394,13 @@ sub verify_inputs
 {
 	my ($self) = @_;
 
-	my $script_transaction = Bitcoin::Crypto::Script::Transaction->new(
+	my $script_runner = Bitcoin::Crypto::Script::Runner->new(
 		transaction => $self,
 	);
 
-	my $script_runner = Bitcoin::Crypto::Script::Runner->new(
-		transaction => $script_transaction,
-	);
-
-	$script_transaction->set_runner($script_runner);
-
 	my $input_index = 0;
 	foreach my $input (@{$self->inputs}) {
-		$script_transaction->set_input_index($input_index);
+		$script_runner->transaction->set_input_index($input_index);
 
 		Bitcoin::Crypto::Exception::ScriptInvalid->trap_into(
 			sub {

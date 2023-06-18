@@ -716,7 +716,7 @@ my %opcodes = (
 			my $raw_pubkey = shift @$stack;
 			my $hashtype = substr $sig, -1, 1, '';
 
-			my $digest = $runner->transaction->get_digest(unpack 'C', $hashtype);
+			my $digest = $runner->transaction->get_digest($runner->subscript, unpack 'C', $hashtype);
 			my $pubkey = btc_pub->from_str($raw_pubkey);
 
 			my $result = $pubkey->verify_message($digest, $sig, 'hash256');

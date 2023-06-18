@@ -27,24 +27,18 @@ has param 'input_index' => (
 	default => 0,
 );
 
-has field 'runner' => (
-	isa => InstanceOf ['Bitcoin::Crypto::Script::Runner'],
-	writer => 1,
-	weak_ref => 1,
-);
-
 signature_for get_digest => (
 	method => Object,
-	positional => [PositiveInt],
+	positional => [ByteStr, PositiveInt],
 );
 
 sub get_digest
 {
-	my ($self, $sighash) = @_;
+	my ($self, $subscript, $sighash) = @_;
 
 	return $self->transaction->get_digest(
 		signing_index => $self->input_index,
-		signing_subscript => $self->runner->subscript,
+		signing_subscript => $subscript,
 		sighash => $sighash
 	);
 }

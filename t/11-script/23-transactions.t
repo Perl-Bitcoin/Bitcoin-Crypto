@@ -10,7 +10,6 @@ use ScriptTest;
 use Bitcoin::Crypto qw(btc_transaction);
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Script::Runner;
-use Bitcoin::Crypto::Script::Transaction;
 
 my @cases = (
 	[
@@ -53,13 +52,7 @@ foreach my $case (@cases) {
 
 		my $run_sub = sub {
 			if ($args) {
-				my $transaction = btc_transaction->new($args);
-				my $script_transaction = Bitcoin::Crypto::Script::Transaction->new(
-					transaction => $transaction,
-					runner => $runner,
-				);
-
-				$runner->set_transaction($script_transaction);
+				$runner->set_transaction(btc_transaction->new($args));
 			}
 			else {
 				$runner->clear_transaction;
