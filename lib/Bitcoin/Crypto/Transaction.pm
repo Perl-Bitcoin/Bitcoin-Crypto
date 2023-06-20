@@ -317,8 +317,7 @@ sub fee_rate
 	my $fee = $self->fee;
 	my $size = $self->virtual_size;
 
-	# TODO: BigInt does not play nice here (division)
-	return "$fee" / $size;
+	return $fee->as_float / $size;
 }
 
 signature_for virtual_size => (
