@@ -197,6 +197,13 @@ sub as_string
 
 {
 
+	package Bitcoin::Crypto::Exception::ScriptType;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
+}
+
+{
+
 	package Bitcoin::Crypto::Exception::ScriptOpcode;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';

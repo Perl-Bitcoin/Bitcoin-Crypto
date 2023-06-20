@@ -6,8 +6,10 @@ use warnings;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
-use Bitcoin::Crypto::Types qw(Object Str ByteStr InstanceOf);
+use Bitcoin::Crypto qw(btc_script);
+use Bitcoin::Crypto::Types qw(Object Str ByteStr InstanceOf PositiveInt PositiveOrZeroInt);
 use Bitcoin::Crypto::Helpers qw(carp_once);
+use Bitcoin::Crypto::Constants;
 use Crypt::Digest::SHA256 qw(sha256);
 use Moo::Role;
 
@@ -57,6 +59,86 @@ sub sign_message
 			}
 		}
 	);
+}
+
+signature_for sign_transaction => (
+	method => Object,
+	head => [InstanceOf ['Bitcoin::Crypto::Transaction']],
+	named => [
+		signing_index => PositiveOrZeroInt,
+		{default => 0},
+		sighash => PositiveInt,
+		{default => Bitcoin::Crypto::Constants::sighash->{ALL}}
+	],
+);
+
+sub sign_transaction
+{
+	my ($self, $transaction, $args) = @_;
+	my $input_index = $args->signing_index;
+	my $sighash = $args->sighash;
+
+	state $types = {
+		P2PK => sub {
+			my ($self, $input, $signature) = @_;
+
+			$input->set_signature_script(
+				btc_script->new->push($signature)
+			);
+		},
+		P2PKH => sub {
+			my ($self, $input, $signature) = @_;
+
+			$input->set_signature_script(
+				btc_script->new
+					->push($signature)
+					->push($self->get_public_key->to_str)
+			);
+		},
+		P2SH => sub {
+
+			# TODO
+		},
+		P2WPKH => sub {
+
+			# TODO
+		},
+		P2WSH => sub {
+
+			# TODO
+		},
+	};
+
+	Bitcoin::Crypto::Exception::Sign->trap_into(
+		sub {
+			my $input = $transaction->inputs->[$input_index];
+			die 'no such input' if !$input;
+
+			my $utxo = $input->utxo->output;
+
+			die 'cannot automatically sign a non-standard locking script'
+				if !$utxo->is_standard;
+
+			my $digest = $transaction->get_digest(
+				signing_index => $input_index,
+				sighash => $sighash
+			);
+
+			my $signature = $self->sign_message($digest, 'hash256');
+			$signature .= pack 'C', $sighash;
+
+			my $type = $utxo->locking_script->type;
+
+			Bitcoin::Crypto::Exception::ScriptType->raise(
+				"unknown standard script type $type"
+			) if !$types->{$type};
+
+			$types->{$type}->($self, $input, $signature);
+		},
+		"Can't sign transaction input $input_index"
+	);
+
+	return;
 }
 
 signature_for verify_message => (

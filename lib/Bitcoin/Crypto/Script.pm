@@ -99,6 +99,10 @@ sub _build
 		};
 	};
 
+	Bitcoin::Crypto::Exception::ScriptType->raise(
+		"unknown standard script type $type"
+	) if !$types->{$type};
+
 	$types->{$type}->($self, $address);
 	return;
 }
