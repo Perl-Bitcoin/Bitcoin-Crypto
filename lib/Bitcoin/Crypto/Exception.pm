@@ -262,9 +262,11 @@ sub as_string
 
 {
 
-	package Bitcoin::Crypto::Exception::ScriptInvalid;
+	package Bitcoin::Crypto::Exception::TransactionInvalid;
 
-	use parent -norequire, 'Bitcoin::Crypto::Exception::ScriptRuntime';
+	use parent -norequire,
+		'Bitcoin::Crypto::Exception::Transaction',
+		'Bitcoin::Crypto::Exception::ScriptRuntime';
 }
 
 {

@@ -397,7 +397,7 @@ sub verify
 	foreach my $input (@{$self->inputs}) {
 		$script_runner->transaction->set_input_index($input_index);
 
-		Bitcoin::Crypto::Exception::ScriptInvalid->trap_into(
+		Bitcoin::Crypto::Exception::TransactionInvalid->trap_into(
 			sub {
 				# execute input to get initial stack
 				$script_runner->execute($input->signature_script);

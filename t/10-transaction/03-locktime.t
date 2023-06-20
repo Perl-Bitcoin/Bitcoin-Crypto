@@ -13,7 +13,7 @@ my @cases = (
 		'locktime - zero',
 		{locktime => 0},
 		'5553',
-		'Bitcoin::Crypto::Exception::ScriptInvalid',
+		'Bitcoin::Crypto::Exception::TransactionInvalid',
 	],
 	[
 		'locktime - satisfied (height)',
@@ -25,7 +25,7 @@ my @cases = (
 		'locktime - unsatisfied (height)',
 		{locktime => 21332},
 		'5553',
-		'Bitcoin::Crypto::Exception::ScriptInvalid',
+		'Bitcoin::Crypto::Exception::TransactionInvalid',
 	],
 	[
 		'locktime - satisfied (time)',
@@ -37,19 +37,19 @@ my @cases = (
 		'locktime - unsatisfied (time)',
 		{locktime => 1472653722},
 		'9be9c657',
-		'Bitcoin::Crypto::Exception::ScriptInvalid',
+		'Bitcoin::Crypto::Exception::TransactionInvalid',
 	],
 	[
 		'locktime - unsatisfied (mixed 1)',
 		{locktime => 1472653722},
 		'5553',
-		'Bitcoin::Crypto::Exception::ScriptInvalid',
+		'Bitcoin::Crypto::Exception::TransactionInvalid',
 	],
 	[
 		'locktime - unsatisfied (mixed 2)',
 		{locktime => 21333},
 		'9be9c657',
-		'Bitcoin::Crypto::Exception::ScriptInvalid',
+		'Bitcoin::Crypto::Exception::TransactionInvalid',
 	],
 );
 
