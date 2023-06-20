@@ -9,6 +9,7 @@ use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 use Scalar::Util qw(blessed);
 
+use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
@@ -17,13 +18,6 @@ use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Helpers qw(pack_varint carp_once);
 use Bitcoin::Crypto::Types
 	qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveInt PositiveOrZeroInt Enum BitcoinScript);
-
-use constant SIGHASH_VALUES => {
-	ALL => 0x01,
-	NONE => 0x02,
-	SINGLE => 0x03,
-	ANYONECANPAY => 0x80,
-};
 
 has param 'version' => (
 	isa => IntMaxBits [32],
@@ -256,7 +250,7 @@ signature_for get_digest => (
 		signing_subscript => ByteStr,
 		{optional => 1},
 		sighash => PositiveInt,
-		{default => SIGHASH_VALUES->{ALL}}
+		{default => Bitcoin::Crypto::Constants::sighash->{ALL}}
 	],
 );
 
@@ -270,13 +264,13 @@ sub get_digest
 	);
 
 	my $procedure = $args->sighash & 31;
-	my $anyonecanpay = $args->sighash & SIGHASH_VALUES->{ANYONECANPAY};
+	my $anyonecanpay = $args->sighash & Bitcoin::Crypto::Constants::sighash->{ANYONECANPAY};
 
-	if ($procedure == SIGHASH_VALUES->{NONE}) {
+	if ($procedure == Bitcoin::Crypto::Constants::sighash->{NONE}) {
 
 		# TODO
 	}
-	elsif ($procedure == SIGHASH_VALUES->{SINGLE}) {
+	elsif ($procedure == Bitcoin::Crypto::Constants::sighash->{SINGLE}) {
 
 		# TODO
 	}
@@ -420,7 +414,7 @@ sub verify
 		);
 
 		$input_index += 1;
-		$max_nsequence_inputs += $input->sequence_no == Bitcoin::Crypto::Transaction::Input::MAX_NSEQUENCE;
+		$max_nsequence_inputs += $input->sequence_no == Bitcoin::Crypto::Constants::max_nsequence;
 	}
 
 	# locktime checking

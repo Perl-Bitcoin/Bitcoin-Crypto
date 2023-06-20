@@ -12,6 +12,7 @@ use Crypt::Digest::SHA256 qw(sha256);
 use Crypt::Digest::SHA1 qw(sha1);
 
 use Bitcoin::Crypto qw(btc_pub);
+use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Str StrLength CodeRef Bool);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
@@ -770,7 +771,7 @@ my %opcodes = (
 
 			my $input = $transaction->inputs->[$transaction->input_index];
 			invalid_script
-				if $input->sequence_no == Bitcoin::Crypto::Transaction::Input::MAX_NSEQUENCE;
+				if $input->sequence_no == Bitcoin::Crypto::Constants::max_nsequence;
 
 			pop @$stack;
 		},

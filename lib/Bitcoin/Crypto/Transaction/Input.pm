@@ -8,12 +8,11 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
+use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Transaction::UTXO;
 use Bitcoin::Crypto::Helpers qw(pack_varint);
 use Bitcoin::Crypto::Types qw(ByteStr IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined);
-
-use constant MAX_NSEQUENCE => 0xffffffff;
 
 has param 'utxo' => (
 	coerce => (InstanceOf ['Bitcoin::Crypto::Transaction::UTXO'])
@@ -27,7 +26,7 @@ has param 'signature_script' => (
 
 has param 'sequence_no' => (
 	isa => IntMaxBits [32],
-	default => MAX_NSEQUENCE,
+	default => Bitcoin::Crypto::Constants::max_nsequence,
 );
 
 signature_for to_serialized => (

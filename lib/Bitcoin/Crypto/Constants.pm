@@ -22,6 +22,14 @@ use constant {
 	bip44_segwit_purpose => 84,
 
 	units_per_coin => 100_000_000,
+
+	max_nsequence => 0xffffffff,
+	sighash => {
+		ALL => 0x01,
+		NONE => 0x02,
+		SINGLE => 0x03,
+		ANYONECANPAY => 0x80,
+	},
 };
 
 # These constants are environment-specific and internal only
