@@ -753,15 +753,14 @@ my %opcodes = (
 			my $stack = $runner->stack;
 			stack_error unless @$stack >= 1;
 
-			my $height_threshold = 500_000000;
 			my $c1 = $runner->to_int($stack->[-1]);
 			my $c2 = $runner->transaction->locktime;
 
 			invalid_script
 				if $c1 < 0;
 
-			my $c1_is_height = $c1 < $height_threshold;
-			my $c2_is_height = $c2 < $height_threshold;
+			my $c1_is_height = $c1 < Bitcoin::Crypto::Constants::locktime_height_threshold;
+			my $c2_is_height = $c2 < Bitcoin::Crypto::Constants::locktime_height_threshold;
 
 			invalid_script
 				if !!$c1_is_height ne !!$c2_is_height;

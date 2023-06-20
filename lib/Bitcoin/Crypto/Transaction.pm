@@ -420,9 +420,8 @@ sub verify
 	# locktime checking
 	if ($max_nsequence_inputs != @{$self->inputs}) {
 		my $locktime = $self->locktime;
-		my $height_threshold = 500_000000;
 
-		if ($locktime >= $height_threshold) {
+		if ($locktime >= Bitcoin::Crypto::Constants::locktime_height_threshold) {
 			Bitcoin::Crypto::Exception::Transaction->raise(
 				'locktime was not satisfied'
 			) if $locktime > time;
