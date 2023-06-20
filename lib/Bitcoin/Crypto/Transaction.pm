@@ -14,7 +14,7 @@ use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Transaction::UTXO;
 use Bitcoin::Crypto::Util qw(hash256);
-use Bitcoin::Crypto::Helpers qw(pack_varint);
+use Bitcoin::Crypto::Helpers qw(pack_varint carp_once);
 use Bitcoin::Crypto::Types
 	qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveInt PositiveOrZeroInt Enum BitcoinScript);
 
@@ -434,7 +434,7 @@ sub verify
 			) if $locktime > time;
 		}
 		else {
-			warn "no access to blockchain - skipping the locktime height check";
+			carp_once 'No access to blockchain - will not perform transaction nLockTime height checks';
 		}
 	}
 
