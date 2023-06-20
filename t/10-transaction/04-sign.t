@@ -78,5 +78,40 @@ subtest 'should sign transactions (P2PKH)' => sub {
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
+subtest 'should sign transactions (two inputs)' => sub {
+	$tx = btc_transaction->new;
+
+	# NOTE: uses UTXOs from previous subtests
+
+	$tx->add_input(
+		utxo => [[hex => '5fb32a2b34f497274419100cfa8f79c21029e8a415936366b2b058b992f55fdf'], 5],
+		signature_script => btc_script->new
+	);
+
+	$tx->add_input(
+		utxo => [[hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'], 0],
+		signature_script => btc_script->new
+	);
+
+	$tx->add_output(
+		value => 50_00000000,
+		locking_script => [
+			P2SH => $prv->get_public_key->get_compat_address
+		],
+	);
+
+	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::ScriptInvalid',
+		'input verification failed ok (none signed)';
+
+	$prv->sign_transaction($tx, signing_index => 0);
+
+	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::ScriptInvalid',
+		'input verification failed ok (one signed)';
+
+	$prv->sign_transaction($tx, signing_index => 1);
+
+	lives_ok { $tx->verify } 'input verification ok (two signed)';
+};
+
 done_testing;
 
