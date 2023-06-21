@@ -714,8 +714,8 @@ my %opcodes = (
 			my $stack = $runner->stack;
 			stack_error unless @$stack >= 2;
 
-			my $sig = shift @$stack;
-			my $raw_pubkey = shift @$stack;
+			my $raw_pubkey = pop @$stack;
+			my $sig = pop @$stack;
 			my $hashtype = substr $sig, -1, 1, '';
 
 			my $digest = $runner->transaction->get_digest($runner->subscript, unpack 'C', $hashtype);
