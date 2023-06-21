@@ -3,7 +3,7 @@ on 'test' => sub {
 	requires 'Test::Exception' => 0;
 };
 
-requires 'Math::BigInt' => '1.999808';
+requires 'Math::BigInt' => '1.999831';
 requires 'Moo' => '2.003004';
 requires 'Mooish::AttributeBuilder' => '1.001';
 requires 'Type::Tiny' => '2';
