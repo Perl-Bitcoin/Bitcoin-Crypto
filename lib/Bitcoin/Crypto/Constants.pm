@@ -6,8 +6,8 @@ use warnings;
 
 use Config;
 
-# These constants are used generally safe to use outside Bitcoin::Crypto code
-# if you need them
+# These constants generally safe to use outside Bitcoin::Crypto code if you
+# need them
 use constant {
 	curve_name => 'secp256k1',
 	max_child_keys => (2 << 30),
@@ -25,12 +25,11 @@ use constant {
 
 	locktime_height_threshold => 500_000_000,
 	max_nsequence => 0xffffffff,
-	sighash => {
-		ALL => 0x01,
-		NONE => 0x02,
-		SINGLE => 0x03,
-		ANYONECANPAY => 0x80,
-	},
+
+	sighash_all => 0x01,
+	sighash_none => 0x02,
+	sighash_single => 0x03,
+	sighash_anyonecanpay => 0x80,
 };
 
 # These constants are environment-specific and internal only

@@ -250,7 +250,7 @@ signature_for get_digest => (
 		signing_subscript => ByteStr,
 		{optional => 1},
 		sighash => PositiveInt,
-		{default => Bitcoin::Crypto::Constants::sighash->{ALL}}
+		{default => Bitcoin::Crypto::Constants::sighash_all}
 	],
 );
 
@@ -264,13 +264,13 @@ sub get_digest
 	);
 
 	my $procedure = $args->sighash & 31;
-	my $anyonecanpay = $args->sighash & Bitcoin::Crypto::Constants::sighash->{ANYONECANPAY};
+	my $anyonecanpay = $args->sighash & Bitcoin::Crypto::Constants::sighash_anyonecanpay;
 
-	if ($procedure == Bitcoin::Crypto::Constants::sighash->{NONE}) {
+	if ($procedure == Bitcoin::Crypto::Constants::sighash_none) {
 
 		# TODO
 	}
-	elsif ($procedure == Bitcoin::Crypto::Constants::sighash->{SINGLE}) {
+	elsif ($procedure == Bitcoin::Crypto::Constants::sighash_single) {
 
 		# TODO
 	}

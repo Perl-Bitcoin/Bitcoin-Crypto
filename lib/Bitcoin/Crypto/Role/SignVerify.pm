@@ -68,7 +68,7 @@ signature_for sign_transaction => (
 		signing_index => PositiveOrZeroInt,
 		{default => 0},
 		sighash => PositiveInt,
-		{default => Bitcoin::Crypto::Constants::sighash->{ALL}}
+		{default => Bitcoin::Crypto::Constants::sighash_all}
 	],
 );
 
