@@ -8,12 +8,13 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 use Scalar::Util qw(blessed);
+use List::Util qw(any);
 
+use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
-use Bitcoin::Crypto::Transaction::UTXO;
 use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Helpers qw(pack_varint carp_once);
 use Bitcoin::Crypto::Types
@@ -368,7 +369,7 @@ sub update_utxos
 	foreach my $output_index (0 .. $#{$self->outputs}) {
 		my $output = $self->outputs->[$output_index];
 
-		Bitcoin::Crypto::Transaction::UTXO->new(
+		btc_utxo->new(
 			txid => $self->get_hash,
 			output_index => $output_index,
 			output => $output,
@@ -398,16 +399,27 @@ sub verify
 
 		Bitcoin::Crypto::Exception::TransactionInvalid->trap_into(
 			sub {
+				my $locking_script = $input->utxo->output->locking_script;
+
 				# execute input to get initial stack
 				$script_runner->execute($input->signature_script);
 				my $stack = $script_runner->stack;
 
 				# execute previous output
-				$script_runner->execute($input->utxo->output->locking_script, $stack);
-				my $stack_top = $script_runner->stack->[-1];
+				# NOTE: shallow copy of the stack
+				$script_runner->execute($locking_script, [@$stack]);
 
-				die 'script yielded failure'
-					unless $stack_top && $script_runner->to_bool($stack_top);
+				die 'locking script execution yielded failure'
+					unless $script_runner->success;
+
+				# TODO: implement P2WSH
+				if ($locking_script->has_type && any { $_ eq $locking_script->type } qw(P2SH)) {
+					my $payout_script = btc_script->from_serialized(pop @$stack);
+
+					$script_runner->execute($payout_script, $stack);
+					die 'payout script execution yielded failure'
+						unless $script_runner->success;
+				}
 			},
 			"transaction input $input_index verification has failed"
 		);
