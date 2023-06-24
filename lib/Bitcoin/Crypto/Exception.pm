@@ -62,11 +62,17 @@ sub trap_into
 	catch {
 		my $ex = $_;
 
-		if (blessed $ex && $ex->isa($class)) {
-			$ex->_set_message("$prefix: " . $ex->message)
-				if $prefix;
+		if (blessed $ex) {
+			if ($ex->isa($class)) {
+				$ex->_set_message("$prefix: " . $ex->message)
+					if $prefix;
 
-			$ex->raise;
+				$ex->raise;
+			}
+
+			if ($ex->isa('Bitcoin::Crypto::Exception')) {
+				$class->raise(($prefix ? "$prefix: " : '') . $ex->message);
+			}
 		}
 		else {
 			$class->raise($prefix ? "$prefix: $ex" : "$ex");
