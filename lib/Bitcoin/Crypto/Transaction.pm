@@ -8,7 +8,6 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 use Scalar::Util qw(blessed);
-use List::Util qw(any);
 
 use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants;
@@ -413,7 +412,7 @@ sub verify
 					unless $script_runner->success;
 
 				# TODO: implement P2WSH
-				if ($locking_script->has_type && any { $_ eq $locking_script->type } qw(P2SH)) {
+				if ($locking_script->has_type && grep { $_ eq $locking_script->type } qw(P2SH)) {
 					my $payout_script = btc_script->from_serialized(pop @$stack);
 
 					$script_runner->execute($payout_script, $stack);
