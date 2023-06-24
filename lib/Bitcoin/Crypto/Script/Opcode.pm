@@ -727,18 +727,55 @@ my %opcodes = (
 	},
 	OP_CHECKSIGVERIFY => {
 		code => "\xad",
+		needs_transaction => 1,
 
 		# see runner below
 	},
 	OP_CHECKMULTISIG => {
 		code => "\xae",
+		needs_transaction => 1,
 
-		# runner => sub {
-		# 	my $runner = shift;
-		# },
+		runner => sub {
+			my $runner = shift;
+
+			my $stack = $runner->stack;
+			stack_error unless @$stack >= 1;
+
+			my $pubkeys_num = pop @$stack;
+			stack_error unless $pubkeys_num > 0 && @$stack >= $pubkeys_num;
+			my @pubkeys = splice @$stack, -$pubkeys_num;
+
+			my $signatures_num = pop @$stack;
+			stack_error unless $signatures_num > 0 && @$stack >= $signatures_num;
+			my @signatures = splice @$stack, -$signatures_num;
+
+			my $subscript = $runner->subscript;
+			my $found;
+			while (my $sig = shift @signatures) {
+				my $hashtype = substr $sig, -1, 1, '';
+
+				my $digest = $runner->transaction->get_digest($subscript, unpack 'C', $hashtype);
+				$found = !!0;
+				while (my $raw_pubkey = shift @pubkeys) {
+					my $pubkey = btc_pub->from_str($raw_pubkey);
+					$found = $pubkey->verify_message($digest, $sig, 'hash256');
+					last if $found;
+				}
+
+				last if !$found;
+			}
+
+			# Remove extra unused value from the stack
+			# TODO: implement optional null verification
+			pop @$stack;
+
+			my $result = $found && !@signatures;
+			push @$stack, $runner->from_bool($result);
+		},
 	},
 	OP_CHECKMULTISIGVERIFY => {
 		code => "\xaf",
+		needs_transaction => 1,
 
 		# see runner below
 	},
@@ -777,6 +814,7 @@ my %opcodes = (
 	},
 	OP_CHECKSEQUENCEVERIFY => {
 		code => "\xb2",
+		needs_transaction => 1,
 
 		# runner => sub {
 		# 	my $runner = shift;
@@ -822,10 +860,10 @@ $opcodes{OP_CHECKSIGVERIFY}{runner} = sub {
 	$opcodes{OP_VERIFY}{runner}->(@_);
 };
 
-# $opcodes{OP_CHECKMULTISIGVERIFY}{runner} = sub {
-# 	$opcodes{OP_CHECKMULTISIG}{runner}->(@_);
-# 	$opcodes{OP_VERIFY}{runner}->(@_);
-# };
+$opcodes{OP_CHECKMULTISIGVERIFY}{runner} = sub {
+	$opcodes{OP_CHECKMULTISIG}{runner}->(@_);
+	$opcodes{OP_VERIFY}{runner}->(@_);
+};
 
 my %opcodes_reverse = map { $opcodes{$_}{code}, $_ } keys %opcodes;
 
