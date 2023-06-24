@@ -741,11 +741,11 @@ my %opcodes = (
 			my $stack = $runner->stack;
 			stack_error unless @$stack >= 1;
 
-			my $pubkeys_num = pop @$stack;
+			my $pubkeys_num = $runner->to_int(pop @$stack);
 			stack_error unless $pubkeys_num > 0 && @$stack >= $pubkeys_num;
 			my @pubkeys = splice @$stack, -$pubkeys_num;
 
-			my $signatures_num = pop @$stack;
+			my $signatures_num = $runner->to_int(pop @$stack);
 			stack_error unless $signatures_num > 0 && @$stack >= $signatures_num;
 			my @signatures = splice @$stack, -$signatures_num;
 

@@ -73,8 +73,6 @@ subtest 'should verify multisig transactions (P2SH)' => sub {
 };
 
 subtest 'should not verify incorrect multisig transactions (P2SH)' => sub {
-	plan skip_all => 'this test requires implemented P2SH to pass';
-
 	$tx = btc_transaction->new(
 		version => 2,
 		locktime => 601858,
