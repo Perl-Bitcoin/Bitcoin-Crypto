@@ -12,6 +12,7 @@ our @EXPORT_OK = qw(
 	btc_pub
 	btc_script
 	btc_transaction
+	btc_utxo
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -50,6 +51,12 @@ sub btc_transaction
 {
 	require Bitcoin::Crypto::Transaction;
 	return 'Bitcoin::Crypto::Transaction';
+}
+
+sub btc_utxo
+{
+	require Bitcoin::Crypto::Transaction::UTXO;
+	return 'Bitcoin::Crypto::Transaction::UTXO';
 }
 
 __END__
@@ -224,6 +231,10 @@ Loads L<Bitcoin::Crypto::Script>
 =head3 btc_transaction
 
 Loads L<Bitcoin::Crypto::Transaction>
+
+=head3 btc_utxo
+
+Loads L<Bitcoin::Crypto::Transaction::UTXO>
 
 =head1 DISCLAIMER
 

@@ -4,8 +4,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
-use Bitcoin::Crypto qw(btc_script btc_transaction);
-use Bitcoin::Crypto::Transaction::UTXO;
+use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
 
 my $tx;
@@ -21,7 +20,7 @@ my $payout_script = btc_script->new
 	->add('OP_CHECKMULTISIG')
 	;
 
-Bitcoin::Crypto::Transaction::UTXO->new(
+btc_utxo->new(
 	txid => [hex => '105025e0b2b9c3750289d2bd2173e7c4d38826c5b3112696f1a2588bfc0814ac'],
 	output_index => 0,
 	output => {

@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 use Try::Tiny;
 
-use Bitcoin::Crypto qw(btc_transaction btc_script);
+use Bitcoin::Crypto qw(btc_transaction btc_script btc_utxo);
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Script::Runner;
 
@@ -53,7 +53,7 @@ my @cases = (
 	],
 );
 
-Bitcoin::Crypto::Transaction::UTXO->new(
+btc_utxo->new(
 	txid => [hex => '10c3227c159290319a305019dae6a4a0c0336e3dc25e220230ac8b2900c8fc4f'],
 	output_index => 0,
 	output => {

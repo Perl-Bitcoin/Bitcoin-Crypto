@@ -4,8 +4,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
-use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv);
-use Bitcoin::Crypto::Transaction::UTXO;
+use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
 
 my $tx;
@@ -14,7 +13,7 @@ my $prv = btc_prv->from_str("\x12" x 32);
 subtest 'should sign transactions (P2PK)' => sub {
 	$tx = btc_transaction->new;
 
-	Bitcoin::Crypto::Transaction::UTXO->new(
+	btc_utxo->new(
 		txid => [hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'],
 		output_index => 0,
 		output => {
@@ -55,7 +54,7 @@ subtest 'should sign transactions (P2PK)' => sub {
 subtest 'should sign transactions (P2PKH)' => sub {
 	$tx = btc_transaction->new;
 
-	Bitcoin::Crypto::Transaction::UTXO->new(
+	btc_utxo->new(
 		txid => [hex => '5fb32a2b34f497274419100cfa8f79c21029e8a415936366b2b058b992f55fdf'],
 		output_index => 5,
 		output => {

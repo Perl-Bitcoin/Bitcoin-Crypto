@@ -4,8 +4,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
-use Bitcoin::Crypto qw(btc_script btc_transaction);
-use Bitcoin::Crypto::Transaction::UTXO;
+use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
 
 my $tx;
@@ -13,7 +12,7 @@ my $tx;
 subtest 'should serialize transactions' => sub {
 	$tx = btc_transaction->new;
 
-	my $utxo = Bitcoin::Crypto::Transaction::UTXO->new(
+	my $utxo = btc_utxo->new(
 		txid => [hex => 'a34b7271d2add50bb6eaeaaaffaebe33bf4e3fe0454ca5d46ab64e6dbbbf1174'],
 		output_index => 0,
 		output => {
@@ -60,7 +59,7 @@ subtest 'should serialize transactions' => sub {
 subtest 'should digest transactions (old OP_CHECKSIG style)' => sub {
 	$tx = btc_transaction->new;
 
-	Bitcoin::Crypto::Transaction::UTXO->new(
+	btc_utxo->new(
 		txid => [hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'],
 		output_index => 0,
 		output => {
@@ -119,22 +118,22 @@ subtest 'should update UTXOs' => sub {
 	$tx->update_utxos;
 
 	throws_ok {
-		Bitcoin::Crypto::Transaction::UTXO->get(
+		btc_utxo->get(
 			[hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'], 0
 		);
 	} 'Bitcoin::Crypto::Exception::UTXO';
 
 	lives_ok {
-		Bitcoin::Crypto::Transaction::UTXO->get(
+		btc_utxo->get(
 			[hex => 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'], 0
 		);
-		Bitcoin::Crypto::Transaction::UTXO->get(
+		btc_utxo->get(
 			[hex => 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'], 1
 		);
 	};
 
 	throws_ok {
-		Bitcoin::Crypto::Transaction::UTXO->get(
+		btc_utxo->get(
 			[hex => 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'], 2
 		);
 	} 'Bitcoin::Crypto::Exception::UTXO';

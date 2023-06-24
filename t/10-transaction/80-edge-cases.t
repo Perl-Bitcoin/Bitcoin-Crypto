@@ -4,8 +4,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
-use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv);
-use Bitcoin::Crypto::Transaction::UTXO;
+use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv btc_utxo);
 use Bitcoin::Crypto::Constants;
 
 my $tx;
@@ -14,7 +13,7 @@ my $prv = btc_prv->from_str("\x12" x 32);
 subtest 'should checksig a non-standard transaction' => sub {
 	$tx = btc_transaction->new;
 
-	Bitcoin::Crypto::Transaction::UTXO->new(
+	btc_utxo->new(
 		txid => [hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'],
 		output_index => 0,
 		output => {
