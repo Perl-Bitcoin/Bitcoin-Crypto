@@ -17,7 +17,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(carp_once);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(ArrayRef HashRef Str Object ByteStr Any ScriptType);
+use Bitcoin::Crypto::Types qw(Maybe ArrayRef HashRef Str Object ByteStr Any ScriptType);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
 
@@ -29,8 +29,11 @@ has field '_serialized' => (
 	default => '',
 );
 
-has option 'type' => (
-	isa => ScriptType,
+has param 'type' => (
+	isa => Maybe [ScriptType],
+	required => 0,
+	lazy => 1,
+	predicate => -hidden,
 );
 
 with qw(Bitcoin::Crypto::Role::Network);
@@ -107,11 +110,75 @@ sub _build
 	return;
 }
 
+sub _build_type
+{
+	my ($self) = @_;
+
+	# blueprints for standard transaction types
+	# use 0xff as a placeholder for unknown data here
+	state $types = [
+		[
+			P2PK => __PACKAGE__->new
+				->push("\xff" x 33)
+				->add('OP_CHECKSIG')
+				->to_serialized,
+		],
+
+		[
+			P2PK => __PACKAGE__->new
+				->push("\xff" x 65)
+				->add('OP_CHECKSIG')
+				->to_serialized,
+		],
+
+		[
+			P2PKH => __PACKAGE__->new
+				->add('OP_DUP')
+				->add('OP_HASH160')
+				->push("\xff" x 20)
+				->add('OP_EQUALVERIFY')
+				->add('OP_CHECKSIG')
+				->to_serialized,
+		],
+
+		[
+			P2SH => __PACKAGE__->new
+				->add('OP_HASH160')
+				->push("\xff" x 20)
+				->add('OP_EQUAL')
+				->to_serialized,
+		],
+
+		[
+			P2WPKH => __PACKAGE__->new
+				->add('OP_0')
+				->push("\xff" x 20)
+				->to_serialized,
+		],
+
+		[
+			P2WSH => __PACKAGE__->new
+				->add('OP_0')
+				->push("\xff" x 32)
+				->to_serialized,
+		],
+	];
+
+	my $this_script = $self->_serialized;
+	foreach my $type_def (@$types) {
+		my ($type, $blueprint) = @{$type_def};
+		$blueprint =~ s{\xff}{.}g;
+		return $type if $this_script =~ $blueprint;
+	}
+
+	return undef;
+}
+
 sub BUILD
 {
 	my ($self, $args) = @_;
 
-	if ($self->has_type) {
+	if ($self->_has_type) {
 		Bitcoin::Crypto::Exception::ScriptPush->raise(
 			'Script with a "type" also requires an "address"'
 		) unless $args->{address};
@@ -493,6 +560,18 @@ sub get_segwit_address
 	) unless $self->network->supports_segwit;
 
 	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run});
+}
+
+signature_for has_type => (
+	method => Object,
+	positional => [],
+);
+
+sub has_type
+{
+	my ($self) = @_;
+
+	return defined $self->type;
 }
 
 1;
