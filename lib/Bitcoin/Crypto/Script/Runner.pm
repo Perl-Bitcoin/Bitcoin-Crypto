@@ -227,6 +227,23 @@ sub subscript
 	return $result;
 }
 
+signature_for success => (
+	method => Object,
+	positional => [],
+);
+
+sub success
+{
+	my ($self) = @_;
+
+	my $stack = $self->stack;
+
+	return !!0 if !$stack;
+	return !!0 if !$stack->[-1];
+	return !!0 if !$self->to_bool($stack->[-1]);
+	return !!1;
+}
+
 1;
 
 __END__
