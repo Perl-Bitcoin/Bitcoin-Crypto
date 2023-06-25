@@ -117,58 +117,61 @@ sub _build_type
 	# blueprints for standard transaction types
 	# use 0xff as a placeholder for unknown data here
 	state $types = [
-		[
-			P2PK => __PACKAGE__->new
-				->push("\xff" x 33)
-				->add('OP_CHECKSIG')
-				->to_serialized,
-		],
+		map { $_->[1] =~ s{\xff}{.}g; $_ } (
+			[
+				P2PK => __PACKAGE__->new
+					->push("\xff" x 33)
+					->add('OP_CHECKSIG')
+					->to_serialized,
+			],
 
-		[
-			P2PK => __PACKAGE__->new
-				->push("\xff" x 65)
-				->add('OP_CHECKSIG')
-				->to_serialized,
-		],
+			[
+				P2PK => __PACKAGE__->new
+					->push("\xff" x 65)
+					->add('OP_CHECKSIG')
+					->to_serialized,
+			],
 
-		[
-			P2PKH => __PACKAGE__->new
-				->add('OP_DUP')
-				->add('OP_HASH160')
-				->push("\xff" x 20)
-				->add('OP_EQUALVERIFY')
-				->add('OP_CHECKSIG')
-				->to_serialized,
-		],
+			[
+				P2PKH => __PACKAGE__->new
+					->add('OP_DUP')
+					->add('OP_HASH160')
+					->push("\xff" x 20)
+					->add('OP_EQUALVERIFY')
+					->add('OP_CHECKSIG')
+					->to_serialized,
+			],
 
-		[
-			P2SH => __PACKAGE__->new
-				->add('OP_HASH160')
-				->push("\xff" x 20)
-				->add('OP_EQUAL')
-				->to_serialized,
-		],
+			[
+				P2SH => __PACKAGE__->new
+					->add('OP_HASH160')
+					->push("\xff" x 20)
+					->add('OP_EQUAL')
+					->to_serialized,
+			],
 
-		[
-			P2WPKH => __PACKAGE__->new
-				->add('OP_0')
-				->push("\xff" x 20)
-				->to_serialized,
-		],
+			[
+				P2WPKH => __PACKAGE__->new
+					->add('OP_0')
+					->push("\xff" x 20)
+					->to_serialized,
+			],
 
-		[
-			P2WSH => __PACKAGE__->new
-				->add('OP_0')
-				->push("\xff" x 32)
-				->to_serialized,
-		],
+			[
+				P2WSH => __PACKAGE__->new
+					->add('OP_0')
+					->push("\xff" x 32)
+					->to_serialized,
+			],
+		)
 	];
 
 	my $this_script = $self->_serialized;
 	foreach my $type_def (@$types) {
 		my ($type, $blueprint) = @{$type_def};
-		$blueprint =~ s{\xff}{.}g;
-		return $type if $this_script =~ $blueprint;
+		return $type
+			if length $blueprint == length $this_script
+			&& $this_script =~ $blueprint;
 	}
 
 	return undef;

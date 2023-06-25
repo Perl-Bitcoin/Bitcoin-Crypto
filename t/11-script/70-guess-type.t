@@ -39,12 +39,19 @@ my @cases = (
 		[hex => '0020e5c7c00d174631d2d1e365d6347b016fb87b6a0c08902d8e443989cb771fa7ec']
 	],
 
+	# multisig with special data as second pubkey
 	[
 		undef,
 		[
 			hex =>
 				'5121037953dbf08030f67352134992643d033417eaa6fcfb770c038f364ff40d7615882100b19937932727f9c58a151bff532475994751133f233ca80bab6fa80a1aa6e2b452ae'
 		]
+	],
+
+	# P2PKH, but OP_CHECKSIG is duplicated
+	[
+		undef,
+		[hex => '76a9142099fe62b65c69928ffef486987f8216fd68f9c488acac']
 	],
 );
 
@@ -57,8 +64,8 @@ foreach my $case (@cases) {
 		my $script = btc_script->from_serialized($raw_script);
 
 		my $got_type = $script->type // 'no type';
-		is $got_type, $type_str, 'type ok';
 		is !!$script->has_type, !!$type, 'has_type ok';
+		is $got_type, $type_str, 'type ok';
 	};
 
 	++$case_num;
