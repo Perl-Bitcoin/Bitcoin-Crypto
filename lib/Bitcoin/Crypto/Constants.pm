@@ -30,6 +30,8 @@ use constant {
 	sighash_none => 0x02,
 	sighash_single => 0x03,
 	sighash_anyonecanpay => 0x80,
+
+	p2sh_timestamp_threshold => 1333238400,
 };
 
 # These constants are environment-specific and internal only
