@@ -15,7 +15,7 @@ use Bitcoin::Crypto::Helpers qw(pack_varint ensure_length);    # loads BigInt
 has param 'value' => (
 	writer => 1,
 	coerce => (InstanceOf ['Math::BigInt'])
-		->where(q{$_ > 0})
+		->where(q{$_ >= 0})
 		->plus_coercions(Int, q{ Math::BigInt->new($_) }),
 );
 
