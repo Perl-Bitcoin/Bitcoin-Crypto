@@ -17,7 +17,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(carp_once);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Maybe ArrayRef HashRef Str Object ByteStr Any ScriptType);
+use Bitcoin::Crypto::Types qw(Maybe ArrayRef HashRef Str Object ByteStr Any ScriptType ScriptDesc);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
 
@@ -488,6 +488,21 @@ sub from_serialized
 	my ($class, $bytes) = @_;
 
 	return $class->new->add_raw($bytes);
+}
+
+signature_for from_standard => (
+	method => Str,
+	positional => [ScriptDesc],
+);
+
+sub from_standard
+{
+	my ($class, $desc) = @_;
+
+	return $class->new(
+		type => $desc->[0],
+		address => $desc->[1],
+	);
 }
 
 signature_for run => (
