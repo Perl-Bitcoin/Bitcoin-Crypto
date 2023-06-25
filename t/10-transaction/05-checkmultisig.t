@@ -9,16 +9,18 @@ use Bitcoin::Crypto::Util qw(to_format);
 
 my $tx;
 
-my $redeem_script = btc_script->new
-	->add('OP_3')
-	->push([hex => '02002a57268073cbc5472d35d8f8fae2c52825241592f53e53ae516913d8c82bd1'])
-	->push([hex => '026c1061b95ccfc52594c9b376382e2f0240a523b3b1dc5db6a9cdd9730a4a0c21'])
-	->push([hex => '029e8c3ae6c0516df4075089ab9475c9335985569ac0f3b9f1a4b0d946785937cd'])
-	->push([hex => '02c6a7c72de9221cba7029f1b920a86bb84997d9c91a2e4428b1397cba669dd316'])
-	->push([hex => '03ba7c7d7b8d2379de450441445c30a638c555305cbe044abb88f10643d9621bf0'])
-	->add('OP_5')
-	->add('OP_CHECKMULTISIG')
-	;
+my $redeem_script = btc_script->from_standard(
+	[
+		P2MS => [
+			3,
+			[hex => '02002a57268073cbc5472d35d8f8fae2c52825241592f53e53ae516913d8c82bd1'],
+			[hex => '026c1061b95ccfc52594c9b376382e2f0240a523b3b1dc5db6a9cdd9730a4a0c21'],
+			[hex => '029e8c3ae6c0516df4075089ab9475c9335985569ac0f3b9f1a4b0d946785937cd'],
+			[hex => '02c6a7c72de9221cba7029f1b920a86bb84997d9c91a2e4428b1397cba669dd316'],
+			[hex => '03ba7c7d7b8d2379de450441445c30a638c555305cbe044abb88f10643d9621bf0'],
+		]
+	]
+);
 
 btc_utxo->new(
 	txid => [hex => '105025e0b2b9c3750289d2bd2173e7c4d38826c5b3112696f1a2588bfc0814ac'],

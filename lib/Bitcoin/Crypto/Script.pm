@@ -65,10 +65,10 @@ sub _build
 
 		{
 			P2PK => sub {
-				my ($self, $address) = @_;
+				my ($self, $pubkey) = @_;
 
 				$self
-					->push($address)
+					->push($pubkey)
 					->add('OP_CHECKSIG');
 			},
 
@@ -92,6 +92,31 @@ sub _build
 					->add('OP_EQUAL');
 			},
 
+			P2MS => sub {
+				my ($self, $data) = @_;
+
+				die 'P2MS script "address" must be an array reference'
+					unless ref $data eq 'ARRAY';
+
+				my ($signatures_num, @pubkeys) = @$data;
+
+				die 'P2MS script "address" first argument must be a number between 1 and 15'
+					unless $signatures_num >= 0 && $signatures_num <= 15;
+
+				die 'P2MS script "address" remaining arguments number should be between the number of signatures and 15'
+					unless @pubkeys >= $signatures_num && @pubkeys <= 15;
+
+				$self->push(chr $signatures_num);
+
+				foreach my $pubkey (@pubkeys) {
+					$self->push($pubkey);
+				}
+
+				$self
+					->push(chr scalar @pubkeys)
+					->add('OP_CHECKMULTISIG');
+			},
+
 			P2WPKH => sub {
 				$witness->(@_, 'P2WPKH', 0, 20);
 			},
@@ -106,7 +131,12 @@ sub _build
 		"unknown standard script type $type"
 	) if !$types->{$type};
 
-	$types->{$type}->($self, $address);
+	Bitcoin::Crypto::Exception::ScriptPush->trap_into(
+		sub {
+			$types->{$type}->($self, $address);
+		}
+	);
+
 	return;
 }
 
@@ -115,63 +145,119 @@ sub _build_type
 	my ($self) = @_;
 
 	# blueprints for standard transaction types
-	# use 0xff as a placeholder for unknown data here
 	state $types = [
-		map { $_->[1] =~ s{\xff}{.}g; $_ } (
-			[
-				P2PK => __PACKAGE__->new
-					->push("\xff" x 33)
-					->add('OP_CHECKSIG')
-					->to_serialized,
-			],
+		[
+			P2PK => [
+				['data', 33, 65],
+				'OP_CHECKSIG',
+			]
+		],
 
-			[
-				P2PK => __PACKAGE__->new
-					->push("\xff" x 65)
-					->add('OP_CHECKSIG')
-					->to_serialized,
-			],
+		[
+			P2PKH => [
+				'OP_DUP',
+				'OP_HASH160',
+				['data', 20],
+				'OP_EQUALVERIFY',
+				'OP_CHECKSIG',
+			]
+		],
 
-			[
-				P2PKH => __PACKAGE__->new
-					->add('OP_DUP')
-					->add('OP_HASH160')
-					->push("\xff" x 20)
-					->add('OP_EQUALVERIFY')
-					->add('OP_CHECKSIG')
-					->to_serialized,
-			],
+		[
+			P2SH => [
+				'OP_HASH160',
+				['data', 20],
+				'OP_EQUAL',
+			]
+		],
 
-			[
-				P2SH => __PACKAGE__->new
-					->add('OP_HASH160')
-					->push("\xff" x 20)
-					->add('OP_EQUAL')
-					->to_serialized,
-			],
+		[
+			P2MS => [
+				['op_n', 1 .. 15],
+				['data_repeated', 33, 65],
+				['op_n', 1 .. 15],
+				'OP_CHECKMULTISIG',
+			]
+		],
 
-			[
-				P2WPKH => __PACKAGE__->new
-					->add('OP_0')
-					->push("\xff" x 20)
-					->to_serialized,
+		[
+			P2WPKH => [
+				'OP_0',
+				['data', 20],
 			],
+		],
 
-			[
-				P2WSH => __PACKAGE__->new
-					->add('OP_0')
-					->push("\xff" x 32)
-					->to_serialized,
-			],
-		)
+		[
+			P2WSH => [
+				'OP_0',
+				['data', 32],
+			]
+		],
 	];
 
 	my $this_script = $self->_serialized;
+	my $check_blueprint;
+	$check_blueprint = sub {
+		my ($pos, $part, @more_parts) = @_;
+
+		return $pos == length $this_script
+			unless defined $part;
+		return !!0 unless $pos < length $this_script;
+
+		if (!ref $part) {
+			my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name($part);
+			return !!0 unless $opcode->code eq substr $this_script, $pos, 1;
+			return $check_blueprint->($pos + 1, @more_parts);
+		}
+		else {
+			my ($kind, @vars) = @$part;
+
+			if ($kind eq 'data') {
+				foreach my $len (@vars) {
+					next unless $len == ord substr $this_script, $pos, 1;
+					return !!1 if $check_blueprint->($pos + $len + 1, @more_parts);
+				}
+
+				return !!0;
+			}
+			elsif ($kind eq 'data_repeated') {
+				my $count = 0;
+				REPEATING: while (1) {
+					foreach my $len (@vars) {
+						next unless $len == ord substr $this_script, $pos, 1;
+						$pos += $len + 1;
+						$count += 1;
+						next REPEATING;
+					}
+					last;
+				}
+
+				return !!0 if $count == 0 || $count > 16;
+				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name("OP_$count");
+				return !!0 unless $opcode->code eq substr $this_script, $pos, 1;
+				return $check_blueprint->($pos, @more_parts);
+			}
+			elsif ($kind eq 'op_n') {
+				my $opcode;
+				try {
+					$opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code(substr $this_script, $pos, 1);
+				};
+
+				return !!0 unless $opcode;
+				return !!0 unless $opcode->name =~ /\AOP_(\d+)\z/;
+				return !!0 unless grep { $_ == $1 } @vars;
+				return $check_blueprint->($pos + 1, @more_parts);
+			}
+			else {
+				die "invalid blueprint kind: $kind";
+			}
+		}
+	};
+
 	foreach my $type_def (@$types) {
 		my ($type, $blueprint) = @{$type_def};
-		return $type
-			if length $blueprint == length $this_script
-			&& $this_script =~ $blueprint;
+
+		return $type if $check_blueprint->(0, @$blueprint);
 	}
 
 	return undef;
@@ -183,7 +269,7 @@ sub BUILD
 
 	if ($self->_has_type) {
 		Bitcoin::Crypto::Exception::ScriptPush->raise(
-			'Script with a "type" also requires an "address"'
+			'script with a "type" also requires an "address"'
 		) unless $args->{address};
 
 		$self->_build($args->{address});
