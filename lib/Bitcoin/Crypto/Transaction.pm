@@ -413,10 +413,10 @@ sub verify
 
 				# TODO: implement P2WSH
 				if ($locking_script->has_type && grep { $_ eq $locking_script->type } qw(P2SH)) {
-					my $payout_script = btc_script->from_serialized(pop @$stack);
+					my $redeem_script = btc_script->from_serialized(pop @$stack);
 
-					$script_runner->execute($payout_script, $stack);
-					die 'payout script execution yielded failure'
+					$script_runner->execute($redeem_script, $stack);
+					die 'redeem script execution yielded failure'
 						unless $script_runner->success;
 				}
 			},

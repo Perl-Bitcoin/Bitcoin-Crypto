@@ -9,7 +9,7 @@ use Bitcoin::Crypto::Util qw(to_format);
 
 my $tx;
 
-my $payout_script = btc_script->new
+my $redeem_script = btc_script->new
 	->add('OP_3')
 	->push([hex => '02002a57268073cbc5472d35d8f8fae2c52825241592f53e53ae516913d8c82bd1'])
 	->push([hex => '026c1061b95ccfc52594c9b376382e2f0240a523b3b1dc5db6a9cdd9730a4a0c21'])
@@ -24,7 +24,7 @@ btc_utxo->new(
 	txid => [hex => '105025e0b2b9c3750289d2bd2173e7c4d38826c5b3112696f1a2588bfc0814ac'],
 	output_index => 0,
 	output => {
-		locking_script => [P2SH => $payout_script->get_legacy_address],
+		locking_script => [P2SH => $redeem_script->get_legacy_address],
 		value => 1_00000000,
 	},
 )->register;
@@ -59,7 +59,7 @@ subtest 'should verify multisig transactions (P2SH)' => sub {
 					'3045022100db620adb2687098ab9961780a76782ccb0241e75882218ff3be8bb99de09fe3502206c929b3cb1c4f289619f9a6cde83caa41a33d2de230d74c11903b48a5fa3bc0301'
 				]
 			)
-			->push($payout_script->to_serialized),
+			->push($redeem_script->to_serialized),
 		sequence_no => 0xfffffffd,
 	);
 
@@ -101,7 +101,7 @@ subtest 'should not verify incorrect multisig transactions (P2SH)' => sub {
 					'3045022100db620adb2687098ab9961780a76782ccb0241e75882218ff3be8bb99de09fe3502206c929b3cb1c4f289619f9a6cde83caa41a33d2de230d74c11903b48a5fa3bc0f01'
 				]
 			)
-			->push($payout_script->to_serialized),
+			->push($redeem_script->to_serialized),
 		sequence_no => 0xfffffffd,
 	);
 
