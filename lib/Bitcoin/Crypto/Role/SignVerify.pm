@@ -130,7 +130,7 @@ sub sign_transaction
 			my $type = $utxo->locking_script->type;
 
 			Bitcoin::Crypto::Exception::ScriptType->raise(
-				"unknown standard script type $type"
+				"don't know how to sign standard script type $type"
 			) if !$types->{$type};
 
 			$types->{$type}->($self, $input, $signature);

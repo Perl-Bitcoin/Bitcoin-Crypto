@@ -40,6 +40,10 @@ sub register
 {
 	my ($self) = @_;
 
+	# Do not store NULLDATA UTXOs
+	return $self
+		if $self->output->is_standard && $self->output->locking_script->type eq 'NULLDATA';
+
 	$utxos{$self->txid}[$self->output_index] = $self;
 	return $self;
 }

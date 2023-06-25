@@ -52,5 +52,23 @@ subtest 'should checksig a non-standard transaction' => sub {
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
+subtest 'should handle NULLDATA outputs' => sub {
+	my $txid = 'd29c9c0e8e4d2a9790922af73f0b8d51f0bd4bb19940d9cf910ead8fbe85bc9b';
+	btc_utxo->new(
+		txid => [hex => $txid],
+		output_index => 0,
+		output => {
+			locking_script => [NULLDATA => 'rickroll'],
+			value => 0,
+		},
+	)->register;
+
+	throws_ok {
+		btc_utxo->get(
+			[hex => $txid], 0
+		);
+	} 'Bitcoin::Crypto::Exception::UTXO';
+};
+
 done_testing;
 

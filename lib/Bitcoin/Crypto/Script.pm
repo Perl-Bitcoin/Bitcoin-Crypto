@@ -95,15 +95,15 @@ sub _build
 			P2MS => sub {
 				my ($self, $data) = @_;
 
-				die 'P2MS script "address" must be an array reference'
+				die 'P2MS script argument must be an array reference'
 					unless ref $data eq 'ARRAY';
 
 				my ($signatures_num, @pubkeys) = @$data;
 
-				die 'P2MS script "address" first argument must be a number between 1 and 15'
+				die 'P2MS script first element must be a number between 1 and 15'
 					unless $signatures_num >= 0 && $signatures_num <= 15;
 
-				die 'P2MS script "address" remaining arguments number should be between the number of signatures and 15'
+				die 'P2MS script remaining elements number should be between the number of signatures and 15'
 					unless @pubkeys >= $signatures_num && @pubkeys <= 15;
 
 				$self->push(chr $signatures_num);
@@ -123,6 +123,14 @@ sub _build
 
 			P2WSH => sub {
 				$witness->(@_, 'P2WSH', 0, 32);
+			},
+
+			NULLDATA => sub {
+				my ($self, $data) = @_;
+
+				$self
+					->add('OP_RETURN')
+					->push($data);
 			},
 		};
 	};
@@ -193,6 +201,21 @@ sub _build_type
 				['data', 32],
 			]
 		],
+
+		[
+			NULLDATA => [
+				'OP_RETURN',
+				['data', 1 .. 75],
+			]
+		],
+
+		[
+			NULLDATA => [
+				'OP_RETURN',
+				'OP_PUSHDATA1',
+				['data', 76 .. 80],
+			]
+		],
 	];
 
 	my $this_script = $self->_serialized;
@@ -213,23 +236,19 @@ sub _build_type
 			my ($kind, @vars) = @$part;
 
 			if ($kind eq 'data') {
-				foreach my $len (@vars) {
-					next unless $len == ord substr $this_script, $pos, 1;
-					return !!1 if $check_blueprint->($pos + $len + 1, @more_parts);
-				}
+				my $len = ord substr $this_script, $pos, 1;
 
-				return !!0;
+				return !!0 unless grep { $_ == $len } @vars;
+				return !!1 if $check_blueprint->($pos + $len + 1, @more_parts);
 			}
 			elsif ($kind eq 'data_repeated') {
 				my $count = 0;
-				REPEATING: while (1) {
-					foreach my $len (@vars) {
-						next unless $len == ord substr $this_script, $pos, 1;
-						$pos += $len + 1;
-						$count += 1;
-						next REPEATING;
-					}
-					last;
+				while (1) {
+					my $len = ord substr $this_script, $pos, 1;
+					last unless grep { $_ == $len } @vars;
+
+					$pos += $len + 1;
+					$count += 1;
 				}
 
 				return !!0 if $count == 0 || $count > 16;
