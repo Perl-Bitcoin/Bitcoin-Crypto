@@ -27,7 +27,6 @@ subtest 'should serialize transactions' => sub {
 
 	$tx->add_input(
 		utxo => $utxo,
-		signature_script => '',
 	);
 
 	$tx->add_output(

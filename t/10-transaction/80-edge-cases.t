@@ -26,7 +26,6 @@ subtest 'should checksig a non-standard transaction' => sub {
 
 	$tx->add_input(
 		utxo => [[hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'], 0],
-		signature_script => btc_script->new,
 	);
 
 	$tx->add_output(

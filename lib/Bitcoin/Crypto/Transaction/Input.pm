@@ -22,6 +22,7 @@ has param 'utxo' => (
 has param 'signature_script' => (
 	writer => 1,
 	coerce => BitcoinScript,
+	default => '',
 );
 
 has param 'sequence_no' => (
