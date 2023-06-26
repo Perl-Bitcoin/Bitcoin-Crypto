@@ -85,7 +85,7 @@ my $script = __PACKAGE__->add_type(
 );
 
 $script->coercion->add_type_coercions(
-	$scriptdesc, q{ Bitcoin::Crypto::Script->from_standard($_) },
+	$scriptdesc, q{ Bitcoin::Crypto::Script->from_standard(@$_) },
 	$bytestr->coercibles, q{ Bitcoin::Crypto::Script->from_serialized($_) },
 );
 

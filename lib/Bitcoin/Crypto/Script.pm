@@ -597,7 +597,7 @@ sub from_serialized
 
 signature_for from_standard => (
 	method => Str,
-	positional => [ScriptDesc],
+	positional => [ScriptDesc, {slurpy => 1}],
 );
 
 sub from_standard
