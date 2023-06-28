@@ -436,7 +436,7 @@ sub verify
 				'locktime was not satisfied'
 			) if $locktime > time;
 		}
-		else {
+		elsif ($locktime > 0) {
 			carp_once 'No access to blockchain - will not perform transaction nLockTime height checks';
 		}
 	}
