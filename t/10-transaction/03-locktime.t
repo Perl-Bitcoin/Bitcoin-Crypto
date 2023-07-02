@@ -4,50 +4,137 @@ use warnings;
 use Test::More;
 use Try::Tiny;
 
-use Bitcoin::Crypto qw(btc_transaction btc_script btc_utxo);
+use Bitcoin::Crypto qw(btc_transaction btc_script btc_utxo btc_block);
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Script::Runner;
 
 my @cases = (
 	[
-		'locktime - zero',
-		{locktime => 0},
+		'CLTV with zero locktime',
+		{
+			transaction => {
+				locktime => 0,
+			},
+			block => {
+				height => 0,
+			}
+		},
 		'5553',
 		'Bitcoin::Crypto::Exception::TransactionScript',
 	],
+
 	[
-		'locktime - satisfied (height)',
-		{locktime => 21333},
+		'height satisfied',
+		{
+			transaction => {
+				locktime => 21333,
+			},
+			block => {
+				height => 21333,
+			}
+		},
 		'5553',
 		undef,
 	],
+
 	[
-		'locktime - unsatisfied (height)',
-		{locktime => 21332},
+		'height unsatisfied - CLTV',
+		{
+			transaction => {
+				locktime => 21332,
+			},
+			block => {
+				height => 21332,
+			}
+		},
 		'5553',
 		'Bitcoin::Crypto::Exception::TransactionScript',
 	],
+
 	[
-		'locktime - satisfied (time)',
-		{locktime => 1472653723},
+		'height unsatisfied - locktime',
+		{
+			transaction => {
+				locktime => 21333,
+			},
+			block => {
+				height => 21332,
+			}
+		},
+		'5553',
+		'Bitcoin::Crypto::Exception::Transaction',
+	],
+
+	[
+		'time satisfied',
+		{
+			transaction => {
+				locktime => 1472653723,
+			},
+			block => {
+				timestamp => 1472653723,
+				height => 0,
+			}
+		},
 		'9be9c657',
 		undef,
 	],
+
 	[
-		'locktime - unsatisfied (time)',
-		{locktime => 1472653722},
+		'time unsatisfied - CLTV',
+		{
+			transaction => {
+				locktime => 1472653722,
+			},
+			block => {
+				timestamp => 1472653722,
+				height => 0,
+			}
+		},
 		'9be9c657',
 		'Bitcoin::Crypto::Exception::TransactionScript',
 	],
+
 	[
-		'locktime - unsatisfied (mixed 1)',
-		{locktime => 1472653722},
+		'time unsatisfied - locktime',
+		{
+			transaction => {
+				locktime => 1472653723,
+			},
+			block => {
+				timestamp => 1472653722,
+				height => 0,
+			}
+		},
+		'9be9c657',
+		'Bitcoin::Crypto::Exception::Transaction',
+	],
+
+	[
+		'CLTV mixed 1',
+		{
+			transaction => {
+				locktime => 1472653722,
+			},
+			block => {
+				timestamp => 1472653722,
+				height => 0,
+			}
+		},
 		'5553',
 		'Bitcoin::Crypto::Exception::TransactionScript',
 	],
+
 	[
-		'locktime - unsatisfied (mixed 2)',
-		{locktime => 21333},
+		'CLTV mixed 2',
+		{
+			transaction => {
+				locktime => 21333,
+			},
+			block => {
+				height => 21333,
+			}
+		},
 		'9be9c657',
 		'Bitcoin::Crypto::Exception::TransactionScript',
 	],
@@ -68,7 +155,7 @@ foreach my $case (@cases) {
 	my ($hash_name, $args, $locktime, $exception) = @$case;
 
 	subtest "testing $hash_name" => sub {
-		my $transaction = btc_transaction->new($args);
+		my $transaction = btc_transaction->new($args->{transaction});
 		$transaction->add_input(
 			utxo => [[hex => '10c3227c159290319a305019dae6a4a0c0336e3dc25e220230ac8b2900c8fc4f'], 0],
 			signature_script => btc_script->new->push([hex => $locktime]),
@@ -76,14 +163,14 @@ foreach my $case (@cases) {
 		);
 
 		try {
-			$transaction->verify;
+			$transaction->verify(block => btc_block->new($args->{block}));
 			ok !$exception, 'exception ok';
 		}
 		catch {
 			my $ex = $_;
 
 			if ($exception) {
-				isa_ok $ex, $exception;
+				is ref $ex, $exception, 'exception class ok';
 			}
 			else {
 				note "died: $ex";

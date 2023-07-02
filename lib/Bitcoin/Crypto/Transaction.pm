@@ -8,6 +8,7 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 use Scalar::Util qw(blessed);
+use Carp qw(carp);
 
 use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants;
@@ -15,7 +16,7 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Util qw(hash256);
-use Bitcoin::Crypto::Helpers qw(pack_varint carp_once);
+use Bitcoin::Crypto::Helpers qw(pack_varint);
 use Bitcoin::Crypto::Types
 	qw(IntMaxBits ArrayRef InstanceOf HashRef Object Bool ByteStr PositiveInt PositiveOrZeroInt Enum BitcoinScript);
 
@@ -380,18 +381,41 @@ sub update_utxos
 
 signature_for verify => (
 	method => Object,
-	positional => [],
+	named => [
+		block => InstanceOf ['Bitcoin::Crypto::Block'],
+		{optional => 1},
+	],
 );
 
 sub verify
 {
-	my ($self) = @_;
+	my ($self, $args) = @_;
 
 	my $script_runner = Bitcoin::Crypto::Script::Runner->new(
 		transaction => $self,
 	);
 
-	my $max_nsequence_inputs = 0;
+	# locktime checking
+	if (
+		$self->locktime > 0 && grep {
+			$_->sequence_no != Bitcoin::Crypto::Constants::max_nsequence
+		} @{$self->inputs}
+		)
+	{
+		my $block = $args->block;
+		if (defined $block) {
+			my $locktime = $self->locktime;
+			my $is_timestamp = $locktime >= Bitcoin::Crypto::Constants::locktime_height_threshold;
+
+			Bitcoin::Crypto::Exception::Transaction->raise(
+				'locktime was not satisfied'
+			) if $locktime > ($is_timestamp ? $block->timestamp : $block->height);
+		}
+		else {
+			carp 'trying to verify locktime but no block parameter was passed';
+		}
+	}
+
 	my $input_index = 0;
 	foreach my $input (@{$self->inputs}) {
 		$script_runner->transaction->set_input_index($input_index);
@@ -424,21 +448,6 @@ sub verify
 		);
 
 		$input_index += 1;
-		$max_nsequence_inputs += $input->sequence_no == Bitcoin::Crypto::Constants::max_nsequence;
-	}
-
-	# locktime checking
-	if ($max_nsequence_inputs != @{$self->inputs}) {
-		my $locktime = $self->locktime;
-
-		if ($locktime >= Bitcoin::Crypto::Constants::locktime_height_threshold) {
-			Bitcoin::Crypto::Exception::Transaction->raise(
-				'locktime was not satisfied'
-			) if $locktime > time;
-		}
-		elsif ($locktime > 0) {
-			carp_once 'No access to blockchain - will not perform transaction nLockTime height checks';
-		}
 	}
 
 	return;

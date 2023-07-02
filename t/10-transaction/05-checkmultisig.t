@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
-use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
+use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo btc_block);
 use Bitcoin::Crypto::Util qw(to_format);
 
 my $tx;
@@ -69,13 +69,14 @@ subtest 'should verify multisig transactions (P2SH)' => sub {
 	);
 
 	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
-	lives_ok { $tx->verify } 'input verification ok';
+	lives_ok {
+		$tx->verify(block => btc_block->new(height => 602300))
+	} 'input verification ok';
 };
 
 subtest 'should not verify incorrect multisig transactions (P2SH)' => sub {
 	$tx = btc_transaction->new(
 		version => 2,
-		locktime => 601858,
 	);
 
 	# NOTE: modified (incorrect) third signature is given
