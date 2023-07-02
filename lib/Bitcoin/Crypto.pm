@@ -12,6 +12,7 @@ our @EXPORT_OK = qw(
 	btc_pub
 	btc_script
 	btc_transaction
+	btc_block
 	btc_utxo
 );
 
@@ -57,6 +58,12 @@ sub btc_utxo
 {
 	require Bitcoin::Crypto::Transaction::UTXO;
 	return 'Bitcoin::Crypto::Transaction::UTXO';
+}
+
+sub btc_block
+{
+	require Bitcoin::Crypto::Block;
+	return 'Bitcoin::Crypto::Block';
 }
 
 __END__

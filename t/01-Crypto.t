@@ -28,6 +28,10 @@ my @cases = (
 		\&btc_script,
 	],
 	[
+		'Bitcoin::Crypto::Block',
+		\&btc_block,
+	],
+	[
 		'Bitcoin::Crypto::Transaction',
 		\&btc_transaction,
 	],
