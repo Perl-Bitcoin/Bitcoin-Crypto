@@ -69,7 +69,7 @@ signature_for sign_transaction => (
 		{default => 0},
 		redeem_script => BitcoinScript,
 		{optional => 1},
-		multisig => Tuple[PositiveInt, PositiveInt],
+		multisig => Tuple [PositiveInt, PositiveInt],
 		{optional => 1},
 		sighash => PositiveInt,
 		{default => Bitcoin::Crypto::Constants::sighash_all}
@@ -144,6 +144,7 @@ sub sign_transaction
 				}
 				else {
 					my $prev = $old_script->[$sig_num];
+
 					# NOTE: using OP_PUSHDATA1, as operations present data pushes as this
 					if (defined $prev) {
 						die sprintf 'previous signature not a PUSH operation (%s)', $prev->[0]->name

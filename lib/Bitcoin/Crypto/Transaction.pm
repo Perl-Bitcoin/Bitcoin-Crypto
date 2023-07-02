@@ -396,7 +396,7 @@ sub verify
 	foreach my $input (@{$self->inputs}) {
 		$script_runner->transaction->set_input_index($input_index);
 
-		Bitcoin::Crypto::Exception::TransactionInvalid->trap_into(
+		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 			sub {
 				my $locking_script = $input->utxo->output->locking_script;
 

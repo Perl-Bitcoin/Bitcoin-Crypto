@@ -27,7 +27,7 @@ sub stack_error
 
 sub invalid_script
 {
-	Bitcoin::Crypto::Exception::TransactionInvalid->raise(
+	Bitcoin::Crypto::Exception::TransactionScript->raise(
 		'transaction was marked as invalid'
 	);
 }

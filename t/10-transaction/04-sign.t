@@ -131,12 +131,12 @@ subtest 'should sign transactions (two inputs)' => sub {
 		],
 	);
 
-	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::TransactionInvalid',
+	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::TransactionScript',
 		'input verification failed ok (none signed)';
 
 	$prv->sign_transaction($tx, signing_index => 0);
 
-	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::TransactionInvalid',
+	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::TransactionScript',
 		'input verification failed ok (one signed)';
 
 	$prv->sign_transaction($tx, signing_index => 1);

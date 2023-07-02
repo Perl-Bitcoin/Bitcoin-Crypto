@@ -268,7 +268,7 @@ sub as_string
 
 {
 
-	package Bitcoin::Crypto::Exception::TransactionInvalid;
+	package Bitcoin::Crypto::Exception::TransactionScript;
 
 	use parent -norequire,
 		'Bitcoin::Crypto::Exception::Transaction',
