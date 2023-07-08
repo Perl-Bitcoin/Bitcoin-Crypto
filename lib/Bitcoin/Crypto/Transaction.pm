@@ -409,7 +409,7 @@ sub verify
 
 			Bitcoin::Crypto::Exception::Transaction->raise(
 				'locktime was not satisfied'
-			) if $locktime > ($is_timestamp ? $block->timestamp : $block->height);
+			) if $locktime > ($is_timestamp ? $block->median_time_past : $block->height);
 		}
 		else {
 			carp 'trying to verify locktime but no block parameter was passed';
