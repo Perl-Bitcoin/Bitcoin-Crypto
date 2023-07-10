@@ -99,6 +99,7 @@ my %opcodes = (
 	},
 	OP_RESERVED => {
 		code => "\x50",
+		runner => sub { invalid_script },
 	},
 	OP_NOP => {
 		code => "\x61",
@@ -109,6 +110,7 @@ my %opcodes = (
 	},
 	OP_VER => {
 		code => "\x62",
+		runner => sub { invalid_script },
 	},
 	OP_IF => {
 		code => "\x63",
@@ -138,9 +140,15 @@ my %opcodes = (
 	},
 	OP_VERIF => {
 		code => "\x65",
+
+		# NOTE: should also be invalid if the op is not run
+		runner => sub { invalid_script },
 	},
 	OP_VERNOTIF => {
 		code => "\x66",
+
+		# NOTE: should also be invalid if the op is not run
+		runner => sub { invalid_script },
 	},
 	OP_ELSE => {
 		code => "\x67",
@@ -175,11 +183,7 @@ my %opcodes = (
 	},
 	OP_RETURN => {
 		code => "\x6a",
-		runner => sub {
-			my $runner = shift;
-
-			invalid_script;
-		},
+		runner => sub { invalid_script },
 	},
 	OP_TOALTSTACK => {
 		code => "\x6b",
@@ -407,9 +411,11 @@ my %opcodes = (
 	},
 	OP_RESERVED1 => {
 		code => "\x89",
+		runner => sub { invalid_script },
 	},
 	OP_RESERVED2 => {
 		code => "\x8a",
+		runner => sub { invalid_script },
 	},
 	OP_1ADD => {
 		code => "\x8b",
