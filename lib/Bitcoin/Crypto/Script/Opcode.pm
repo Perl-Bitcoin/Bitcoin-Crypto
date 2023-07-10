@@ -779,6 +779,10 @@ my %opcodes = (
 
 		# see runner below
 	},
+	OP_NOP1 => {
+		code => "\xb0",
+		runner => sub { 'NOP' },
+	},
 	OP_CHECKLOCKTIMEVERIFY => {
 		code => "\xb1",
 		needs_transaction => 1,
@@ -849,6 +853,34 @@ my %opcodes = (
 
 			pop @$stack;
 		},
+	},
+	OP_NOP4 => {
+		code => "\xb3",
+		runner => sub { 'NOP' },
+	},
+	OP_NOP5 => {
+		code => "\xb4",
+		runner => sub { 'NOP' },
+	},
+	OP_NOP6 => {
+		code => "\xb5",
+		runner => sub { 'NOP' },
+	},
+	OP_NOP7 => {
+		code => "\xb6",
+		runner => sub { 'NOP' },
+	},
+	OP_NOP8 => {
+		code => "\xb7",
+		runner => sub { 'NOP' },
+	},
+	OP_NOP9 => {
+		code => "\xb8",
+		runner => sub { 'NOP' },
+	},
+	OP_NOP10 => {
+		code => "\xb9",
+		runner => sub { 'NOP' },
 	},
 );
 

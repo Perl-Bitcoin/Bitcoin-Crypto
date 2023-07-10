@@ -423,8 +423,6 @@ These methods encode and decode booleans in format which is used on L</stack>.
 
 =head1 CAVEATS
 
-Not all opcodes are implemented. (TODO: which ones?)
-
 OP_0 and OP_FALSE push byte vector C<0x00> to the stack, not null-size byte
 vector.
 
