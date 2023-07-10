@@ -5,8 +5,6 @@ use Test::More;
 use Try::Tiny;
 
 use Bitcoin::Crypto qw(btc_transaction btc_script btc_utxo btc_block);
-use Bitcoin::Crypto::Script;
-use Bitcoin::Crypto::Script::Runner;
 
 my @cases = (
 	[

@@ -390,19 +390,21 @@ signature_for verify => (
 sub verify
 {
 	my ($self, $args) = @_;
+	my $block = $args->block;
 
 	my $script_runner = Bitcoin::Crypto::Script::Runner->new(
 		transaction => $self,
 	);
 
+	my @inputs = @{$self->inputs};
+
 	# locktime checking
 	if (
 		$self->locktime > 0 && grep {
 			$_->sequence_no != Bitcoin::Crypto::Constants::max_nsequence
-		} @{$self->inputs}
+		} @inputs
 		)
 	{
-		my $block = $args->block;
 		if (defined $block) {
 			my $locktime = $self->locktime;
 			my $is_timestamp = $locktime >= Bitcoin::Crypto::Constants::locktime_height_threshold;
@@ -416,13 +418,16 @@ sub verify
 		}
 	}
 
-	my $input_index = 0;
-	foreach my $input (@{$self->inputs}) {
+	# per-input verification
+	foreach my $input_index (0 .. $#inputs) {
+		my $input = $inputs[$input_index];
+		my $utxo = $input->utxo;
 		$script_runner->transaction->set_input_index($input_index);
 
+		# run bitcoin script
 		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 			sub {
-				my $locking_script = $input->utxo->output->locking_script;
+				my $locking_script = $utxo->output->locking_script;
 
 				# execute input to get initial stack
 				$script_runner->execute($input->signature_script);
@@ -447,7 +452,26 @@ sub verify
 			"transaction input $input_index verification has failed"
 		);
 
-		$input_index += 1;
+		# check sequence (BIP 68)
+		if ($self->version >= 2 && !($input->sequence_no & (1 << 31))) {
+			my $sequence = $input->sequence_no;
+			my $time_based = $sequence & (1 << 22);
+			my $relative_locktime = $sequence & 0x0000ffff;
+
+			if (defined $block && $utxo->has_block) {
+				my $utxo_block = $utxo->block;
+				my $now = $time_based ? $block->median_time_past : $block->height;
+				my $then = $time_based ? $utxo_block->median_time_past : $utxo_block->height;
+				$relative_locktime <<= 9 if $time_based;
+
+				Bitcoin::Crypto::Exception::Transaction->raise(
+					'relative locktime was not satisfied'
+				) if $now < $then + $relative_locktime;
+			}
+			else {
+				carp 'trying to verify relative locktime but no block parameter was passed or utxo block was set';
+			}
+		}
 	}
 
 	return;

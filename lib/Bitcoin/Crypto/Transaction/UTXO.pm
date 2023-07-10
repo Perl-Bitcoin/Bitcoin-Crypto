@@ -22,6 +22,12 @@ has param 'txid' => (
 	),
 );
 
+# TODO: ideally, utxo should point to a transaction, and transaction should
+# point to a block
+has option 'block' => (
+	isa => InstanceOf ['Bitcoin::Crypto::Block'],
+);
+
 has param 'output_index' => (
 	isa => IntMaxBits [32],
 );
