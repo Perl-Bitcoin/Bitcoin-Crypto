@@ -5,6 +5,7 @@ use Test::More;
 use Try::Tiny;
 
 use Bitcoin::Crypto qw(btc_transaction btc_script btc_utxo btc_block);
+use Bitcoin::Crypto::Script::Runner;
 
 my @cases = (
 	[
@@ -17,7 +18,7 @@ my @cases = (
 				height => 0,
 			}
 		},
-		'5553',
+		Bitcoin::Crypto::Script::Runner->from_int(21333),
 		'Bitcoin::Crypto::Exception::TransactionScript',
 	],
 
@@ -31,7 +32,7 @@ my @cases = (
 				height => 21333,
 			}
 		},
-		'5553',
+		Bitcoin::Crypto::Script::Runner->from_int(21333),
 		undef,
 	],
 
@@ -39,13 +40,13 @@ my @cases = (
 		'height unsatisfied - CLTV',
 		{
 			transaction => {
-				locktime => 21332,
+				locktime => 21333,
 			},
 			block => {
-				height => 21332,
+				height => 21333,
 			}
 		},
-		'5553',
+		Bitcoin::Crypto::Script::Runner->from_int(21333 + 1),
 		'Bitcoin::Crypto::Exception::TransactionScript',
 	],
 
@@ -56,10 +57,10 @@ my @cases = (
 				locktime => 21333,
 			},
 			block => {
-				height => 21332,
+				height => 21333 - 1,
 			}
 		},
-		'5553',
+		Bitcoin::Crypto::Script::Runner->from_int(21333),
 		'Bitcoin::Crypto::Exception::Transaction',
 	],
 
@@ -74,7 +75,7 @@ my @cases = (
 				height => 0,
 			}
 		},
-		'9be9c657',
+		Bitcoin::Crypto::Script::Runner->from_int(1472653723),
 		undef,
 	],
 
@@ -82,14 +83,14 @@ my @cases = (
 		'time unsatisfied - CLTV',
 		{
 			transaction => {
-				locktime => 1472653722,
+				locktime => 1472653723,
 			},
 			block => {
-				timestamp => 1472653722,
+				timestamp => 1472653723,
 				height => 0,
 			}
 		},
-		'9be9c657',
+		Bitcoin::Crypto::Script::Runner->from_int(1472653723 + 1),
 		'Bitcoin::Crypto::Exception::TransactionScript',
 	],
 
@@ -100,11 +101,11 @@ my @cases = (
 				locktime => 1472653723,
 			},
 			block => {
-				timestamp => 1472653722,
+				timestamp => 1472653723 - 1,
 				height => 0,
 			}
 		},
-		'9be9c657',
+		Bitcoin::Crypto::Script::Runner->from_int(1472653723),
 		'Bitcoin::Crypto::Exception::Transaction',
 	],
 
@@ -112,14 +113,14 @@ my @cases = (
 		'CLTV mixed 1',
 		{
 			transaction => {
-				locktime => 1472653722,
+				locktime => 1472653723,
 			},
 			block => {
-				timestamp => 1472653722,
+				timestamp => 1472653723,
 				height => 0,
 			}
 		},
-		'5553',
+		Bitcoin::Crypto::Script::Runner->from_int(21333),
 		'Bitcoin::Crypto::Exception::TransactionScript',
 	],
 
@@ -133,7 +134,7 @@ my @cases = (
 				height => 21333,
 			}
 		},
-		'9be9c657',
+		Bitcoin::Crypto::Script::Runner->from_int(1472653723),
 		'Bitcoin::Crypto::Exception::TransactionScript',
 	],
 );
@@ -156,7 +157,7 @@ foreach my $case (@cases) {
 		my $transaction = btc_transaction->new($args->{transaction});
 		$transaction->add_input(
 			utxo => [[hex => '10c3227c159290319a305019dae6a4a0c0336e3dc25e220230ac8b2900c8fc4f'], 0],
-			signature_script => btc_script->new->push([hex => $locktime]),
+			signature_script => btc_script->new->push($locktime),
 			sequence_no => 0xfffffffe,
 		);
 
