@@ -16,6 +16,7 @@ has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],
 	handles => [
 		qw(
+			version
 			locktime
 			inputs
 			outputs
@@ -43,6 +44,13 @@ sub get_digest
 		signing_subscript => $subscript,
 		sighash => $sighash
 	);
+}
+
+sub this_input
+{
+	my ($self) = @_;
+
+	return $self->inputs->[$self->input_index];
 }
 
 1;

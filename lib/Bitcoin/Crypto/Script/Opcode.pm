@@ -816,9 +816,39 @@ my %opcodes = (
 		code => "\xb2",
 		needs_transaction => 1,
 
-		# runner => sub {
-		# 	my $runner = shift;
-		# },
+		runner => sub {
+			my $runner = shift;
+			my $transaction = $runner->transaction;
+
+			my $stack = $runner->stack;
+			stack_error unless @$stack >= 1;
+
+			my $c1 = $runner->to_int($stack->[-1]);
+
+			invalid_script
+				if $c1 < 0;
+
+			if (!($c1 & (1 << 31))) {
+				invalid_script
+					if $transaction->version < 2;
+
+				my $c2 = $transaction->this_input->sequence_no;
+
+				invalid_script
+					if $c2 & (1 << 31);
+
+				my $c1_is_time = $c1 & (1 << 22);
+				my $c2_is_time = $c2 & (1 << 22);
+
+				invalid_script
+					if !!$c1_is_time ne !!$c2_is_time;
+
+				invalid_script
+					if ($c1 & 0x0000ffff) > ($c2 & 0x0000ffff);
+			}
+
+			pop @$stack;
+		},
 	},
 );
 
