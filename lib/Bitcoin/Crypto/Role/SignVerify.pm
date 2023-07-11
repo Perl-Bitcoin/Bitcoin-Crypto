@@ -123,7 +123,7 @@ sub sign_transaction
 			$input->set_signature_script(
 				btc_script->new
 					->push($signature // $sign_sref->())
-					->push($self->get_public_key->to_str)
+					->push($self->get_public_key->to_serialized)
 			);
 		},
 		P2MS => sub {

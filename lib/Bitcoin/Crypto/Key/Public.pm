@@ -28,7 +28,7 @@ sub key_hash
 {
 	my ($self) = @_;
 
-	return hash160($self->to_str);
+	return hash160($self->to_serialized);
 }
 
 signature_for witness_program => (
@@ -143,7 +143,7 @@ Bitcoin::Crypto::Key::Public - Bitcoin public keys
 
 	use Bitcoin::Crypto::Key::Public;
 
-	$pub = Bitcoin::Crypto::Key::Public->from_str([hex => $asn_hex]);
+	$pub = Bitcoin::Crypto::Key::Public->from_serialized([hex => $asn_hex]);
 
 	# verify signature (it has to be byte string, see perlpacktut)
 
@@ -171,21 +171,21 @@ You can use a public key to:
 
 =head2 new
 
-Constructor is reserved for internal and advanced use only. Use L</from_str>
+Constructor is reserved for internal and advanced use only. Use L</from_serialized>
 instead.
 
-=head2 from_str
+=head2 from_serialized
 
-	$key_object = $class->from_str($serialized)
+	$key_object = $class->from_serialized($serialized)
 
 This creates a new key from string data. Argument C<$serialized> is a
 formatable bytestring which must represent a public key in ASN X9.62 format.
 
 Returns a new key object instance.
 
-=head2 to_str
+=head2 to_serialized
 
-	$serialized = $key_object->to_str()
+	$serialized = $key_object->to_serialized()
 
 This returns a public key in ASN X9.62 format. The result is a bytestring which
 can be further formated with C<to_format> utility.
@@ -194,26 +194,26 @@ The result will vary depending on compression state: see L</set_compressed>
 
 =head2 from_bytes
 
-Deprecated. Use C<< $class->from_str($data) >> instead.
+Deprecated. Use C<< $class->from_serialized($data) >> instead.
 
 =head2 to_bytes
 
-Deprecated. Use C<< $key->to_str($data) >> instead.
+Deprecated. Use C<< $key->to_serialized($data) >> instead.
 
 =head2 from_hex
 
-Deprecated. Use C<< $class->from_str([hex => $data]) >> instead.
+Deprecated. Use C<< $class->from_serialized([hex => $data]) >> instead.
 
 =head2 to_hex
 
-Deprecated. Use C<< to_format [hex => $key->to_str($data)] >> instead.
+Deprecated. Use C<< to_format [hex => $key->to_serialized($data)] >> instead.
 
 =head2 set_compressed
 
 	$key_object = $object->set_compressed($val)
 
 Change key's compression state to C<$val> (boolean). This will change the
-address. If C<$val> is omitted it is set to C<true>.
+address. If C<$val> is omitted it is set to C<1>.
 
 Returns current key instance.
 

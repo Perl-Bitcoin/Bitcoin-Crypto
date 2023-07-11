@@ -21,31 +21,31 @@ around BUILDARGS => sub {
 	my ($orig, $class, @params) = @_;
 
 	if (@params == 1) {
-		carp_once "$class->new(\$bytes) is now deprecated. Use $class->from_str(\$bytes) instead";
+		carp_once "$class->new(\$bytes) is now deprecated. Use $class->from_serialized(\$bytes) instead";
 		unshift @params, 'key_instance';
 	}
 
 	return $class->$orig(@params);
 };
 
-signature_for from_str => (
+signature_for from_serialized => (
 	method => Str,
 	positional => [ByteStr],
 );
 
-sub from_str
+sub from_serialized
 {
 	my ($class, $bytes) = @_;
 
 	return $class->new(key_instance => $bytes);
 }
 
-signature_for to_str => (
+signature_for to_serialized => (
 	method => Object,
 	positional => [],
 );
 
-sub to_str
+sub to_serialized
 {
 	my ($self) = @_;
 
@@ -58,8 +58,8 @@ sub from_hex
 {
 	my ($class, $val) = @_;
 
-	carp_once "$class->from_hex(\$str) is now deprecated. Use $class->from_str([hex => \$str]) instead";
-	return $class->from_str([hex => $val]);
+	carp_once "$class->from_hex(\$str) is now deprecated. Use $class->from_serialized([hex => \$str]) instead";
+	return $class->from_serialized([hex => $val]);
 }
 
 sub to_hex
@@ -68,16 +68,16 @@ sub to_hex
 
 	my $class = ref $self;
 	carp_once
-		"$class->to_hex() is now deprecated. Use Bitcoin::Crypto::Util::to_format [hex => $class->to_str()] instead";
-	return to_format [hex => $self->to_str];
+		"$class->to_hex() is now deprecated. Use Bitcoin::Crypto::Util::to_format [hex => $class->to_serialized()] instead";
+	return to_format [hex => $self->to_serialized];
 }
 
 sub from_bytes
 {
 	my ($class, $bytes) = @_;
 
-	carp_once "$class->from_bytes() is now deprecated. Use $class->from_str() instead";
-	return $class->from_str($bytes);
+	carp_once "$class->from_bytes() is now deprecated. Use $class->from_serialized() instead";
+	return $class->from_serialized($bytes);
 }
 
 sub to_bytes
@@ -85,8 +85,8 @@ sub to_bytes
 	my ($self) = @_;
 
 	my $class = ref $self;
-	carp_once "$class->to_bytes() is now deprecated. Use $class->to_str() instead";
-	return $self->to_str;
+	carp_once "$class->to_bytes() is now deprecated. Use $class->to_serialized() instead";
+	return $self->to_serialized;
 }
 
 1;

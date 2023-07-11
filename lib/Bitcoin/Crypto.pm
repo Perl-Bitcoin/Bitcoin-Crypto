@@ -89,7 +89,7 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 	my $pub = $priv->get_public_key;
 
 	say 'private key: ' . $priv->to_wif;
-	say 'public key: ' . to_format [hex => $pub->to_str];
+	say 'public key: ' . to_format [hex => $pub->to_serialized];
 	say 'address: ' . $pub->get_segwit_address;
 
 	my $message = 'Hello CPAN';
@@ -213,7 +213,7 @@ be used as follows:
 
 	# loads Bitcoin::Crypto::Key::Public and returns package name
 	# we can now use it to run its methods
-	my $public_key = btc_pub->from_str([hex => $hex_data]);
+	my $public_key = btc_pub->from_serialized([hex => $hex_data]);
 
 =head3 btc_extprv
 

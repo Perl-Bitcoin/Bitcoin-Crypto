@@ -12,25 +12,25 @@ use Bitcoin::Crypto::Network;
 
 subtest 'testing invalid hex' => sub {
 	throws_ok {
-		btc_pub->from_str([hex => 'not-a-hex']);
+		btc_pub->from_serialized([hex => 'not-a-hex']);
 	} 'Bitcoin::Crypto::Exception::KeyCreate';
 };
 
 subtest 'testing undef as a bytestring' => sub {
 	throws_ok {
-		btc_pub->from_str(undef);
+		btc_pub->from_serialized(undef);
 	} qr/not a bytestring/;
 };
 
 subtest 'testing empty string as a bytestring' => sub {
 	throws_ok {
-		btc_pub->from_str('');
+		btc_pub->from_serialized('');
 	} 'Bitcoin::Crypto::Exception::KeyCreate';
 };
 
 subtest 'testing reference as a bytestring' => sub {
 	throws_ok {
-		btc_pub->from_str(['11']);
+		btc_pub->from_serialized(['11']);
 	} qr/not a bytestring/;
 };
 

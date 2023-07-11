@@ -25,7 +25,7 @@ sub sign_message
 		message => $message,
 		algorithm => $algo,
 		signature => to_format [hex => $signature],
-		public_key => to_format [hex => $public->to_str],
+		public_key => to_format [hex => $public->to_serialized],
 	};
 }
 
@@ -34,7 +34,7 @@ sub verify_message
 	my ($signature_hash) = @_;
 
 	# re-create public key from hexadecimal data
-	my $public = btc_pub->from_str([hex => $signature_hash->{public_key}]);
+	my $public = btc_pub->from_serialized([hex => $signature_hash->{public_key}]);
 
 	# perform a verification againts the public key
 	return $public->verify_message(

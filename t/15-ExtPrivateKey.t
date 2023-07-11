@@ -135,8 +135,8 @@ foreach my $tdata (@test_data) {
 		is(ref $basic_public, 'Bitcoin::Crypto::Key::Public', 'basic public key created');
 
 		is(
-			to_format [hex => $basic_private->get_public_key()->to_str],
-			to_format [hex => $basic_public->to_str],
+			to_format [hex => $basic_private->get_public_key()->to_serialized],
+			to_format [hex => $basic_public->to_serialized],
 			'keys match'
 		);
 

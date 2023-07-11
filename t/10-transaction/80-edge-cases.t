@@ -8,7 +8,7 @@ use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv btc_utxo);
 use Bitcoin::Crypto::Constants;
 
 my $tx;
-my $prv = btc_prv->from_str("\x12" x 32);
+my $prv = btc_prv->from_serialized("\x12" x 32);
 
 subtest 'should checksig a non-standard transaction' => sub {
 	$tx = btc_transaction->new;
@@ -46,7 +46,7 @@ subtest 'should checksig a non-standard transaction' => sub {
 	$input->signature_script
 		->push("\x01")
 		->push($signature)
-		->push($prv->get_public_key->to_str);
+		->push($prv->get_public_key->to_serialized);
 
 	lives_ok { $tx->verify } 'input verification ok';
 };
