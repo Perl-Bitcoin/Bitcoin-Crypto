@@ -75,7 +75,7 @@ sub add_output
 signature_for to_serialized => (
 	method => Object,
 	named => [
-		with_witness => Bool,
+		witness => Bool,
 		{default => 1},
 		_signing_index => PositiveOrZeroInt,
 		{optional => 1},
@@ -117,7 +117,7 @@ sub to_serialized
 		'transaction has no inputs'
 	) if @inputs == 0;
 
-	my $with_witness = $args->with_witness && grep { $_->has_witness } @inputs;
+	my $with_witness = $args->witness && grep { $_->has_witness } @inputs;
 	if ($with_witness) {
 		$serialized .= "\x00\x01";
 	}
@@ -257,7 +257,7 @@ sub get_hash
 {
 	my ($self) = @_;
 
-	return scalar reverse hash256($self->to_serialized(with_witness => 0));
+	return scalar reverse hash256($self->to_serialized(witness => 0));
 }
 
 signature_for get_digest => (
@@ -346,7 +346,7 @@ sub virtual_size
 {
 	my ($self) = @_;
 
-	my $base = length $self->to_serialized(with_witness => 0);
+	my $base = length $self->to_serialized(witness => 0);
 	my $with_witness = length $self->to_serialized;
 	my $witness = $with_witness - $base;
 
@@ -362,7 +362,7 @@ sub weight
 {
 	my ($self) = @_;
 
-	my $base = length $self->to_serialized(with_witness => 0);
+	my $base = length $self->to_serialized(witness => 0);
 	my $with_witness = length $self->to_serialized;
 	my $witness = $with_witness - $base;
 
