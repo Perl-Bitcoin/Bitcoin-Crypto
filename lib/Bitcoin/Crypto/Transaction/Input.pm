@@ -30,6 +30,11 @@ has param 'sequence_no' => (
 	default => Bitcoin::Crypto::Constants::max_nsequence,
 );
 
+has option 'witness' => (
+	coerce => ArrayRef [ByteStr],
+	writer => 1,
+);
+
 signature_for to_serialized => (
 	method => Object,
 	named => [
