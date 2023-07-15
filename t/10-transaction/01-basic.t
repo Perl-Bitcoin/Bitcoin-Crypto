@@ -9,7 +9,7 @@ use Bitcoin::Crypto::Util qw(to_format);
 
 my $tx;
 
-subtest 'should serialize transactions' => sub {
+subtest 'should serialize and deserialize transactions' => sub {
 	$tx = btc_transaction->new;
 
 	my $utxo = btc_utxo->new(
@@ -52,6 +52,9 @@ subtest 'should serialize transactions' => sub {
 	is substr($tx->fee_rate, 0, 4), '2.99', 'fee rate ok';
 	is substr($tx->virtual_size, 0, 6), '143.25', 'vB weight ok';
 	is $tx->weight, '573', 'WU weight ok';
+
+	my $deserialized = btc_transaction->from_serialized([hex => $expected_serialized]);
+	is to_format [hex => $deserialized->to_serialized], $expected_serialized, 'deserialization ok';
 };
 
 subtest 'should digest transactions (old OP_CHECKSIG style)' => sub {

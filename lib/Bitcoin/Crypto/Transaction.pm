@@ -16,7 +16,7 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Util qw(hash256);
-use Bitcoin::Crypto::Helpers qw(pack_varint);
+use Bitcoin::Crypto::Helpers qw(pack_varint unpack_varint);
 use Bitcoin::Crypto::Types
 	qw(IntMaxBits ArrayRef InstanceOf HashRef Object ByteStr Str PositiveInt PositiveOrZeroInt Enum BitcoinScript Bool);
 
@@ -174,6 +174,78 @@ sub to_serialized
 	$serialized .= pack 'V', $self->locktime;
 
 	return $serialized;
+}
+
+signature_for from_serialized => (
+	method => Str,
+	positional => [ByteStr],
+);
+
+sub from_serialized
+{
+	my ($class, $serialized) = @_;
+	my $pos = 0;
+
+	my $version = unpack 'V', substr $serialized, $pos, 4;
+	$pos += 4;
+
+	my $witness_flag = (substr $serialized, $pos, 2) eq "\x00\x01";
+	$pos += 2 if $witness_flag;
+
+	my ($input_count_len, $input_count) = unpack_varint(substr $serialized, $pos, 9);
+	$pos += $input_count_len;
+
+	my @inputs;
+	for (1 .. $input_count) {
+		push @inputs, Bitcoin::Crypto::Transaction::Input->from_serialized(
+			$serialized, pos => \$pos
+		);
+	}
+
+	my ($output_count_len, $output_count) = unpack_varint(substr $serialized, $pos, 9);
+	$pos += $output_count_len;
+
+	my @outputs;
+	for (1 .. $output_count) {
+		push @outputs, Bitcoin::Crypto::Transaction::Output->from_serialized(
+			$serialized, pos => \$pos
+		);
+	}
+
+	if ($witness_flag) {
+		foreach my $input (@inputs) {
+			my ($input_witness_len, $input_witness) = unpack_varint(substr $serialized, $pos, 9);
+			$pos += $input_witness_len;
+
+			my @witness;
+			for (1 .. $input_witness) {
+				my ($witness_count_len, $witness_count) = unpack_varint(substr $serialized, $pos, 9);
+				$pos += $witness_count_len;
+
+				push @witness, substr $serialized, $pos, $witness_count;
+				$pos += $witness_count;
+			}
+
+			$input->set_witness(\@witness);
+		}
+	}
+
+	my $locktime = unpack 'V', substr $serialized, $pos, 4;
+	$pos += 4;
+
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'serialized transaction data is corrupted'
+	) if $pos != length $serialized;
+
+	my $tx = $class->new(
+		version => $version,
+		locktime => $locktime,
+	);
+
+	@{$tx->inputs} = @inputs;
+	@{$tx->outputs} = @outputs;
+
+	return $tx;
 }
 
 signature_for get_hash => (
