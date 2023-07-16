@@ -5,6 +5,7 @@ use Test::More;
 use Test::Exception;
 
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv btc_utxo);
+use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Constants;
 
 my $tx;
@@ -49,6 +50,49 @@ subtest 'should checksig a non-standard transaction' => sub {
 		->push($prv->get_public_key->to_serialized);
 
 	lives_ok { $tx->verify } 'input verification ok';
+};
+
+subtest 'should serialize and deserialize mixed segwit txs' => sub {
+	btc_utxo->new(
+		txid => [hex => '421b965bfa12d9d8ae17b23b346ca603c51602766fc639bdaf7284c5d7877f62'],
+		output_index => 0,
+		output => {
+			locking_script => btc_script
+				->from_standard(P2SH => '3NjkBnRi8BsiLtziBKNUmgsK7r8A1CLdjr'),
+			value => 18093972,
+		},
+	)->register;
+
+	btc_utxo->new(
+		txid => [hex => '2586ccd8d12d8a2e88d76e7ba427ce5f123cbdc0fb14119109751826c9a53e78'],
+		output_index => 0,
+		output => {
+			locking_script => btc_script
+				->from_standard(P2PKH => '1AqD6yrAkeimM67p3rHvLTRnQvKVvEyAt6'),
+			value => 858089,
+		},
+	)->register;
+
+	my $txid = '76899e00277359a639ae138759a1363ceb7a230fea5f9a6bf8c573f7c61706fd';
+	my $serialized =
+		'02000000000102627f87d7c58472afbd39c66f760216c503a66c343bb217aed8d912fa5b961b42000000001716001432362516c52a861389ff36ef2e259cc4bb794e41feffffff783ea5c926187509911114fbc0bd3c125fce27a47b6ed7882e8a2dd1d8cc8625000000006b483045022100dd79ce31a697fa2f7fd2ac6f6c5a195a9973e53286b81188947ddeb488a7db7602207fad683c86e6786a578fe66523021c2e0a2229492efc17d92a8179bcb27eb505012102fb9d634f6a4cd428d915de6cdcd1d56c66799fe30f3bfe2c5bbea7e42b1c0486feffffff0220ed11010000000017a914392b0579ae8f68973aa56df970f2999b2b6ed13e8755430d00000000001976a91432d7092dab6128aac94964f3f99c08236b9f666988ac0248304502210093048418636fb435513456481edffd171df2d8feadf3a1674cb805089a5905bc02206cc2481342b4daac8bf0441c85d94c382208d650c5e9316586f5d260be3dbe5b0121030a3e29d736f681922e0b21f55f1370cc45a5d9a8c0d7e06cf95110d0b02bf643001ea10700';
+
+	$tx = btc_transaction->from_serialized([hex => $serialized]);
+	is to_format [hex => $tx->get_hash], $txid, 'txid ok';
+
+	is_deeply
+		to_format [hex => $tx->inputs->[0]->witness->[0]],
+		'304502210093048418636fb435513456481edffd171df2d8feadf3a1674cb805089a5905bc02206cc2481342b4daac8bf0441c85d94c382208d650c5e9316586f5d260be3dbe5b01',
+		'input 0 witness 0 ok';
+
+	is_deeply
+		to_format [hex => $tx->inputs->[0]->witness->[1]],
+		'030a3e29d736f681922e0b21f55f1370cc45a5d9a8c0d7e06cf95110d0b02bf643',
+		'input 0 witness 1 ok';
+
+	is_deeply $tx->inputs->[1]->witness, [], 'input 1 witness ok';
+
+	is to_format [hex => $tx->to_serialized], $serialized, 'serialization ok';
 };
 
 subtest 'should handle NULLDATA outputs' => sub {
