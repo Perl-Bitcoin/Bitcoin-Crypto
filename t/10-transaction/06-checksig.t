@@ -98,5 +98,57 @@ subtest 'should verify transactions (P2PKH)' => sub {
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
+subtest 'should verify transactions (P2SH)' => sub {
+	$tx = btc_transaction->new;
+
+	btc_utxo->new(
+		txid => [hex => '81d5859d7db9b3d2da0fd4e8abd4b3005febb8fa72f0e4bd3687fd1863b1bd36'],
+		output_index => 50,
+		output => {
+			locking_script => [P2SH => '3HSZTsuakivAbX9cA7A6ayt6cf546WU6Bm'],
+			value => 4_89995000,
+		},
+	)->register;
+
+	my $expected_txid = '92f100a9ea54b9daddaff5f7c409f82c6037053bc5deb35d7c49bc07dd4121e7';
+
+	$tx->add_input(
+		utxo => [[hex => '81d5859d7db9b3d2da0fd4e8abd4b3005febb8fa72f0e4bd3687fd1863b1bd36'], 50],
+		signature_script => btc_script->new
+			->add('OP_0')
+			->push(
+				[
+					hex =>
+					'30440220654390a02b4ed6a7e1677cb5b363b831ad47fec2b409986b2e281e9c9f308e970220738582d89867fb19207a1f14a0b6e1bbcfd6ee2dbcebb3e0d55f6ff67c7ccff601'
+				]
+			)
+			->push(
+				[
+					hex =>
+					'3044022050bbd062653aaaf9f0292e4a97cafa831999be6876b0df43de646df4804f6ac8022003d4404d3e1d72ae20058d1b5d455f19caceb9f6b1a21a8729a678b42a90666701'
+				]
+			)
+			->push(
+				[
+					hex =>
+					'52210304d71378c1ad693c876a92a57aad057b1f5a17517f9b7ca2f736b7e0cd968f352103c79161e4888885e664cc2708638a5e39a506f6f483e3f4fe45148dfd5618adbf4104c96d495bfdd5ba4145e3e046fee45e84a8a48ad05bd8dbb395c011a32cf9f880326dbd66c140b50257f9618173833b50b6e829b5cd04ffd0ba693b90be80435953ae'
+				]
+			)
+	);
+
+	$tx->add_output(
+		value => 1_66313000,
+		locking_script => [P2WSH => 'bc1qwqdg6squsna38e46795at95yu9atm8azzmyvckulcc7kytlcckxswvvzej'],
+	);
+
+	$tx->add_output(
+		value => 3_23623560,
+		locking_script => [P2WSH => 'bc1qyy30guv6m5ez7ntj0ayr08u23w3k5s8vg3elmxdzlh8a3xskupyqn2lp5w'],
+	);
+
+	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
+	lives_ok { $tx->verify } 'input verification ok';
+};
+
 done_testing;
 
