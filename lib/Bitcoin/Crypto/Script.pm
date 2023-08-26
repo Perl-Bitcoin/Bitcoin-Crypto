@@ -273,13 +273,19 @@ sub _build_type
 		}
 	};
 
+	my $ret = undef;
 	foreach my $type_def (@$types) {
 		my ($type, $blueprint) = @{$type_def};
 
-		return $type if $check_blueprint->(0, @$blueprint);
+		if ($check_blueprint->(0, @$blueprint)) {
+			$ret = $type;
+			last;
+		}
 	}
 
-	return undef;
+	# make sure no memory leak occurs
+	$check_blueprint = undef;
+	return $ret;
 }
 
 sub BUILD
