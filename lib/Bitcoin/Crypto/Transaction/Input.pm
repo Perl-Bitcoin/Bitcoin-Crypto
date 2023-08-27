@@ -8,7 +8,7 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
-use Bitcoin::Crypto qw(btc_utxo);
+use Bitcoin::Crypto qw(btc_utxo btc_script);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(pack_varint unpack_varint);
 use Bitcoin::Crypto::Types
@@ -66,12 +66,7 @@ sub to_serialized
 	if (defined $args->signing) {
 		if ($args->signing) {
 			$script = $args->signing_subscript;
-			$script //= $utxo->output->locking_script->to_serialized
-				if $utxo->output->is_standard;
-
-			Bitcoin::Crypto::Exception::Transaction->raise(
-				"can't guess the subscript from a non-standard transaction"
-			) unless defined $script;
+			$script //= $self->script_base;
 		}
 		else {
 			$script //= "\x00";
@@ -135,6 +130,106 @@ sub from_serialized
 		signature_script => $script,
 		sequence_no => $sequence,
 	);
+}
+
+signature_for is_segwit => (
+	method => Object,
+	positional => [],
+);
+
+sub is_segwit
+{
+	my ($self) = @_;
+
+	# Determines whether this script is segwit (including nested variants).
+	# There's no need to verify P2SH hash matching, as it will be checked at a
+	# later stage. It's enough if the input promises the segwit format.
+
+	my $output_script = $self->utxo->output->locking_script;
+	return !!1 if $output_script->is_native_segwit;
+	return !!0 unless ($output_script->type // '') eq 'P2SH';
+
+	my $input_script = $self->signature_script->to_serialized;
+	my $push = substr $input_script, 0, 1, '';
+	my $real_script = btc_script->from_serialized($input_script);
+
+	return !!0 unless ord $push == length $input_script;
+	return !!1 if $real_script->is_native_segwit;
+	return !!0;
+}
+
+signature_for prevout => (
+	method => Object,
+	positional => [],
+);
+
+sub prevout
+{
+	my ($self) = @_;
+	my $utxo = $self->utxo;
+
+	return scalar reverse($utxo->txid) . pack 'V', $utxo->output_index;
+}
+
+signature_for script_base => (
+	method => Object,
+	positional => [],
+);
+
+sub script_base
+{
+	my ($self) = @_;
+	my $utxo = $self->utxo;
+	my $script = $utxo->output->locking_script;
+
+	if ($script->is_native_segwit) {
+
+		# no need to check for standard, as segwit is already standard
+
+		return $self->script_code->to_serialized;
+	}
+	else {
+		Bitcoin::Crypto::Exception::Transaction->raise(
+			"can't guess the subscript from a non-standard transaction"
+		) unless $utxo->output->is_standard;
+
+		return $script->to_serialized;
+	}
+}
+
+signature_for script_code => (
+	method => Object,
+	positional => [],
+);
+
+sub script_code
+{
+	my ($self) = @_;
+	my $utxo = $self->utxo;
+
+	my $program;
+	my %types = (
+		P2WPKH => sub {
+
+			# get script hash from P2WPKH (ignore the first two OPs - version and push)
+			my $hash = substr $utxo->output->locking_script->to_serialized, 2;
+			$program = Bitcoin::Crypto::Script->new
+				->add('OP_DUP')
+				->add('OP_HASH160')
+				->push($hash)
+				->add('OP_EQUALVERIFY')
+				->add('OP_CHECKSIG')
+				;
+		},
+		P2WSH => sub {
+
+			# TODO: this is not complete, as it does not take OP_CODESEPARATORs into account
+			$program = $self->signature_script;
+		},
+	);
+
+	$types{$utxo->output->locking_script->type}->();
+	return $program;
 }
 
 1;

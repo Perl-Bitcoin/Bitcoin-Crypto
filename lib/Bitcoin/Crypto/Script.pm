@@ -546,6 +546,23 @@ sub push
 	goto \&push_bytes;
 }
 
+# this can only detect native segwit in this context, as P2SH outputs are
+# indistinguishable from any other P2SH
+signature_for is_native_segwit => (
+	method => Object,
+	positional => [],
+);
+
+sub is_native_segwit
+{
+	my ($self) = @_;
+	my @segwit_types = qw(P2WPKH P2WSH);
+
+	my $script_type = $self->type // '';
+
+	return 0 != grep { $script_type eq $_ } @segwit_types;
+}
+
 signature_for get_script => (
 	method => Object,
 	positional => [],

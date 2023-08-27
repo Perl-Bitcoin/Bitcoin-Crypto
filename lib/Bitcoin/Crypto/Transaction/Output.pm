@@ -35,6 +35,15 @@ sub is_standard
 	return $self->locking_script->has_type;
 }
 
+sub value_serialized
+{
+	my ($self) = @_;
+
+	# NOTE: little endian
+	my $value = $self->value->as_bytes;
+	return scalar reverse ensure_length($value, 8);
+}
+
 signature_for to_serialized => (
 	method => Object,
 	positional => [],
@@ -50,9 +59,7 @@ sub to_serialized
 	# - locking script
 	my $serialized = '';
 
-	# NOTE: little endian
-	my $value = $self->value->as_bytes;
-	$serialized .= reverse ensure_length($value, 8);
+	$serialized .= $self->value_serialized;
 
 	my $script = $self->locking_script->get_script;
 	$serialized .= pack_varint(length $script);
