@@ -99,5 +99,33 @@ subtest 'should digest transactions - native segwit SIGHASH_ALL' => sub {
 	is to_format [hex => $tx->get_digest(signing_index => 1)], $expected, 'digest ok';
 };
 
+subtest 'should digest transactions - compat segwit SIGHASH_ALL' => sub {
+
+	# from https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#p2sh-p2wpkh
+
+	btc_utxo->new(
+		txid => [hex => '77541aeb3c4dac9260b68f74f44c973081a9d4cb2ebe8038b2d70faa201b6bdb'],
+		output_index => 1,
+		output => {
+			locking_script => [hex => 'a9144733f37cf4db86fbc2efed2500b4f4e49f31202387'],
+			value => 10_00000000,
+		},
+	)->register;
+
+	$tx = btc_transaction->from_serialized(
+		[
+			hex =>
+				'0100000001db6b1b20aa0fd7b23880be2ecbd4a98130974cf4748fb66092ac4d3ceb1a54770100000000feffffff02b8b4eb0b000000001976a914a457b684d7f0d539a46a45bbc043f35b59d0d96388ac0008af2f000000001976a914fd270b1ee6abcaea97fea7ad0402e8bd8ad6d77c88ac92040000'
+		]
+	);
+
+	$tx->inputs->[0]->set_signature_script([hex => '16001479091972186c449eb1ded22b78e40d009bdf0089']);
+
+	my $expected =
+		'01000000b0287b4a252ac05af83d2dcef00ba313af78a3e9c329afa216eb3aa2a7b4613a18606b350cd8bf565266bc352f0caddcf01e8fa789dd8a15386327cf8cabe198db6b1b20aa0fd7b23880be2ecbd4a98130974cf4748fb66092ac4d3ceb1a5477010000001976a91479091972186c449eb1ded22b78e40d009bdf008988ac00ca9a3b00000000feffffffde984f44532e2173ca0d64314fcefe6d30da6f8cf27bafa706da61df8a226c839204000001000000';
+
+	is to_format [hex => $tx->get_digest(signing_index => 0)], $expected, 'digest ok';
+};
+
 done_testing;
 

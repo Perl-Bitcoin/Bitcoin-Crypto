@@ -46,6 +46,64 @@ signature_for to_serialized => (
 	],
 );
 
+sub _nested_script
+{
+	my ($self) = @_;
+
+	my $input_script = $self->signature_script->to_serialized;
+	my $push = substr $input_script, 0, 1, '';
+	my $real_script = btc_script->from_serialized($input_script);
+
+	return undef unless ord $push == length $input_script;
+	return $real_script;
+}
+
+# script code for segwit digests (see script_base)
+sub _script_code
+{
+	my ($self) = @_;
+	my $utxo = $self->utxo;
+
+	my $locking_script = $utxo->output->locking_script;
+	my $signature_script = $self->signature_script;
+	my $program;
+	my %types = (
+		P2WPKH => sub {
+
+			# get script hash from P2WPKH (ignore the first two OPs - version and push)
+			my $hash = substr $locking_script->to_serialized, 2;
+			$program = Bitcoin::Crypto::Script->new
+				->add('OP_DUP')
+				->add('OP_HASH160')
+				->push($hash)
+				->add('OP_EQUALVERIFY')
+				->add('OP_CHECKSIG')
+				;
+		},
+		P2WSH => sub {
+
+			# TODO: this is not complete, as it does not take OP_CODESEPARATORs into account
+			$program = $signature_script;
+		},
+	);
+
+	my $type = $utxo->output->locking_script->type;
+
+	if ($type eq 'P2SH') {
+
+		# nested - nothing should get here without checking if nested script is native segwit
+		my $nested = $self->_nested_script;
+		$type = $nested->type;
+
+		# set those to nested script, so that no matter what type it is it should be processed correctly
+		$locking_script = $nested;
+		$signature_script = $nested;
+	}
+
+	$types{$type}->();
+	return $program;
+}
+
 sub to_serialized
 {
 	my ($self, $args) = @_;
@@ -149,12 +207,10 @@ sub is_segwit
 	return !!1 if $output_script->is_native_segwit;
 	return !!0 unless ($output_script->type // '') eq 'P2SH';
 
-	my $input_script = $self->signature_script->to_serialized;
-	my $push = substr $input_script, 0, 1, '';
-	my $real_script = btc_script->from_serialized($input_script);
+	my $nested = $self->_nested_script;
+	return !!0 unless defined $nested;
+	return !!1 if $nested->is_native_segwit;
 
-	return !!0 unless ord $push == length $input_script;
-	return !!1 if $real_script->is_native_segwit;
 	return !!0;
 }
 
@@ -179,57 +235,20 @@ signature_for script_base => (
 sub script_base
 {
 	my ($self) = @_;
-	my $utxo = $self->utxo;
-	my $script = $utxo->output->locking_script;
 
-	if ($script->is_native_segwit) {
+	if ($self->is_segwit) {
 
 		# no need to check for standard, as segwit is already standard
-
-		return $self->script_code->to_serialized;
+		return $self->_script_code->to_serialized;
 	}
 	else {
+		my $utxo = $self->utxo;
 		Bitcoin::Crypto::Exception::Transaction->raise(
 			"can't guess the subscript from a non-standard transaction"
 		) unless $utxo->output->is_standard;
 
-		return $script->to_serialized;
+		return $utxo->output->locking_script->to_serialized;
 	}
-}
-
-signature_for script_code => (
-	method => Object,
-	positional => [],
-);
-
-sub script_code
-{
-	my ($self) = @_;
-	my $utxo = $self->utxo;
-
-	my $program;
-	my %types = (
-		P2WPKH => sub {
-
-			# get script hash from P2WPKH (ignore the first two OPs - version and push)
-			my $hash = substr $utxo->output->locking_script->to_serialized, 2;
-			$program = Bitcoin::Crypto::Script->new
-				->add('OP_DUP')
-				->add('OP_HASH160')
-				->push($hash)
-				->add('OP_EQUALVERIFY')
-				->add('OP_CHECKSIG')
-				;
-		},
-		P2WSH => sub {
-
-			# TODO: this is not complete, as it does not take OP_CODESEPARATORs into account
-			$program = $self->signature_script;
-		},
-	);
-
-	$types{$utxo->output->locking_script->type}->();
-	return $program;
 }
 
 1;
