@@ -20,7 +20,7 @@ sub clone
 
 	# Don't use the constructor because not all state may be assignable this
 	# way
-	return bless { %$self }, ref $self;
+	return bless {%$self}, ref $self;
 }
 
 1;
