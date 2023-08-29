@@ -15,6 +15,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
+use Bitcoin::Crypto::Transaction::Digest;
 use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Helpers qw(pack_varint unpack_varint);
 use Bitcoin::Crypto::Types
@@ -77,10 +78,6 @@ signature_for to_serialized => (
 	named => [
 		witness => Bool,
 		{default => 1},
-		_signing_index => PositiveOrZeroInt,
-		{optional => 1},
-		_signing_subscript => ByteStr,
-		{optional => 1},
 	],
 );
 
@@ -118,26 +115,11 @@ sub to_serialized
 		$serialized .= "\x00\x01";
 	}
 
-	my $serialize_args = {};
-	my @input_args = map { +{input => $_, args => $serialize_args} } @inputs;
-
-	if (defined $args->_signing_index) {
-
-		# replace args reference of the input which we are signing
-		$input_args[$args->_signing_index]{args} = {
-			signing => !!1,
-			defined $args->_signing_subscript ? (signing_subscript => $args->_signing_subscript) : (),
-		};
-
-		# this will change args of every other input (via reference)
-		$serialize_args->{signing} = !!0;
-	}
-
 	$serialized .= pack_varint(scalar @inputs);
-	foreach my $input (@input_args) {
+	foreach my $input (@inputs) {
 
 		# TODO: signature script should be emptied if there's witness data?
-		$serialized .= $input->{input}->to_serialized(%{$input->{args}});
+		$serialized .= $input->to_serialized;
 	}
 
 	# Process outputs
@@ -254,130 +236,16 @@ sub get_hash
 
 signature_for get_digest => (
 	method => Object,
-	named => [
-		signing_index => PositiveOrZeroInt,
-		signing_subscript => ByteStr,
-		{optional => 1},
-		sighash => PositiveInt,
-		{default => Bitcoin::Crypto::Constants::sighash_all}
-	],
+	positional => [HashRef, {slurpy => !!1}],
 );
 
 sub get_digest
 {
-	my ($self, $args) = @_;
-	my $sign_no = $args->signing_index;
-	my $input = $self->inputs->[$sign_no];
+	my ($self, $params) = @_;
 
-	Bitcoin::Crypto::Exception::Transaction->raise(
-		"can't find input with index $sign_no"
-	) if !$input;
-
-	my $procedure = '_get_digest_default';
-	$procedure = '_get_digest_segwit'
-		if $input->is_segwit;
-
-	my $sighash_type = $args->sighash & 31;
-	my $anyonecanpay = $args->sighash & Bitcoin::Crypto::Constants::sighash_anyonecanpay;
-
-	# TODO: handle sighashes other than ALL
-
-	return $self->$procedure($input, $sighash_type, $anyonecanpay, $args);
-}
-
-sub _get_digest_default
-{
-	my ($self, $input, $sighash_type, $anyonecanpay, $args) = @_;
-
-	my $serialized = $self->to_serialized(
-		_signing_index => $args->signing_index,
-		defined $args->signing_subscript ? (_signing_subscript => $args->signing_subscript) : (),
-	);
-
-	if ($sighash_type == Bitcoin::Crypto::Constants::sighash_none) {
-
-		# TODO
-	}
-	elsif ($sighash_type == Bitcoin::Crypto::Constants::sighash_single) {
-
-		# TODO
-	}
-
-	if ($anyonecanpay) {
-
-		# TODO
-	}
-
-	$serialized .= pack 'V', $args->sighash;
-
-	return $serialized;
-}
-
-sub _get_digest_segwit
-{
-	my ($self, $input, $sighash_type, $anyonecanpay, $args) = @_;
-
-	# According to https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki
-	# Double SHA256 of the serialization of:
-	# 1. nVersion of the transaction (4-byte little endian)
-	# 2. hashPrevouts (32-byte hash)
-	# 3. hashSequence (32-byte hash)
-	# 4. outpoint (32-byte hash + 4-byte little endian)
-	# 5. scriptCode of the input (serialized as scripts inside CTxOuts)
-	# 6. value of the output spent by this input (8-byte little endian)
-	# 7. nSequence of the input (4-byte little endian)
-	# 8. hashOutputs (32-byte hash)
-	# 9. nLocktime of the transaction (4-byte little endian)
-	# 10. sighash type of the signature (4-byte little endian)
-
-	my $serialized = '';
-	$serialized .= pack 'V', $self->version;
-
-	my @prevouts;
-	my @sequences;
-	foreach my $input (@{$self->inputs}) {
-		push @prevouts, $input->prevout;
-		push @sequences, pack 'V', $input->sequence_no;
-	}
-
-	my @outputs;
-	foreach my $output (@{$self->outputs}) {
-		push @outputs, $output->value_serialized;
-
-		my $tmp = $output->locking_script->to_serialized;
-		push @outputs, pack_varint(length $tmp) . $tmp;
-	}
-
-	$serialized .= hash256(join '', @prevouts);
-	$serialized .= hash256(join '', @sequences);
-	$serialized .= $input->prevout;
-
-	my $script_base = $input->script_base;
-	$serialized .= pack_varint(length $script_base);
-	$serialized .= $script_base;
-
-	$serialized .= $input->utxo->output->value_serialized;
-	$serialized .= pack 'V', $input->sequence_no;
-	$serialized .= hash256(join '', @outputs);
-
-	if ($sighash_type == Bitcoin::Crypto::Constants::sighash_none) {
-
-		# TODO
-	}
-	elsif ($sighash_type == Bitcoin::Crypto::Constants::sighash_single) {
-
-		# TODO
-	}
-
-	if ($anyonecanpay) {
-
-		# TODO
-	}
-
-	$serialized .= pack 'V', $self->locktime;
-	$serialized .= pack 'V', $args->sighash;
-
-	return $serialized;
+	$params->{transaction} = $self;
+	my $digest = Bitcoin::Crypto::Transaction::Digest->new($params);
+	return $digest->get_digest;
 }
 
 signature_for fee => (

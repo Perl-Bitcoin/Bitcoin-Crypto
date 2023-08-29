@@ -36,14 +36,8 @@ has option 'witness' => (
 	writer => 1,
 );
 
-signature_for to_serialized => (
-	method => Object,
-	named => [
-		signing => Defined & Bool,
-		{optional => 1},
-		signing_subscript => ByteStr,
-		{optional => 1},
-	],
+with qw(
+	Bitcoin::Crypto::Role::ShallowClone
 );
 
 sub _nested_script
@@ -104,9 +98,15 @@ sub _script_code
 	return $program;
 }
 
+signature_for to_serialized => (
+	method => Object,
+	positional => [
+	],
+);
+
 sub to_serialized
 {
-	my ($self, $args) = @_;
+	my ($self) = @_;
 
 	# input should be serialized as follows:
 	# - transaction hash, 32 bytes
@@ -120,20 +120,7 @@ sub to_serialized
 	$serialized .= scalar reverse $utxo->txid;
 	$serialized .= pack 'V', $utxo->output_index;
 
-	my $script;
-	if (defined $args->signing) {
-		if ($args->signing) {
-			$script = $args->signing_subscript;
-			$script //= $self->script_base;
-		}
-		else {
-			$script //= "\x00";
-		}
-	}
-	else {
-		$script = $self->signature_script->to_serialized;
-	}
-
+	my $script = $self->signature_script->to_serialized;
 	$serialized .= pack_varint(length $script);
 	$serialized .= $script;
 
