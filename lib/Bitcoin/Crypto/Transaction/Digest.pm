@@ -52,56 +52,31 @@ sub get_digest
 	return $self->$procedure($input, $sighash_type, $anyonecanpay);
 }
 
-sub _digest_input
-{
-	my ($self, $input, $signed) = @_;
-
-	my $cloned = $input->clone;
-
-	if ($signed && $self->signing_subscript) {
-		$cloned->set_signature_script($self->signing_subscript);
-	}
-	elsif ($signed) {
-		$cloned->set_signature_script($input->script_base);
-	}
-	else {
-		$cloned->set_signature_script("\x00");
-	}
-
-	return $cloned->to_serialized;
-}
-
 sub _get_digest_default
 {
 	my ($self, $this_input, $sighash_type, $anyonecanpay) = @_;
 	my $transaction = $self->transaction;
+	my $tx_copy = $transaction->clone;
 
-	# Digest result is similar to transaction serialization, but it never
-	# contains witness data and the signature script of inputs is altered
+	@{$tx_copy->inputs} = ();
+	foreach my $input (@{$transaction->inputs}) {
+		my $input_copy = $input->clone;
+		my $signed = $input == $this_input;
 
-	my $serialized = '';
+		if ($signed && $self->signing_subscript) {
+			$input_copy->set_signature_script($self->signing_subscript);
+		}
+		elsif ($signed) {
+			$input_copy->set_signature_script($input->script_base);
+		}
+		else {
+			$input_copy->set_signature_script("\x00");
+		}
 
-	$serialized .= pack 'V', $transaction->version;
-
-	# Process inputs
-	my @inputs = @{$transaction->inputs};
-	$serialized .= pack_varint(scalar @inputs);
-	foreach my $input (@inputs) {
-		$serialized .= $self->_digest_input($input, $input == $this_input);
+		$tx_copy->add_input($input_copy);
 	}
 
-	# Process outputs
-	my @outputs = @{$transaction->outputs};
-	Bitcoin::Crypto::Exception::Transaction->raise(
-		'transaction has no outputs'
-	) if @outputs == 0;
-
-	$serialized .= pack_varint(scalar @outputs);
-	foreach my $item (@outputs) {
-		$serialized .= $item->to_serialized;
-	}
-
-	$serialized .= pack 'V', $transaction->locktime;
+	my $serialized = $tx_copy->to_serialized;
 
 	if ($sighash_type == Bitcoin::Crypto::Constants::sighash_none) {
 

@@ -41,17 +41,29 @@ has param 'locktime' => (
 	default => 0,
 );
 
+with qw(
+	Bitcoin::Crypto::Role::ShallowClone
+);
+
 signature_for add_input => (
 	method => Object,
-	positional => [HashRef, {slurpy => 1}],
+	positional => [ArrayRef, {slurpy => 1}],
 );
 
 sub add_input
 {
 	my ($self, $data) = @_;
 
-	$data = Bitcoin::Crypto::Transaction::Input->new($data)
-		unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction::Input');
+	if (@$data == 1) {
+		$data = $data->[0];
+
+		Bitcoin::Crypto::Exception::Transaction->raise(
+			'expected an input object'
+		) unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction::Input');
+	}
+	else {
+		$data = Bitcoin::Crypto::Transaction::Input->new(@$data)
+	}
 
 	push @{$self->inputs}, $data;
 	return $self;
@@ -59,15 +71,23 @@ sub add_input
 
 signature_for add_output => (
 	method => Object,
-	positional => [HashRef, {slurpy => 1}],
+	positional => [ArrayRef, {slurpy => 1}],
 );
 
 sub add_output
 {
 	my ($self, $data) = @_;
 
-	$data = Bitcoin::Crypto::Transaction::Output->new($data)
-		unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction::Output');
+	if (@$data == 1) {
+		$data = $data->[0];
+
+		Bitcoin::Crypto::Exception::Transaction->raise(
+			'expected an output object'
+		) unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction::Output');
+	}
+	else {
+		$data = Bitcoin::Crypto::Transaction::Output->new(@$data)
+	}
 
 	push @{$self->outputs}, $data;
 	return $self;
