@@ -226,15 +226,10 @@ sub script_base
 	if ($self->is_segwit) {
 
 		# no need to check for standard, as segwit is already standard
-		return $self->_script_code->to_serialized;
+		return $self->_script_code;
 	}
 	else {
-		my $utxo = $self->utxo;
-		Bitcoin::Crypto::Exception::Transaction->raise(
-			"can't guess the subscript from a non-standard transaction"
-		) unless $utxo->output->is_standard;
-
-		return $utxo->output->locking_script->to_serialized;
+		return $self->utxo->output->locking_script;
 	}
 }
 

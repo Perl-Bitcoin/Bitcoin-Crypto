@@ -363,6 +363,61 @@ sub update_utxos
 	return $self;
 }
 
+sub _verify_script_default
+{
+	my ($self, $input, $script_runner) = @_;
+	my $locking_script = $input->script_base;
+
+	# execute input to get initial stack
+	$script_runner->execute($input->signature_script);
+	my $stack = $script_runner->stack;
+
+	# execute previous output
+	# NOTE: shallow copy of the stack
+	$script_runner->execute($locking_script, [@$stack]);
+
+	die 'locking script execution yielded failure'
+		unless $script_runner->success;
+
+	# TODO: handle nested segwit
+	if ($locking_script->has_type && $locking_script->type eq 'P2SH') {
+		my $redeem_script = btc_script->from_serialized(pop @$stack);
+
+		$script_runner->execute($redeem_script, $stack);
+		die 'redeem script execution yielded failure'
+			unless $script_runner->success;
+	}
+}
+
+sub _verify_script_segwit
+{
+	my ($self, $input, $script_runner) = @_;
+	my $locking_script = $input->script_base;
+
+	# execute input to get initial stack
+	my $signature_script = btc_script->new;
+	foreach my $witness (@{$input->witness}) {
+		$signature_script->push($witness);
+	}
+	$script_runner->execute($signature_script);
+	my $stack = $script_runner->stack;
+
+	# execute previous output
+	# NOTE: shallow copy of the stack
+	$script_runner->execute($locking_script, [@$stack]);
+
+	die 'locking script execution yielded failure'
+		unless $script_runner->success;
+
+	if ($locking_script->has_type && $locking_script->type eq 'P2WSH') {
+		my $redeem_script = btc_script->from_serialized(pop @$stack);
+
+		$script_runner->execute($redeem_script, $stack);
+		die 'redeem script execution yielded failure'
+			unless $script_runner->success;
+	}
+}
+
 signature_for verify => (
 	method => Object,
 	named => [
@@ -409,29 +464,13 @@ sub verify
 		$script_runner->transaction->set_input_index($input_index);
 
 		# run bitcoin script
+		my $procedure = '_verify_script_default';
+		$procedure = '_verify_script_segwit'
+			if $utxo->output->locking_script->is_native_segwit;
+
 		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 			sub {
-				my $locking_script = $utxo->output->locking_script;
-
-				# execute input to get initial stack
-				$script_runner->execute($input->signature_script);
-				my $stack = $script_runner->stack;
-
-				# execute previous output
-				# NOTE: shallow copy of the stack
-				$script_runner->execute($locking_script, [@$stack]);
-
-				die 'locking script execution yielded failure'
-					unless $script_runner->success;
-
-				# TODO: implement P2WSH
-				if ($locking_script->has_type && grep { $_ eq $locking_script->type } qw(P2SH)) {
-					my $redeem_script = btc_script->from_serialized(pop @$stack);
-
-					$script_runner->execute($redeem_script, $stack);
-					die 'redeem script execution yielded failure'
-						unless $script_runner->success;
-				}
+				$self->$procedure($input, $script_runner);
 			},
 			"transaction input $input_index verification has failed"
 		);

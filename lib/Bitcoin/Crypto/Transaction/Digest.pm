@@ -67,7 +67,11 @@ sub _get_digest_default
 			$input_copy->set_signature_script($self->signing_subscript);
 		}
 		elsif ($signed) {
-			$input_copy->set_signature_script($input->script_base);
+			Bitcoin::Crypto::Exception::Transaction->raise(
+				"can't guess the subscript from a non-standard transaction"
+			) unless $input->utxo->output->is_standard;
+
+			$input_copy->set_signature_script($input->script_base->to_serialized);
 		}
 		elsif (!$input->signature_script->is_empty) {
 			$input_copy->set_signature_script("\x00");
@@ -137,7 +141,7 @@ sub _get_digest_segwit
 	$serialized .= hash256(join '', @sequences);
 	$serialized .= $this_input->prevout;
 
-	my $script_base = $this_input->script_base;
+	my $script_base = $this_input->script_base->to_serialized;
 	$serialized .= pack_varint(length $script_base);
 	$serialized .= $script_base;
 
