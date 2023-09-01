@@ -74,9 +74,8 @@ sub trap_into
 				$class->raise(($prefix ? "$prefix: " : '') . $ex->message);
 			}
 		}
-		else {
-			$class->raise($prefix ? "$prefix: $ex" : "$ex");
-		}
+
+		$class->raise($prefix ? "$prefix: $ex" : "$ex");
 	};
 
 	return $ret;
