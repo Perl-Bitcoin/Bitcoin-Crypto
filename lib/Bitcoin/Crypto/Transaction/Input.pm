@@ -116,9 +116,7 @@ sub to_serialized
 	# - sequence number, 4 bytes
 	my $serialized = '';
 
-	my $utxo = $self->utxo;
-	$serialized .= scalar reverse $utxo->txid;
-	$serialized .= pack 'V', $utxo->output_index;
+	$serialized .= $self->prevout;
 
 	my $script = $self->signature_script->to_serialized;
 	$serialized .= pack_varint(length $script);
