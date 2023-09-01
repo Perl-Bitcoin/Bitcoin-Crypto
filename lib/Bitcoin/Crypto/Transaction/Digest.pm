@@ -162,7 +162,7 @@ sub _get_digest_segwit
 	$serialized .= pack 'V', $transaction->locktime;
 	$serialized .= pack 'V', $self->sighash;
 
-	return hash256($serialized);
+	return $serialized;
 }
 
 1;

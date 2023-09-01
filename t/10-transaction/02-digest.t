@@ -5,7 +5,7 @@ use Test::More;
 use Test::Exception;
 
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
-use Bitcoin::Crypto::Util qw(to_format hash256);
+use Bitcoin::Crypto::Util qw(to_format);
 
 my $tx;
 subtest 'should digest transactions - legacy SIGHASH_ALL' => sub {
@@ -96,8 +96,7 @@ subtest 'should digest transactions - native segwit SIGHASH_ALL' => sub {
 	my $expected =
 		'0100000096b827c8483d4e9b96712b6713a7b68d6e8003a781feba36c31143470b4efd3752b0a642eea2fb7ae638c36f6252b6750293dbe574a806984b8e4d8548339a3bef51e1b804cc89d182d279655c3aa89e815b1b309fe287d9b2b55d57b90ec68a010000001976a9141d0f172a0ecb48aee1be1f2687d2963ae33f71a188ac0046c32300000000ffffffff863ef3e1a92afbfdb97f31ad0fc7683ee943e9abcf2501590ff8f6551f47e5e51100000001000000';
 
-	is to_format [hex => $tx->get_digest(signing_index => 1)], to_format [hex => hash256([hex => $expected])],
-		'digest ok';
+	is to_format [hex => $tx->get_digest(signing_index => 1)], $expected, 'digest ok';
 };
 
 subtest 'should digest transactions - compat segwit SIGHASH_ALL' => sub {
@@ -125,8 +124,7 @@ subtest 'should digest transactions - compat segwit SIGHASH_ALL' => sub {
 	my $expected =
 		'01000000b0287b4a252ac05af83d2dcef00ba313af78a3e9c329afa216eb3aa2a7b4613a18606b350cd8bf565266bc352f0caddcf01e8fa789dd8a15386327cf8cabe198db6b1b20aa0fd7b23880be2ecbd4a98130974cf4748fb66092ac4d3ceb1a5477010000001976a91479091972186c449eb1ded22b78e40d009bdf008988ac00ca9a3b00000000feffffffde984f44532e2173ca0d64314fcefe6d30da6f8cf27bafa706da61df8a226c839204000001000000';
 
-	is to_format [hex => $tx->get_digest(signing_index => 0)], to_format [hex => hash256([hex => $expected])],
-		'digest ok';
+	is to_format [hex => $tx->get_digest(signing_index => 0)], $expected, 'digest ok';
 };
 
 done_testing;
