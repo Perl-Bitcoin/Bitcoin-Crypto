@@ -150,5 +150,40 @@ subtest 'should verify transactions (P2SH)' => sub {
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
+subtest 'should verify transactions (P2WPKH)' => sub {
+
+	btc_utxo->new(
+		txid => [hex => '9f96ade4b41d5433f4eda31e1738ec2b36f6e7d1420d94a6af99801a88f7f7ff'],
+		output_index => 0,
+		output => {
+			locking_script => [hex => '2103c9f4836b9a4f77fc0d81f7bcb01b7f1b35916864b9476c241ce9fc198bd25432ac'],
+			value => 6_25000000,
+		},
+	)->register;
+
+	btc_utxo->new(
+		txid => [hex => '8ac60eb9575db5b2d987e29f301b5b819ea83a5c6579d282d189cc04b8e151ef'],
+		output_index => 1,
+		output => {
+			locking_script => [hex => '00141d0f172a0ecb48aee1be1f2687d2963ae33f71a1'],
+			value => 6_00000000,
+		},
+	)->register;
+
+	$tx = btc_transaction->from_serialized(
+		[
+			hex =>
+				'01000000000102fff7f7881a8099afa6940d42d1e7f6362bec38171ea3edf433541db4e4ad969f00000000494830450221008b9d1dc26ba6a9cb62127b02742fa9d754cd3bebf337f7a55d114c8e5cdd30be022040529b194ba3f9281a99f2b1c0a19c0489bc22ede944ccf4ecbab4cc618ef3ed01eeffffffef51e1b804cc89d182d279655c3aa89e815b1b309fe287d9b2b55d57b90ec68a0100000000ffffffff02202cb206000000001976a9148280b37df378db99f66f85c95a783a76ac7a6d5988ac9093510d000000001976a9143bde42dbee7e4dbe6a21b2d50ce2f0167faa815988ac000247304402203609e17b84f6a7d30c80bfa610b5b4542f32a8a0d5447a12fb1366d7f01cc44a0220573a954c4518331561406f90300e8f3358f51928d43c212a8caed02de67eebee0121025476c2e83188368da1ff3e292e7acafcdb3566bb0ad253f62fc70f07aeee635711000000'
+		]
+	);
+
+	lives_ok { $tx->verify } 'input verification ok';
+
+	# NOTE: try modifying witness signature, see if it still verifies
+	# (segwit transactions are backward compatible, so it would pass without support for segwit)
+	$tx->inputs->[0]->witness->[1][0] = "\x00\x01";
+	dies_ok { $tx->verify } 'input verification ok after modifying witness';
+};
+
 done_testing;
 

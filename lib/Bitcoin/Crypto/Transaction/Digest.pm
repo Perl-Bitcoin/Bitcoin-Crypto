@@ -69,14 +69,14 @@ sub _get_digest_default
 		elsif ($signed) {
 			$input_copy->set_signature_script($input->script_base);
 		}
-		else {
+		elsif (!$input->signature_script->is_empty) {
 			$input_copy->set_signature_script("\x00");
 		}
 
 		$tx_copy->add_input($input_copy);
 	}
 
-	my $serialized = $tx_copy->to_serialized;
+	my $serialized = $tx_copy->to_serialized(witness => 0);
 
 	if ($sighash_type == Bitcoin::Crypto::Constants::sighash_none) {
 

@@ -720,6 +720,18 @@ sub has_type
 	return defined $self->type;
 }
 
+signature_for is_empty => (
+	method => Object,
+	positional => [],
+);
+
+sub is_empty
+{
+	my ($self) = @_;
+
+	return length $self->_serialized == 0;
+}
+
 1;
 
 __END__

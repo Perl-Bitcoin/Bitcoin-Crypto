@@ -62,7 +62,7 @@ sub add_input
 		) unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction::Input');
 	}
 	else {
-		$data = Bitcoin::Crypto::Transaction::Input->new(@$data)
+		$data = Bitcoin::Crypto::Transaction::Input->new(@$data);
 	}
 
 	push @{$self->inputs}, $data;
@@ -86,7 +86,7 @@ sub add_output
 		) unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction::Output');
 	}
 	else {
-		$data = Bitcoin::Crypto::Transaction::Output->new(@$data)
+		$data = Bitcoin::Crypto::Transaction::Output->new(@$data);
 	}
 
 	push @{$self->outputs}, $data;
