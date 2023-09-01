@@ -394,6 +394,9 @@ sub _verify_script_segwit
 	my ($self, $input, $script_runner) = @_;
 	my $locking_script = $input->script_base;
 
+	die 'signature script is not empty in segwit input'
+		unless $input->signature_script->is_empty;
+
 	# execute input to get initial stack
 	my $signature_script = btc_script->new;
 	foreach my $witness (@{$input->witness}) {
