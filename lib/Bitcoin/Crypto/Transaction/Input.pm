@@ -45,10 +45,12 @@ sub _nested_script
 	my ($self) = @_;
 
 	my $input_script = $self->signature_script->to_serialized;
-	my $push = substr $input_script, 0, 1, '';
-	my $real_script = btc_script->from_serialized($input_script);
+	return undef unless length $input_script;
 
+	my $push = substr $input_script, 0, 1, '';
 	return undef unless ord $push == length $input_script;
+
+	my $real_script = btc_script->from_serialized($input_script);
 	return $real_script;
 }
 
