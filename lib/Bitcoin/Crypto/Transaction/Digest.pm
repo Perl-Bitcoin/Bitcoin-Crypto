@@ -73,7 +73,7 @@ sub _get_digest_default
 
 			$input_copy->set_signature_script($input->script_base->to_serialized);
 		}
-		elsif (!$input->signature_script->is_empty) {
+		elsif (!$input->has_witness) {
 			$input_copy->set_signature_script("\x00");
 		}
 
