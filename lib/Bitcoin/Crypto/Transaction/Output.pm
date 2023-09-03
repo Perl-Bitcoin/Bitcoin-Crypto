@@ -16,11 +16,16 @@ has param 'value' => (
 	writer => 1,
 	coerce => (InstanceOf ['Math::BigInt'])
 		->where(q{$_ >= 0})
-		->plus_coercions(Int, q{ Math::BigInt->new($_) }),
+		->plus_coercions(Int | Str, q{ Math::BigInt->new($_) }),
 );
 
 has param 'locking_script' => (
 	coerce => BitcoinScript,
+	writer => 1,
+);
+
+with qw(
+	Bitcoin::Crypto::Role::ShallowClone
 );
 
 signature_for is_standard => (
@@ -33,6 +38,19 @@ sub is_standard
 	my ($self) = @_;
 
 	return $self->locking_script->has_type;
+}
+
+signature_for set_max_value => (
+	method => Object,
+	positional => [],
+);
+
+sub set_max_value
+{
+	my ($self) = @_;
+
+	$self->set_value('0xffffffffffffffff');
+	return $self;
 }
 
 sub value_serialized

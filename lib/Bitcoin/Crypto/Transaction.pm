@@ -144,10 +144,6 @@ sub to_serialized
 
 	# Process outputs
 	my @outputs = @{$self->outputs};
-	Bitcoin::Crypto::Exception::Transaction->raise(
-		'transaction has no outputs'
-	) if @outputs == 0;
-
 	$serialized .= pack_varint(scalar @outputs);
 	foreach my $item (@outputs) {
 		$serialized .= $item->to_serialized;
