@@ -9,11 +9,12 @@ use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Transaction::Output;
-use Bitcoin::Crypto::Types qw(IntMaxBits Int PositiveOrZeroInt ByteStr InstanceOf HashRef Str Object);
+use Bitcoin::Crypto::Types qw(IntMaxBits Int PositiveOrZeroInt ByteStr InstanceOf HashRef Str Object CodeRef);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Exception;
 
 my %utxos;
+my $loader;
 
 has param 'txid' => (
 	coerce => ByteStr->create_child_type(
@@ -76,11 +77,32 @@ sub get
 {
 	my ($class, $txid, $outid) = @_;
 
+	my $utxo = $utxos{$txid}[$outid];
+
+	# NOTE: loader should unregister the utxo in its own store
+	if (!$utxo && defined $loader) {
+		$utxo = $loader->($txid, $outid);
+		$utxo->register if $utxo;
+	}
+
 	Bitcoin::Crypto::Exception::UTXO->raise(
 		"no UTXO registered for transaction id @{[to_format [hex => $txid]]} and output index $outid"
-	) unless $utxos{$txid}[$outid];
+	) unless $utxo;
 
-	return $utxos{$txid}[$outid];
+	return $utxo;
+}
+
+signature_for set_loader => (
+	method => Str,
+	positional => [CodeRef],
+);
+
+sub set_loader
+{
+	my ($class, $new_loader) = @_;
+
+	$loader = $new_loader;
+	return;
 }
 
 1;
