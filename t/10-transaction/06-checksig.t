@@ -4,27 +4,16 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
+use lib 't/lib';
+
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
+use TransactionStore;
 
 my $tx;
 
 subtest 'should verify transactions (P2PK)' => sub {
 	$tx = btc_transaction->new;
-
-	btc_utxo->new(
-		txid => [hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'],
-		output_index => 0,
-		output => {
-			locking_script => [
-				P2PK => [
-					hex =>
-						'0411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3'
-				]
-			],
-			value => 50_00000000,
-		},
-	)->register;
 
 	my $expected_txid = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16';
 
@@ -66,15 +55,6 @@ subtest 'should verify transactions (P2PK)' => sub {
 subtest 'should verify transactions (P2PKH)' => sub {
 	$tx = btc_transaction->new;
 
-	btc_utxo->new(
-		txid => [hex => '5fb32a2b34f497274419100cfa8f79c21029e8a415936366b2b058b992f55fdf'],
-		output_index => 5,
-		output => {
-			locking_script => [P2PKH => '1C4mZbfHfLLEMJWd68WSaTZTPF2RFPYmWU'],
-			value => 139615,
-		},
-	)->register;
-
 	my $expected_txid = '1fe80a48f4746b214987fb8bef35046882b801a524df92dc1e3917b541bdd9d7';
 
 	$tx->add_input(
@@ -100,15 +80,6 @@ subtest 'should verify transactions (P2PKH)' => sub {
 
 subtest 'should verify transactions (P2SH)' => sub {
 	$tx = btc_transaction->new;
-
-	btc_utxo->new(
-		txid => [hex => '81d5859d7db9b3d2da0fd4e8abd4b3005febb8fa72f0e4bd3687fd1863b1bd36'],
-		output_index => 50,
-		output => {
-			locking_script => [P2SH => '3HSZTsuakivAbX9cA7A6ayt6cf546WU6Bm'],
-			value => 4_89995000,
-		},
-	)->register;
 
 	my $expected_txid = '92f100a9ea54b9daddaff5f7c409f82c6037053bc5deb35d7c49bc07dd4121e7';
 
@@ -151,24 +122,6 @@ subtest 'should verify transactions (P2SH)' => sub {
 };
 
 subtest 'should verify transactions (P2WPKH)' => sub {
-
-	btc_utxo->new(
-		txid => [hex => '9f96ade4b41d5433f4eda31e1738ec2b36f6e7d1420d94a6af99801a88f7f7ff'],
-		output_index => 0,
-		output => {
-			locking_script => [hex => '2103c9f4836b9a4f77fc0d81f7bcb01b7f1b35916864b9476c241ce9fc198bd25432ac'],
-			value => 6_25000000,
-		},
-	)->register;
-
-	btc_utxo->new(
-		txid => [hex => '8ac60eb9575db5b2d987e29f301b5b819ea83a5c6579d282d189cc04b8e151ef'],
-		output_index => 1,
-		output => {
-			locking_script => [hex => '00141d0f172a0ecb48aee1be1f2687d2963ae33f71a1'],
-			value => 6_00000000,
-		},
-	)->register;
 
 	$tx = btc_transaction->from_serialized(
 		[

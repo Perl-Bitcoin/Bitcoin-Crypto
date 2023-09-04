@@ -4,27 +4,16 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
+use lib 't/lib';
+
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Constants;
+use TransactionStore;
 
 my $tx;
 subtest 'should digest transactions - legacy SIGHASH_ALL' => sub {
 	$tx = btc_transaction->new;
-
-	btc_utxo->new(
-		txid => [hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'],
-		output_index => 0,
-		output => {
-			locking_script => [
-				P2PK => [
-					hex =>
-						'0411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3'
-				]
-			],
-			value => 50_00000000,
-		},
-	)->register;
 
 	my $expected_txid = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16';
 	my $expected =
@@ -66,33 +55,6 @@ subtest 'should digest transactions - legacy SIGHASH_ALL' => sub {
 };
 
 subtest 'should digest transactions - legacy SIGHASH_NONE' => sub {
-	btc_utxo->new(
-		txid => [hex => 'f483a885eb4ab57c2d1a5747d3be8ff83fa825ddaed2fd8176ed2cac9ee98fae'],
-		output_index => 1,
-		output => {
-			locking_script => [hex => '76a91415c055fa681fef5f8d342fc63b730648120679b388ac'],
-			value => 1032575,
-		},
-	)->register;
-
-	btc_utxo->new(
-		txid => [hex => '94e519b9c0f43228e3dc841d838fc7372de95345206ef936ac6020889abe0457'],
-		output_index => 0,
-		output => {
-			locking_script => [hex => '76a9147df526887e47d6af7e89b35f8304dd2cf7519b3c88ac'],
-			value => 1_19040000,
-		},
-	)->register;
-
-	btc_utxo->new(
-		txid => [hex => '94e519b9c0f43228e3dc841d838fc7372de95345206ef936ac6020889abe0457'],
-		output_index => 1,
-		output => {
-			locking_script => [hex => '76a914b8e6a6e0c0c5e62a49f1dbf8415cabb2f6ad0a6988ac'],
-			value => 1_02119131,
-		},
-	)->register;
-
 	$tx = btc_transaction->from_serialized(
 		[
 			hex =>
@@ -148,24 +110,6 @@ subtest 'should digest transactions - native segwit SIGHASH_ALL' => sub {
 
 	# from https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#native-p2wpkh
 
-	btc_utxo->new(
-		txid => [hex => '9f96ade4b41d5433f4eda31e1738ec2b36f6e7d1420d94a6af99801a88f7f7ff'],
-		output_index => 0,
-		output => {
-			locking_script => [hex => '2103c9f4836b9a4f77fc0d81f7bcb01b7f1b35916864b9476c241ce9fc198bd25432ac'],
-			value => 6_25000000,
-		},
-	)->register;
-
-	btc_utxo->new(
-		txid => [hex => '8ac60eb9575db5b2d987e29f301b5b819ea83a5c6579d282d189cc04b8e151ef'],
-		output_index => 1,
-		output => {
-			locking_script => [hex => '00141d0f172a0ecb48aee1be1f2687d2963ae33f71a1'],
-			value => 6_00000000,
-		},
-	)->register;
-
 	$tx = btc_transaction->from_serialized(
 		[
 			hex =>
@@ -182,15 +126,6 @@ subtest 'should digest transactions - native segwit SIGHASH_ALL' => sub {
 subtest 'should digest transactions - compat segwit SIGHASH_ALL' => sub {
 
 	# from https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#p2sh-p2wpkh
-
-	btc_utxo->new(
-		txid => [hex => '77541aeb3c4dac9260b68f74f44c973081a9d4cb2ebe8038b2d70faa201b6bdb'],
-		output_index => 1,
-		output => {
-			locking_script => [hex => 'a9144733f37cf4db86fbc2efed2500b4f4e49f31202387'],
-			value => 10_00000000,
-		},
-	)->register;
 
 	$tx = btc_transaction->from_serialized(
 		[

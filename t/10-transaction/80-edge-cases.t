@@ -4,9 +4,12 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
+use lib 't/lib';
+
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Constants;
+use TransactionStore;
 
 my $tx;
 my $prv = btc_prv->from_serialized("\x12" x 32);
@@ -53,25 +56,6 @@ subtest 'should checksig a non-standard transaction' => sub {
 };
 
 subtest 'should serialize and deserialize mixed segwit txs' => sub {
-	btc_utxo->new(
-		txid => [hex => '421b965bfa12d9d8ae17b23b346ca603c51602766fc639bdaf7284c5d7877f62'],
-		output_index => 0,
-		output => {
-			locking_script => btc_script
-				->from_standard(P2SH => '3NjkBnRi8BsiLtziBKNUmgsK7r8A1CLdjr'),
-			value => 18093972,
-		},
-	)->register;
-
-	btc_utxo->new(
-		txid => [hex => '2586ccd8d12d8a2e88d76e7ba427ce5f123cbdc0fb14119109751826c9a53e78'],
-		output_index => 0,
-		output => {
-			locking_script => btc_script
-				->from_standard(P2PKH => '1AqD6yrAkeimM67p3rHvLTRnQvKVvEyAt6'),
-			value => 858089,
-		},
-	)->register;
 
 	my $txid = '76899e00277359a639ae138759a1363ceb7a230fea5f9a6bf8c573f7c61706fd';
 	my $serialized =
