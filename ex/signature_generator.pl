@@ -9,7 +9,7 @@ sub sign_message
 	my ($private, $message, $algo) = @_;
 
 	# algo needs to be available in Digest:: namespace
-	$algo //= "sha256";
+	$algo //= "hash256";
 
 	die "key is not a private key instance"
 		unless $private->isa("Bitcoin::Crypto::Key::Private");

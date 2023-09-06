@@ -147,13 +147,17 @@ subtest 'verify message using pubkey' => sub {
 	my $pub_compressed = btc_pub->from_serialized([hex => $validation_case{compressed}]);
 	my $random_pub = btc_pub->from_serialized([hex => $cases_compression[0]{compressed}]);
 
-	ok($pub->verify_message($message, [hex => $validation_case{sig}]), 'verified message correctly');
+	ok($pub->verify_message($message, [hex => $validation_case{sig}], 'sha256'), 'verified message correctly');
 	ok(
-		$pub_compressed->verify_message($message, [hex => $validation_case{sig}]),
+		$pub_compressed->verify_message($message, [hex => $validation_case{sig}], 'sha256'),
 		'compressed verified message correctly'
 	);
 	ok(
-		!$random_pub->verify_message($message, [hex => $validation_case{sig}]),
+		!$pub_compressed->verify_message($message, [hex => $validation_case{sig}]),
+		'verification fails with different hash algo'
+	);
+	ok(
+		!$random_pub->verify_message($message, [hex => $validation_case{sig}], 'sha256'),
 		'verification fails with different pubkey'
 	);
 };

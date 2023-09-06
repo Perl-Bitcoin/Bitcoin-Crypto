@@ -30,7 +30,7 @@ has field '_crypt_perl_prv' => (
 
 signature_for sign_message => (
 	method => Object,
-	positional => [ByteStr, Str, {default => 'sha256'}],
+	positional => [ByteStr, Str, {default => 'hash256'}],
 );
 
 sub sign_message
@@ -92,7 +92,7 @@ sub sign_transaction
 			($subscript ? (signing_subscript => $subscript) : ()),
 		);
 
-		my $signature = $self->sign_message($digest, 'hash256');
+		my $signature = $self->sign_message($digest);
 		$signature .= pack 'C', $sighash;
 
 		return $signature;
@@ -200,7 +200,7 @@ sub sign_transaction
 
 signature_for verify_message => (
 	method => Object,
-	positional => [ByteStr, ByteStr, Str, {default => 'sha256'}],
+	positional => [ByteStr, ByteStr, Str, {default => 'hash256'}],
 );
 
 sub verify_message
