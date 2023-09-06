@@ -123,6 +123,10 @@ sub _get_digest_segwit
 	my $transaction = $self->transaction;
 	my $this_input = $transaction->inputs->[$self->signing_index];
 
+	my $empty_hash = "\x00" x 32;
+	my $single = $sighash_type == Bitcoin::Crypto::Constants::sighash_single;
+	my $none = $sighash_type == Bitcoin::Crypto::Constants::sighash_none;
+
 	# According to https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki
 	# Double SHA256 of the serialization of:
 	# 1. nVersion of the transaction (4-byte little endian)
@@ -148,14 +152,22 @@ sub _get_digest_segwit
 
 	my @outputs;
 	foreach my $output (@{$transaction->outputs}) {
-		push @outputs, $output->value_serialized;
-
 		my $tmp = $output->locking_script->to_serialized;
-		push @outputs, pack_varint(length $tmp) . $tmp;
+		push @outputs, $output->value_serialized . pack_varint(length $tmp) . $tmp;
 	}
 
-	$serialized .= hash256(join '', @prevouts);
-	$serialized .= hash256(join '', @sequences);
+	# handle prevouts
+	$serialized .= $anyonecanpay
+		? $empty_hash
+		: hash256(join '', @prevouts)
+		;
+
+	# handle sequences
+	$serialized .= $anyonecanpay || $single || $none
+		? $empty_hash
+		: hash256(join '', @sequences)
+		;
+
 	$serialized .= $this_input->prevout;
 
 	my $script_base = $this_input->script_base->to_serialized;
@@ -164,20 +176,16 @@ sub _get_digest_segwit
 
 	$serialized .= $this_input->utxo->output->value_serialized;
 	$serialized .= pack 'V', $this_input->sequence_no;
-	$serialized .= hash256(join '', @outputs);
 
-	if ($sighash_type == Bitcoin::Crypto::Constants::sighash_none) {
-
-		# TODO
+	# handle outputs
+	if (!$single && !$none) {
+		$serialized .= hash256(join '', @outputs);
 	}
-	elsif ($sighash_type == Bitcoin::Crypto::Constants::sighash_single) {
-
-		# TODO
+	elsif ($single && $self->signing_index < @outputs) {
+		$serialized .= hash256($outputs[$self->signing_index]);
 	}
-
-	if ($anyonecanpay) {
-
-		# TODO
+	else {
+		$serialized .= $empty_hash;
 	}
 
 	$serialized .= pack 'V', $transaction->locktime;
