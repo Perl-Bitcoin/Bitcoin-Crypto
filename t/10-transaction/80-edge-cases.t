@@ -45,7 +45,7 @@ subtest 'should checksig a non-standard transaction' => sub {
 		signing_index => 0,
 		signing_subscript => $input->utxo->output->locking_script->to_serialized,
 	);
-	my $signature = $prv->sign_message($digest, 'hash256');
+	my $signature = $prv->sign_message($digest);
 	$signature .= pack 'C', Bitcoin::Crypto::Constants::sighash_all;
 	$input->signature_script
 		->push("\x01")

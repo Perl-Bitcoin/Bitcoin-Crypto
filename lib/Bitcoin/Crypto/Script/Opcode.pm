@@ -727,7 +727,7 @@ my %opcodes = (
 			my $digest = $runner->transaction->get_digest($runner->subscript, unpack 'C', $hashtype);
 			my $pubkey = btc_pub->from_serialized($raw_pubkey);
 
-			my $result = $pubkey->verify_message($digest, $sig, 'hash256');
+			my $result = $pubkey->verify_message($digest, $sig);
 			push @$stack, $runner->from_bool($result);
 		},
 	},
@@ -764,7 +764,7 @@ my %opcodes = (
 				$found = !!0;
 				while (my $raw_pubkey = shift @pubkeys) {
 					my $pubkey = btc_pub->from_serialized($raw_pubkey);
-					$found = $pubkey->verify_message($digest, $sig, 'hash256');
+					$found = $pubkey->verify_message($digest, $sig);
 					last if $found;
 				}
 
