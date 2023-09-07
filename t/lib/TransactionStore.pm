@@ -13,10 +13,6 @@ use Bitcoin::Crypto::Util qw(to_format);
 # Various UTXOs, needed in transaction tests
 
 my %utxos = (
-	'a34b7271d2add50bb6eaeaaaffaebe33bf4e3fe0454ca5d46ab64e6dbbbf1174;0' => {
-		locking_script => [P2WPKH => 'bc1q7x7ua3s92k8gayvl8ltlqympxf53z075z486r2'],
-		value => 198959,
-	},
 	'0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9;0' => {
 		locking_script => [
 			P2PK => [

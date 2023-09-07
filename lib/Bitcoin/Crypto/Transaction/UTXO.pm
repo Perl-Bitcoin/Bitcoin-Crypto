@@ -8,6 +8,7 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
+use Bitcoin::Crypto::Transaction;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Types qw(IntMaxBits Int PositiveOrZeroInt ByteStr InstanceOf HashRef Str Object CodeRef);
 use Bitcoin::Crypto::Util qw(to_format);
@@ -102,6 +103,40 @@ sub set_loader
 	my ($class, $new_loader) = @_;
 
 	$loader = $new_loader;
+	return;
+}
+
+signature_for extract => (
+	method => Str,
+	positional => [ByteStr],
+);
+
+sub extract
+{
+	my ($class, $serialized_tx) = @_;
+
+	# hijack the utxo loader
+	my $old_loader = $loader;
+	$loader = sub {
+		if ($old_loader) {
+			my $loaded = $old_loader->(@_);
+			return $loaded if $loaded;
+		}
+
+		return $class->new(
+			txid => shift,
+			output_index => shift,
+			output => {
+				locking_script => [NULLDATA => 'stub utxo'],
+				value => 0,
+			},
+		);
+	};
+
+	my $tx = Bitcoin::Crypto::Transaction->from_serialized($serialized_tx);
+	$loader = $old_loader;
+
+	$tx->update_utxos;
 	return;
 }
 
