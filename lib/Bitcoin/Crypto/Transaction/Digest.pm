@@ -22,7 +22,7 @@ has param 'signing_index' => (
 );
 
 has option 'signing_subscript' => (
-	isa => ByteStr,
+	coerce => ByteStr,
 );
 
 has param 'sighash' => (
@@ -126,6 +126,10 @@ sub _get_digest_segwit
 	my $empty_hash = "\x00" x 32;
 	my $single = $sighash_type == Bitcoin::Crypto::Constants::sighash_single;
 	my $none = $sighash_type == Bitcoin::Crypto::Constants::sighash_none;
+
+	if ($self->signing_subscript) {
+		$this_input->set_witness([$self->signing_subscript]);
+	}
 
 	# According to https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki
 	# Double SHA256 of the serialization of:

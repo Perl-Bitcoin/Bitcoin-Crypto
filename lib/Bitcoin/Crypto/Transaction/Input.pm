@@ -62,7 +62,7 @@ sub _script_code
 	my $utxo = $self->utxo;
 
 	my $locking_script = $utxo->output->locking_script;
-	my $signature_script = $self->signature_script;
+	my $signature_script = btc_script->from_serialized(join '', @{$self->witness // []});
 	my $program;
 	my %types = (
 		P2WPKH => sub {

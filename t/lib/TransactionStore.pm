@@ -74,6 +74,22 @@ my %utxos = (
 		locking_script => [P2PKH => '1AqD6yrAkeimM67p3rHvLTRnQvKVvEyAt6'],
 		value => 858089,
 	},
+	'6eb316926b1c5d567cd6f5e6a84fec606fc53d7b474526d1fff3948020c93dfe;0' => {
+		locking_script => [hex => '21036d5c20fa14fb2f635474c1dc4ef5909d4568e5569b79fc94d3448486e14685f8ac'],
+		value => 1_56250000,
+	},
+	'f825690aee1b3dc247da796cacb12687a5e802429fd291cfd63e010f02cf1508;0' => {
+		locking_script => [hex => '00205d1b56b63d714eebe542309525f484b7e9d6f686b3781b6f61ef925d66d6f6a0'],
+		value => 49_00000000,
+	},
+	'01c0cf7fba650638e55eb91261b183251fbb466f90dff17f10086817c542b5e9;0' => {
+		locking_script => [hex => '0020ba468eea561b26301e4cf69fa34bde4ad60c81e70f059f045ca9a79931004a4d'],
+		value => 16777215,
+	},
+	'1b2a9a426ba603ba357ce7773cb5805cb9c7c2b386d100d1fc9263513188e680;0' => {
+		locking_script => [hex => '0020d9bbfbe56af7c4b7f960a70d7ea107156913d9e5a26b0a71429df5e097ca6537'],
+		value => 16777215,
+	},
 );
 
 sub get_utxo
