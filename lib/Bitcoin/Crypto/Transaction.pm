@@ -16,7 +16,7 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Transaction::Digest;
-use Bitcoin::Crypto::Util qw(hash256);
+use Bitcoin::Crypto::Util qw(hash256 to_format);
 use Bitcoin::Crypto::Helpers qw(pack_varint unpack_varint);
 use Bitcoin::Crypto::Types
 	qw(IntMaxBits ArrayRef InstanceOf HashRef Object ByteStr Str PositiveInt PositiveOrZeroInt Enum BitcoinScript Bool);
@@ -497,6 +497,39 @@ sub verify
 	}
 
 	return;
+}
+
+signature_for dump => (
+	method => Object,
+	named => [
+	],
+);
+
+sub dump
+{
+	my ($self, $params) = @_;
+
+	my @result;
+	push @result, 'Transaction ' . to_format [hex => $self->get_hash];
+	push @result, 'version: ' . $self->version;
+	push @result, 'size: ' . $self->virtual_size . 'vB, ' . $self->weight . 'WU';
+	push @result, 'fee: ' . $self->fee . ' sat (~' . int($self->fee_rate) . ' sat/vB)';
+	push @result, 'locktime: ' . $self->locktime;
+	push @result, '';
+
+	push @result, @{$self->inputs} . ' inputs:';
+	foreach my $input (@{$self->inputs}) {
+		push @result, $input->dump;
+		push @result, '';
+	}
+
+	push @result, @{$self->outputs} . ' outputs:';
+	foreach my $output (@{$self->outputs}) {
+		push @result, $output->dump;
+		push @result, '';
+	}
+
+	return join "\n", @result;
 }
 
 1;

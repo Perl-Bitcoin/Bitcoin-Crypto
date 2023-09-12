@@ -11,6 +11,7 @@ use Type::Params -sigs;
 use Bitcoin::Crypto qw(btc_utxo btc_script);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(pack_varint unpack_varint);
+use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Types
 	qw(ByteStr Str IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined ScalarRef PositiveOrZeroInt);
 use Bitcoin::Crypto::Exception;
@@ -232,6 +233,38 @@ sub script_base
 	else {
 		return $self->utxo->output->locking_script;
 	}
+}
+
+signature_for dump => (
+	method => Object,
+	named => [
+	],
+);
+
+sub dump
+{
+	my ($self, $params) = @_;
+
+	my $type = $self->utxo->output->locking_script->type // 'Custom';
+
+	my @result;
+	push @result, "$type Input";
+	push @result, 'spending output #' . $self->utxo->output_index . ' from ' . to_format([hex => $self->utxo->txid]);
+	push @result, 'value: ' . $self->utxo->output->value;
+	push @result, 'sequence: ' . $self->sequence_no;
+	push @result, 'locking script: ' . to_format [hex => $self->utxo->output->locking_script->to_serialized];
+
+	if ($self->has_witness) {
+		push @result, 'witness: ';
+		foreach my $witness (@{$self->witness}) {
+			push @result, to_format [hex => $witness];
+		}
+	}
+	else {
+		push @result, 'signature script: ' . to_format [hex => $self->signature_script->to_serialized];
+	}
+
+	return join "\n", @result;
 }
 
 1;

@@ -10,6 +10,7 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto::Types qw(Int BitcoinScript InstanceOf Object Str ByteStr PositiveOrZeroInt ScalarRef);
 use Bitcoin::Crypto::Helpers qw(pack_varint unpack_varint ensure_length);    # loads BigInt
+use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Exception;
 
 has param 'value' => (
@@ -125,6 +126,26 @@ sub from_serialized
 		value => Math::BigInt->from_bytes($value),
 		locking_script => $script,
 	);
+}
+
+signature_for dump => (
+	method => Object,
+	named => [
+	],
+);
+
+sub dump
+{
+	my ($self, $params) = @_;
+
+	my $type = $self->locking_script->type // 'Custom';
+
+	my @result;
+	push @result, "$type Output";
+	push @result, 'value: ' . $self->value;
+	push @result, 'locking script: ' . to_format [hex => $self->locking_script->to_serialized];
+
+	return join "\n", @result;
 }
 
 1;
