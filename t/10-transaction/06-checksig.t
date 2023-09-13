@@ -78,6 +78,20 @@ subtest 'should verify transactions (P2PKH)' => sub {
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
+subtest 'should verify transactions (P2PKH, two inputs)' => sub {
+	$tx = btc_transaction->from_serialized(
+		[
+			hex =>
+				'01000000026441f74993e2f89570c45770b1db083dc65cc5dc61f730cb8f447b0ce766dbee000000006a473044022021d09363ef5282bef504b8f5e8616e29469605e663cf3611bfbfb9b52dc8fee202206841ac5f6d21c7e6dea28f7cfafb4cf45c0f6e84883d3df3f4309e9e5339d46d0121029da9229a24fb021f644dd2a1f11841d339a292609acb71552e8578d409e63c97ffffffff62d5b94e8aa3de7dccf36711d226644a1fce6c4fb3f891b97054961ebc6e7f66010000006b483045022100e4b5e5e0a352db2738fc024327cff6a0460db87cc0c0dfa9ddc6a558977eff1802205f867d2ea2b594cf9e87152bd6e9383836b1e1514e18faa801e4d87112fb37cd01210365c679364587685a479b1f6da15f34111626e04235e831eb2259ba817ff7c1cbffffffff0280f0fa02000000001976a9144b5474ef9b686ca5858b2ddccf669b6fd397b3bb88ac006a1800000000001976a9143b9051cd8c015af58322dd89f69872f2f57bd24f88ac00000000'
+		]
+	);
+
+	my $expected_txid = '03b26c89e180fd51ee12cb232559214bbb80d9db230ab65761b4d59018d076cc';
+
+	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
+	lives_ok { $tx->verify } 'input verification ok';
+};
+
 subtest 'should verify transactions (P2SH)' => sub {
 	$tx = btc_transaction->new;
 

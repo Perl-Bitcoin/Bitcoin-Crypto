@@ -60,10 +60,7 @@ sub _get_digest_default
 	foreach my $input (@{$transaction->inputs}) {
 		my $input_copy = $input->clone;
 
-		if (!$input->has_witness) {
-			$input_copy->set_signature_script("\x00");
-		}
-
+		$input_copy->set_signature_script('');
 		$tx_copy->add_input($input_copy);
 	}
 
@@ -92,7 +89,7 @@ sub _get_digest_default
 		my @wanted_outputs = grep { defined } @{$transaction->outputs}[0 .. $self->signing_index - 1];
 		foreach my $output (@wanted_outputs) {
 			my $output_copy = $output->clone;
-			$output_copy->set_locking_script("\x00");
+			$output_copy->set_locking_script('');
 			$output_copy->set_max_value;
 			$tx_copy->add_output($output_copy);
 		}
