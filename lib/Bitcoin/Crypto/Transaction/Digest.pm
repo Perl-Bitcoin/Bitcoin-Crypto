@@ -85,8 +85,17 @@ sub _get_digest_default
 		}
 	}
 	elsif ($sighash_type == Bitcoin::Crypto::Constants::sighash_single) {
+		if ($self->signing_index >= @{$transaction->outputs}) {
+
+			# TODO: this should verify with digest 0000..0001, but after hashing - no
+			# way to do this with CryptX right now: https://github.com/DCIT/perl-CryptX/issues/93
+			Bitcoin::Crypto::Exception::Transaction->raise(
+				'illegal input ' . $self->signing_index . ' in SIGHASH_SINGLE'
+			);
+		}
+
 		@{$tx_copy->outputs} = ();
-		my @wanted_outputs = grep { defined } @{$transaction->outputs}[0 .. $self->signing_index - 1];
+		my @wanted_outputs = @{$transaction->outputs}[0 .. $self->signing_index - 1];
 		foreach my $output (@wanted_outputs) {
 			my $output_copy = $output->clone;
 			$output_copy->set_locking_script('');
@@ -100,8 +109,6 @@ sub _get_digest_default
 			$input->set_sequence_no(0)
 				unless $input == $this_input;
 		}
-
-		# TODO: handle inputs with indexes higher than outputs
 	}
 
 	if ($anyonecanpay) {
