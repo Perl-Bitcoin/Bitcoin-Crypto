@@ -362,7 +362,7 @@ sub update_utxos
 sub _verify_script_default
 {
 	my ($self, $input, $script_runner) = @_;
-	my $locking_script = $input->script_base;
+	my $locking_script = $input->script_base(!!1);
 
 	# execute input to get initial stack
 	$script_runner->execute($input->signature_script);
@@ -370,28 +370,41 @@ sub _verify_script_default
 
 	# execute previous output
 	# NOTE: shallow copy of the stack
-	$script_runner->execute($locking_script, [@$stack]);
+	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
+		sub {
+			$script_runner->execute($locking_script, [@$stack]);
+			die 'execution yielded failure'
+				unless $script_runner->success;
+		},
+		'locking script'
+	);
 
-	die 'locking script execution yielded failure'
-		unless $script_runner->success;
-
-	# TODO: handle nested segwit
 	if ($locking_script->has_type && $locking_script->type eq 'P2SH') {
 		my $redeem_script = btc_script->from_serialized(pop @$stack);
 
-		$script_runner->execute($redeem_script, $stack);
-		die 'redeem script execution yielded failure'
-			unless $script_runner->success;
+		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
+			sub {
+				$script_runner->execute($redeem_script, $stack);
+				die 'execution yielded failure'
+					unless $script_runner->success;
+			},
+			'redeem script'
+		);
+
+		if ($redeem_script->is_native_segwit) {
+			$self->_verify_script_segwit($input, $script_runner, !!1);
+		}
 	}
 }
 
 sub _verify_script_segwit
 {
-	my ($self, $input, $script_runner) = @_;
+	my ($self, $input, $script_runner, $compat) = @_;
+	$compat //= 0;
 	my $locking_script = $input->script_base;
 
 	die 'signature script is not empty in segwit input'
-		unless $input->signature_script->is_empty;
+		unless $compat || $input->signature_script->is_empty;
 
 	# execute input to get initial stack
 	my $signature_script = btc_script->new;
@@ -403,17 +416,26 @@ sub _verify_script_segwit
 
 	# execute previous output
 	# NOTE: shallow copy of the stack
-	$script_runner->execute($locking_script, [@$stack]);
-
-	die 'locking script execution yielded failure'
-		unless $script_runner->success;
+	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
+		sub {
+			$script_runner->execute($locking_script, [@$stack]);
+			die 'execution yielded failure'
+				unless $script_runner->success;
+		},
+		'locking script'
+	);
 
 	if ($locking_script->has_type && $locking_script->type eq 'P2WSH') {
 		my $redeem_script = btc_script->from_serialized(pop @$stack);
 
-		$script_runner->execute($redeem_script, $stack);
-		die 'redeem script execution yielded failure'
-			unless $script_runner->success;
+		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
+			sub {
+				$script_runner->execute($redeem_script, $stack);
+				die 'execution yielded failure'
+					unless $script_runner->success;
+			},
+			'redeem script'
+		);
 	}
 }
 

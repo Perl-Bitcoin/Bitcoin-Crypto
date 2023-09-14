@@ -216,14 +216,14 @@ sub prevout
 
 signature_for script_base => (
 	method => Object,
-	positional => [],
+	positional => [Bool, {default => !!0}],
 );
 
 sub script_base
 {
-	my ($self) = @_;
+	my ($self, $no_segwit) = @_;
 
-	if ($self->is_segwit) {
+	if (!$no_segwit && $self->is_segwit) {
 
 		# no need to check for standard, as segwit is already standard
 		return $self->_script_code;
@@ -252,14 +252,15 @@ sub dump
 	push @result, 'sequence: ' . $self->sequence_no;
 	push @result, 'locking script: ' . to_format [hex => $self->utxo->output->locking_script->to_serialized];
 
+	if (!$self->signature_script->is_empty) {
+		push @result, 'signature script: ' . to_format [hex => $self->signature_script->to_serialized];
+	}
+
 	if ($self->has_witness) {
 		push @result, 'witness: ';
 		foreach my $witness (@{$self->witness}) {
 			push @result, to_format [hex => $witness];
 		}
-	}
-	else {
-		push @result, 'signature script: ' . to_format [hex => $self->signature_script->to_serialized];
 	}
 
 	return join "\n", @result;
