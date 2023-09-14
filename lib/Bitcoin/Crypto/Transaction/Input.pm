@@ -64,7 +64,6 @@ sub _script_code
 	my $utxo = $self->utxo;
 
 	my $locking_script = $utxo->output->locking_script;
-	my $signature_script = btc_script->from_serialized(join '', @{$self->witness // []});
 	my $program;
 	my %types = (
 		P2WPKH => sub {
@@ -76,7 +75,8 @@ sub _script_code
 		P2WSH => sub {
 
 			# TODO: this is not complete, as it does not take OP_CODESEPARATORs into account
-			$program = $signature_script;
+			# NOTE: Transaction::Digest sets witness to signing_subscript
+			$program = btc_script->from_serialized(($self->witness // [''])->[-1]);
 		},
 	);
 
@@ -211,14 +211,14 @@ sub prevout
 
 signature_for script_base => (
 	method => Object,
-	positional => [Bool, {default => !!0}],
+	positional => [],
 );
 
 sub script_base
 {
-	my ($self, $no_segwit) = @_;
+	my ($self) = @_;
 
-	if (!$no_segwit && $self->is_segwit) {
+	if ($self->is_segwit) {
 
 		# no need to check for standard, as segwit is already standard
 		return $self->_script_code;

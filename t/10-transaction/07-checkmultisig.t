@@ -4,8 +4,11 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
+use lib 't/lib';
+
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo btc_block);
 use Bitcoin::Crypto::Util qw(to_format);
+use TransactionStore;
 
 my $tx;
 
@@ -113,6 +116,24 @@ subtest 'should not verify incorrect multisig transactions (P2SH)' => sub {
 
 	# NOTE: modified signature - no txid test
 	dies_ok { $tx->verify } 'input verification ok';
+};
+
+subtest 'should verify multisig transactions (P2WSH)' => sub {
+	$tx = btc_transaction->from_serialized(
+		[
+			hex =>
+				'0100000000010170800804cd99ddfd02986237b98510d64f69aa2861ead9374f218a4bdb37dfe40100000000ffffffff02d45202000000000017a9142dc36d24e65d10677d4bc8fb460ce2c53c944beb87effabb080000000022002041e21222becb40dac9bcd3092960116f6ecd1ee19b841db254892b5830acc7a8040047304402204598870f6bdf1658f6cfff05cf6e3df04846290da62dfea8a5403635aa0edcc4022043b0ab93d33cf64fd369857aa0de7836374b4823c11d77cebd43748ddd74b2030147304402207998d8c1be59e1be0ba20f9cfbe954755fbb3de61f39e758054d23e0daca6c3302201bf6f916c969d02396aa082239759baa37c010f9612522503c2960f7dc28306e0147522103e3ab4fee9dd471f66d75d68addcb75ce8e9ba9183c7fc334d8064ae7e87e3b8a2103a3af0f49a21d29106ebeef9b3c3d69fc375c856a7153d97156a5b7a161ca6c2552ae00000000'
+		]
+	);
+
+	lives_ok { $tx->verify } 'input verification ok';
+	lives_ok { $tx->verify } 'input verification ok (second time)';
+
+	# NOTE: try modifying witness signature, see if it still verifies
+	# (segwit transactions are backward compatible, so it would pass without support for segwit)
+	$tx->inputs->[0]->witness->[1] .= "\x01";
+	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::Transaction',
+		'input verification ok after modifying witness';
 };
 
 done_testing;
