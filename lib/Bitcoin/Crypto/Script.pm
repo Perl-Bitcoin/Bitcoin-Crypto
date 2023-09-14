@@ -495,11 +495,12 @@ sub push_bytes
 	my ($self, $bytes) = @_;
 
 	my $len = length $bytes;
-	Bitcoin::Crypto::Exception::ScriptPush->raise(
-		'empty push_bytes data argument'
-	) unless $len;
 
-	if ($len == 1 && ord($bytes) <= 0x10) {
+	if ($len == 0) {
+
+		# do nothing
+	}
+	elsif ($len == 1 && ord($bytes) <= 0x10) {
 		$self->add_operation('OP_' . ord($bytes));
 	}
 	elsif ($len <= 75) {
