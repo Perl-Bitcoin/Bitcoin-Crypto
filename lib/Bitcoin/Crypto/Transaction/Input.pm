@@ -15,6 +15,7 @@ use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Types
 	qw(ByteStr Str IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined ScalarRef PositiveOrZeroInt);
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Script::Common;
 
 has param 'utxo' => (
 	coerce => (InstanceOf ['Bitcoin::Crypto::Transaction::UTXO'])
@@ -70,13 +71,7 @@ sub _script_code
 
 			# get script hash from P2WPKH (ignore the first two OPs - version and push)
 			my $hash = substr $locking_script->to_serialized, 2;
-			$program = Bitcoin::Crypto::Script->new
-				->add('OP_DUP')
-				->add('OP_HASH160')
-				->push($hash)
-				->add('OP_EQUALVERIFY')
-				->add('OP_CHECKSIG')
-				;
+			$program = Bitcoin::Crypto::Script::Common->new(PKH => $hash);
 		},
 		P2WSH => sub {
 

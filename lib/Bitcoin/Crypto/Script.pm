@@ -20,6 +20,7 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Maybe ArrayRef HashRef Str Object ByteStr Any ScriptType ScriptDesc);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
+use Bitcoin::Crypto::Script::Common;
 
 use namespace::clean;
 
@@ -75,21 +76,13 @@ sub _build
 			P2PKH => sub {
 				my ($self, $address) = @_;
 
-				$self
-					->add('OP_DUP')
-					->add('OP_HASH160')
-					->push(substr decode_base58check($address), 1)
-					->add('OP_EQUALVERIFY')
-					->add('OP_CHECKSIG');
+				Bitcoin::Crypto::Script::Common->fill(PKH => $self, substr decode_base58check($address), 1);
 			},
 
 			P2SH => sub {
 				my ($self, $address) = @_;
 
-				$self
-					->add('OP_HASH160')
-					->push(substr decode_base58check($address), 1)
-					->add('OP_EQUAL');
+				Bitcoin::Crypto::Script::Common->fill(SH => $self, substr decode_base58check($address), 1);
 			},
 
 			P2MS => sub {
