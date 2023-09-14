@@ -94,6 +94,10 @@ my %utxos = (
 		locking_script => [P2PKH => '1KJztQoHCzZ2RyXmNF93BHTVoWiR9QfX1P'],
 		value => 1000000,
 	},
+	'6eb98797a21c6c10aa74edf29d618be109f48a8e94c694f3701e08ca69186436;1' => {
+		locking_script => [hex => 'a9149993a429037b5d912407a71c252019287b8d27a587'],
+		value => 9_87654321,
+	},
 );
 
 sub get_utxo

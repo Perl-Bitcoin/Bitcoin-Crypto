@@ -93,9 +93,7 @@ sub _script_code
 		my $nested = $self->_nested_script;
 		$type = $nested->type;
 
-		# set those to nested script, so that no matter what type it is it should be processed correctly
 		$locking_script = $nested;
-		$signature_script = $nested;
 	}
 
 	$types{$type}->();
