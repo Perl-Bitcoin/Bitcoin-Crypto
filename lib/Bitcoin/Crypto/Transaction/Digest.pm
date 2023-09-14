@@ -124,8 +124,9 @@ sub _get_digest_default
 sub _get_digest_segwit
 {
 	my ($self, $sighash_type, $anyonecanpay) = @_;
-	my $transaction = $self->transaction;
-	my $this_input = $transaction->inputs->[$self->signing_index];
+	my $transaction = $self->transaction->clone;
+	my $this_input = $transaction->inputs->[$self->signing_index]->clone;
+	$transaction->inputs->[$self->signing_index] = $this_input;
 
 	my $empty_hash = "\x00" x 32;
 	my $single = $sighash_type == Bitcoin::Crypto::Constants::sighash_single;

@@ -145,10 +145,11 @@ subtest 'should verify transactions (P2WPKH)' => sub {
 	);
 
 	lives_ok { $tx->verify } 'input verification ok';
+	lives_ok { $tx->verify } 'input verification ok (second time)';
 
 	# NOTE: try modifying witness signature, see if it still verifies
 	# (segwit transactions are backward compatible, so it would pass without support for segwit)
-	$tx->inputs->[1]->witness->[0] = "\x00\x01";
+	$tx->inputs->[1]->witness->[0] .= "\x01";
 	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::Transaction',
 		'input verification ok after modifying witness';
 };
