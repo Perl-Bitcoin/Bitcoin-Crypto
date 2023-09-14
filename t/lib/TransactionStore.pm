@@ -110,6 +110,10 @@ my %utxos = (
 		locking_script => [P2WSH => 'bc1qg83pyg47edqd4jdu6vyjjcq3dahv68hpnwzpmvj53y44sv9vc75qdf2vpp'],
 		value => 1_46697092,
 	},
+	'4c9346d5e71ad1c4066603c2b065180640d7eeac1b6194acf0c9ba9dc0cb7808;1' => {
+		locking_script => [P2SH => '3N6xFHt5PFY1Lqy7gZhqWQ5aEE97R32qAo'],
+		value => 16871417,
+	},
 );
 
 sub get_utxo

@@ -136,5 +136,23 @@ subtest 'should verify multisig transactions (P2WSH)' => sub {
 		'input verification ok after modifying witness';
 };
 
+subtest 'should verify multisig transactions (nested P2WSH)' => sub {
+	$tx = btc_transaction->from_serialized(
+		[
+			hex =>
+				'010000000001010878cbc09dbac9f0ac94611baceed740061865b0c2036606c4d11ae7d546934c01000000232200206b51c60589b671b997a276950b725fc2a2bfd8ceb6fdd3f3b14449469e65304b0000000004f049020000000000160014d1b9203d3c5500cf543300124c496b22025a5bb706eb020000000000160014085a6e45f5918eae38c68141b784a0aab4de0c84e6b45a00000000001976a91405eb7a2f755365f0e10516c557b114122a3cc8b788ac5d54a1000000000017a914cfbb5f75ffb798b37e1f4905b65a3c2d160a9b81870400483045022100b1c440fa0c1ccbbee578fc138c421eeb42ce65222370123f469e34b34ad9c0e802200d4a91e7cb5510ddd64b993736dc13b8c7975df0cc32c8d2a41a8c50b290efaa01483045022100db29096065371b9d0de8b6c40b0b4744ed2d38022542d7c27be6ca926907a3450220021ed313618f6a77a872b521f51773cfd0dc815003344b2005da3380b157a6c60147522103d601c46b6f63f6866758d4d32f95ce50fce897e23374c68a37f25888fc3e6a7c21035db528ca03dfb59d6874b0c01077b1116101a4a9a47db365e2002d298aaa373c52ae00000000'
+		]
+	);
+
+	lives_ok { $tx->verify } 'input verification ok';
+	lives_ok { $tx->verify } 'input verification ok (second time)';
+
+	# NOTE: try modifying witness signature, see if it still verifies
+	# (segwit transactions are backward compatible, so it would pass without support for segwit)
+	$tx->inputs->[0]->witness->[1] .= "\x01";
+	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::Transaction',
+		'input verification ok after modifying witness';
+};
+
 done_testing;
 
