@@ -138,8 +138,6 @@ sub to_serialized
 
 	$serialized .= pack_varint(scalar @inputs);
 	foreach my $input (@inputs) {
-
-		# TODO: signature script should be emptied if there's witness data?
 		$serialized .= $input->to_serialized;
 	}
 

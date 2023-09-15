@@ -261,7 +261,7 @@ I will gladly accept help working on these:
 
 =item * Taproot compatibility
 
-=item * Better error checking (subroutine inputs, edge cases etc.)
+=item * Better error checking (edge cases etc.)
 
 =item * Detailed manual
 
