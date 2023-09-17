@@ -10,6 +10,10 @@ use Bitcoin::Crypto::Util qw(to_format);
 my $tx;
 my $prv = btc_prv->from_serialized("\x12" x 32);
 
+# these tests do not use real cases. UTXOs locking scripts are modified to
+# point to a fake $prv above. These tests all assume that built in transaction
+# verification is capable of properly verifying the transaction.
+
 subtest 'should sign transactions (P2PK)' => sub {
 	$tx = btc_transaction->new;
 
@@ -75,6 +79,56 @@ subtest 'should sign transactions (P2PKH)' => sub {
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
+subtest 'should sign transactions (P2SH(P2WPKH))' => sub {
+	$tx = btc_transaction->new;
+
+	btc_utxo->new(
+		txid => [hex => '5fb32a2b34f497274419100cfa8f79c21029e8a415936366b2b058b992f55fdf'],
+		output_index => 6,
+		output => {
+			locking_script => [P2SH => $prv->get_public_key->get_compat_address],
+			value => 139615,
+		},
+	)->register;
+
+	$tx->add_input(
+		utxo => [[hex => '5fb32a2b34f497274419100cfa8f79c21029e8a415936366b2b058b992f55fdf'], 6],
+	);
+
+	$tx->add_output(
+		value => 137615,
+		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
+	);
+
+	$prv->sign_transaction($tx, redeem_script => $prv->get_public_key->witness_program);
+	lives_ok { $tx->verify } 'input verification ok';
+};
+
+subtest 'should sign transactions (P2WPKH)' => sub {
+	$tx = btc_transaction->new;
+
+	btc_utxo->new(
+		txid => [hex => '5fb32a2b34f497274419100cfa8f79c21029e8a415936366b2b058b992f55fdf'],
+		output_index => 7,
+		output => {
+			locking_script => [P2WPKH => $prv->get_public_key->get_segwit_address],
+			value => 139615,
+		},
+	)->register;
+
+	$tx->add_input(
+		utxo => [[hex => '5fb32a2b34f497274419100cfa8f79c21029e8a415936366b2b058b992f55fdf'], 7],
+	);
+
+	$tx->add_output(
+		value => 137615,
+		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
+	);
+
+	$prv->sign_transaction($tx);
+	lives_ok { $tx->verify } 'input verification ok';
+};
+
 subtest 'should sign transactions (P2SH)' => sub {
 	my $other_prv = btc_prv->from_serialized("\x13" x 32);
 	my $redeem_script = btc_script->from_standard(
@@ -87,7 +141,6 @@ subtest 'should sign transactions (P2SH)' => sub {
 
 	$tx = btc_transaction->new;
 
-	# not a real (live) utxo
 	btc_utxo->new(
 		txid => [hex => '9fb32a2b34f497274419102cfa8f79c21029e8a415936366b2b058b992f55fdf'],
 		output_index => 0,
@@ -123,7 +176,6 @@ subtest 'should sign transactions (P2SH(P2WSH))' => sub {
 
 	$tx = btc_transaction->new;
 
-	# not a real (live) utxo
 	btc_utxo->new(
 		txid => [hex => '9fb32a2b34f497274419102cfa8f79c21029e8a415936366b2b058b992f55fdf'],
 		output_index => 1,
@@ -135,6 +187,42 @@ subtest 'should sign transactions (P2SH(P2WSH))' => sub {
 
 	$tx->add_input(
 		utxo => [[hex => '9fb32a2b34f497274419102cfa8f79c21029e8a415936366b2b058b992f55fdf'], 1],
+	);
+
+	$tx->add_output(
+		value => 88800,
+		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
+	);
+
+	$prv->sign_transaction($tx, redeem_script => $redeem_script, multisig => [1, 2]);
+	$other_prv->sign_transaction($tx, redeem_script => $redeem_script, multisig => [2, 2]);
+
+	lives_ok { $tx->verify } 'input verification ok';
+};
+
+subtest 'should sign transactions (P2WSH)' => sub {
+	my $other_prv = btc_prv->from_serialized("\x13" x 32);
+	my $redeem_script = btc_script->from_standard(
+		P2MS => [
+			2,
+			$prv->get_public_key->to_serialized,
+			$other_prv->get_public_key->to_serialized,
+		]
+	);
+
+	$tx = btc_transaction->new;
+
+	btc_utxo->new(
+		txid => [hex => '9fb32a2b34f497274419102cfa8f79c21029e8a415936366b2b058b992f55fdf'],
+		output_index => 2,
+		output => {
+			locking_script => [P2WSH => $redeem_script->get_segwit_address],
+			value => 88888,
+		},
+	)->register;
+
+	$tx->add_input(
+		utxo => [[hex => '9fb32a2b34f497274419102cfa8f79c21029e8a415936366b2b058b992f55fdf'], 2],
 	);
 
 	$tx->add_output(

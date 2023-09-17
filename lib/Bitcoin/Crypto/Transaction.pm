@@ -405,7 +405,7 @@ sub _verify_script_segwit
 
 	# execute input to get initial stack
 	my $signature_script = btc_script->new;
-	foreach my $witness (@{$input->witness}) {
+	foreach my $witness (@{$input->witness // []}) {
 		$signature_script->push($witness);
 	}
 	$script_runner->execute($signature_script);

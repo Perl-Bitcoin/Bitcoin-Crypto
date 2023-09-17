@@ -124,17 +124,34 @@ sub _set_signature
 }
 
 # NOTE: should only be run in P2SH after initial checks. P2SH script is run
-# (without the transaction access) to verify whether SHA256 checksum matches.
+# (without the transaction access) to verify whether HASH160 checksum matches.
 # If it does, redeem_script is a nested segwit script.
 sub _check_segwit_nested
 {
 	my ($self) = @_;
 
-	my $runner = $self->input->utxo->output->locking_script->run(
-		[$self->redeem_script->witness_program->to_serialized]
+	my $check_locking_script = sub {
+		my ($program) = @_;
+
+		my $runner = $self->input->utxo->output->locking_script->run(
+			[$program->to_serialized]
+		);
+
+		return $runner->success;
+	};
+
+	my @to_check = (
+		$self->key->get_public_key->witness_program,    # P2SH(P2WPKH)
+		$self->redeem_script->witness_program,    # P2SH(P2WSH)
 	);
 
-	return $runner->success;
+	foreach my $program (@to_check) {
+		if ($check_locking_script->($program)) {
+			return $program;
+		}
+	}
+
+	return undef;
 }
 
 sub _sign_P2PK
@@ -194,31 +211,27 @@ sub _sign_P2SH
 {
 	my ($self) = @_;
 
-	die 'trying to sign payout from P2SH but no redeem_script was specified'
-		unless $self->has_redeem_script;
-
-	my $redeem_script = $self->redeem_script;
 	my $segwit_nested = $self->_check_segwit_nested;
-	if ($segwit_nested) {
+	if (defined $segwit_nested) {
 		$self->set_segwit(!!1);
-		$redeem_script = $redeem_script->witness_program;
-	}
-
-	die 'cannot automatically sign with a non-standard P2SH redeem script'
-		unless $redeem_script->has_type;
-	die 'P2SH nested inside P2SH'
-		if $redeem_script->type eq 'P2SH';
-
-	if ($segwit_nested) {
 
 		# for nested segwit, signature script need to be present before signing
 		# for proper transaction digests to be generated
 		$self->input->set_signature_script(
-			btc_script->new->push($redeem_script->to_serialized)
+			btc_script->new->push($segwit_nested->to_serialized)
 		);
-		$self->_sign_type($redeem_script->type, $self->_get_signature($redeem_script->to_serialized));
+		$self->_sign_type($segwit_nested->type, $self->_get_signature($segwit_nested->to_serialized));
 	}
 	else {
+		die 'trying to sign payout from P2SH but no redeem_script was specified'
+			unless $self->has_redeem_script;
+		my $redeem_script = $self->redeem_script;
+
+		die 'cannot automatically sign with a non-standard P2SH redeem script'
+			unless $redeem_script->has_type;
+		die 'P2SH nested inside P2SH'
+			if $redeem_script->type eq 'P2SH';
+
 		$self->_sign_type($redeem_script->type, $self->_get_signature($redeem_script->to_serialized));
 		$self->input->signature_script->push($redeem_script->to_serialized);
 	}
@@ -228,7 +241,7 @@ sub _sign_P2WPKH
 {
 	my ($self, $signature) = @_;
 
-	$self->input->_set_signature(
+	$self->_set_signature(
 		[
 			$signature // $self->_get_signature(),
 			$self->key->get_public_key->to_serialized
