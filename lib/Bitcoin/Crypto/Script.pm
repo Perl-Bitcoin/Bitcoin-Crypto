@@ -629,15 +629,15 @@ sub from_standard
 
 signature_for run => (
 	method => Object,
-	positional => [HashRef, {slurpy => 1}],
+	positional => [ArrayRef [ByteStr], {default => []}],
 );
 
 sub run
 {
-	my ($self, $runner_args) = @_;
+	my ($self, $initial_stack) = @_;
 
-	my $runner = Bitcoin::Crypto::Script::Runner->new($runner_args);
-	return $runner->execute($self)->stack;
+	my $runner = Bitcoin::Crypto::Script::Runner->new();
+	return $runner->execute($self, $initial_stack);
 }
 
 signature_for witness_program => (
@@ -699,7 +699,7 @@ sub get_segwit_address
 		'this network does not support segregated witness'
 	) unless $self->network->supports_segwit;
 
-	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run});
+	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run->stack});
 }
 
 signature_for has_type => (
@@ -876,9 +876,9 @@ Returns string containing Bech32 encoded witness program (p2wsh address)
 
 =head2 run
 
-	my $result_stack = $object->run()
+	my $runner = $object->run(\@initial_stack)
 
-Executes the script and returns the resulting script stack.
+Executes the script and returns L<Bitcoin::Crypto::Script::Runner> instance after running the script.
 
 This is a convenience method which constructs runner instance in the
 background. This helper is only meant to run simple scripts.

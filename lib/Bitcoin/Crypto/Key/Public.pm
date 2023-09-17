@@ -104,7 +104,7 @@ sub get_segwit_address
 		'segwit addresses can only be created with BIP44 in segwit (BIP84) mode'
 	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_segwit_purpose);
 
-	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run});
+	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run->stack});
 }
 
 signature_for get_address => (

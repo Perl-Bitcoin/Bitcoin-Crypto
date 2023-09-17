@@ -44,7 +44,7 @@ sub stack_is
 
 	my $out_stack;
 	if ($script->isa('Bitcoin::Crypto::Script')) {
-		$out_stack = [map { unpack 'H*', $_ } @{$script->run}];
+		$out_stack = [map { unpack 'H*', $_ } @{$script->run->stack}];
 	}
 	elsif ($script->isa('Bitcoin::Crypto::Script::Runner')) {
 		$out_stack = [map { unpack 'H*', $_ } @{$script->stack}];
