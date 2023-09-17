@@ -111,6 +111,43 @@ subtest 'should sign transactions (P2SH)' => sub {
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
+subtest 'should sign transactions (P2SH(P2WSH))' => sub {
+	my $other_prv = btc_prv->from_serialized("\x13" x 32);
+	my $redeem_script = btc_script->from_standard(
+		P2MS => [
+			2,
+			$prv->get_public_key->to_serialized,
+			$other_prv->get_public_key->to_serialized,
+		]
+	);
+
+	$tx = btc_transaction->new;
+
+	# not a real (live) utxo
+	btc_utxo->new(
+		txid => [hex => '9fb32a2b34f497274419102cfa8f79c21029e8a415936366b2b058b992f55fdf'],
+		output_index => 1,
+		output => {
+			locking_script => [P2SH => $redeem_script->get_compat_address],
+			value => 88888,
+		},
+	)->register;
+
+	$tx->add_input(
+		utxo => [[hex => '9fb32a2b34f497274419102cfa8f79c21029e8a415936366b2b058b992f55fdf'], 1],
+	);
+
+	$tx->add_output(
+		value => 88800,
+		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
+	);
+
+	$prv->sign_transaction($tx, redeem_script => $redeem_script, segwit_nested => !!1, multisig => [1, 2]);
+	$other_prv->sign_transaction($tx, redeem_script => $redeem_script, segwit_nested => !!1, multisig => [2, 2]);
+
+	lives_ok { $tx->verify } 'input verification ok';
+};
+
 subtest 'should sign transactions (two inputs)' => sub {
 	$tx = btc_transaction->new;
 

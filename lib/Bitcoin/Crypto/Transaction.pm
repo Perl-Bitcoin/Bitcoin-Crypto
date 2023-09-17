@@ -429,7 +429,7 @@ sub _verify_script_segwit
 			die 'execution yielded failure'
 				unless $script_runner->success;
 		},
-		'locking script'
+		'segwit locking script'
 	);
 
 	if ($locking_script->type eq 'P2WSH') {
@@ -441,7 +441,7 @@ sub _verify_script_segwit
 				die 'execution yielded failure'
 					unless $script_runner->success;
 			},
-			'redeem script'
+			'segwit redeem script'
 		);
 	}
 }
