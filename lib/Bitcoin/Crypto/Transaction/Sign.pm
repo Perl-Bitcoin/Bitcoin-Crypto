@@ -29,11 +29,6 @@ has option 'redeem_script' => (
 	coerce => BitcoinScript,
 );
 
-has param 'segwit_nested' => (
-	isa => Bool,
-	default => 0,
-);
-
 has option 'multisig' => (
 	coerce => Tuple [PositiveInt, PositiveInt],
 );
@@ -128,6 +123,20 @@ sub _set_signature
 	}
 }
 
+# NOTE: should only be run in P2SH after initial checks. P2SH script is run
+# (without the transaction access) to verify whether SHA256 checksum matches.
+# If it does, redeem_script is a nested segwit script.
+sub _check_segwit_nested
+{
+	my ($self) = @_;
+
+	my $runner = $self->input->utxo->output->locking_script->run(
+		[$self->redeem_script->witness_program->to_serialized]
+	);
+
+	return $runner->success;
+}
+
 sub _sign_P2PK
 {
 	my ($self, $signature) = @_;
@@ -189,7 +198,8 @@ sub _sign_P2SH
 		unless $self->has_redeem_script;
 
 	my $redeem_script = $self->redeem_script;
-	if ($self->segwit_nested) {
+	my $segwit_nested = $self->_check_segwit_nested;
+	if ($segwit_nested) {
 		$self->set_segwit(!!1);
 		$redeem_script = $redeem_script->witness_program;
 	}
@@ -199,7 +209,7 @@ sub _sign_P2SH
 	die 'P2SH nested inside P2SH'
 		if $redeem_script->type eq 'P2SH';
 
-	if ($self->segwit_nested) {
+	if ($segwit_nested) {
 
 		# for nested segwit, signature script need to be present before signing
 		# for proper transaction digests to be generated

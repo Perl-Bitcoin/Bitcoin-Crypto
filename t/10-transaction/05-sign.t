@@ -142,8 +142,8 @@ subtest 'should sign transactions (P2SH(P2WSH))' => sub {
 		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
 	);
 
-	$prv->sign_transaction($tx, redeem_script => $redeem_script, segwit_nested => !!1, multisig => [1, 2]);
-	$other_prv->sign_transaction($tx, redeem_script => $redeem_script, segwit_nested => !!1, multisig => [2, 2]);
+	$prv->sign_transaction($tx, redeem_script => $redeem_script, multisig => [1, 2]);
+	$other_prv->sign_transaction($tx, redeem_script => $redeem_script, multisig => [2, 2]);
 
 	lives_ok { $tx->verify } 'input verification ok';
 };
