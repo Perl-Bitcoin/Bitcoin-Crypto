@@ -452,6 +452,22 @@ sub operations
 	return \@ops;
 }
 
+signature_for is_pushes_only => (
+	method => Object,
+	positional => [],
+);
+
+sub is_pushes_only
+{
+	my ($self) = @_;
+
+	foreach my $op (@{$self->operations}) {
+		return !!0 unless $op->[0]->pushes;
+	}
+
+	return !!1;
+}
+
 signature_for add_raw => (
 	method => Object,
 	positional => [ByteStr],

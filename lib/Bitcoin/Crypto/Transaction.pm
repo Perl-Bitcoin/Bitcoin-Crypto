@@ -363,6 +363,10 @@ sub _verify_script_default
 	my ($self, $input, $script_runner) = @_;
 	my $locking_script = $input->utxo->output->locking_script;
 
+	Bitcoin::Crypto::Exception::TransactionScript->raise(
+		'signature script must only contain push opcodes'
+	) unless $input->signature_script->is_pushes_only;
+
 	# execute input to get initial stack
 	$script_runner->execute($input->signature_script);
 	my $stack = $script_runner->stack;

@@ -47,6 +47,11 @@ has param 'needs_transaction' => (
 	default => 0,
 );
 
+has param 'pushes' => (
+	isa => Bool,
+	default => 0,
+);
+
 has option 'runner' => (
 	isa => CodeRef,
 	predicate => 'implemented',
@@ -65,6 +70,7 @@ sub execute
 my %opcodes = (
 	OP_0 => {
 		code => "\x00",
+		pushes => !!1,
 		runner => sub {
 			my $runner = shift;
 
@@ -73,6 +79,7 @@ my %opcodes = (
 	},
 	OP_PUSHDATA1 => {
 		code => "\x4c",
+		pushes => !!1,
 		runner => sub {
 			my ($runner, $bytes) = @_;
 
@@ -81,11 +88,13 @@ my %opcodes = (
 	},
 	OP_PUSHDATA2 => {
 		code => "\x4d",
+		pushes => !!1,
 
 		# see runner below
 	},
 	OP_PUSHDATA4 => {
 		code => "\x4e",
+		pushes => !!1,
 
 		# see runner below
 	},
@@ -703,7 +712,7 @@ my %opcodes = (
 	},
 	OP_CODESEPARATOR => {
 		code => "\xab",
-		needs_transaction => 1,
+		needs_transaction => !!1,
 
 		runner => sub {
 			my $runner = shift;
@@ -712,7 +721,7 @@ my %opcodes = (
 	},
 	OP_CHECKSIG => {
 		code => "\xac",
-		needs_transaction => 1,
+		needs_transaction => !!1,
 
 		runner => sub {
 			my $runner = shift;
@@ -733,13 +742,13 @@ my %opcodes = (
 	},
 	OP_CHECKSIGVERIFY => {
 		code => "\xad",
-		needs_transaction => 1,
+		needs_transaction => !!1,
 
 		# see runner below
 	},
 	OP_CHECKMULTISIG => {
 		code => "\xae",
-		needs_transaction => 1,
+		needs_transaction => !!1,
 
 		runner => sub {
 			my $runner = shift;
@@ -781,7 +790,7 @@ my %opcodes = (
 	},
 	OP_CHECKMULTISIGVERIFY => {
 		code => "\xaf",
-		needs_transaction => 1,
+		needs_transaction => !!1,
 
 		# see runner below
 	},
@@ -791,7 +800,7 @@ my %opcodes = (
 	},
 	OP_CHECKLOCKTIMEVERIFY => {
 		code => "\xb1",
-		needs_transaction => 1,
+		needs_transaction => !!1,
 
 		runner => sub {
 			my $runner = shift;
@@ -824,7 +833,7 @@ my %opcodes = (
 	},
 	OP_CHECKSEQUENCEVERIFY => {
 		code => "\xb2",
-		needs_transaction => 1,
+		needs_transaction => !!1,
 
 		runner => sub {
 			my $runner = shift;
@@ -893,6 +902,7 @@ my %opcodes = (
 for my $num (1 .. 16) {
 	$opcodes{"OP_$num"} = {
 		code => chr(0x50 + $num),
+		pushes => !!1,
 		runner => sub {
 			my $runner = shift;
 			push @{$runner->stack}, $runner->from_int($num);
