@@ -100,7 +100,7 @@ subtest 'should sign transactions (P2SH(P2WPKH))' => sub {
 		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
 	);
 
-	$prv->sign_transaction($tx, redeem_script => $prv->get_public_key->witness_program);
+	$prv->sign_transaction($tx);
 	lives_ok { $tx->verify } 'input verification ok';
 };
 

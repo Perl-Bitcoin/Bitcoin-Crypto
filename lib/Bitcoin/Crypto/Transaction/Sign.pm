@@ -125,7 +125,7 @@ sub _set_signature
 
 # NOTE: should only be run in P2SH after initial checks. P2SH script is run
 # (without the transaction access) to verify whether HASH160 checksum matches.
-# If it does, redeem_script is a nested segwit script.
+# If it does, witness program is a is a nested segwit script.
 sub _check_segwit_nested
 {
 	my ($self) = @_;
@@ -142,8 +142,11 @@ sub _check_segwit_nested
 
 	my @to_check = (
 		$self->key->get_public_key->witness_program,    # P2SH(P2WPKH)
-		$self->redeem_script->witness_program,    # P2SH(P2WSH)
 	);
+
+	# P2SH(P2WSH)
+	push @to_check, $self->redeem_script->witness_program
+		if $self->has_redeem_script;
 
 	foreach my $program (@to_check) {
 		if ($check_locking_script->($program)) {
