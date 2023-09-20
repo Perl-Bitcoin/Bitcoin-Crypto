@@ -149,7 +149,7 @@ sub _derive_key_partial
 
 	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
 	my $key_num = Math::BigInt->from_bytes($self->raw_key);
-	my $n_order = Math::BigInt->from_hex($self->key_instance->curve2hash->{order});
+	my $n_order = $self->curve_order;
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
 		"key $child_num in sequence was found invalid"

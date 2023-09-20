@@ -11,7 +11,7 @@ use Type::Params -sigs;
 use Bitcoin::Crypto::Types qw(Object InstanceOf BIP44Purpose Enum);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(get_key_type);
-use Bitcoin::Crypto::Helpers qw(ensure_length);
+use Bitcoin::Crypto::Helpers qw(ensure_length);    # loads Math::BigInt
 use Bitcoin::Crypto::Exception;
 
 sub __create_key
@@ -110,5 +110,11 @@ sub raw_key
 	return $self->key_instance->export_key_raw($type);
 }
 
+sub curve_order
+{
+	my ($self) = @_;
+
+	return Math::BigInt->from_hex($self->key_instance->curve2hash->{order});
+}
 1;
 

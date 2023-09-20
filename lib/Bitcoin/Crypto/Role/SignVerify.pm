@@ -7,7 +7,7 @@ use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Types qw(Object Str ByteStr InstanceOf HashRef);
-use Bitcoin::Crypto::Helpers qw(carp_once);
+use Bitcoin::Crypto::Helpers qw(carp_once);    # load Math::BigInt
 use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::Crypto::Transaction::Sign;
 use Moo::Role;
@@ -26,6 +26,64 @@ has field '_crypt_perl_prv' => (
 		return Crypt::Perl::ECDSA::Parse::private($_[0]->key_instance->export_key_der('private'));
 	}
 );
+
+sub _fix_der_signature
+{
+	my ($self, $signature) = @_;
+
+	return undef unless defined $signature;
+
+	# https://bitcoin.stackexchange.com/questions/92680/what-are-the-der-signature-and-sec-format
+	my $pos = 0;
+
+	my $compound = substr $signature, $pos, 1;
+	$pos += 1;
+
+	my $total_len = unpack 'C', substr $signature, $pos, 1;
+	$pos += 1;
+
+	my $int1 = substr $signature, $pos, 1;
+	$pos += 1;
+
+	my $r_len = unpack 'C', substr $signature, $pos, 1;
+	$pos += 1;
+
+	my $r = substr $signature, $pos, $r_len;
+	$pos += $r_len;
+
+	my $int2 = substr $signature, $pos, 1;
+	$pos += 1;
+
+	my $s_len = unpack 'C', substr $signature, $pos, 1;
+	$pos += 1;
+
+	my $s = Math::BigInt->from_bytes(substr $signature, $pos, $s_len);
+	$pos += $s_len;
+
+	die 'invalid signature'
+		unless $pos == length $signature;
+
+	# fixup $s - must be below order / 2 (BIP62)
+	my $order = $self->curve_order;
+	if ($s > $order->copy->btdiv(2)) {
+		$s = $order - $s;
+	}
+
+	$s = $s->as_bytes;
+	$total_len = $total_len - $s_len + length $s;
+	$s_len = length $s;
+
+	return join '',
+		$compound,
+		pack('C', $total_len),
+		$int1,
+		pack('C', $r_len),
+		$r,
+		$int2,
+		pack('C', $s_len),
+		$s,
+		;
+}
 
 signature_for sign_message => (
 	method => Object,
@@ -47,15 +105,18 @@ sub sign_message
 
 	return Bitcoin::Crypto::Exception::Sign->trap_into(
 		sub {
+			my $signature;
 			if (HAS_DETERMINISTIC_SIGNATURES) {
 				my $sub = "sign_${algorithm}";
-				return $self->_crypt_perl_prv->$sub($message);
+				$signature = $self->_crypt_perl_prv->$sub($message);
 			}
 			else {
 				carp_once
 					'Current implementation of CryptX signature generation does not produce deterministic results. For better security, install the Crypt::Perl module.';
-				return $self->key_instance->sign_message($message, $algorithm);
+				$signature = $self->key_instance->sign_message($message, $algorithm);
 			}
+
+			return $self->_fix_der_signature($signature);
 		}
 	);
 }
