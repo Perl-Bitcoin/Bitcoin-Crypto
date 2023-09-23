@@ -21,6 +21,7 @@ our @EXPORT_OK = qw(
 	validate_wif
 	validate_segwit
 	get_key_type
+	get_public_key_compressed
 	generate_mnemonic
 	mnemonic_from_entropy
 	mnemonic_to_seed
@@ -102,6 +103,20 @@ sub get_key_type
 {
 	my ($entropy) = @_;
 
+	return 0 if defined get_public_key_compressed($entropy);
+	return 1
+		if length $entropy <= Bitcoin::Crypto::Constants::key_max_length;
+	return undef;
+}
+
+signature_for get_public_key_compressed => (
+	positional => [ByteStr],
+);
+
+sub get_public_key_compressed
+{
+	my ($entropy) = @_;
+
 	my $curve_size = Bitcoin::Crypto::Constants::key_max_length;
 	my $octet = substr $entropy, 0, 1;
 
@@ -111,11 +126,9 @@ sub get_key_type
 	my $has_com_oc = $octet eq "\x02" || $octet eq "\x03";
 	my $is_com = $has_com_oc && length $entropy == $curve_size + 1;
 
-	return 0
-		if $is_com || $is_unc;
-	return 1
-		if length $entropy <= $curve_size;
-	return;
+	return 1 if $is_com;
+	return 0 if $is_unc;
+	return undef;
 }
 
 signature_for mnemonic_to_seed => (

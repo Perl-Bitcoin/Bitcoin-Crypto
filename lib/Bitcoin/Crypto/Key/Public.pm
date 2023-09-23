@@ -11,7 +11,7 @@ use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Types qw(Object);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(hash160);
+use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed);
 
 use namespace::clean;
 
@@ -30,6 +30,15 @@ sub key_hash
 
 	return hash160($self->to_serialized);
 }
+
+around from_serialized => sub {
+	my ($orig, $class, $key) = @_;
+
+	my $self = $class->$orig($key);
+	$self->set_compressed(get_public_key_compressed($key));
+
+	return $self;
+};
 
 signature_for witness_program => (
 	method => Object,
