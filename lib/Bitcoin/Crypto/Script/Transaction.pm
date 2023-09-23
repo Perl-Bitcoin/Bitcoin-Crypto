@@ -53,5 +53,12 @@ sub this_input
 	return $self->inputs->[$self->input_index];
 }
 
+sub is_native_segwit
+{
+	my ($self) = @_;
+
+	return $self->this_input->utxo->output->locking_script->is_native_segwit;
+}
+
 1;
 

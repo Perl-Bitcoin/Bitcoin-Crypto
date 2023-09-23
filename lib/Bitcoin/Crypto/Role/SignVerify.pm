@@ -71,6 +71,7 @@ sub _fix_der_signature
 
 	$s = $s->as_bytes;
 	if (unpack('C', $s) & 0x80) {
+
 		# top bit is 1, so prepend with zero to avoid being interpreted as
 		# negative
 		$s = "\x00$s";

@@ -9,6 +9,7 @@ use lib 't/lib';
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Constants;
+use Crypt::Digest::SHA256 qw(sha256);
 use TransactionStore;
 
 my $tx;
@@ -132,6 +133,81 @@ subtest 'should correctly handle extra SIGHASH_SINGLE inputs' => sub {
 	lives_ok {
 		$tx->verify;
 	} 'this transaction verified ok';
+};
+
+subtest 'should not verify segwit transactions with uncompressed public keys (P2WPKH)' => sub {
+	$prv->set_compressed(0);
+
+	my $random_txid = sha256($prv->to_serialized);
+	btc_utxo->new(
+		txid => $random_txid,
+		output_index => 0,
+		output => {
+			locking_script => [P2WPKH => $prv->get_public_key->get_segwit_address],
+			value => 11,
+		},
+	)->register;
+
+	$tx = btc_transaction->new;
+
+	$tx->add_input(
+		utxo => [$random_txid, 0],
+	);
+
+	$tx->add_output(
+		locking_script => [P2SH => $prv->get_public_key->get_compat_address],
+		value => $tx->fee - 1,
+	);
+
+	$prv->sign_transaction($tx, signing_index => 0);
+
+	throws_ok {
+		$tx->verify
+	} 'Bitcoin::Crypto::Exception::TransactionScript';
+
+	like $@, qr/compressed/, 'error string ok';
+};
+
+subtest 'should not verify segwit transactions with uncompressed public keys (P2WSH)' => sub {
+	$prv->set_compressed(0);
+	my $other_prv = btc_prv->from_serialized("\x13" x 32);
+
+	my $redeem_script = btc_script->from_standard(
+		P2MS => [
+			1,
+			$other_prv->get_public_key->to_serialized,
+			$prv->get_public_key->to_serialized,
+		]
+	);
+
+	my $random_txid = sha256($other_prv->to_serialized);
+	btc_utxo->new(
+		txid => $random_txid,
+		output_index => 0,
+		output => {
+			locking_script => [P2WSH => $redeem_script->get_segwit_address],
+			value => 11,
+		},
+	)->register;
+
+	$tx = btc_transaction->new;
+
+	$tx->add_input(
+		utxo => [$random_txid, 0],
+	);
+
+	$tx->add_output(
+		locking_script => [P2SH => $prv->get_public_key->get_compat_address],
+		value => $tx->fee - 1,
+	);
+
+	$other_prv->sign_transaction($tx, redeem_script => $redeem_script, signing_index => 0, multisig => [1, 1]);
+
+	throws_ok {
+		$tx->verify
+	} 'Bitcoin::Crypto::Exception::TransactionScript';
+
+	like $@, qr/compressed/, 'error string ok';
 };
 
 done_testing;

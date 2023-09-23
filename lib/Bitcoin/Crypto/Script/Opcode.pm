@@ -15,7 +15,7 @@ use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Str StrLength CodeRef Bool);
-use Bitcoin::Crypto::Util qw(hash160 hash256);
+use Bitcoin::Crypto::Util qw(hash160 hash256 get_public_key_compressed);
 use Bitcoin::Crypto::Transaction::Input;
 
 # some private helpers for opcodes
@@ -29,6 +29,13 @@ sub invalid_script
 {
 	Bitcoin::Crypto::Exception::TransactionScript->raise(
 		'transaction was marked as invalid'
+	);
+}
+
+sub script_error
+{
+	Bitcoin::Crypto::Exception::TransactionScript->raise(
+		shift
 	);
 }
 
@@ -736,6 +743,9 @@ my %opcodes = (
 			my $digest = $runner->transaction->get_digest($runner->subscript, unpack 'C', $hashtype);
 			my $pubkey = btc_pub->from_serialized($raw_pubkey);
 
+			script_error('SegWit validation requires compressed public key')
+				if !$pubkey->compressed && $runner->transaction->is_native_segwit;
+
 			my $result = $pubkey->verify_message($digest, $sig);
 			push @$stack, $runner->from_bool($result);
 		},
@@ -759,6 +769,9 @@ my %opcodes = (
 			my $pubkeys_num = $runner->to_int(pop @$stack);
 			stack_error unless $pubkeys_num > 0 && @$stack >= $pubkeys_num;
 			my @pubkeys = splice @$stack, -$pubkeys_num;
+
+			script_error('SegWit validation requires all public keys to be compressed')
+				if $runner->transaction->is_native_segwit && grep { !get_public_key_compressed($_) } @pubkeys;
 
 			my $signatures_num = $runner->to_int(pop @$stack);
 			stack_error unless $signatures_num > 0 && @$stack >= $signatures_num;
