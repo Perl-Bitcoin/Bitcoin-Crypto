@@ -228,12 +228,9 @@ Returns current key instance.
 
 =head2 verify_message
 
-	$signature_valid = $object->verify_message($message, $signature, $algo = 'sha256')
+	$signature_valid = $object->verify_message($message, $signature)
 
-Verifies C<$signature> against digest of C<$message> (with C<$algo> digest
-algorithm) using public key.
-
-C<$algo> must be available in Digest package.
+Verifies C<$signature> against digest of C<$message> (digesting it with double sha256) using public key.
 
 Returns boolean.
 

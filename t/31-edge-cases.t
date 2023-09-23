@@ -34,16 +34,6 @@ subtest 'testing reference as a bytestring' => sub {
 	} qr/not a bytestring/;
 };
 
-subtest 'testing invalid verification algorithm' => sub {
-	my $master_key = btc_extprv->from_mnemonic(generate_mnemonic);
-	my $private_key = $master_key->get_basic_key;
-	my $public_key = $private_key->get_public_key;
-
-	throws_ok {
-		$public_key->verify_message('message', "\x00", 'not-a-hashing-algo');
-	} 'Bitcoin::Crypto::Exception::Verify';
-};
-
 subtest 'testing invalid base58' => sub {
 	throws_ok {
 		decode_base58('158ZaF+');

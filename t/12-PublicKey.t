@@ -67,10 +67,10 @@ my @cases_segwit = (
 
 my %validation_case = (
 	uncompressed =>
-		'04b55965ca968e6e14d9175fb3fc3dc35f68b67b7e69cc2d1fa8c27f2406889c0f77cc2c39331735990bc67ccbf63c67642ff7b8ffd3794a4d76e0b78d9797a347',
-	compressed => '03b55965ca968e6e14d9175fb3fc3dc35f68b67b7e69cc2d1fa8c27f2406889c0f',
+		'04a62dcf573c2639aab8e6df5178c22f1ea0d2a3f90c6ed56d5cd5c0c87748ff3e93ba8c6a4b977ec059281461325a1f5700aa6bfaa263f97f1d716f185691044b',
+	compressed => '03a62dcf573c2639aab8e6df5178c22f1ea0d2a3f90c6ed56d5cd5c0c87748ff3e',
 	sig =>
-		'3044022031731fbf940cffc6b72298b8775b12603fe16844a65983fb46b5fa8cf5d9e9bd022064625366f834314f8aef02aedc241a9b393d1f43887875f663b1be7080bae5c5',
+		'3045022100929739e1d9fb3bf37c92b7fc8a2df29a59199381bf835134e3ef2774a838a6d102201939eda824d35ff834c08a195a454054f6c8edb264228aab9f9b7d282a0f58da',
 );
 
 my $case_num = 0;
@@ -147,17 +147,13 @@ subtest 'verify message using pubkey' => sub {
 	my $pub_compressed = btc_pub->from_serialized([hex => $validation_case{compressed}]);
 	my $random_pub = btc_pub->from_serialized([hex => $cases_compression[0]{compressed}]);
 
-	ok($pub->verify_message($message, [hex => $validation_case{sig}], 'sha256'), 'verified message correctly');
+	ok($pub->verify_message($message, [hex => $validation_case{sig}]), 'verified message correctly');
 	ok(
-		$pub_compressed->verify_message($message, [hex => $validation_case{sig}], 'sha256'),
+		$pub_compressed->verify_message($message, [hex => $validation_case{sig}]),
 		'compressed verified message correctly'
 	);
 	ok(
-		!$pub_compressed->verify_message($message, [hex => $validation_case{sig}]),
-		'verification fails with different hash algo'
-	);
-	ok(
-		!$random_pub->verify_message($message, [hex => $validation_case{sig}], 'sha256'),
+		!$random_pub->verify_message($message, [hex => $validation_case{sig}]),
 		'verification fails with different pubkey'
 	);
 };
@@ -169,7 +165,7 @@ subtest 'generate addresses from non-default network' => sub {
 	my $should_be_pub = $pub->set_network('bitcoin_testnet');
 	is $should_be_pub, $pub, 'set_network return value ok';
 
-	my $testnet_addr = 'n1raSqPwHRbJ87dC8daiwgLVrQBy9Fj17K';
+	my $testnet_addr = 'mtSw17LGTmJgBKx1i8RscCV4PTQoWg7NsR';
 	is($pub->network->name, 'Bitcoin Testnet', 'changed network to testnet');
 	is($pub->get_legacy_address, $testnet_addr, 'created different address correctly');
 };

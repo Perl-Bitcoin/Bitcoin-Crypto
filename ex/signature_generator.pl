@@ -6,24 +6,20 @@ use Bitcoin::Crypto::Util qw(to_format);
 
 sub sign_message
 {
-	my ($private, $message, $algo) = @_;
-
-	# algo needs to be available in Digest:: namespace
-	$algo //= "hash256";
+	my ($private, $message) = @_;
 
 	die "key is not a private key instance"
 		unless $private->isa("Bitcoin::Crypto::Key::Private");
 
 	# sign message and produce a public key, which will be needed
 	# in verification
-	my $signature = $private->sign_message($message, $algo);
+	my $signature = $private->sign_message($message);
 	my $public = $private->get_public_key;
 
 	# complete data needed to prove ownership of a private key
 	# ready to be serialized
 	return {
 		message => $message,
-		algorithm => $algo,
 		signature => to_format [hex => $signature],
 		public_key => to_format [hex => $public->to_serialized],
 	};
@@ -40,7 +36,6 @@ sub verify_message
 	return $public->verify_message(
 		$signature_hash->{message},
 		[hex => $signature_hash->{signature}],
-		$signature_hash->{algorithm}
 	);
 }
 

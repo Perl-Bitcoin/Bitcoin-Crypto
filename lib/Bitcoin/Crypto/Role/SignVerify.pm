@@ -93,33 +93,29 @@ sub _fix_der_signature
 
 signature_for sign_message => (
 	method => Object,
-	positional => [ByteStr, Str, {default => 'hash256'}],
+	positional => [ByteStr],
 );
 
 sub sign_message
 {
-	my ($self, $message, $algorithm) = @_;
+	my ($self, $message) = @_;
 
 	Bitcoin::Crypto::Exception::Sign->raise(
 		'cannot sign a message with a public key'
 	) unless $self->_is_private;
 
-	if ($algorithm eq 'hash256') {
-		$algorithm = 'sha256';
-		$message = sha256($message);
-	}
+	$message = sha256($message);
 
 	return Bitcoin::Crypto::Exception::Sign->trap_into(
 		sub {
 			my $signature;
 			if (HAS_DETERMINISTIC_SIGNATURES) {
-				my $sub = "sign_${algorithm}";
-				$signature = $self->_crypt_perl_prv->$sub($message);
+				$signature = $self->_crypt_perl_prv->sign_sha256($message);
 			}
 			else {
 				carp_once
 					'Current implementation of CryptX signature generation does not produce deterministic results. For better security, install the Crypt::Perl module.';
-				$signature = $self->key_instance->sign_message($message, $algorithm);
+				$signature = $self->key_instance->sign_message($message, 'sha256');
 			}
 
 			return $self->_fix_der_signature($signature);
@@ -149,21 +145,17 @@ sub sign_transaction
 
 signature_for verify_message => (
 	method => Object,
-	positional => [ByteStr, ByteStr, Str, {default => 'hash256'}],
+	positional => [ByteStr, ByteStr],
 );
 
 sub verify_message
 {
 	my ($self, $message, $signature, $algorithm) = @_;
-
-	if ($algorithm eq 'hash256') {
-		$algorithm = 'sha256';
-		$message = sha256($message);
-	}
+	$message = sha256($message);
 
 	return Bitcoin::Crypto::Exception::Verify->trap_into(
 		sub {
-			$self->key_instance->verify_message($signature, $message, $algorithm);
+			$self->key_instance->verify_message($signature, $message, 'sha256');
 		}
 	);
 }

@@ -239,11 +239,9 @@ Returns instance of L<Bitcoin::Crypto::Key::Public> generated from the private k
 
 =head2 sign_message
 
-	$signature = $object->sign_message($message, $algo = 'sha256')
+	$signature = $object->sign_message($message)
 
-Signs a digest of C<$message> (using C<$algo> digest algorithm) with a private key.
-
-C<$algo> must be available in L<Digest> package.
+Signs a digest of C<$message> (digesting it with double sha256) with a private key.
 
 Returns a byte string containing signature.
 
@@ -256,11 +254,9 @@ Caution: libtomcrypt cryptographic package that is generating signatures does no
 
 =head2 verify_message
 
-	$signature_valid = $object->verify_message($message, $signature, $algo = 'sha256')
+	$signature_valid = $object->verify_message($message, $signature)
 
-Verifies C<$signature> against digest of C<$message> (with C<$algo> digest algorithm) using private key.
-
-C<$algo> must be available in Digest package.
+Verifies C<$signature> against digest of C<$message> (digesting it with double sha256) using private key.
 
 Returns boolean.
 
