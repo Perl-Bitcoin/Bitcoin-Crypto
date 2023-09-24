@@ -21,12 +21,14 @@ my @cases = (
 
 	[
 		'P2PKH',
-		[hex => '76a9142099fe62b65c69928ffef486987f8216fd68f9c488ac']
+		[hex => '76a9142099fe62b65c69928ffef486987f8216fd68f9c488ac'],
+		'13yP6os5sLmhNNxzeBimEG3Tmw1ZEFfLxF',
 	],
 
 	[
 		'P2SH',
-		[hex => 'a9149a8f9842b219cf5a54dfd389593b6a3dfe838a2687']
+		[hex => 'a9149a8f9842b219cf5a54dfd389593b6a3dfe838a2687'],
+		'3FnG1E1BboAziPTu9yNne5zHdTMPhBKm3K',
 	],
 
 	[
@@ -39,12 +41,14 @@ my @cases = (
 
 	[
 		'P2WPKH',
-		[hex => '00145f011e3cfa337698e7fe4502143eb6ada0b5a3d1']
+		[hex => '00145f011e3cfa337698e7fe4502143eb6ada0b5a3d1'],
+		'bc1qtuq3u086xdmf3el7g5ppg04k4ksttg736fqhyd',
 	],
 
 	[
 		'P2WSH',
-		[hex => '0020e5c7c00d174631d2d1e365d6347b016fb87b6a0c08902d8e443989cb771fa7ec']
+		[hex => '0020e5c7c00d174631d2d1e365d6347b016fb87b6a0c08902d8e443989cb771fa7ec'],
+		'bc1quhruqrghgcca950rvhtrg7cpd7u8k6svpzgzmrjy8xyukacl5lkq0r8l2d',
 	],
 
 	[
@@ -69,15 +73,29 @@ my @cases = (
 
 my $case_num = 0;
 foreach my $case (@cases) {
-	my ($type, $raw_script) = @$case;
+	my ($type, $raw_script, $address) = @$case;
 	my $type_str = $type // 'no type';
 
-	subtest "testing script type guessing for case $case_num ($type_str)" => sub {
-		my $script = btc_script->from_serialized($raw_script);
+	subtest "testing case $case_num ($type_str)" => sub {
 
-		my $got_type = $script->type // 'no type';
-		is !!$script->has_type, !!$type, 'has_type ok';
-		is $got_type, $type_str, 'type ok';
+		subtest "testing script type guessing" => sub {
+			my $script = btc_script->from_serialized($raw_script);
+
+			my $got_type = $script->type // 'no type';
+			is !!$script->has_type, !!$type, 'has_type ok';
+			is $got_type, $type_str, 'type ok';
+		};
+
+		subtest "testing address" => sub {
+			my $script = btc_script->from_serialized($raw_script);
+
+			if (defined $address) {
+				is $script->get_address, $address, 'address ok';
+			}
+			else {
+				ok !defined $script->get_address, 'address ok';
+			}
+		};
 	};
 
 	++$case_num;

@@ -21,6 +21,7 @@ use Bitcoin::Crypto::Types qw(Maybe ArrayRef HashRef Str Object ByteStr Any Scri
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
 use Bitcoin::Crypto::Script::Common;
+use Bitcoin::Crypto::Script::Recognition;
 
 use namespace::clean;
 
@@ -30,19 +31,37 @@ has field '_serialized' => (
 	default => '',
 );
 
-has param 'type' => (
+has field 'type' => (
 	isa => Maybe [ScriptType],
-	required => 0,
 	lazy => 1,
-	predicate => -hidden,
+);
+
+has field '_address' => (
+	isa => Maybe [ByteStr],
+	lazy => 1,
 );
 
 with qw(Bitcoin::Crypto::Role::Network);
 
+sub _build_type
+{
+	my ($self) = @_;
+
+	my $rec = Bitcoin::Crypto::Script::Recognition->new(script => $self);
+	return $rec->get_type;
+}
+
+sub _build_address
+{
+	my ($self) = @_;
+
+	my $rec = Bitcoin::Crypto::Script::Recognition->new(script => $self);
+	return $rec->get_address;
+}
+
 sub _build
 {
-	my ($self, $address) = @_;
-	my $type = $self->type;
+	my ($self, $type, $address) = @_;
 
 	state $types = do {
 		my $witness = sub {
@@ -141,156 +160,16 @@ sub _build
 	return;
 }
 
-sub _build_type
-{
-	my ($self) = @_;
-
-	# blueprints for standard transaction types
-	state $types = [
-		[
-			P2PK => [
-				['data', 33, 65],
-				'OP_CHECKSIG',
-			]
-		],
-
-		[
-			P2PKH => [
-				'OP_DUP',
-				'OP_HASH160',
-				['data', 20],
-				'OP_EQUALVERIFY',
-				'OP_CHECKSIG',
-			]
-		],
-
-		[
-			P2SH => [
-				'OP_HASH160',
-				['data', 20],
-				'OP_EQUAL',
-			]
-		],
-
-		[
-			P2MS => [
-				['op_n', 1 .. 15],
-				['data_repeated', 33, 65],
-				['op_n', 1 .. 15],
-				'OP_CHECKMULTISIG',
-			]
-		],
-
-		[
-			P2WPKH => [
-				'OP_0',
-				['data', 20],
-			],
-		],
-
-		[
-			P2WSH => [
-				'OP_0',
-				['data', 32],
-			]
-		],
-
-		[
-			NULLDATA => [
-				'OP_RETURN',
-				['data', 1 .. 75],
-			]
-		],
-
-		[
-			NULLDATA => [
-				'OP_RETURN',
-				'OP_PUSHDATA1',
-				['data', 76 .. 80],
-			]
-		],
-	];
-
-	my $this_script = $self->_serialized;
-	my $check_blueprint;
-	$check_blueprint = sub {
-		my ($pos, $part, @more_parts) = @_;
-
-		return $pos == length $this_script
-			unless defined $part;
-		return !!0 unless $pos < length $this_script;
-
-		if (!ref $part) {
-			my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name($part);
-			return !!0 unless $opcode->code eq substr $this_script, $pos, 1;
-			return $check_blueprint->($pos + 1, @more_parts);
-		}
-		else {
-			my ($kind, @vars) = @$part;
-
-			if ($kind eq 'data') {
-				my $len = ord substr $this_script, $pos, 1;
-
-				return !!0 unless grep { $_ == $len } @vars;
-				return !!1 if $check_blueprint->($pos + $len + 1, @more_parts);
-			}
-			elsif ($kind eq 'data_repeated') {
-				my $count = 0;
-				while (1) {
-					my $len = ord substr $this_script, $pos, 1;
-					last unless grep { $_ == $len } @vars;
-
-					$pos += $len + 1;
-					$count += 1;
-				}
-
-				return !!0 if $count == 0 || $count > 16;
-				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name("OP_$count");
-				return !!0 unless $opcode->code eq substr $this_script, $pos, 1;
-				return $check_blueprint->($pos, @more_parts);
-			}
-			elsif ($kind eq 'op_n') {
-				my $opcode;
-				try {
-					$opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code(substr $this_script, $pos, 1);
-				};
-
-				return !!0 unless $opcode;
-				return !!0 unless $opcode->name =~ /\AOP_(\d+)\z/;
-				return !!0 unless grep { $_ == $1 } @vars;
-				return $check_blueprint->($pos + 1, @more_parts);
-			}
-			else {
-				die "invalid blueprint kind: $kind";
-			}
-		}
-	};
-
-	my $ret = undef;
-	foreach my $type_def (@$types) {
-		my ($type, $blueprint) = @{$type_def};
-
-		if ($check_blueprint->(0, @$blueprint)) {
-			$ret = $type;
-			last;
-		}
-	}
-
-	# make sure no memory leak occurs
-	$check_blueprint = undef;
-	return $ret;
-}
-
 sub BUILD
 {
 	my ($self, $args) = @_;
 
-	if ($self->_has_type) {
+	if ($args->{type}) {
 		Bitcoin::Crypto::Exception::ScriptPush->raise(
 			'script with a "type" also requires an "address"'
 		) unless $args->{address};
 
-		$self->_build($args->{address});
+		$self->_build($args->{type}, $args->{address});
 	}
 }
 
@@ -716,6 +595,38 @@ sub get_segwit_address
 	) unless $self->network->supports_segwit;
 
 	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run->stack});
+}
+
+signature_for get_address => (
+	method => Object,
+	positional => [],
+);
+
+sub get_address
+{
+	my ($self) = @_;
+	my $address = $self->_address;
+
+	return undef
+		unless $self->has_type && defined $address;
+
+	if ($self->is_native_segwit) {
+
+		# network field is not required, lazy check for completeness
+		Bitcoin::Crypto::Exception::NetworkConfig->raise(
+			'this network does not support segregated witness'
+		) unless $self->network->supports_segwit;
+
+		my $version = pack 'C', Bitcoin::Crypto::Constants::segwit_witness_version;
+		return encode_segwit($self->network->segwit_hrp, $version . $address);
+	}
+	elsif ($self->type eq 'P2PKH') {
+		return encode_base58check($self->network->p2pkh_byte . $address);
+	}
+	elsif ($self->type eq 'P2SH') {
+		return encode_base58check($self->network->p2sh_byte . $address);
+	}
+
 }
 
 signature_for has_type => (

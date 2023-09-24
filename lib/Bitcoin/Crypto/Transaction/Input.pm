@@ -239,9 +239,11 @@ sub dump
 	my ($self, $params) = @_;
 
 	my $type = $self->utxo->output->locking_script->type // 'Custom';
+	my $address = $self->utxo->output->locking_script->get_address;
+	$address = " from $address" if $address;
 
 	my @result;
-	push @result, "$type Input";
+	push @result, "$type Input$address";
 	push @result, 'spending output #' . $self->utxo->output_index . ' from ' . to_format([hex => $self->utxo->txid]);
 	push @result, 'value: ' . $self->utxo->output->value;
 	push @result, 'sequence: ' . $self->sequence_no;

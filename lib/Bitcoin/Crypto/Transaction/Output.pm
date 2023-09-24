@@ -139,9 +139,11 @@ sub dump
 	my ($self, $params) = @_;
 
 	my $type = $self->locking_script->type // 'Custom';
+	my $address = $self->locking_script->get_address;
+	$address = " to $address" if $address;
 
 	my @result;
-	push @result, "$type Output";
+	push @result, "$type Output$address";
 	push @result, 'value: ' . $self->value;
 	push @result, 'locking script: ' . to_format [hex => $self->locking_script->to_serialized];
 
