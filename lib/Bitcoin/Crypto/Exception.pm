@@ -25,9 +25,9 @@ has param 'message' => (
 has field 'caller' => (
 	isa => Maybe [ArrayRef],
 	default => sub {
-		for my $call_level (1 .. 10) {
+		for my $call_level (1 .. 20) {
 			my ($package, $file, $line) = caller $call_level;
-			if (defined $package && $package !~ /^Bitcoin::Crypto/) {
+			if (defined $package && $package !~ /^(Bitcoin::Crypto|Try::Tiny|Type::Coercion)/) {
 				return [$package, $file, $line];
 			}
 		}
