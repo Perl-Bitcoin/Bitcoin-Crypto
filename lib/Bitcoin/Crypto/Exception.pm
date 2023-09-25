@@ -276,6 +276,13 @@ sub as_string
 
 {
 
+	package Bitcoin::Crypto::Exception::NetworkCheck;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
+}
+
+{
+
 	package Bitcoin::Crypto::Exception::NetworkConfig;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';

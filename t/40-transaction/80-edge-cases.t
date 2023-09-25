@@ -210,5 +210,11 @@ subtest 'should not verify segwit transactions with uncompressed public keys (P2
 	like $@, qr/compressed/, 'error string ok';
 };
 
+subtest 'should not allow to create transactions using incorrect network addresses' => sub {
+	throws_ok {
+		btc_script->from_standard(P2WPKH => 'tb1q4grq3j35ggjcsr9psf3hx86ydfczdn77r7e63s');
+	} 'Bitcoin::Crypto::Exception::NetworkCheck';
+};
+
 done_testing;
 

@@ -12,7 +12,7 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
-use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit);
+use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit get_hrp);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(carp_once);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
@@ -64,6 +64,20 @@ sub _build
 	my ($self, $type, $address) = @_;
 
 	state $types = do {
+		my $legacy = sub {
+			my ($self, $address, $type) = @_;
+
+			my $decoded = decode_base58check($address);
+			my $network_byte = substr $decoded, 0, 1, '';
+
+			my $byte_method = lc "p2${type}_byte";
+			Bitcoin::Crypto::Exception::NetworkCheck->raise(
+				"provided address $address does not belong to network " . $self->network->name
+			) if $network_byte ne $self->network->$byte_method;
+
+			Bitcoin::Crypto::Script::Common->fill($type => $self, $decoded);
+		};
+
 		my $witness = sub {
 			my ($self, $address, $name, $version, $length) = @_;
 
@@ -77,6 +91,10 @@ sub _build
 			Bitcoin::Crypto::Exception::SegwitProgram->raise(
 				"$name script should contain $length bytes"
 			) unless length $data eq $length;
+
+			Bitcoin::Crypto::Exception::NetworkCheck->raise(
+				"provided address $address does not belong to network " . $self->network->name
+			) if get_hrp($address) ne $self->network->segwit_hrp;
 
 			$self
 				->push(chr $version)
@@ -93,30 +111,29 @@ sub _build
 			},
 
 			P2PKH => sub {
-				my ($self, $address) = @_;
-
-				Bitcoin::Crypto::Script::Common->fill(PKH => $self, substr decode_base58check($address), 1);
+				$legacy->(@_, 'PKH');
 			},
 
 			P2SH => sub {
-				my ($self, $address) = @_;
-
-				Bitcoin::Crypto::Script::Common->fill(SH => $self, substr decode_base58check($address), 1);
+				$legacy->(@_, 'SH');
 			},
 
 			P2MS => sub {
 				my ($self, $data) = @_;
 
-				die 'P2MS script argument must be an array reference'
-					unless ref $data eq 'ARRAY';
+				Bitcoin::Crypto::Exception::ScriptPush->raise(
+					'P2MS script argument must be an array reference'
+				) unless ref $data eq 'ARRAY';
 
 				my ($signatures_num, @pubkeys) = @$data;
 
-				die 'P2MS script first element must be a number between 1 and 15'
-					unless $signatures_num >= 0 && $signatures_num <= 15;
+				Bitcoin::Crypto::Exception::ScriptPush->raise(
+					'P2MS script first element must be a number between 1 and 15'
+				) unless $signatures_num >= 0 && $signatures_num <= 15;
 
-				die 'P2MS script remaining elements number should be between the number of signatures and 15'
-					unless @pubkeys >= $signatures_num && @pubkeys <= 15;
+				Bitcoin::Crypto::Exception::ScriptPush->raise(
+					'P2MS script remaining elements number should be between the number of signatures and 15'
+				) unless @pubkeys >= $signatures_num && @pubkeys <= 15;
 
 				$self->push(chr $signatures_num);
 
@@ -151,12 +168,7 @@ sub _build
 		"unknown standard script type $type"
 	) if !$types->{$type};
 
-	Bitcoin::Crypto::Exception::ScriptPush->trap_into(
-		sub {
-			$types->{$type}->($self, $address);
-		}
-	);
-
+	$types->{$type}->($self, $address);
 	return;
 }
 
