@@ -17,6 +17,7 @@ our @EXPORT_OK = qw(
 	decode_bech32
 	encode_segwit
 	decode_segwit
+	get_hrp
 );
 
 use constant BECH32 => 'bech32';
@@ -290,6 +291,13 @@ sub decode_segwit
 	validate_segwit($bytes);
 
 	return $bytes;
+}
+
+sub get_hrp
+{
+	my ($hrp, $data) = split_bech32 @_;
+
+	return $hrp;
 }
 
 1;
