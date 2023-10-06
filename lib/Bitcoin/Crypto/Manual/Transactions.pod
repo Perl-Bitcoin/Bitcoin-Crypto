@@ -1,0 +1,156 @@
+__END__
+=head1 NAME
+
+Bitcoin::Crypto::Manual::Transactions - Transaction support details
+
+=head1 SYNOPSIS
+
+See L<Bitcoin::Crypto::Transaction>
+
+=head1 DESCRIPTION
+
+This page contains a set of general guidelines for creating and manipulating
+transactions using Bitcoin::Crypto. For API documentation, see the link above.
+
+First and foremost, understand that in its nature Bitcoin::Crypto transaction
+system is B<incomplete>. A full reimplementation would not only be very hard to
+achieve but also very likely insecure (see
+L<https://bitcointalk.org/index.php?topic=260595.0>). In addition, it would be
+very ineffective to verify the entire blockchain using Perl + XS code. Instead,
+we focus on support to standard transaction types (see below) under today's
+consensus rules (without much regard for transactions' backward compatibility
+quirks).
+
+By using the transaction system of this module you take full risk for any funds
+lost doing so. We don't give any warranty, so please review the code, review
+the test cases and most importantly B<review the generated transactions before
+sending them to the network!>.
+
+=head2 How transactions work and how we handle the outputs
+
+Each transaction in Bitcoin is basically just a set of sources (inputs) and
+destinations (outputs). You specify where the coins come from and where they
+should go. Each transaction output has a locking script (also called
+C<ScriptPubKey>), and each of the inputs spends one output using signature
+script (also called C<ScriptSig>). Locking script (usually) is a cryptographic
+riddle for those willing to spend the funds, and signature script is used to
+solve it.
+
+Normally, software which is working as a full node (such as Bitcoin Core) the
+blockchain history can be accessed without any extra steps. Bitcoin::Crypto
+does not do that and depend on you to provide valid Unspent Transaction Outputs
+(UTXOs) before adding inputs to the transaction (or deserializing a
+transaction). You can get transaction data from your own Bitcoin full node or
+from external sources such as L<mempool.space>.
+
+You can register UTXOs manually using C<< btc_utxo->new(...)->register >> or
+automatically from a serialized transaction using C<< btc_utxo->extract >>. See
+L<Bitcoin::Crypto::Transaction::UTXO/register> and
+L<Bitcoin::Crypto::Transaction::UTXO/extract> for details. The process of
+getting transaction data can be automated using the
+L<Bitcoin::Crypto::Transaction::UTXO/set_loader> hook (for example, call some
+API to get the serialized transaction and use C<extract> on it).
+
+This means you can create valid transactions without the need to download,
+store and verify the entire Bitcoin blockchain. You only need to know which
+UTXOs belong to you. Once you created a transaction and it got validated in the
+blockchain, you can call C<< $tx->update_utxos >> on it, which will invalidate
+the UTXOs it used and register its outputs as new UTXOs. This way you can chain
+your own transactions in a Perl script.
+
+Transactions usually don't care about blocks at all and so Bitcoin::Crypto does
+not implement them. There's currently no way to serialize transactions into a
+block, but for the purpose of checking height or timestamp (sometimes used in
+transactions, like with C<OP_CHECKLOCKTIMEVERIFY>), the very incomplete
+L<Bitcoin::Crypto::Block> class can be instantiated and passed as C<block>
+parameter to C<< $tx->verify >> or C<< btc_utxo->new >> constructor.
+
+=head2 Which types of transactions are supported?
+
+Bitcoin::Crypto test suite contains pretty thorough testing of following transaction types:
+
+=over
+
+=item * P2PK (pay to public key - obsolete)
+
+=item * P2PKH (pay to public key hash - legacy)
+
+=item * P2SH (pay to script hash - legacy)
+
+=item * P2WPKH (pay to witness public key hash)
+
+=item * P2WSH (pay to witness script hash)
+
+=item * P2SH(P2WPKH) (P2WPKH inside P2SH)
+
+=item * P2SH(P2WSH) (P2WSH inside P2SH)
+
+=item * P2MS (pay to multisig, usually nested inside P2SH or P2WSH)
+
+=item * NULLDATA (provably unspendable outputs with OP_RETURN)
+
+=back
+
+=head2 Current known problems with transactions
+
+Some problems are listed below. They are not considered critical to
+Bitcoin::Crypto operation, since it is not trying to be capable of running a
+full node (able to 100% reproduce validation rules of Bitcoin Core).
+
+Contributions sorting out any of those are welcome!
+
+=over
+
+=item * Transaction malleability is not fully solved
+
+Strict DER signatures (BIP66) are not checked explicitly (CryptX may check them
+while verifying the signature though). Low S signatures mentioned in BIP62 are
+generated, but not verified. Some others like minimal push opcodes and
+OP_PUSHDATA 520 byte push limit are not implemented.
+
+=item * Only the default network is used for transactions
+
+There is currently no way to set network (L<Bitcoin::Crypto::Network>) on
+per-transaction-object basis like you can do with keys. Most of transaction
+functionality is not network-dependent, but some addresses will be encoded
+using given network settings, which will be pulled from the default network.
+
+Note that only networks which use the B<exact> consensus rules of Bitcoin can
+be used successfully. No special cases for other networks will be implemented.
+
+=item * legacy SIGHASH_SINGLE with more inputs than outputs
+
+It should result in the transaction digest of static value (value C<1> encoded
+on 32 bits), but this edge case is not handled currently and an exception is
+thrown instead.
+
+=item * P2SH timestamp threshold is not checked
+
+BIP16 provides a timestamp value which sets a block time from which a certain
+script contents should be treated as standard P2SH transactions. This is not
+currently checked at all - all scripts which look like P2SH are treated as
+P2SH. If you need the timestamp value, you can get it from
+C<Bitcoin::Crypto::Constants::p2sh_timestamp_threshold>.
+
+=item * Coinbase transactions are not supported
+
+To properly validate coinbase transactions some special cases must be
+introduced, which are not implemented right now.
+
+=item * PSBT (BIP174) is not supported
+
+It would be very nice to have the format implemented, but currently it's not.
+
+=item * Non-standard transactions may not work as intended
+
+Bitcoin::Crypto may not handle some funky transactions correctly. Most notably,
+it does not delete the signature from the script before using it for digesting
+(known as C<FindAndDelete> in Bitcoin Core). In addition, its
+C<OP_CODESEPARATOR> handling is not well-tested and any non-standard
+transaction will require you to manually provide a script for digesting (as
+C<signing_subscript>).
+
+=back
+
+=cut
+
