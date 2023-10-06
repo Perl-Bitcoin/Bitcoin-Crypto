@@ -1,4 +1,3 @@
-__END__
 =head1 NAME
 
 Bitcoin::Crypto::Manual::Transactions - Transaction support details
