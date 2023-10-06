@@ -42,18 +42,38 @@ subtest 'should checksig a non-standard transaction' => sub {
 
 	# Manual signing
 	my $input = $tx->inputs->[0];
+	my $sighash = Bitcoin::Crypto::Constants::sighash_none;
 	my $digest = $tx->get_digest(
 		signing_index => 0,
 		signing_subscript => $input->utxo->output->locking_script->to_serialized,
+		sighash => $sighash,
 	);
 	my $signature = $prv->sign_message($digest);
-	$signature .= pack 'C', Bitcoin::Crypto::Constants::sighash_all;
+	$signature .= pack 'C', $sighash;
 	$input->signature_script
 		->push("\x01")
 		->push($signature)
 		->push($prv->get_public_key->to_serialized);
 
 	lives_ok { $tx->verify } 'input verification ok';
+};
+
+subtest 'should not allow input value smaller than output' => sub {
+
+	# reuse previous $tx
+
+	$tx->add_output(
+		value => 1,
+		locking_script => [
+			P2PKH => $prv->get_public_key->get_legacy_address,
+		],
+	);
+
+	throws_ok {
+		$tx->verify
+	} 'Bitcoin::Crypto::Exception::Transaction';
+
+	like $@, qr/value exceeds input/, 'error message ok';
 };
 
 subtest 'should serialize and deserialize mixed segwit txs' => sub {

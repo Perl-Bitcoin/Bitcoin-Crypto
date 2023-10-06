@@ -9,6 +9,7 @@ use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 use Scalar::Util qw(blessed);
 use Carp qw(carp);
+use List::Util qw(sum);
 
 use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants;
@@ -468,6 +469,14 @@ sub verify
 	);
 
 	my @inputs = @{$self->inputs};
+
+	# amount checking
+	my $total_in = sum map { $_->utxo->output->value } @inputs;
+	my $total_out = sum map { $_->value } @{$self->outputs};
+
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'output value exceeds input'
+	) if $total_in < $total_out;
 
 	# locktime checking
 	if (
