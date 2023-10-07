@@ -707,6 +707,15 @@ You can use a script object to:
 
 =back
 
+=head1 ATTRIBUTES
+
+=head2 type
+
+Contains the type of the script, if the script is standard and the type is
+known. Otherwise, contains C<undef>.
+
+I<predicate>: C<has_type>
+
 =head1 METHODS
 
 =head2 new
@@ -719,17 +728,19 @@ See L</from_serialized> if you want to import a serialized script instead.
 
 =head2 operations
 
-	$ops_aref = $object->operations;
+	$ops_aref = $object->operations
 
 Returns an array reference of operations contained in a script:
 
 	[
-		[OP_XXX (Object), ...],
+		[OP_XXX (Object), raw (String), ...],
 		...
 	]
 
-The first element of each subarray is the L<Bitcoin::Crypto::Script::Opcode> object. The rest of elements are
-metadata and is dependant on the op type. This metadata is used during script execution.
+The first element of each subarray is the L<Bitcoin::Crypto::Script::Opcode>
+object. The second element is the raw opcode string, usually single byte. The
+rest of elements are metadata and is dependant on the op type. This metadata is
+used during script execution.
 
 =head2 add_operation, add
 
@@ -767,7 +778,7 @@ Returns the object instance for chaining.
 
 =head2 to_serialized
 
-	$bytestring = $object->get_script()
+	$bytestring = $object->to_serialized()
 
 Returns a serialized script as byte string.
 
@@ -781,6 +792,13 @@ Creates a new script instance from a bytestring.
 
 Same as L</to_serialized>.
 
+=head2 from_standard
+
+	$object = Bitcoin::Crypto::Script->from_standard([P2PKH => '1Ehr6cNDzPCx3wQRu1sMdXWViEi2MQnFzH'])
+
+Creates a new object of standard type with given address. The address must
+match the network specified for the script (see L</set_network>).
+
 =head2 get_hash
 
 	$bytestring = $object->get_hash()
@@ -791,7 +809,8 @@ Returns a serialized script parsed with C<HASH160> (ripemd160 of sha256).
 
 	$script_object = $object->set_network($val)
 
-Change key's network state to C<$val>. It can be either network name present in L<Bitcoin::Crypto::Network> package or an instance of this class.
+Change key's network state to C<$val>. It can be either network name present in
+L<Bitcoin::Crypto::Network> package or an instance of this class.
 
 Returns current object instance.
 
@@ -799,28 +818,57 @@ Returns current object instance.
 
 	$address = $object->get_legacy_address()
 
-Returns string containing Base58Check encoded script hash (p2sh address)
+Returns string containing Base58Check encoded script hash (P2SH address)
 
 =head2 get_compat_address
 
 	$address = $object->get_compat_address()
 
-Returns string containing Base58Check encoded script hash containing a witness program for compatibility purposes (p2sh(p2wsh) address)
+Returns string containing Base58Check encoded script hash containing a witness program for compatibility purposes (P2SH(P2WSH) address)
 
 =head2 get_segwit_address
 
 	$address = $object->get_segwit_address()
 
-Returns string containing Bech32 encoded witness program (p2wsh address)
+Returns string containing Bech32 encoded witness program (P2WSH address)
+
+=head2 get_address
+
+	$address = $object->get_address()
+
+This method does not return P2SH address, but instead the address encoded in
+the script of standard type. For example, if the script is of type C<P2WPKH>,
+then the contained alegacy address will be returned. If the script is not of
+standard type or the type does not contain an address, returns C<undef>.
+
+Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>.
 
 =head2 run
 
-	my $runner = $object->run(\@initial_stack)
+	$runner = $object->run(\@initial_stack)
 
 Executes the script and returns L<Bitcoin::Crypto::Script::Runner> instance after running the script.
 
 This is a convenience method which constructs runner instance in the
 background. This helper is only meant to run simple scripts.
+
+=head2 is_native_segwit
+
+	$boolean = $object->is_native_segwit
+
+Returns true if the type of the script is either C<P2WPKH> or C<P2WSH>.
+
+=head2 is_empty
+
+	$boolean = $object->is_empty
+
+Returns true if the script is completely empty (contains no opcodes).
+
+=head2 is_pushes_only
+
+	$boolean = $object->is_pushes_only
+
+Returns true if the script contains only opcodes pushing to the stack.
 
 =head1 EXCEPTIONS
 
@@ -832,17 +880,23 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =item * ScriptPush - data pushed to the execution stack is invalid
 
+=item * ScriptType - invalid standard script type name specified
+
 =item * ScriptSyntax - script syntax is invalid
 
 =item * ScriptRuntime - script runtime error
 
+=item * SegwitProgram - Segregated witness address error
+
 =item * NetworkConfig - incomplete or corrupted network configuration
+
+=item * NetworkCheck - address does not belong to the configured network
 
 =back
 
 =head1 SEE ALSO
 
-=over 2
+=over
 
 =item L<Bitcoin::Crypto::Script::Runner>
 
