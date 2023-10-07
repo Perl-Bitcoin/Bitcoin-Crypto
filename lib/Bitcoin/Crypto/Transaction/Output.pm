@@ -80,7 +80,7 @@ sub to_serialized
 
 	$serialized .= $self->value_serialized;
 
-	my $script = $self->locking_script->get_script;
+	my $script = $self->locking_script->to_serialized;
 	$serialized .= pack_varint(length $script);
 	$serialized .= $script;
 

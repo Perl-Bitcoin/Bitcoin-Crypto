@@ -464,16 +464,12 @@ sub is_native_segwit
 	return 0 != grep { $script_type eq $_ } @segwit_types;
 }
 
-signature_for get_script => (
-	method => Object,
-	positional => [],
-);
-
 sub get_script
 {
 	my ($self) = @_;
 
-	return $self->_serialized;
+	carp_once "Bitcoin::Crypto::Script->get_script is deprecated. Use Bitcoin::Crypto::Script->to_serialized instead.";
+	return $self->to_serialized;
 }
 
 signature_for get_hash => (
@@ -559,7 +555,7 @@ sub witness_program
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
 	$program
 		->add_operation('OP_' . Bitcoin::Crypto::Constants::segwit_witness_version)
-		->push_bytes(sha256($self->get_script));
+		->push_bytes(sha256($self->to_serialized));
 
 	return $program;
 }
@@ -682,7 +678,7 @@ Bitcoin::Crypto::Script - Bitcoin script instances
 		->add_operation('OP_EQUAL');
 
 	# getting serialized script
-	my $serialized = $script->get_script();
+	my $serialized = $script->to_serialized();
 
 	# getting address from script (p2wsh)
 	my $address = $script->get_segwit_adress();
@@ -787,10 +783,6 @@ Returns a serialized script as byte string.
 	$script = Bitcoin::Crypto::Script->from_serialized($bytestring);
 
 Creates a new script instance from a bytestring.
-
-=head2 get_script
-
-Same as L</to_serialized>.
 
 =head2 from_standard
 

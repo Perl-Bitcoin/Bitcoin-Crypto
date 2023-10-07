@@ -82,7 +82,7 @@ for my $info (@data) {
 	my $script = Bitcoin::Crypto::Script->new;
 	$info->{script}->($script);
 
-	is(lc unpack('H*', $script->get_script), $info->{serialized}, 'script created correctly');
+	is(lc unpack('H*', $script->to_serialized), $info->{serialized}, 'script created correctly');
 
 	my ($addr_legacy, $addr_compat, $addr_segwit) = @{$info->{addresses}};
 	is($script->get_legacy_address, $addr_legacy, 'legacy script address created correctly');
