@@ -82,5 +82,13 @@ subtest 'should update UTXOs' => sub {
 	} 'Bitcoin::Crypto::Exception::UTXO';
 };
 
+# run this test last, as changing sequence changes transaction id (collides with UTXO test)
+subtest 'should handle RBF' => sub {
+	is $tx->has_rbf, !!0, 'no RBF ok';
+	$tx->set_rbf;
+	is $tx->has_rbf, !!1, 'RBF ok';
+	is $tx->inputs->[0]->sequence_no, 0xffffffff - 2, 'RBF set ok';
+};
+
 done_testing;
 

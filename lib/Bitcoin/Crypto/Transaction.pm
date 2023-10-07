@@ -301,6 +301,40 @@ sub fee_rate
 	return $fee->as_float / $size;
 }
 
+signature_for set_rbf => (
+	method => Object,
+	positional => [PositiveOrZeroInt, {default => 0}],
+);
+
+sub set_rbf
+{
+	my ($self, $input_index) = @_;
+
+	# rules according to BIP125
+	# https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
+	if (!$self->has_rbf) {
+		$self->inputs->[$input_index]->set_sequence_no(0xffffffff - 2);
+	}
+
+	return $self;
+}
+
+signature_for has_rbf => (
+	method => Object,
+	positional => [],
+);
+
+sub has_rbf
+{
+	my ($self) = @_;
+
+	foreach my $input (@{$self->inputs}) {
+		return !!1 if $input->sequence_no < 0xffffffff - 1;
+	}
+
+	return !!0;
+}
+
 signature_for virtual_size => (
 	method => Object,
 	positional => [],
