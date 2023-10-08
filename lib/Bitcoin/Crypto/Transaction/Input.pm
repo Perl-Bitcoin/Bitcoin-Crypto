@@ -31,7 +31,7 @@ has param 'signature_script' => (
 has param 'sequence_no' => (
 	isa => IntMaxBits [32],
 	writer => 1,
-	default => Bitcoin::Crypto::Constants::max_nsequence,
+	default => Bitcoin::Crypto::Constants::max_sequence_no,
 );
 
 has option 'witness' => (

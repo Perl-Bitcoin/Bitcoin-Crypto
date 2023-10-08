@@ -839,7 +839,7 @@ my %opcodes = (
 
 			my $input = $transaction->inputs->[$transaction->input_index];
 			invalid_script
-				if $input->sequence_no == Bitcoin::Crypto::Constants::max_nsequence;
+				if $input->sequence_no == Bitcoin::Crypto::Constants::max_sequence_no;
 
 			pop @$stack;
 		},

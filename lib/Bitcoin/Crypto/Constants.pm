@@ -24,7 +24,7 @@ use constant {
 	units_per_coin => 100_000_000,
 
 	locktime_height_threshold => 500_000_000,
-	max_nsequence => 0xffffffff,
+	max_sequence_no => 0xffffffff,
 
 	sighash_all => 0x01,
 	sighash_none => 0x02,

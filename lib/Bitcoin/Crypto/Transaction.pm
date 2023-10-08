@@ -516,7 +516,7 @@ sub verify
 	# locktime checking
 	if (
 		$self->locktime > 0 && grep {
-			$_->sequence_no != Bitcoin::Crypto::Constants::max_nsequence
+			$_->sequence_no != Bitcoin::Crypto::Constants::max_sequence_no
 		} @inputs
 		)
 	{
