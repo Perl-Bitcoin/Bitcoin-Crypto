@@ -303,17 +303,17 @@ sub fee_rate
 
 signature_for set_rbf => (
 	method => Object,
-	positional => [PositiveOrZeroInt, {default => 0}],
+	positional => [],
 );
 
 sub set_rbf
 {
-	my ($self, $input_index) = @_;
+	my ($self) = @_;
 
 	# rules according to BIP125
 	# https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
 	if (!$self->has_rbf) {
-		$self->inputs->[$input_index]->set_sequence_no(0xffffffff - 2);
+		$self->inputs->[0]->set_sequence_no(Bitcoin::Crypto::Constants::rbf_sequence_no_threshold);
 	}
 
 	return $self;
@@ -329,7 +329,8 @@ sub has_rbf
 	my ($self) = @_;
 
 	foreach my $input (@{$self->inputs}) {
-		return !!1 if $input->sequence_no < 0xffffffff - 1;
+		return !!1
+			if $input->sequence_no <= Bitcoin::Crypto::Constants::rbf_sequence_no_threshold;
 	}
 
 	return !!0;
