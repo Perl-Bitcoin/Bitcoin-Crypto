@@ -591,6 +591,7 @@ sub dump
 	push @result, 'version: ' . $self->version;
 	push @result, 'size: ' . $self->virtual_size . 'vB, ' . $self->weight . 'WU';
 	push @result, 'fee: ' . $self->fee . ' sat (~' . int($self->fee_rate) . ' sat/vB)';
+	push @result, 'replace-by-fee: ' . ($self->has_rbf ? 'yes' : 'no');
 	push @result, 'locktime: ' . $self->locktime;
 	push @result, '';
 

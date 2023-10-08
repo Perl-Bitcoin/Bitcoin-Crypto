@@ -246,7 +246,7 @@ sub dump
 	push @result, "$type Input$address";
 	push @result, 'spending output #' . $self->utxo->output_index . ' from ' . to_format([hex => $self->utxo->txid]);
 	push @result, 'value: ' . $self->utxo->output->value;
-	push @result, 'sequence: ' . $self->sequence_no;
+	push @result, sprintf 'sequence: 0x%X', $self->sequence_no;
 	push @result, 'locking script: ' . to_format [hex => $self->utxo->output->locking_script->to_serialized];
 
 	if (!$self->signature_script->is_empty) {
