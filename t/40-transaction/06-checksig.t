@@ -8,6 +8,7 @@ use lib 't/lib';
 
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Block;
 use TransactionStore;
 
 my $tx;
@@ -144,13 +145,19 @@ subtest 'should verify transactions (P2WPKH)' => sub {
 		]
 	);
 
-	lives_ok { $tx->verify } 'input verification ok';
-	lives_ok { $tx->verify } 'input verification ok (second time)';
+	# not a real transaction, so it does not belong to this block
+	my $block = Bitcoin::Crypto::Block->new(
+		timestamp => 1694665785,
+		height => 807567,
+	);
+
+	lives_ok { $tx->verify(block => $block) } 'input verification ok';
+	lives_ok { $tx->verify(block => $block) } 'input verification ok (second time)';
 
 	# NOTE: try modifying witness signature, see if it still verifies
 	# (segwit transactions are backward compatible, so it would pass without support for segwit)
 	$tx->inputs->[1]->witness->[0] .= "\x01";
-	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::Transaction',
+	throws_ok { $tx->verify(block => $block) } 'Bitcoin::Crypto::Exception::Transaction',
 		'input verification ok after modifying witness';
 };
 
@@ -162,13 +169,18 @@ subtest 'should verify transactions (nested P2WPKH)' => sub {
 		]
 	);
 
-	lives_ok { $tx->verify } 'input verification ok';
-	lives_ok { $tx->verify } 'input verification ok (second time)';
+	my $block = Bitcoin::Crypto::Block->new(
+		timestamp => 1694665785,
+		height => 807567,
+	);
+
+	lives_ok { $tx->verify(block => $block) } 'input verification ok';
+	lives_ok { $tx->verify(block => $block) } 'input verification ok (second time)';
 
 	# NOTE: try modifying witness signature, see if it still verifies
 	# (segwit transactions are backward compatible, so it would pass without support for segwit)
 	$tx->inputs->[0]->witness->[1] .= "\x01";
-	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::Transaction',
+	throws_ok { $tx->verify(block => $block) } 'Bitcoin::Crypto::Exception::Transaction',
 		'input verification ok after modifying witness';
 };
 
