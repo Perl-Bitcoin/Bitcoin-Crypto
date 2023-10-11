@@ -272,10 +272,12 @@ Bitcoin::Crypto::Util - Utilities for working with Bitcoin
 		validate_wif
 		validate_segwit
 		get_key_type
+		get_public_key_compressed
 		generate_mnemonic
 		mnemonic_from_entropy
 		mnemonic_to_seed
 		get_path_info
+		to_format
 		hash160
 		hash256
 	);
@@ -320,6 +322,16 @@ uncompressed / hybrid public key or private key entropy up to curve size bits).
 
 Returns boolean which states whether the key is private. Returns
 undef if C<$bytestr> does not look like a valid key entropy.
+
+=head2 get_public_key_compressed
+
+	$is_compressed = get_public_key_compressed($bytestr);
+
+Checks if the C<$bytestr> looks like a valid ASN X9.62 format (compressed /
+uncompressed / hybrid public key).
+
+Returns boolean which states whether the key is compressed. Returns
+undef if C<$bytestr> does not look like a valid public key.
 
 =head2 generate_mnemonic
 
