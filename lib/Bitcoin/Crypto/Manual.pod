@@ -86,7 +86,9 @@ cryptocurrency.
 
 =back
 
-=head1 HOW TO READ THE DOCUMENTATION?
+=head1 GENERAL INFORMATION
+
+=head2 How to read the documentation?
 
 Most functions in this documentation have a code line showcasing the arguments
 used by the function. These lines are not meant to be valid perl. They're there
@@ -98,6 +100,52 @@ useful to understand which types of exceptions can be thrown when using
 functions or methods from the package and what they mean. It is not meant to be
 a full list of exceptions a function can throw and unblessed errors may still
 be raised.
+
+=head2 How to pass data to functions?
+
+Many frequently used functions (like C<from_serialized> commonly used in keys,
+scripts and transactions) require you to pass in a string of bytes. Bytestring
+is a string in which each character has numeric value less than or equal to
+255. It is the default way to pass in data to functions.
+
+It is not rare that you may want to use some other format instead, like hex
+strings. To avoid duplicating functions for different formats or manually
+transforming data to a bytestring, the module uses format descriptions. In any
+place where a bytestring is used you may instead use an array reference with
+exactly two elements. The first element must be a name of the format, and the
+second element is the actual data in that format. For strings of hex data, this
+may look like this:
+
+	use Bitcoin::Crypto qw(btc_prv);
+	my $private = btc_prv->from_serialized([hex => '152a3f549597a2bef783']);
+
+Currently supported values for the first argument are: C<hex> (hexadecimal
+string, may be suffixed by C<0x>) and C<base64> (base64 string with checksum).
+
+It is also common for functions to return bytestrings exclusively (like
+C<to_serialized>). If you require help changing that output format, you may use
+L<Bitcoin::Crypto::Util/to_format> helper function, which does the reverse
+operation:
+
+	use Bitcoin::Crypto::Util qw(to_format);
+	print to_format [hex => $private->to_serialized];
+
+=head2 How to pass commonly used script types to functions?
+
+Similar to format descriptions, you may a script description anywhere where a
+script is expected. It is as well an array reference of two elements, where the
+first one is the short name of the script type, like C<P2WPKH>. The second one
+contains data specific to that script type, usually the address:
+
+	$transaction->add_output(
+		locking_script => [P2WPKH => 'bc1qr9htu5sy02q6kv6mx7axz2zdg3k9nrh8pe4l47'],
+	);
+
+Note that the script created like this always belongs to the currently set
+default network (C<bitcoin> by default). Passing address from the wrong network
+will result in an exception.
+
+See L<Bitcoin::Crypto::Script/from_standard> for more details.
 
 =head1 DISCLAIMER
 
