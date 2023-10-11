@@ -87,8 +87,7 @@ sub _get_digest_default
 	elsif ($sighash_type == Bitcoin::Crypto::Constants::sighash_single) {
 		if ($self->signing_index >= @{$transaction->outputs}) {
 
-			# TODO: this should verify with digest 0000..0001, but after hashing - no
-			# way to do this with CryptX right now: https://github.com/DCIT/perl-CryptX/issues/93
+			# TODO: this should verify with digest 0000..0001 (without hashed)
 			Bitcoin::Crypto::Exception::Transaction->raise(
 				'illegal input ' . $self->signing_index . ' in SIGHASH_SINGLE'
 			);
