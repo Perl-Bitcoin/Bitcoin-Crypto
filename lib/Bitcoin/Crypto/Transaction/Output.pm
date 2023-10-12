@@ -139,7 +139,7 @@ sub dump
 	my ($self, $params) = @_;
 
 	my $type = $self->locking_script->type // 'Custom';
-	my $address = $self->locking_script->get_address;
+	my $address = $self->locking_script->get_address // '';
 	$address = " to $address" if $address;
 
 	my @result;

@@ -590,7 +590,7 @@ sub dump
 	push @result, 'Transaction ' . to_format [hex => $self->get_hash];
 	push @result, 'version: ' . $self->version;
 	push @result, 'size: ' . $self->virtual_size . 'vB, ' . $self->weight . 'WU';
-	push @result, 'fee: ' . $self->fee . ' sat (~' . int($self->fee_rate) . ' sat/vB)';
+	push @result, 'fee: ' . $self->fee . ' sat (~' . (int($self->fee_rate * 100) / 100) . ' sat/vB)';
 	push @result, 'replace-by-fee: ' . ($self->has_rbf ? 'yes' : 'no');
 	push @result, 'locktime: ' . $self->locktime;
 	push @result, '';
@@ -611,4 +611,56 @@ sub dump
 }
 
 1;
+
+__END__
+=head1 NAME
+
+Bitcoin::Crypto::Transaction - Transaction support
+
+=head1 SYNOPSIS
+
+	use Bitcoin::Crypto qw(btc_utxo btc_transaction);
+
+	btc_utxo->extract([hex => $serialized_previous_tx]);
+
+	my $tx = btc_transaction->from_serialized([hex => $serialized_this_tx]);
+	print $tx->dump;
+	print 'NOT OK' if !$tx->verify;
+
+=head1 DESCRIPTION
+
+Transaction support in Bitcoin::Crypto is provided on best-effort basis. The
+goal is not to reimplement Bitcoin Core, which would possibly lead to security
+issues, but rather to provide means to manipulate a set of well-known standard
+transaction types. Widely used C<P2PKH>, C<P2SH>, their SegWit counterparts and
+C<P2MS> are thoroughly tested and should be safe to use. B<Still, before
+putting any real money on the line, make sure to check the serialized
+transactions in other tools and review that its contents are correct. There is
+absolutely no guarantee!>.
+
+See L<Bitcoin::Crypto::Manual::Transactions> for details.
+
+=head1 EXCEPTIONS
+
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
+
+=over 2
+
+=item * Bitcoin::Crypto::Exception::Transaction - general error with transaction
+
+=item * Bitcoin::Crypto::Exception::TransactionScript - error during transaction scripts execution
+
+=back
+
+=head1 SEE ALSO
+
+=over 2
+
+=item L<Bitcoin::Crypto::Transaction::UTXO>
+
+=item L<Bitcoin::Crypto::Script>
+
+=back
+
+=cut
 

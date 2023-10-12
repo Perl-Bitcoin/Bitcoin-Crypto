@@ -89,7 +89,7 @@ sub _build_blueprints
 		[
 			NULLDATA => [
 				'OP_RETURN',
-				['data', 1 .. 75],
+				['address', 1 .. 75],
 			]
 		],
 
@@ -97,7 +97,7 @@ sub _build_blueprints
 			NULLDATA => [
 				'OP_RETURN',
 				'OP_PUSHDATA1',
-				['data', 76 .. 80],
+				['address', 76 .. 80],
 			]
 		],
 	];

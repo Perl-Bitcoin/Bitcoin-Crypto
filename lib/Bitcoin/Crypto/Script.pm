@@ -634,7 +634,9 @@ sub get_address
 	elsif ($self->type eq 'P2SH') {
 		return encode_base58check($self->network->p2sh_byte . $address);
 	}
-
+	elsif ($self->type eq 'NULLDATA') {
+		return "<$address>";
+	}
 }
 
 signature_for has_type => (
