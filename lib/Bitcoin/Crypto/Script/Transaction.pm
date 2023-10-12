@@ -7,7 +7,7 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
-use Bitcoin::Crypto::Types qw(Object InstanceOf PositiveInt PositiveOrZeroInt ByteStr);
+use Bitcoin::Crypto::Types qw(Object InstanceOf PositiveOrZeroInt ByteStr);
 use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
@@ -32,7 +32,7 @@ has param 'input_index' => (
 
 signature_for get_digest => (
 	method => Object,
-	positional => [ByteStr, PositiveInt],
+	positional => [ByteStr, PositiveOrZeroInt],
 );
 
 sub get_digest

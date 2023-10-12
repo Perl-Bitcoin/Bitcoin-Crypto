@@ -11,7 +11,7 @@ use Bitcoin::Crypto::Helpers qw(pack_varint);
 use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Types qw(InstanceOf ByteStr PositiveInt PositiveOrZeroInt);
+use Bitcoin::Crypto::Types qw(InstanceOf ByteStr PositiveOrZeroInt PositiveOrZeroInt);
 
 has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],
@@ -26,7 +26,7 @@ has option 'signing_subscript' => (
 );
 
 has param 'sighash' => (
-	isa => PositiveInt,
+	isa => PositiveOrZeroInt,
 	default => Bitcoin::Crypto::Constants::sighash_all,
 );
 
@@ -44,7 +44,7 @@ sub get_digest
 	$procedure = '_get_digest_segwit'
 		if $input->is_segwit;
 
-	my $sighash_type = $self->sighash & 31;
+	my $sighash_type = $self->sighash & 31 || Bitcoin::Crypto::Constants::sighash_all;
 	my $anyonecanpay = $self->sighash & Bitcoin::Crypto::Constants::sighash_anyonecanpay;
 
 	return $self->$procedure($sighash_type, $anyonecanpay);
