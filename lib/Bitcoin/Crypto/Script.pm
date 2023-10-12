@@ -635,7 +635,7 @@ sub get_address
 		return encode_base58check($self->network->p2sh_byte . $address);
 	}
 	elsif ($self->type eq 'NULLDATA') {
-		return "<$address>";
+		return qq("$address");
 	}
 }
 
