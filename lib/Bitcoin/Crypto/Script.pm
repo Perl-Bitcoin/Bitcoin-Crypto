@@ -404,8 +404,7 @@ sub push_bytes
 	my $len = length $bytes;
 
 	if ($len == 0) {
-
-		# do nothing
+		$self->add_operation('OP_0');
 	}
 	elsif ($len == 1 && ord($bytes) <= 0x10) {
 		$self->add_operation('OP_' . ord($bytes));

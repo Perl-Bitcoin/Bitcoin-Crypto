@@ -190,7 +190,7 @@ sub _sign_P2MS
 	my ($this_signature, $total_signatures) = @{$self->multisig};
 
 	my $sig = $self->_get_old_signature;
-	$sig->[0] = "\x00";
+	$sig->[0] = '';
 
 	foreach my $sig_num (1 .. $total_signatures) {
 		if ($sig_num == $this_signature) {

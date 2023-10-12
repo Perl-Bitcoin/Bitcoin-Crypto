@@ -794,8 +794,9 @@ my %opcodes = (
 			}
 
 			# Remove extra unused value from the stack
-			# TODO: implement optional null verification
-			pop @$stack;
+			my $unused = pop @$stack;
+			script_error('OP_CHECKMULTISIG dummy argument must be empty')
+				unless $unused eq "\x00";
 
 			my $result = $found && !@signatures;
 			push @$stack, $runner->from_bool($result);
