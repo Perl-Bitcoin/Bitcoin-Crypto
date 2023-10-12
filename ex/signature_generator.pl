@@ -58,5 +58,16 @@ __END__
 
 =head1 Message signing script example
 
-This example shows how to build a solution that will allow proving ownership of a private key. I<sign_message> function produces a hashref containing all the data required to verify you own a bitcoin address or a public key (bitcoin address is deterministically generated from a public key so they are pretty much the same thing), ready to be serialized using JSON for example. I<verify> function accepts this hashref and returns a true or false value, meaning whether the message is verified successfully.
+This example shows how to build a custom solution that will allow proving
+ownership of a private key. I<sign_message> function produces a hashref
+containing all the data required to verify you own a bitcoin address or a
+public key (bitcoin address is deterministically generated from a public key so
+they are pretty much the same thing), ready to be serialized using JSON for
+example. I<verify> function accepts this hashref and returns a true or false
+value, meaning whether the message is verified successfully.
+
+Note that disclosing your public key decreases the security of your coins, as
+it becomes easier to brute force the private key using algorithms such as
+Pollard's Kangaroo, although as long as the private key entropy is random and
+using full 256 bit range of secp256k1 it should not be an issue (for now).
 
