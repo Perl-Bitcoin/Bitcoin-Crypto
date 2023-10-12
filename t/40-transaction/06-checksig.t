@@ -6,9 +6,8 @@ use Test::Exception;
 
 use lib 't/lib';
 
-use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
+use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo btc_block);
 use Bitcoin::Crypto::Util qw(to_format);
-use Bitcoin::Crypto::Block;
 use TransactionStore;
 
 my $tx;
@@ -146,7 +145,7 @@ subtest 'should verify transactions (P2WPKH)' => sub {
 	);
 
 	# not a real transaction, so it does not belong to this block
-	my $block = Bitcoin::Crypto::Block->new(
+	my $block = btc_block->new(
 		timestamp => 1694665785,
 		height => 807567,
 	);
@@ -169,7 +168,7 @@ subtest 'should verify transactions (nested P2WPKH)' => sub {
 		]
 	);
 
-	my $block = Bitcoin::Crypto::Block->new(
+	my $block = btc_block->new(
 		timestamp => 1694665785,
 		height => 807567,
 	);

@@ -146,6 +146,10 @@ Loads L<Bitcoin::Crypto::Transaction>
 
 Loads L<Bitcoin::Crypto::Transaction::UTXO>
 
+=head3 btc_block
+
+Loads L<Bitcoin::Crypto::Block>
+
 =head1 SEE ALSO
 
 L<Bitcoin::RPC::Client>
