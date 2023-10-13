@@ -97,7 +97,7 @@ sub _build
 			) if get_hrp($address) ne $self->network->segwit_hrp;
 
 			$self
-				->push(chr $version)
+				->add("OP_$version")
 				->push($data);
 		};
 
@@ -601,7 +601,7 @@ sub get_segwit_address
 		'this network does not support segregated witness'
 	) unless $self->network->supports_segwit;
 
-	return encode_segwit($self->network->segwit_hrp, join '', @{$self->witness_program->run->stack});
+	return encode_segwit($self->network->segwit_hrp, $self->witness_program->run->stack_serialized);
 }
 
 signature_for get_address => (

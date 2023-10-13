@@ -81,7 +81,7 @@ my %opcodes = (
 		runner => sub {
 			my $runner = shift;
 
-			push @{$runner->stack}, "\x00";
+			push @{$runner->stack}, '';
 		},
 	},
 	OP_PUSHDATA1 => {
@@ -796,7 +796,7 @@ my %opcodes = (
 			# Remove extra unused value from the stack
 			my $unused = pop @$stack;
 			script_error('OP_CHECKMULTISIG dummy argument must be empty')
-				unless $unused eq "\x00";
+				if length $unused;
 
 			my $result = $found && !@signatures;
 			push @$stack, $runner->from_bool($result);

@@ -23,8 +23,8 @@ my @cases = (
 		],
 		steps => [
 			[chr 2],
-			[chr 2, chr 0],
-			[chr 2, chr 0],
+			[chr 2, ''],
+			[chr 2, ''],
 			[chr 2],
 			[chr 2, chr 2],
 			[],

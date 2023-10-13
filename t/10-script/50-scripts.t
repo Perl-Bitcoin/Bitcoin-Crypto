@@ -47,7 +47,7 @@ my @cases = (
 
 	{
 		ops => [qw(OP_10 OP_11 OP_12 OP_OVER OP_NIP OP_DEPTH OP_IFDUP OP_0 OP_IFDUP)],
-		stack => [chr 10, chr 11, chr 11, chr 3, chr 3, chr 0],
+		stack => [chr 10, chr 11, chr 11, chr 3, chr 3, ''],
 	},
 
 	{
@@ -66,12 +66,12 @@ my @cases = (
 	},
 
 	{
-		ops => [qw(f8 f8 OP_SUB OP_0 OP_EQUAL)],
+		ops => [qw(f7 f8 OP_SUB OP_1 OP_EQUAL)],
 		stack => ["\x01"],
 	},
 
 	{
-		ops => [qw(f8 f8 OP_NEGATE OP_ADD OP_0 OP_EQUAL)],
+		ops => [qw(f7 f8 OP_NEGATE OP_ADD OP_1 OP_EQUAL)],
 		stack => ["\x01"],
 	},
 

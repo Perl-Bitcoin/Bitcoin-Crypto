@@ -137,6 +137,20 @@ sub _register_codeseparator
 	return;
 }
 
+signature_for stack_serialized => (
+	method => Object,
+	positional => [],
+);
+
+sub stack_serialized
+{
+	my ($self) = @_;
+
+	return join '',
+		map { length $_ == 0 ? "\x00" : $_ }
+		@{$self->stack};
+}
+
 signature_for execute => (
 	method => Object,
 	positional => [InstanceOf ['Bitcoin::Crypto::Script'], ArrayRef [ByteStr], {default => []}],
