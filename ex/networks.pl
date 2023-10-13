@@ -38,7 +38,10 @@ __END__
 
 =head1 Network usage example
 
-This example is a step-by-step usage example of the network system from the perspective of an user (with networks already registered). Provided test cases explain how the network is propagated through an usual chain of element generation (extended key -> basic key, private key -> public key).
+This example is a step-by-step usage example of the network system from the
+perspective of an user (with networks already registered). Provided test cases
+explain how the network is propagated through an usual chain of element
+generation (extended key -> basic key, private key -> public key).
 
 See inline comments for explanations of the test cases provided.
 
