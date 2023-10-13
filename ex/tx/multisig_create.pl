@@ -6,9 +6,6 @@ use Bitcoin::Crypto qw(btc_transaction btc_utxo btc_prv btc_script);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Network;
 
-# This code was used to produce this testnet transaction:
-# https://mempool.space/testnet/tx/59eb3933d805ca4d75f0ffcf9323a4588903d8d11d9942ed6d5f7e1298621518
-
 Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 my $tx = btc_transaction->new;
@@ -49,4 +46,14 @@ btc_prv->from_wif('cTTuo7it8LTWHhnGmodkK7ZA75NTcx5Mu87pGgPi7x1N9Gg4a9m3')->sign_
 $tx->verify;
 say $tx->dump;
 say to_format [hex => $tx->to_serialized];
+
+__END__
+
+=head1 P2MS create transaction example
+
+This transaction creates P2WSH output locking coins in a 2-out-of-3 multisignature script.
+See C<tx/multisig_redeem.pl> example for spending script.
+
+This code was used to produce testnet transaction:
+L<https://mempool.space/testnet/tx/59eb3933d805ca4d75f0ffcf9323a4588903d8d11d9942ed6d5f7e1298621518>
 

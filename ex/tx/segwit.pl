@@ -6,9 +6,6 @@ use Bitcoin::Crypto qw(btc_transaction btc_utxo btc_prv);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Network;
 
-# This code was used to produce this testnet transaction:
-# https://mempool.space/testnet/tx/f8990964483b62a86ad1a5ae445b2d5b3ccd74c3611a857dc794a37eb5c62e3f
-
 Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 my $tx = btc_transaction->new;
@@ -74,4 +71,18 @@ btc_prv->from_wif('cPswC8N3dkykncfVQezhQbrbSWMwttuq7Zk9f5eH8Po5CCiHFQMd')->sign_
 $tx->verify;
 say $tx->dump;
 say to_format [hex => $tx->to_serialized];
+
+__END__
+
+=head1 P2WPKH transaction example
+
+A simple transaction spending four P2WPKH inputs and produces a single P2WPKH
+output, effectively aggregating the coins from all inputs.
+
+Fee rate is (inaccurately) approximated. To set exact fee rate sign the
+transaction, calculate fee based on its virtual size and then sign again
+- changing the value of the output invalidates previous signatures.
+
+This code was used to produce testnet transaction:
+L<https://mempool.space/testnet/tx/f8990964483b62a86ad1a5ae445b2d5b3ccd74c3611a857dc794a37eb5c62e3f>
 

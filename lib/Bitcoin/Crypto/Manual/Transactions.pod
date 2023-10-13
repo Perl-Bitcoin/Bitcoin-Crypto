@@ -90,6 +90,18 @@ Bitcoin::Crypto test suite contains pretty thorough testing of following transac
 
 =back
 
+=head2 Transaction examples
+
+Bundled directory C<ex/tx/> contains scripts with transactions which were
+published to the testnet chain. These scripts should provide a convenient
+starting base for anyone interested in hacking Bitcoin using Bitcoin::Crypto.
+
+Each example contains a short description and a link to the transaction in the
+blockchain explorer. The fact that these were successfully processed by the
+network is a good testament to module's faithfulness to consensus rules.
+However, we still strongly encourage using other tools or otherwise testing the
+transactions before broadcasting them to the network.
+
 =head2 Current known problems with transactions
 
 Some problems are listed below. They are not considered critical to

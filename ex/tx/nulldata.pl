@@ -6,9 +6,6 @@ use Bitcoin::Crypto qw(btc_transaction btc_utxo btc_prv);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Network;
 
-# This code was used to produce this testnet transaction:
-# https://mempool.space/testnet/tx/11cca738065ca9172394f800bab3f997698851fd0245848ec491b2744d1807e8
-
 Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 my $tx = btc_transaction->new;
@@ -24,11 +21,13 @@ $tx->add_input(
 	utxo => [[hex => 'f8990964483b62a86ad1a5ae445b2d5b3ccd74c3611a857dc794a37eb5c62e3f'], 0],
 );
 
+# send all the coins to this address. The value will be adjusted to total minus fee
 $tx->add_output(
 	locking_script => [P2WPKH => 'tb1qprasdghq2svf5hmta98zf93aj6z36ep7cpkj68'],
 	value => 0,
 );
 
+# this is the OP_RETURN output - the value will stay 0
 $tx->add_output(
 	locking_script => [NULLDATA => 'Have fun with Perl, use Bitcoin::Crypto!'],
 	value => 0,
@@ -45,4 +44,15 @@ btc_prv->from_wif('cVKqti7zi1P5zZ6yXhBxg6hRHtMAchdYPFfSmr5nMskiwUgzmfa8')->sign_
 $tx->verify;
 say $tx->dump;
 say to_format [hex => $tx->to_serialized];
+
+__END__
+
+=head1 NULLDATA transaction example
+
+This transaction uses NULLDATA outputs (with C<OP_RETURN>) to create provably
+unspendable outputs on the blockchain. These outputs are allowed to contain up
+to 80 bytes of custom data. The coins are sent back to (a new) P2WPKH address.
+
+This code was used to produce testnet transaction:
+L<https://mempool.space/testnet/tx/11cca738065ca9172394f800bab3f997698851fd0245848ec491b2744d1807e8>
 

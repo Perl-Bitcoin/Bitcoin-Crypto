@@ -6,9 +6,6 @@ use Bitcoin::Crypto qw(btc_transaction btc_utxo btc_prv btc_script);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Network;
 
-# This code was used to produce this testnet transaction:
-# https://mempool.space/testnet/tx/8077dbb8ee049a5a754ad5e681310c1ee192e9be44a3b76d1182b41f1d39c2f5
-
 Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 my $tx = btc_transaction->new;
@@ -57,4 +54,20 @@ btc_prv->from_wif('cQsSKWrBLXNY1oSZbLcJf4HF5vnKGgKko533LnkTmqRdS9Fx4SGH')
 $tx->verify;
 say $tx->dump;
 say to_format [hex => $tx->to_serialized];
+
+__END__
+
+=head1 P2MS redeem transaction example
+
+This transaction redeems coins locked in P2WSH output produced in
+C<tx/multisig_create.pl> example. The exact redeem script must be provided and
+two out of three private keys must be used to sign.
+
+Signing requires providing C<redeem_script> argument with the script object, as
+well as C<multisig> argument in format C<[$this_signature, $total_signatures]>.
+Both private keys are used to sign the same C<signing_index>, but with
+different C<multisig> argument.
+
+This code was used to produce testnet transaction:
+L<https://mempool.space/testnet/tx/8077dbb8ee049a5a754ad5e681310c1ee192e9be44a3b76d1182b41f1d39c2f5>
 

@@ -6,9 +6,6 @@ use Bitcoin::Crypto qw(btc_transaction btc_utxo btc_prv btc_script);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Network;
 
-# This code was used to produce this testnet transaction:
-# https://mempool.space/testnet/tx/59eb3933d805ca4d75f0ffcf9323a4588903d8d11d9942ed6d5f7e1298621518
-
 Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 my $tx = btc_transaction->new;
@@ -26,7 +23,8 @@ $tx->add_input(
 
 btc_utxo->extract(
 	[
-		hex => '0100000000010118156298127e5f6ded42991dd1d8038958a42393cffff0754dca05d83339eb590000000000fdffffff014b3a020000000000160014446d69dd4e2223d460ce72c75aac59ed5eca51fd0400483045022100af107ba43245f68f8c9e91b72d5abc96b8cfc50282658e5a120cf3f86df2f0cf02203c091bb66dddeda66c990c564e5bbf62464815b2bfdc2c839aaa22969a34b75801473044022056297a7026395f7684106a72ce147965d91800f79b526c29cd2435899064fbe80220756d591bdd0ba9acce4adfc6d4a8b767b85eea4f098f933ac864f5e339a84d2e016952210351d02712ec3702786bb1deb2e56417ecef2bd358090c9636f73a0e651153ac602103ec1449d401d94b78dc0127aa4eaed6a2e7a6a6b11fb9243e97b38373a8ded90d21028875dc1d1d3f672543bb75c320e29b7bbc103329f44064b2d47a3cddc757c18453ae00000000'
+		hex =>
+			'0100000000010118156298127e5f6ded42991dd1d8038958a42393cffff0754dca05d83339eb590000000000fdffffff014b3a020000000000160014446d69dd4e2223d460ce72c75aac59ed5eca51fd0400483045022100af107ba43245f68f8c9e91b72d5abc96b8cfc50282658e5a120cf3f86df2f0cf02203c091bb66dddeda66c990c564e5bbf62464815b2bfdc2c839aaa22969a34b75801473044022056297a7026395f7684106a72ce147965d91800f79b526c29cd2435899064fbe80220756d591bdd0ba9acce4adfc6d4a8b767b85eea4f098f933ac864f5e339a84d2e016952210351d02712ec3702786bb1deb2e56417ecef2bd358090c9636f73a0e651153ac602103ec1449d401d94b78dc0127aa4eaed6a2e7a6a6b11fb9243e97b38373a8ded90d21028875dc1d1d3f672543bb75c320e29b7bbc103329f44064b2d47a3cddc757c18453ae00000000'
 	]
 );
 
@@ -69,4 +67,15 @@ btc_prv->from_wif('cMzqhSf7jrfvZhG8VNSTvGsJjGq6LXgSuuKGMBMnuRUvpgVGz3Wk')->sign_
 $tx->verify;
 say $tx->dump;
 say to_format [hex => $tx->to_serialized];
+
+__END__
+
+=head1 P2MS redeem in compat SegWit transaction example
+
+This is the similar to transaction showcased in C<tx/multisig_redeem.pl>
+example, but it uses P2SH(P2WSH) output instead of native P2WSH. In addition,
+it introduces a second P2WPKH input.
+
+This code was used to produce testnet transaction:
+L<https://mempool.space/testnet/tx/f5ee861935e8b675f25c8f976ad747478c8185d06cb632d79550d9c58c0350a2>
 
