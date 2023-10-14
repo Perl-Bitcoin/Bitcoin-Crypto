@@ -1032,13 +1032,15 @@ These methods are used to find an opcode.
 
 Finds an opcode by its name (C<OP_XXX>) and returns an object instance.
 
-If opcode was not found an exception is raised (C<Bitcoin::Crypto::Exception::ScriptOpcode>).
+If opcode was not found an exception is raised
+(C<Bitcoin::Crypto::Exception::ScriptOpcode>).
 
 =head3 get_opcode_by_code
 
 	my $object = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code($bytestr);
 
-Finds an opcode by its code (bytestring of length 1) and returns an object instance.
+Finds an opcode by its code (bytestring of length 1) and returns an object
+instance.
 
 If opcode was not found an exception is raised (C<Bitcoin::Crypto::Exception::ScriptOpcode>).
 
@@ -1056,25 +1058,11 @@ The code of the opcode - a bytestring of length 1.
 
 A coderef which can be used to execute this opcode.
 
-This is reserved for internal use only. If you want to know whether an opcode
-is implemented, call L</implemented>
-
 =head2 Methods
 
 =head3 execute
 
 Executes this opcode. Internal use only.
-
-=head3 implemented
-
-	my $bool = $object->implemented;
-
-Returns true if this opcode is implemented within C<Bitcoin::Crypto>.
-
-If an opcode is not implemented, a script containing it will refuse to run.
-Serialization and deseralization will still work though.
-
-=head1 CAVEATS
 
 =head1 SEE ALSO
 
