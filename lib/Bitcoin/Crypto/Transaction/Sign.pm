@@ -22,7 +22,6 @@ has param 'key' => (
 
 has param 'signing_index' => (
 	isa => PositiveOrZeroInt,
-	default => 0,
 );
 
 has option 'redeem_script' => (

@@ -50,7 +50,7 @@ subtest 'should sign transactions (P2PK)' => sub {
 		],
 	);
 
-	$prv->sign_transaction($tx);
+	$prv->sign_transaction($tx, signing_index => 0);
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
@@ -75,7 +75,7 @@ subtest 'should sign transactions (P2PKH)' => sub {
 		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
 	);
 
-	$prv->sign_transaction($tx);
+	$prv->sign_transaction($tx, signing_index => 0);
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
@@ -100,7 +100,7 @@ subtest 'should sign transactions (P2SH(P2WPKH))' => sub {
 		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
 	);
 
-	$prv->sign_transaction($tx);
+	$prv->sign_transaction($tx, signing_index => 0);
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
@@ -125,7 +125,7 @@ subtest 'should sign transactions (P2WPKH)' => sub {
 		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
 	);
 
-	$prv->sign_transaction($tx);
+	$prv->sign_transaction($tx, signing_index => 0);
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
@@ -159,8 +159,8 @@ subtest 'should sign transactions (P2SH)' => sub {
 		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
 	);
 
-	$prv->sign_transaction($tx, redeem_script => $redeem_script, multisig => [1, 2]);
-	$other_prv->sign_transaction($tx, redeem_script => $redeem_script, multisig => [2, 2]);
+	$prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [1, 2]);
+	$other_prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [2, 2]);
 	lives_ok { $tx->verify } 'input verification ok';
 };
 
@@ -194,8 +194,8 @@ subtest 'should sign transactions (P2SH(P2WSH))' => sub {
 		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
 	);
 
-	$prv->sign_transaction($tx, redeem_script => $redeem_script, multisig => [1, 2]);
-	$other_prv->sign_transaction($tx, redeem_script => $redeem_script, multisig => [2, 2]);
+	$prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [1, 2]);
+	$other_prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [2, 2]);
 
 	lives_ok { $tx->verify } 'input verification ok';
 };
@@ -230,8 +230,8 @@ subtest 'should sign transactions (P2WSH)' => sub {
 		locking_script => [P2PKH => '12s4mjQcz6rLpF8EyVGxFEFrgVKmNiPXxg'],
 	);
 
-	$prv->sign_transaction($tx, redeem_script => $redeem_script, multisig => [1, 2]);
-	$other_prv->sign_transaction($tx, redeem_script => $redeem_script, multisig => [2, 2]);
+	$prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [1, 2]);
+	$other_prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [2, 2]);
 
 	lives_ok { $tx->verify } 'input verification ok';
 };

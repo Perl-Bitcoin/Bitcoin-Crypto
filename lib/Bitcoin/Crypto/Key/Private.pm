@@ -287,8 +287,7 @@ C<%params> can contain:
 
 =item * C<signing_index>
 
-This non-negative integer is the index of the input being signed. Default C<0>,
-but it is a good idea to pass it explicitly.
+This non-negative integer is the index of the input being signed. Required.
 
 =item * C<redeem_script>
 
