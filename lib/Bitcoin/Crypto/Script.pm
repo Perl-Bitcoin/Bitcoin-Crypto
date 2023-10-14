@@ -667,22 +667,25 @@ sub is_empty
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Script - Bitcoin script instances
+Bitcoin::Crypto::Script - Bitcoin script instance
 
 =head1 SYNOPSIS
 
 	use Bitcoin::Crypto::Script;
 
-	my $script = Bitcoin::Crypto::Script->new
-		->add_operation('OP_1')
-		->add_operation('OP_TRUE')
-		->add_operation('OP_EQUAL');
+	my $script = Bitcoin::Crypto::Script->from_standard(
+		[P2WPKH => $my_segwit_address]
+	);
 
 	# getting serialized script
 	my $serialized = $script->to_serialized();
 
-	# getting address from script (p2wsh)
-	my $address = $script->get_segwit_adress();
+	# getting P2WSH address from script
+	my $sh_address = $script->get_segwit_adress();
+
+	# getting back the address encoded in P2WPKH script
+	my $address = $script->get_address();
+
 
 =head1 DESCRIPTION
 
@@ -765,11 +768,13 @@ Pushes C<$bytes> to the execution stack at the end of a script, using a minimal 
 
 C<push> is a shorter alias for C<push_bytes>.
 
-For example, running C<< $script->push_bytes("\x03") >> will have the same effect as C<< $script->add_operation('OP_3') >>.
+For example, running C<< $script->push_bytes("\x03") >> will have the same
+effect as C<< $script->add_operation('OP_3') >>.
 
 Throws an exception for data exceeding a 4 byte number in length.
 
-Note that no data longer than 520 bytes can be pushed onto the stack in one operation, but this method will not check for that.
+Note that no data longer than 520 bytes can be pushed onto the stack in one
+operation, but this method will not check for that.
 
 Returns the object instance for chaining.
 
@@ -817,7 +822,8 @@ Returns string containing Base58Check encoded script hash (P2SH address)
 
 	$address = $object->get_compat_address()
 
-Returns string containing Base58Check encoded script hash containing a witness program for compatibility purposes (P2SH(P2WSH) address)
+Returns string containing Base58Check encoded script hash containing a witness
+program for compatibility purposes (P2SH(P2WSH) address)
 
 =head2 get_segwit_address
 
@@ -840,7 +846,8 @@ Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>.
 
 	$runner = $object->run(\@initial_stack)
 
-Executes the script and returns L<Bitcoin::Crypto::Script::Runner> instance after running the script.
+Executes the script and returns L<Bitcoin::Crypto::Script::Runner> instance
+after running the script.
 
 This is a convenience method which constructs runner instance in the
 background. This helper is only meant to run simple scripts.
@@ -865,7 +872,9 @@ Returns true if the script contains only opcodes pushing to the stack.
 
 =head1 EXCEPTIONS
 
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
 
 =over 2
 
@@ -895,7 +904,7 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters
 
 =item L<Bitcoin::Crypto::Script::Opcode>
 
-=item L<Bitcoin::Crypto::Network>
+=item L<Bitcoin::Crypto::Transaction>
 
 =back
 
