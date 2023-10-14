@@ -20,7 +20,7 @@ my %utxos = (
 					'0411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3'
 			]
 		],
-		value => 50_00000000,
+		value => '50_00000000',
 	},
 	'f483a885eb4ab57c2d1a5747d3be8ff83fa825ddaed2fd8176ed2cac9ee98fae;1' => {
 		locking_script => [hex => '76a91415c055fa681fef5f8d342fc63b730648120679b388ac'],
@@ -76,7 +76,7 @@ my %utxos = (
 	},
 	'f825690aee1b3dc247da796cacb12687a5e802429fd291cfd63e010f02cf1508;0' => {
 		locking_script => [hex => '00205d1b56b63d714eebe542309525f484b7e9d6f686b3781b6f61ef925d66d6f6a0'],
-		value => 49_00000000,
+		value => '49_00000000',
 	},
 	'01c0cf7fba650638e55eb91261b183251fbb466f90dff17f10086817c542b5e9;0' => {
 		locking_script => [hex => '0020ba468eea561b26301e4cf69fa34bde4ad60c81e70f059f045ca9a79931004a4d'],

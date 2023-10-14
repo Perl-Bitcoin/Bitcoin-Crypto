@@ -39,7 +39,7 @@ subtest 'should verify transactions (P2PK)' => sub {
 	);
 
 	$tx->add_output(
-		value => 40_00000000,
+		value => '40_00000000',
 		locking_script => [
 			P2PK => [
 				hex =>

@@ -22,7 +22,7 @@ subtest 'should sign transactions (P2PK)' => sub {
 		output_index => 0,
 		output => {
 			locking_script => [P2PK => $prv->get_public_key->to_serialized],
-			value => 50_00000000,
+			value => '50_00000000',
 		},
 	)->register;
 
@@ -41,7 +41,7 @@ subtest 'should sign transactions (P2PK)' => sub {
 	);
 
 	$tx->add_output(
-		value => 40_00000000,
+		value => '40_00000000',
 		locking_script => [
 			P2PK => [
 				hex =>
@@ -250,7 +250,7 @@ subtest 'should sign transactions (two inputs)' => sub {
 	);
 
 	$tx->add_output(
-		value => 50_00000000,
+		value => '50_00000000',
 		locking_script => [
 			P2SH => $prv->get_public_key->get_compat_address
 		],
