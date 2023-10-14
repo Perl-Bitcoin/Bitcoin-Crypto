@@ -300,7 +300,7 @@ sub as_string
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Exception - Internal exception classes for Bitcoin::Crypto
+Bitcoin::Crypto::Exception - Exception classes for Bitcoin::Crypto
 
 =head1 SYNOPSIS
 

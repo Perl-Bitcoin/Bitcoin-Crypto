@@ -264,7 +264,7 @@ sub hash256
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Util - Utilities for working with Bitcoin
+Bitcoin::Crypto::Util - General Bitcoin utilities
 
 =head1 SYNOPSIS
 

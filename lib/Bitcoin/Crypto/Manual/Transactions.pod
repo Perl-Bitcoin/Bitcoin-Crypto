@@ -4,7 +4,7 @@ Bitcoin::Crypto::Manual::Transactions - Transaction support details
 
 =head1 SYNOPSIS
 
-See L<Bitcoin::Crypto::Transaction>
+See L<Bitcoin::Crypto::Transaction/SYNOPSIS>
 
 =head1 DESCRIPTION
 
@@ -20,10 +20,10 @@ we focus on support to standard transaction types (see below) under today's
 consensus rules (without much regard for transactions' backward compatibility
 quirks).
 
-By using the transaction system of this module you take full risk for any funds
-lost doing so. We don't give any warranty, so please review the code, review
-the test cases and most importantly B<review the generated transactions before
-sending them to the network!>.
+By using the transaction system of this module you take full responsibility for
+any funds lost doing so. We don't give any warranty, so please review the code,
+review the test cases and most importantly B<review the generated transactions
+before sending them to the network!>
 
 =head2 How transactions work and how we handle the outputs
 
@@ -31,16 +31,16 @@ Each transaction in Bitcoin is basically just a set of sources (inputs) and
 destinations (outputs). You specify where the coins come from and where they
 should go. Each transaction output has a locking script (also called
 C<ScriptPubKey>), and each of the inputs spends one output using signature
-script (also called C<ScriptSig>). Locking script (usually) is a cryptographic
-riddle for those willing to spend the funds, and signature script is used to
-solve it.
+script (also called C<ScriptSig>). Locking script is (usually) a cryptographic
+riddle solvable only by the owner of the private key, and signature script is a
+proof of ownership.
 
-Normally, software which is working as a full node (such as Bitcoin Core) the
-blockchain history can be accessed without any extra steps. Bitcoin::Crypto
-does not do that and depend on you to provide valid Unspent Transaction Outputs
-(UTXOs) before adding inputs to the transaction (or deserializing a
-transaction). You can get transaction data from your own Bitcoin full node or
-from external sources such as L<mempool.space>.
+Normally, when using software which is working as a full node (such as Bitcoin
+Core) the blockchain history can be accessed without any extra steps.
+Bitcoin::Crypto does not do that and depend on you to provide valid Unspent
+Transaction Outputs (UTXOs) before adding inputs to the transaction (or
+deserializing a transaction). You can get transaction data from your own
+Bitcoin full node or from external sources such as L<mempool.space>.
 
 You can register UTXOs manually using C<< btc_utxo->new(...)->register >> or
 automatically from a serialized transaction using C<< btc_utxo->extract >>. See
@@ -52,10 +52,10 @@ API to get the serialized transaction and use C<extract> on it).
 
 This means you can create valid transactions without the need to download,
 store and verify the entire Bitcoin blockchain. You only need to know which
-UTXOs belong to you. Once you created a transaction and it got validated in the
-blockchain, you can call C<< $tx->update_utxos >> on it, which will invalidate
-the UTXOs it used and register its outputs as new UTXOs. This way you can chain
-your own transactions in a Perl script.
+UTXOs belong to you. Once you have created a transaction and it got validated
+in the blockchain, you can call C<< $tx->update_utxos >> on it, which will
+invalidate the UTXOs it used and register its outputs as new UTXOs. This way
+you can chain your own transactions in a Perl script.
 
 Transactions usually don't care about blocks at all and so Bitcoin::Crypto does
 not implement them. There's currently no way to serialize transactions into a

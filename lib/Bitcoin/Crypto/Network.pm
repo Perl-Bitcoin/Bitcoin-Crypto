@@ -238,7 +238,7 @@ __END__
 
 =head1 NAME
 
-Bitcoin::Crypto::Network - Cryptocurrency network management class
+Bitcoin::Crypto::Network - Network management class
 
 =head1 SYNOPSIS
 
@@ -290,9 +290,9 @@ Bitcoin::Crypto::Network - Cryptocurrency network management class
 
 =head1 DESCRIPTION
 
-This package allows you to manage non-bitcoin cryptocurrencies. Before you
-start producing keys and addresses for your favorite crypto you have to
-configure its network first.
+This package allows you to manage non-bitcoin cryptocurrencies or chains other
+than mainnet. Before you start producing keys and addresses for your favorite
+crypto you have to configure its network first.
 
 =head1 PREDEFINED NETWORKS
 

@@ -306,7 +306,7 @@ __END__
 
 =head1 NAME
 
-Bitcoin::Crypto::Bech32 - Bitcoin Bech32 implementation
+Bitcoin::Crypto::Bech32 - Bech32 implementation
 
 =head1 SYNOPSIS
 
@@ -318,6 +318,7 @@ Bitcoin::Crypto::Bech32 - Bitcoin Bech32 implementation
 		decode_bech32
 		encode_segwit
 		decode_segwit
+		get_hrp
 	);
 
 	# witness version - a number from 0 to 16, packed into a byte
@@ -435,6 +436,12 @@ data in bech32 strings, like so:
 
 	my $data = encode_bech32('hrp', translate_8to5($bytes));
 	my $decoded = translate_5to8(decode_bech32($data));
+
+=head2 get_hrp
+
+	$hrp = get_hrp($address)
+
+Returns the human readable part encoded in the bech32 address.
 
 =head1 EXCEPTIONS
 

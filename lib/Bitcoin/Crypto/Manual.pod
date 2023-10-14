@@ -101,12 +101,23 @@ functions or methods from the package and what they mean. It is not meant to be
 a full list of exceptions a function can throw and unblessed errors may still
 be raised.
 
+=head2 Class shortcuts
+
+The most frequently used classes have their shortcuts starting with C<btc_>
+registered in L<Bitcoin::Crypto>. Examples are C<btc_prv> for basic private key
+or C<btc_transaction> for transactions. These shortcuts can make the code more
+compact and avoid manually requiring too many classes, but they are completely
+optional. If this style does not sound reasonable to you, feel free to ignore
+it.
+
+See L<Bitcoin::Crypto/Exported interface> for details.
+
 =head2 How to pass data to functions?
 
 Many frequently used functions (like C<from_serialized> commonly used in keys,
 scripts and transactions) require you to pass in a string of bytes. Bytestring
 is a string in which each character has numeric value less than or equal to
-255. It is the default way to pass in data to functions.
+255. It is the default way to pass in data to functions in Bitcoin::Crypto.
 
 It is not rare that you may want to use some other format instead, like hex
 strings. To avoid duplicating functions for different formats or manually
@@ -132,9 +143,9 @@ operation:
 
 =head2 How to pass commonly used script types to functions?
 
-Similar to format descriptions, you may a script description anywhere where a
-script is expected. It is as well an array reference of two elements, where the
-first one is the short name of the script type, like C<P2WPKH>. The second one
+Similar to format descriptions, you may use a script description anywhere a
+script is expected. It is an array reference of two elements, where the first
+one is the short name of the script type, like C<P2WPKH>. The second one
 contains data specific to that script type, usually the address:
 
 	$transaction->add_output(

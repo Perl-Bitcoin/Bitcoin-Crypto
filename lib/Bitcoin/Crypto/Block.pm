@@ -121,7 +121,7 @@ Returns class instance.
 	$mtp = $object->median_time_past()
 
 This method returns the median time past described in BIP113 (median timestamp
-of the past 11 blocks).
+of previous 11 blocks).
 
 Since this block implementation is as basic as it gets, it will happily
 calculate median time past from less than 11 blocks, if there aren't enough

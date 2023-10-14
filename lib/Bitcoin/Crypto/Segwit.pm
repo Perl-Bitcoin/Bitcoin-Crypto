@@ -29,7 +29,7 @@ sub validate_program
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Segwit - Segregated Witness version validators (DEPRECATED)
+Bitcoin::Crypto::Segwit - DEPRECATED
 
 =head1 SYNOPSIS
 

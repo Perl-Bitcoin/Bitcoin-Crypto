@@ -91,7 +91,7 @@ __END__
 
 =head1 NAME
 
-Bitcoin::Crypto::Base58 - Bitcoin base58 helpers
+Bitcoin::Crypto::Base58 - Base58 helpers
 
 =head1 SYNOPSIS
 

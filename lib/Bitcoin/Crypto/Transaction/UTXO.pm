@@ -269,7 +269,7 @@ L<Bitcoin::Crypto::Exception> namespace:
 
 =over
 
-=item * Bitcoin::Crypto::Exception::UTXO - UTXO was not found
+=item * UTXO - UTXO was not found
 
 =back
 

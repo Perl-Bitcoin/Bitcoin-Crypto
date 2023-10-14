@@ -110,7 +110,7 @@ sub as_string
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::BIP44 - BIP44 implementation in Perl
+Bitcoin::Crypto::BIP44 - BIP44 implementation
 
 =head1 SYNOPSIS
 

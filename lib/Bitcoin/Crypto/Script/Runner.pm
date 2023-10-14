@@ -264,7 +264,7 @@ __END__
 
 =head1 NAME
 
-Bitcoin::Crypto::Script::Runner - Bitcoin script runner
+Bitcoin::Crypto::Script::Runner - Bitcoin Script runner
 
 =head1 SYNOPSIS
 

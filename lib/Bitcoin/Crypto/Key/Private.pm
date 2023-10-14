@@ -297,7 +297,7 @@ outputs.
 
 =item * C<multisig>
 
-An indication of the multisig signing stage. It is an array reference with
+A representation of the multisig signing stage. It is an array reference with
 exactly two elements. The first element is the number (1-based, not the index!)
 of the currently signed multisig. The second element is the total number of
 signatures required for the multisig. For example, signing 2-out-of-3 multisig

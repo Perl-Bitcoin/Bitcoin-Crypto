@@ -410,7 +410,7 @@ L<Bitcoin::Crypto::Exception> namespace:
 
 =over
 
-=item * Bitcoin::Crypto::Exception::Transaction - general error with transaction
+=item * Transaction - general error with transaction
 
 =back
 

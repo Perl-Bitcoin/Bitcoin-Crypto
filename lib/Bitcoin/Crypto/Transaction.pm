@@ -642,7 +642,7 @@ transaction types. Widely used C<P2PKH>, C<P2SH>, their SegWit counterparts and
 C<P2MS> are thoroughly tested and should be safe to use. B<Still, before
 putting any real money on the line, make sure to check the serialized
 transactions in other tools and review that its contents are correct. There is
-absolutely no guarantee!>.
+absolutely no guarantee!>
 
 See L<Bitcoin::Crypto::Manual::Transactions> for details and guidelines.
 
@@ -741,8 +741,8 @@ Returns the hash of the transaction, also used as its id. The return value is a
 bytestring.
 
 NOTE: this method returns the hash in big endian, which is not suitable for
-transactions. If you want to manually encode the hash into the transaction, you
-should first C<scalar reverse> it.
+serialized transactions. If you want to manually encode the hash into the
+transaction, you should first C<scalar reverse> it.
 
 =head3 get_digest
 
@@ -816,7 +816,7 @@ C<virtual_size> is used for fee calculations (witness data is discounted by 75%)
 
 Returns the weight of the transaction (in bytes).
 
-C<weight> is the representation of the transaction's size after serializing.
+C<weight> is the transaction's byte size after serializing.
 
 =head3 update_utxos
 
@@ -864,9 +864,9 @@ L<Bitcoin::Crypto::Exception> namespace:
 
 =over
 
-=item * Bitcoin::Crypto::Exception::Transaction - general error with transaction
+=item * Transaction - general error with transaction
 
-=item * Bitcoin::Crypto::Exception::TransactionScript - error during transaction scripts execution
+=item * TransactionScript - error during transaction scripts execution
 
 =back
 

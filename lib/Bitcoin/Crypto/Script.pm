@@ -667,7 +667,7 @@ sub is_empty
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::Script - Bitcoin script instance
+Bitcoin::Crypto::Script - Bitcoin Script instance
 
 =head1 SYNOPSIS
 
