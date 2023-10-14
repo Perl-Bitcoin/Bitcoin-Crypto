@@ -284,6 +284,7 @@ Bitcoin::Crypto::Script::Runner - Bitcoin script runner
 		print Dumper($runner->stack);
 	}
 
+	print 'FAILURE' unless $runner->success;
 	print 'resulting stack: ';
 	print Dumper($runner->stack);
 
@@ -347,7 +348,7 @@ Positive integer - the position of the operation to be run in the next step
 
 =head3 new
 
-	$runner = Bitcoin::Crypto::Script::Runner->new(%data)
+	$object = $class->new(%data)
 
 This is a standard Moo constructor, which can be used to create the object. It
 takes arguments specified in L</Attributes>.
@@ -356,7 +357,7 @@ Returns class instance.
 
 =head3 execute
 
-	my $runner = $runner->execute($script, $initial_stack = []);
+	$object = $object->execute($script, \@initial_stack = [])
 
 Executes the script in one go. Returns runner instance (for chaining).
 
@@ -375,7 +376,7 @@ If errors occur, they will be thrown as exceptions. See L</EXCEPTIONS>.
 
 =head3 start
 
-	my $runner = $runner->start($script, $initial_stack = []);
+	$object = $object->start($script, \@initial_stack = [])
 
 Same as L</execute>, but only sets initial runner state and does not actually
 execute any script opcodes. L</step> must be called to continue the execution.
@@ -413,10 +414,16 @@ $runner->pos >>, which contains the position of the B<next> opcode to execute.
 
 =head3 subscript
 
-	my $subscript = $runner->subscript;
+	$subscript = $object->subscript()
 
 Returns current subscript - part of the running script from after the last
 codeseparator, with all other codeseparators removed.
+
+=head3 success
+
+	$boolean = $object->success()
+
+Returns a boolean indicating whether the script execution was successful.
 
 =head2 Helper methods
 
@@ -435,10 +442,11 @@ fine).
 
 These methods encode and decode booleans in format which is used on L</stack>.
 
-=head1 CAVEATS
+=head3 stack_serialized
 
-OP_0 and OP_FALSE push byte vector C<0x00> to the stack, not null-size byte
-vector.
+Returns the serialized stack. Any null vectors will be transformed to C<0x00>.
+
+=head1 CAVEATS
 
 There is curretly no limit on the size of byte vector which is going to be
 transformed to an integer for ops like OP_ADD. BigInts are used for all integers.
