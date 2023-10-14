@@ -229,7 +229,8 @@ You can use an extended private key to:
 
 =back
 
-see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bitcoin Mainnet.
+see L<Bitcoin::Crypto::Network> if you want to work with other networks than
+Bitcoin Mainnet.
 
 =head1 METHODS
 
@@ -256,21 +257,30 @@ Deprecated - see L<Bitcoin::Crypto::Util/mnemonic_from_entropy>.
 
 Creates a new key from given mnemonic and password.
 
-Note that technically any password is correct and there's no way to tell if it was mistaken.
+Note that technically any password is correct and there's no way to tell if it
+was mistaken.
 
-If you need to validate if C<$mnemonic> is a valid mnemonic you should specify C<$lang>, e.g. 'en'.
+If you need to validate if C<$mnemonic> is a valid mnemonic you should specify
+C<$lang>, e.g. 'en'.
 
-If no C<$lang> is given then any string passed as C<$mnemonic> will produce a valid key.
+If no C<$lang> is given then any string passed as C<$mnemonic> will produce a
+valid key.
 
 Returns a new instance of this class.
 
-B<Important note about unicode:> this function only accepts UTF8-decoded strings (both C<$mnemonic> and C<$password>), but can't detect whether it got it or not. This will only become a problem if you use non-ascii mnemonic and/or password. If there's a possibility of non-ascii, always use utf8 and set binmodes to get decoded (wide) characters to avoid problems recovering your wallet.
+B<Important note about unicode:> this function only accepts UTF8-decoded
+strings (both C<$mnemonic> and C<$password>), but can't detect whether it got
+it or not. This will only become a problem if you use non-ascii mnemonic and/or
+password. If there's a possibility of non-ascii, always use utf8 and set
+binmodes to get decoded (wide) characters to avoid problems recovering your
+wallet.
 
 =head2 from_seed
 
 	$key_object = $class->from_seed($seed)
 
-Creates and returns a new key from seed, which can be any data of any length. C<$seed> is expected to be a byte string.
+Creates and returns a new key from seed, which can be any data of any length.
+C<$seed> is expected to be a byte string.
 
 =head2 from_hex_seed
 
@@ -292,7 +302,8 @@ Deprecated. Use C<< to_format [base58 => $key->to_serialized] >> instead.
 
 Tries to unserialize byte string C<$serialized> with format specified in BIP32.
 
-Dies on errors. If multiple networks match serialized data specify C<$network> manually (id of the network) to avoid exception.
+Dies on errors. If multiple networks match serialized data specify C<$network>
+manually (id of the network) to avoid exception.
 
 =head2 from_serialized_base58
 
@@ -302,7 +313,8 @@ Deprecated. Use C<< $class->from_serialized([base58 => $base58]) >> instead.
 
 	$key_object = $object->set_network($val)
 
-Change key's network state to C<$val>. It can be either network name present in L<Bitcoin::Crypto::Network> package or an instance of this class.
+Change key's network state to C<$val>. It can be either network name present in
+L<Bitcoin::Crypto::Network> package or an instance of this class.
 
 Returns current key instance.
 
@@ -310,7 +322,8 @@ Returns current key instance.
 
 	$public_key_object = $object->get_public_key()
 
-Returns instance of L<Bitcoin::Crypto::Key::ExtPublic> generated from the private key.
+Returns instance of L<Bitcoin::Crypto::Key::ExtPublic> generated from the
+private key.
 
 =head2 get_basic_key
 
@@ -322,7 +335,8 @@ Returns the key in basic format: L<Bitcoin::Crypto::Key::Private>
 
 	$derived_key_object = $object->derive_key($path)
 
-Performs extended key derivation as specified in BIP32 on the current key with C<$path>. Dies on error.
+Performs extended key derivation as specified in BIP32 on the current key with
+C<$path>. Dies on error.
 
 See BIP32 document for details on derivation paths and methods.
 
@@ -332,11 +346,17 @@ Returns a new extended key instance - result of a derivation.
 
 	$derived_key_object = $object->derive_key_bip44(%data)
 
-A helper that constructs a L<Bitcoin::Crypto::BIP44> path from C<%data> and calls L</derive_key> with it. Refer to L<Bitcoin::Crypto::BIP44/Attributes> to see what you can include in C<%data>.
+A helper that constructs a L<Bitcoin::Crypto::BIP44> path from C<%data> and
+calls L</derive_key> with it. Refer to L<Bitcoin::Crypto::BIP44/Attributes> to
+see what you can include in C<%data>.
 
-Using this method instead of specifying BIP44 path yourself will make sure all features of BIP44 derivation will be enabled, like different prefixes for extended keys (C<xprv> / C<yprv> / C<zprv>) and address type generation checking.
+Using this method instead of specifying BIP44 path yourself will make sure all
+features of BIP44 derivation will be enabled, like different prefixes for
+extended keys (C<xprv> / C<yprv> / C<zprv>) and address type generation
+checking.
 
-I<Note: coin_type parameter will be ignored, and the current network configuration set in the extended key will be used.>
+I<Note: coin_type parameter will be ignored, and the current network
+configuration set in the extended key will be used.>
 
 =head2 get_fingerprint
 
@@ -346,7 +366,9 @@ Returns a fingerprint of the extended key of C<$len> length (byte string)
 
 =head1 EXCEPTIONS
 
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
 
 =over 2
 

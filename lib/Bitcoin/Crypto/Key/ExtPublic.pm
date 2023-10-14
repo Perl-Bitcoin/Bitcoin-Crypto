@@ -139,7 +139,8 @@ Deprecated. Use C<< to_format [base58 => $key->to_serialized] >> instead.
 
 Tries to unserialize byte string C<$serialized> with format specified in BIP32.
 
-Dies on errors. If multiple networks match serialized data specify C<$network> manually (id of the network) to avoid exception.
+Dies on errors. If multiple networks match serialized data specify C<$network>
+manually (id of the network) to avoid exception.
 
 =head2 from_serialized_base58
 
@@ -149,7 +150,8 @@ Deprecated. Use C<< $class->from_serialized([base58 => $base58]) >> instead.
 
 	$key_object = $object->set_network($val)
 
-Change key's network state to C<$val>. It can be either network name present in Bitcoin::Crypto::Network package or an instance of this class.
+Change key's network state to C<$val>. It can be either network name present in
+Bitcoin::Crypto::Network package or an instance of this class.
 
 Returns current key instance.
 
@@ -163,11 +165,13 @@ Returns the key in basic format: L<Bitcoin::Crypto::Key::Public>
 
 	$derived_key_object = $object->derive_key($path)
 
-Performs extended key derivation as specified in BIP32 on the current key with C<$path>. Dies on error.
+Performs extended key derivation as specified in BIP32 on the current key with
+C<$path>. Dies on error.
 
 See BIP32 document for details on derivation paths and methods.
 
-Note that public keys cannot derive private keys and your derivation path must start with M (capital m).
+Note that public keys cannot derive private keys and your derivation path must
+start with M (capital m).
 
 Returns a new extended key instance - result of a derivation.
 
@@ -188,7 +192,9 @@ Returns a fingerprint of the extended key of C<$len> length (byte string)
 
 =head1 EXCEPTIONS
 
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it encounters an error. It can produce the following error types from the L<Bitcoin::Crypto::Exception> namespace:
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
 
 =over 2
 
