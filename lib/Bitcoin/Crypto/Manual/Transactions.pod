@@ -59,10 +59,9 @@ your own transactions in a Perl script.
 
 Transactions usually don't care about blocks at all and so Bitcoin::Crypto does
 not implement them. There's currently no way to serialize transactions into a
-block, but for the purpose of checking height or timestamp (sometimes used in
-transactions, like with C<OP_CHECKLOCKTIMEVERIFY>), the very incomplete
+block, but for the purpose of checking locktime or sequence the very incomplete
 L<Bitcoin::Crypto::Block> class can be instantiated and passed as C<block>
-parameter to C<< $tx->verify >> or C<< btc_utxo->new >> constructor.
+parameter to C<< $tx->verify >> and C<< btc_utxo->new >> constructor.
 
 =head2 Which types of transactions are supported?
 

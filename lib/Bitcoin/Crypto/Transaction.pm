@@ -831,12 +831,24 @@ NOTE: it does not verify the transaction by itself.
 
 =head3 verify
 
-	$object->verify()
+	$object->verify(%params)
 
 Verifies the transaction according to the Bitcoin consensus rules. Returns
 nothing, but will throw an exception if the verification failed.
 
 See L<Bitcoin::Crypto::Manual::Transactions/Current known problems with transactions>.
+
+C<%params> can be any of:
+
+=over
+
+=item * C<block>
+
+Optional instance of L<Bitcoin::Crypto::Block> - used for locktime and sequence
+verification. If it is not passed and the transaction includes these checks, it
+will still verify without an exception but a warning will be issued.
+
+=back
 
 =head3 dump
 
