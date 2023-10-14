@@ -132,6 +132,9 @@ sub _get_digest_segwit
 	my $none = $sighash_type == Bitcoin::Crypto::Constants::sighash_none;
 
 	if ($self->signing_subscript) {
+
+		# NOTE: sets witness for proper behavior of _script_code in
+		# Bitcoin::Crypto::Transaction::Input for P2WSH
 		$this_input->set_witness([$self->signing_subscript]);
 	}
 
