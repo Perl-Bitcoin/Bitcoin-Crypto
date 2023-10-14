@@ -116,5 +116,6 @@ sub curve_order
 
 	return Math::BigInt->from_hex($self->key_instance->curve2hash->{order});
 }
+
 1;
 

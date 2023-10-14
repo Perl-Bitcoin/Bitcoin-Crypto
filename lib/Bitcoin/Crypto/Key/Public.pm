@@ -154,9 +154,10 @@ Bitcoin::Crypto::Key::Public - Bitcoin public keys
 
 	$pub = Bitcoin::Crypto::Key::Public->from_serialized([hex => $asn_hex]);
 
-	# verify signature (it has to be byte string, see perlpacktut)
+	# verify signature of custom message
+	# (it has to be byte string, see perlpacktut)
 
-	$pub->verify_message(pack('a*', 'Hello world'), $sig);
+	$pub->verify_message('Hello world', $sig);
 
 	# getting address from public key (p2wpkh)
 
@@ -239,7 +240,8 @@ Returns current key instance.
 
 	$signature_valid = $object->verify_message($message, $signature)
 
-Verifies C<$signature> against digest of C<$message> (digesting it with double sha256) using public key.
+Verifies C<$signature> against digest of C<$message> (digesting it with double
+sha256) using public key.
 
 Returns boolean.
 
@@ -285,22 +287,22 @@ you wish to generate this address anyway, call L</clear_purpose>.
 
 	$address_string = $object->get_address()
 
-Returns a string containing the address. Tries to guess which address type most
-fitting:
+Returns a string containing the address. Tries to guess which address type is
+most fitting:
 
 =over
 
-=item * If the key has a set purpose, generates type of address which matches
-the purpose
+=item * If the key has a BIP44 purpose set, generates type of address which
+matches the purpose
 
 =item * If the key doesn't have a purpose but the network supports segwit,
-returns segwit address
+returns a segwit address (same as C<get_segwit_address>)
 
 =item * If the network doesn't support segwit, returns legacy address
 
 =back
 
-B<NOTE>: The rules this functions uses to choose the address type B<will>
+B<NOTE>: The rules this function uses to choose the address type B<will>
 change when more up-to-date address types are implemented (like taproot). Use
 other address functions if this is not what you want.
 
@@ -308,8 +310,8 @@ other address functions if this is not what you want.
 
 	$object->clear_purpose;
 
-Clears the purpose of this key instance, removing safety checks on address
-generation.
+Clears the BIP44 purpose of this key instance, removing safety checks on
+address generation.
 
 =head1 EXCEPTIONS
 
