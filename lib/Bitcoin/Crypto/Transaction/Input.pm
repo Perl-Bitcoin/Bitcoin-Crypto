@@ -219,8 +219,6 @@ sub script_base
 	my ($self) = @_;
 
 	if ($self->is_segwit) {
-
-		# no need to check for standard, as segwit is already standard
 		return $self->_script_code;
 	}
 	else {
@@ -264,4 +262,167 @@ sub dump
 }
 
 1;
+
+__END__
+=head1 NAME
+
+Bitcoin::Crypto::Transaction::Input - Bitcoin transaction input instance
+
+=head1 SYNOPSIS
+
+	use Bitcoin::Crypto qw(btc_transaction);
+
+	my $tx = btc_transaction->new;
+
+	$tx->add_input(
+		utxo => [$txid, $output_index],
+	);
+
+	print $tx->inputs->[0]->dump;
+
+
+=head1 DESCRIPTION
+
+This is an input instance implementation used in transactions. It is rarely
+interacted with directly.
+
+=head1 INTERFACE
+
+=head2 Attributes
+
+=head3 utxo
+
+An instance of L<Bitcoin::Crypto::Transaction::UTXO>. Required.
+
+Can also be passed an array reference of two parameters, which will be fed to
+L<Bitcoin::Crypto::Transaction::UTXO/get> to fetch the UTXO instance.
+
+I<Available in the constructor>.
+
+=head3 signature_script
+
+The script used to unlock the coins from the UTXO.
+
+By default, it is an empty script.
+
+I<Available in the constructor>.
+
+I<writer>: C<set_signature_script>
+
+=head3 sequence_no
+
+Also known as C<nSequence> in Bitcoin Core. The sequence number used in various
+applications. Non-negative integer.
+
+By default, it is set to C<0xffffffff> (C<max_sequence_no> in C<Bitcoin::Crypto::Constants>).
+
+I<Available in the constructor>.
+
+I<writer>: C<set_sequence_no>
+
+=head3 witness
+
+SegWit data for this input. It is an array reference of bytestrings. Note that
+each element in the witness must be a separate element in this array
+(concatenating the witness into one bytestring will not work as intended).
+
+Empty by default.
+
+I<Available in the constructor>.
+
+I<writer>: C<set_witness>
+
+I<predicate>: C<has_witness>
+
+=head2 Methods
+
+=head3 new
+
+	$block = $class->new(%args)
+
+This is a standard Moo constructor, which can be used to create the object. It
+takes arguments specified in L</Attributes>.
+
+Returns class instance.
+
+=head3 to_serialized
+
+	$bytestring = $object->to_serialized()
+
+Returns the serialized input data to be included into a serialized transaction.
+
+NOTE: serialized input does not include witness data, which is a part of this class.
+
+=head3 from_serialized
+
+	$object = $class->from_serialized($bytestring, %params)
+
+Creates an object instance from serialized data.
+
+C<%params> can be any of:
+
+=over
+
+=item * C<pos>
+
+Position for partial string decoding. Optional. If passed, must be a scalar
+reference to an integer value.
+
+This integer will mark the starting position of C<$bytestring> from which to
+start decoding. It will be set to the next byte after end of input stream.
+
+=back
+
+=head3 is_segwit
+
+	$boolean = $object->is_segwit()
+
+Returns true if this input represents a segwit output.
+
+For scripts which have C<signature_script> filled out, this method is able to
+detect both native and compatibility segwit outputs (unlike
+L<Bitcoin::Crypto::Script/is_native_segwit>).
+
+=head3 prevout
+
+	$bytestring = $object->prevout()
+
+Returns a bytestring with prevout data ready to be encoded in places like
+digest preimages. Mostly used internally.
+
+=head3 script_base
+
+	$script = $object->script_base()
+
+Returns a base script for the digest. Mostly used internally.
+
+=head3 dump
+
+	$text = $object->dump()
+
+Returns a readable description of the input.
+
+=head1 EXCEPTIONS
+
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
+
+=over
+
+=item * Bitcoin::Crypto::Exception::Transaction - general error with transaction
+
+=back
+
+=head1 SEE ALSO
+
+=over
+
+=item L<Bitcoin::Crypto::Transaction>
+
+=item L<Bitcoin::Crypto::Transaction::UTXO>
+
+=back
+
+=cut
 
