@@ -159,7 +159,7 @@ it does not delete the signature from the script before using it for digesting
 (known as C<FindAndDelete> in Bitcoin Core). In addition, its
 C<OP_CODESEPARATOR> handling is not well-tested and any non-standard
 transaction will require you to manually provide a script for digesting (as
-C<signing_subscript>).
+C<signing_subscript>) and do manual insertion of the signature.
 
 =back
 
