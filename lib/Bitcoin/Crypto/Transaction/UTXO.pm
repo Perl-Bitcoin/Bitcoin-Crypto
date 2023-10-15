@@ -95,7 +95,7 @@ sub get
 
 signature_for set_loader => (
 	method => Str,
-	positional => [Maybe[CodeRef]],
+	positional => [Maybe [CodeRef]],
 );
 
 sub set_loader

@@ -4,8 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 use Exporter qw(import);
+use Carp qw(carp);
 
-use Bitcoin::Crypto::Helpers qw(carp_once);
 use Bitcoin::Crypto::Util;
 
 our @EXPORT_OK = qw(
@@ -19,7 +19,7 @@ our %validators = (
 
 sub validate_program
 {
-	carp_once
+	carp
 		"Bitcoin::Crypto::Segwit::validate_program is deprecated. Use Bitcoin::Crypto::Util::validate_segwit instead.";
 	goto \&Bitcoin::Crypto::Util::validate_segwit;
 }

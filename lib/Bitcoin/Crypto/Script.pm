@@ -9,12 +9,12 @@ use Mooish::AttributeBuilder -standard;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 use Type::Params -sigs;
+use Carp qw(carp);
 
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit get_hrp);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(carp_once);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Maybe ArrayRef HashRef Str Object ByteStr Any ScriptType ScriptDesc);
@@ -467,7 +467,7 @@ sub get_script
 {
 	my ($self) = @_;
 
-	carp_once "Bitcoin::Crypto::Script->get_script is deprecated. Use Bitcoin::Crypto::Script->to_serialized instead.";
+	carp "Bitcoin::Crypto::Script->get_script is deprecated. Use Bitcoin::Crypto::Script->to_serialized instead.";
 	return $self->to_serialized;
 }
 
@@ -484,7 +484,7 @@ sub get_hash
 
 sub get_script_hash
 {
-	carp_once "Bitcoin::Crypto::Script->get_script_hash is deprecated. Use Bitcoin::Crypto::Script->get_hash instead.";
+	carp "Bitcoin::Crypto::Script->get_script_hash is deprecated. Use Bitcoin::Crypto::Script->get_hash instead.";
 	goto \&get_hash;
 }
 
