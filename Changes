@@ -1,5 +1,32 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+2.000 Sun Oct 15 2023
+	[New features]
+	- added transaction system
+	- added script execution system
+	- added more examples
+	- added manual
+	- many minor additions all across the board
+
+	[Improvements]
+	- all functions and methods now check their input arguments
+	- test suite has been refactored
+	- better handling of bytestrings with format descriptions (see Manual)
+	- better exception handling and reporting
+
+	[Changes and deprecations]
+	- various format-specific methods like from_hex, to_bytes are now deprecated in all packages
+	- simple serialization methods are now called from_serialized and to_serialized in all packages
+	- methods generate_mnemonic and mnemonic_from_entropy have been moved to Bitcoin::Crypto::Util
+	- deprecate Bitcoin::Crypto::Segwit (use Bitcoin::Crypto::Util::validate_segwit)
+	- deprecate Bitcoin::Crypto::Script->get_script (use to_serialized)
+	- deprecate Bitcoin::Crypto::Script->get_script_hash (use get_hash)
+	- deprecate Bitcoin::Crypto::Key::Private->new (use from_serialized)
+	- deprecate Bitcoin::Crypto::Key::Public->new (use from_serialized)
+
+	[Breaking changes]
+	- removed second argument from sign_message and verify_message. Now always uses hash256 to digest
+
 1.008 Sat Jan 7 2023
 	- add clear_purpose method, which disables purpose security checks on a key
 	- documentation fixes
