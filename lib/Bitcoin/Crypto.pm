@@ -158,7 +158,9 @@ L<https://github.com/bitcoin/bips>
 
 =head1 AUTHOR
 
-Bartosz Jarzyna E<lt>bbrtj.pro@gmail.comE<gt> (L<Support me|https://bbrtj.eu/support>)
+Bartosz Jarzyna E<lt>bbrtj.pro@gmail.comE<gt>
+
+Consider supporting: L<https://bbrtj.eu/support>
 
 =head1 COPYRIGHT AND LICENSE
 
