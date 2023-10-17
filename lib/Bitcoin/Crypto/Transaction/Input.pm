@@ -8,7 +8,7 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
-use Bitcoin::Crypto qw(btc_utxo btc_script);
+use Bitcoin::Crypto qw(btc_script);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(pack_varint unpack_varint);
 use Bitcoin::Crypto::Util qw(to_format);
@@ -19,7 +19,12 @@ use Bitcoin::Crypto::Script::Common;
 
 has param 'utxo' => (
 	coerce => (InstanceOf ['Bitcoin::Crypto::Transaction::UTXO'])
-		->plus_coercions(ArrayRef, q{ Bitcoin::Crypto::Transaction::UTXO->get(@$_) })
+		->plus_coercions(
+			ArrayRef, q{
+				require Bitcoin::Crypto::Transaction::UTXO;
+				Bitcoin::Crypto::Transaction::UTXO->get(@$_)
+			}
+		)
 );
 
 has param 'signature_script' => (
