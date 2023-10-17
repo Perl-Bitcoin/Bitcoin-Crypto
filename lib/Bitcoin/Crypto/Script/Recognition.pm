@@ -87,6 +87,13 @@ sub _build_blueprints
 		],
 
 		[
+			P2TR => [
+				'OP_1',
+				['address', 32],
+			]
+		],
+
+		[
 			NULLDATA => [
 				'OP_RETURN',
 				['address', 1 .. 75],

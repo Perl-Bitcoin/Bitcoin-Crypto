@@ -154,6 +154,10 @@ sub _build
 				$witness->(@_, 'P2WSH', 0, 32);
 			},
 
+			P2TR => sub {
+				$witness->(@_, 'P2TR', 1, 32);
+			},
+
 			NULLDATA => sub {
 				my ($self, $data) = @_;
 
@@ -617,15 +621,24 @@ sub get_address
 	return undef
 		unless $self->has_type && defined $address;
 
-	if ($self->is_native_segwit) {
+	my $segwit = sub {
+		my ($version, $address) = @_;
 
 		# network field is not required, lazy check for completeness
 		Bitcoin::Crypto::Exception::NetworkConfig->raise(
 			'this network does not support segregated witness'
 		) unless $self->network->supports_segwit;
 
-		my $version = pack 'C', Bitcoin::Crypto::Constants::segwit_witness_version;
 		return encode_segwit($self->network->segwit_hrp, $version . $address);
+	};
+
+	if ($self->is_native_segwit) {
+		my $version = pack 'C', Bitcoin::Crypto::Constants::segwit_witness_version;
+		return $segwit->($version, $address);
+	}
+	elsif ($self->type eq 'P2TR') {
+		my $version = pack 'C', Bitcoin::Crypto::Constants::taproot_witness_version;
+		return $segwit->($version, $address);
 	}
 	elsif ($self->type eq 'P2PKH') {
 		return encode_base58check($self->network->p2pkh_byte . $address);

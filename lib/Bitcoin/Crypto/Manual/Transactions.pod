@@ -65,7 +65,7 @@ parameter to C<< $tx->verify >> and C<< btc_utxo->new >> constructor.
 
 =head2 Which types of transactions are supported?
 
-Bitcoin::Crypto test suite contains pretty thorough testing of following transaction types:
+Bitcoin::Crypto test suite contains pretty thorough testing of following output types:
 
 =over
 
@@ -84,6 +84,8 @@ Bitcoin::Crypto test suite contains pretty thorough testing of following transac
 =item * P2SH(P2WSH) (P2WSH inside P2SH)
 
 =item * P2MS (pay to multisig, usually nested inside P2SH or P2WSH)
+
+=item * P2TR (pay to taproot - work in progress, can't sign and dummy verification)
 
 =item * NULLDATA (provably unspendable outputs with OP_RETURN)
 
