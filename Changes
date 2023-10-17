@@ -1,5 +1,12 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+2.001 Tue Oct 17 2023
+	[New features]
+	- added P2TR scripts, which can now be created and added as outputs to transactions
+
+	[Improvements]
+	- minor changes to tests and non-essential traits of the code
+
 2.000 Sun Oct 15 2023
 	[New features]
 	- added transaction system
