@@ -14,6 +14,8 @@ use Bitcoin::Crypto::Types qw(IntMaxBits Int PositiveOrZeroInt ByteStr InstanceO
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 my %utxos;
 my $loader;
 

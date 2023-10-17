@@ -13,6 +13,8 @@ use Bitcoin::Crypto::Helpers qw(pack_varint unpack_varint ensure_length);    # l
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 has param 'value' => (
 	writer => 1,
 	coerce => (InstanceOf ['Math::BigInt'])

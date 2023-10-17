@@ -17,6 +17,8 @@ use Bitcoin::Crypto::Types
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Script::Common;
 
+use namespace::clean;
+
 has param 'utxo' => (
 	coerce => (InstanceOf ['Bitcoin::Crypto::Transaction::UTXO'])
 		->plus_coercions(

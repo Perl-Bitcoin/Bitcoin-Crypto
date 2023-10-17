@@ -23,6 +23,8 @@ use Bitcoin::Crypto::Types
 	qw(IntMaxBits ArrayRef InstanceOf HashRef Object ByteStr Str PositiveInt PositiveOrZeroInt Enum BitcoinScript Bool);
 use Bitcoin::Crypto::Script::Common;
 
+use namespace::clean;
+
 has param 'version' => (
 	isa => IntMaxBits [32],
 	default => 1,

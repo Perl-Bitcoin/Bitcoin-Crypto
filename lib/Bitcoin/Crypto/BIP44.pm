@@ -11,6 +11,8 @@ use Bitcoin::Crypto::Types qw(BIP44Purpose PositiveOrZeroInt Bool Enum);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 sub _get_network_constant
 {
 	my ($network) = @_;
