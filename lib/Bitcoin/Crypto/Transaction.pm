@@ -810,15 +810,18 @@ Returns true if the transaction is subject to replace-by-fee.
 
 Returns the virtual size of the transaction (in vBytes).
 
-C<virtual_size> is used for fee calculations (witness data is discounted by 75%).
+C<virtual_size> is used for fee calculations. Normal transaction data is
+calculated as 1 vByte per byte and witness data is calculated as 0.25 vByte per
+byte.
 
 =head3 weight
 
-	my $B_size = $object->weight()
+	my $WU_size = $object->weight()
 
-Returns the weight of the transaction (in bytes).
+Returns the weight of the transaction (in weight units).
 
-C<weight> is the transaction's byte size after serializing.
+Similar to L</virtual_size>, but normal transaction data is calculated as 4 WU
+per byte and witness data is calculated as 1 WU per byte.
 
 =head3 update_utxos
 
