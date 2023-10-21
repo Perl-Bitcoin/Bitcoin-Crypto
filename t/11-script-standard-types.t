@@ -52,6 +52,12 @@ my @cases = (
 	],
 
 	[
+		'P2TR',
+		[hex => '5120ab0271db7bcba922e74a05051a00c250b4e79a893908e16c61b153cb2a7a45c9'],
+		'bc1p4vp8rkmmew5j9e62q5z35qxz2z6w0x5f8yywzmrpk9fuk2n6ghys53l328',
+	],
+
+	[
 		'NULLDATA',
 		[hex => '6a0b68656c6c6f20776f726c64'],
 		'"' . pack('H*', '68656c6c6f20776f726c64') . '"',

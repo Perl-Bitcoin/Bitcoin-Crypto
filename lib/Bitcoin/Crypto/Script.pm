@@ -72,7 +72,7 @@ sub _build
 
 			my $byte_method = lc "p2${type}_byte";
 			Bitcoin::Crypto::Exception::NetworkCheck->raise(
-				"provided address $address does not belong to network " . $self->network->name
+				"provided address $address is not P2$type on network " . $self->network->name
 			) if $network_byte ne $self->network->$byte_method;
 
 			Bitcoin::Crypto::Script::Common->fill($type => $self, $decoded);
