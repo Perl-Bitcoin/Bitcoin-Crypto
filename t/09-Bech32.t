@@ -214,6 +214,30 @@ my @tests_bech32 = (
 		type => 'bech32m',
 		exception => 'Bech32InputChecksum'
 	},    # checksum calculated with uppercase form of HRP
+
+	{
+		case => "\x201xj0phk",
+		type => 'bech32m',
+		exception => 'Bech32InputFormat'
+	},    # HRP character out of range
+
+	{
+		case => "\x7f1g6xzxy",
+		type => 'bech32m',
+		exception => 'Bech32InputFormat'
+	},    # HRP character out of range
+
+	{
+		case => "\x801vctc34",
+		type => 'bech32m',
+		exception => 'Bech32InputFormat'
+	},    # HRP character out of range
+
+	{
+		case => 'in1muywd',
+		type => 'bech32m',
+		exception => 'Bech32InputFormat'
+	},    # too short checksum
 );
 
 # SEGREGATED WITNESS
@@ -270,10 +294,6 @@ my @tests_segwit = (
 	},
 
 	# negative segwit tests
-	{
-		case => 'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7',
-		exception => 'Bech32InputFormat'
-	},
 
 	{
 		case => 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kemeawh',
@@ -359,6 +379,11 @@ my @tests_segwit = (
 		case => 'bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7v8n0nx0muaewav253zgeav',
 		exception => 'SegwitProgram'
 	},    # Invalid program length
+
+	{
+		case => 'tb1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vq47Zagq',
+		exception => 'Bech32InputFormat'
+	},    # mixed case bech32m
 
 	{
 		case => 'bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7v07qwwzcrf',
