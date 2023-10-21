@@ -160,14 +160,28 @@ sub as_string
 
 {
 
-	package Bitcoin::Crypto::Exception::Base58InputFormat;
+	package Bitcoin::Crypto::Exception::Base58;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
 
 {
 
+	package Bitcoin::Crypto::Exception::Base58InputFormat;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception::Base58';
+}
+
+{
+
 	package Bitcoin::Crypto::Exception::Base58InputChecksum;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception::Base58';
+}
+
+{
+
+	package Bitcoin::Crypto::Exception::Bech32;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';
 }
@@ -176,21 +190,21 @@ sub as_string
 
 	package Bitcoin::Crypto::Exception::Bech32InputFormat;
 
-	use parent -norequire, 'Bitcoin::Crypto::Exception';
+	use parent -norequire, 'Bitcoin::Crypto::Exception::Bech32';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputData;
 
-	use parent -norequire, 'Bitcoin::Crypto::Exception';
+	use parent -norequire, 'Bitcoin::Crypto::Exception::Bech32';
 }
 
 {
 
 	package Bitcoin::Crypto::Exception::Bech32InputChecksum;
 
-	use parent -norequire, 'Bitcoin::Crypto::Exception';
+	use parent -norequire, 'Bitcoin::Crypto::Exception::Bech32';
 }
 
 {

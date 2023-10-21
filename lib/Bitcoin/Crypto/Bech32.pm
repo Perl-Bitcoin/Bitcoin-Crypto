@@ -445,7 +445,7 @@ Returns the human readable part encoded in the bech32 address.
 
 =head1 EXCEPTIONS
 
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+This module throws an instance of L<Bitcoin::Crypto::Exception::Bech32> if it
 encounters an error. It can produce the following error types from the
 L<Bitcoin::Crypto::Exception> namespace:
 
