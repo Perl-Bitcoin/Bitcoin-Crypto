@@ -52,6 +52,10 @@ sub from_mnemonic
 
 	if (defined $lang) {
 
+		# make sure no whitespace gets in the way (only when $lang is specified
+		# to make it possible to recover key imported with such error)
+		$mnemonic = join ' ', grep { length $_ } split /\s+/, $mnemonic;
+
 		# checks validity of seed in given language
 		# requires Wordlist::LANG::BIP39 module for given LANG
 		Bitcoin::Crypto::Exception::MnemonicCheck->trap_into(
@@ -262,10 +266,14 @@ Note that technically any password is correct and there's no way to tell if it
 was mistaken.
 
 If you need to validate if C<$mnemonic> is a valid mnemonic you should specify
-C<$lang>, e.g. 'en'.
+C<$lang>, e.g. C<'en'>. It will also get rid of any extra whitespace before /
+after / in between words.
 
 If no C<$lang> is given then any string passed as C<$mnemonic> will produce a
-valid key.
+valid key. B<This means even adding whitespace (eg. trailing newline) will
+produce a different key>. Be careful when using this method without C<$lang>
+argument as you can easily create keys incompatible with other software due to
+these whitespace problems.
 
 Returns a new instance of this class.
 

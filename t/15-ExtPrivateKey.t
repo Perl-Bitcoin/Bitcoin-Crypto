@@ -20,6 +20,18 @@ my @test_data = (
 		basic => 'L3a57KGgirnCw4pRbg5kCeeLaB2YCiGKY3P4E4pYGgc9PgmhHHa3',
 	},
 
+	# test whitespace detection with language
+	{
+		mnemonic =>
+			" crisp curve  describe escape consider hip toilet fan        range pen sweet plunge mirror brush raise  \r\n",
+		seed =>
+			'92add1b3e9dc4b160db53dac1178f5e4055c23a3007abb5394ea74d27cca601270c55eab5d7052b36694efa72aa0dca65505ac72edc8aa9b94021e749b000a0a',
+		key =>
+			'xprv9s21ZrQH143K3nYJyWSWYLJZ2rvydAFU4dRaLXV9Krqvv8b9t4JzjX73ZunqKY67iWdxUCyvPQ9t5FX5SKi3LosisYovFqCCQPgbE9Ey5pA',
+		lang => 'en',
+		basic => 'L3a57KGgirnCw4pRbg5kCeeLaB2YCiGKY3P4E4pYGgc9PgmhHHa3',
+	},
+
 	{
 		mnemonic =>
 			'castle illegal state cupboard pass creek critic impact business attract group flavor',
