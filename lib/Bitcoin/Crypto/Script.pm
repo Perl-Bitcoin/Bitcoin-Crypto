@@ -70,6 +70,10 @@ sub _build
 			my $decoded = decode_base58check($address);
 			my $network_byte = substr $decoded, 0, 1, '';
 
+			Bitcoin::Crypto::Exception::Address->raise(
+				"legacy scripts should contain 20 bytes"
+			) unless length $decoded == 20;
+
 			my $byte_method = lc "p2${type}_byte";
 			Bitcoin::Crypto::Exception::NetworkCheck->raise(
 				"provided address $address is not P2$type on network " . $self->network->name

@@ -304,9 +304,16 @@ sub as_string
 
 {
 
-	package Bitcoin::Crypto::Exception::AddressGenerate;
+	package Bitcoin::Crypto::Exception::Address;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';
+}
+
+{
+
+	package Bitcoin::Crypto::Exception::AddressGenerate;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception::Address';
 }
 
 1;
