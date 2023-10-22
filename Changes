@@ -1,5 +1,18 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+2.002 Sun Oct 22 2023
+	[New features]
+	- added Bitcoin::Crypto::Util::get_address_type (address validation and recognition)
+	- added autodetection of standard scripts from address with [address => $string]
+
+	[Improvements]
+	- added generic parent exception classes for Bech32, Base58 and Address exceptions
+	- documentation and test improvements
+
+	[Changes and fixes]
+	- btc_extprv->from_mnemonic with $lang argument will now get rid of extra whitespace from the mnemonic
+	- fix not checking length of legacy address type when creating standard script
+
 2.001 Tue Oct 17 2023
 	[New features]
 	- added P2TR scripts, which can now be created and added as outputs to transactions
