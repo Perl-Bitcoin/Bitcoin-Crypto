@@ -15,6 +15,7 @@ BEGIN {
 		'Bitcoin::Crypto::Util', qw(
 			validate_wif
 			validate_segwit
+			get_address_type
 			get_path_info
 			generate_mnemonic
 			mnemonic_from_entropy
@@ -148,6 +149,28 @@ subtest 'testing generate_mnemonic / mnemonic_from_entropy' => sub {
 		my $mnemonic = generate_mnemonic(129, 'en');
 	} 'Bitcoin::Crypto::Exception::MnemonicGenerate', 'invalid entropy dies';
 
+};
+
+subtest 'testing get_address_type' => sub {
+	is get_address_type('1AshirGYwnrFsN82DpV83NDfQpRJMuXxLQ'), 'P2PKH', 'P2PKH ok';
+	is get_address_type('3HDtyBHZ4111BFtUBY2SA4eXJQxifmaTYw'), 'P2SH', 'P2SH ok';
+	is get_address_type('bc1q73vqlq8ptpjhd4pnghqq0gvn3nqh4tn00utypf'), 'P2WPKH', 'P2WPKH ok';
+	is get_address_type('bc1qxrv57xwn050dht30kt9msenkqf67rh0cjcurhukznucjwk63xm3skajjcc'), 'P2WSH', 'P2WSH ok';
+	is get_address_type('bc1pag3474cedulvygrj0xlk77lr94dnknx4yl5ygawkcwe2dq5gq7xqjxwe5q'), 'P2TR', 'P2WSH ok';
+
+	dies_ok {
+		get_address_type('aoreduroadeuro');
+	} 'random letters not an address';
+
+	dies_ok {
+		get_address_type('');
+	} 'empty string not an address';
+
+	dies_ok {
+		get_address_type('tb1q26jy9d4vkfqezh6hm7qp7txvk8nggkwv2y72x0');
+	} 'testnet address not on mainnet';
+
+	get_address_type('tb1q26jy9d4vkfqezh6hm7qp7txvk8nggkwv2y72x0', 'bitcoin_testnet'), 'P2WPKH', 'network param ok';
 };
 
 # segwit program passing common length valiadion (no version)

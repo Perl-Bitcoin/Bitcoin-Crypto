@@ -11,6 +11,7 @@ use Encode qw(encode);
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::BIP39 qw(gen_bip39_mnemonic entropy_to_bip39_mnemonic);
+use Try::Tiny;
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Constants;
@@ -20,6 +21,7 @@ use Bitcoin::Crypto::Exception;
 our @EXPORT_OK = qw(
 	validate_wif
 	validate_segwit
+	get_address_type
 	get_key_type
 	get_public_key_compressed
 	generate_mnemonic
@@ -93,6 +95,89 @@ sub validate_segwit
 	}
 
 	return $version;
+}
+
+signature_for get_address_type => (
+	positional => [
+		Str,
+		Maybe [Str],
+		{optional => !!1},
+	],
+);
+
+sub get_address_type
+{
+	my ($address, $network_id) = @_;
+
+	require Bitcoin::Crypto::Base58;
+	require Bitcoin::Crypto::Bech32;
+	require Bitcoin::Crypto::Network;
+
+	my $network = Bitcoin::Crypto::Network->get($network_id // ());
+	my $type;
+
+	# first, try segwit
+	if ($network->supports_segwit) {
+		try {
+			Bitcoin::Crypto::Exception::SegwitProgram->raise(
+				'invalid human readable part in address'
+			) unless Bitcoin::Crypto::Bech32::get_hrp($address) eq $network->segwit_hrp;
+
+			my $data = Bitcoin::Crypto::Bech32::decode_segwit($address);
+			my $version = ord substr $data, 0, 1, '';
+
+			$type = 'P2TR'
+				if $version == Bitcoin::Crypto::Constants::taproot_witness_version
+				&& length $data == 32;
+
+			return if $type;
+
+			Bitcoin::Crypto::Exception::SegwitProgram->raise(
+				"invalid segwit address of version $version"
+			) unless $version == Bitcoin::Crypto::Constants::segwit_witness_version;
+
+			$type = 'P2WPKH' if length $data == 20;
+			$type = 'P2WSH' if length $data == 32;
+
+			return if $type;
+
+			Bitcoin::Crypto::Exception::Address->raise(
+				'invalid segwit address'
+			);
+		}
+		catch {
+			die $_ unless $_->isa('Bitcoin::Crypto::Exception::Bech32InputFormat');
+		};
+
+		return $type if $type;
+	}
+
+	# then, try legacy
+	try {
+		my $data = Bitcoin::Crypto::Base58::decode_base58check($address);
+		my $byte = substr $data, 0, 1, '';
+
+		$type = 'P2PKH' if $byte eq $network->p2pkh_byte;
+		$type = 'P2SH' if $byte eq $network->p2sh_byte;
+
+		return if $type;
+
+		Bitcoin::Crypto::Exception::Address->raise(
+			'invalid first byte in address'
+		);
+
+		Bitcoin::Crypto::Exception::Address->raise(
+			'invalid legacy address'
+		) unless length $data == 20;
+	}
+	catch {
+		die $_ unless $_->isa('Bitcoin::Crypto::Exception::Base58InputFormat');
+	};
+
+	return $type if $type;
+	Bitcoin::Crypto::Exception::Address->raise(
+		"not an address: $address"
+	);
 }
 
 signature_for get_key_type => (
@@ -271,6 +356,7 @@ Bitcoin::Crypto::Util - General Bitcoin utilities
 	use Bitcoin::Crypto::Util qw(
 		validate_wif
 		validate_segwit
+		get_address_type
 		get_key_type
 		get_public_key_compressed
 		generate_mnemonic
@@ -312,6 +398,14 @@ validation will be performed until implemented.
 
 Raises an exception (C<Bitcoin::Crypto::Exception::SegwitProgram>) on error.
 Returns the detected segwit program version.
+
+=head2 get_address_type
+
+	$type = get_address_type($address, $network = Bitcoin::Crypto::Network->get)
+
+Tries to guess the type of C<$address>. Returns C<P2PKH>, C<P2SH>, C<P2WPKH>,
+C<P2WSH> or C<P2TR>. May throw Base58, Bech32, SegwitProgram, Address or other
+exceptions if the string is not a valid address.
 
 =head2 get_key_type
 
