@@ -4,12 +4,13 @@ use warnings;
 use Test::More;
 use Bitcoin::Crypto qw(btc_prv btc_transaction);
 use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Key::Private;
 
 use lib 't/lib';
 use TransactionStore;
 
 BEGIN {
-	unless (btc_prv->HAS_DETERMINISTIC_SIGNATURES) {
+	unless (Bitcoin::Crypto::Key::Private->HAS_DETERMINISTIC_SIGNATURES) {
 		plan skip_all => 'These tests require Crypt::Perl 0.34';
 	}
 }
