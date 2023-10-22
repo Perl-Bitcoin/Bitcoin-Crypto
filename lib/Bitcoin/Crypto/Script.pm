@@ -15,7 +15,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit get_hrp);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(hash160 hash256);
+use Bitcoin::Crypto::Util qw(hash160 hash256 get_address_type);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types qw(Maybe ArrayRef HashRef Str Object ByteStr Any ScriptType ScriptDesc);
 use Bitcoin::Crypto::Script::Opcode;
@@ -531,6 +531,10 @@ sub from_standard
 {
 	my ($class, $desc) = @_;
 
+	if ($desc->[0] eq 'address') {
+		$desc->[0] = get_address_type($desc->[1]);
+	}
+
 	return $class->new(
 		type => $desc->[0],
 		address => $desc->[1],
@@ -810,9 +814,16 @@ Creates a new script instance from a bytestring.
 =head2 from_standard
 
 	$object = Bitcoin::Crypto::Script->from_standard([P2PKH => '1Ehr6cNDzPCx3wQRu1sMdXWViEi2MQnFzH'])
+	$object = Bitcoin::Crypto::Script->from_standard([address => '1Ehr6cNDzPCx3wQRu1sMdXWViEi2MQnFzH'])
 
-Creates a new object of standard type with given address. The address must
-match the network specified for the script (see L</set_network>).
+Creates a new object of standard type with given address. The address must be
+of the currently default network. In case of C<NULLDATA>, C<P2MS> and C<P2PK>
+there is no address, and the second argument must be custom data (C<NULLDATA>),
+public key (C<P2PK>) or an array reference with number N of signatures followed
+by M public keys (N of M C<P2MS>).
+
+The first argument can also be specified as C<address> to enable auto-detection
+of script type.
 
 =head2 get_hash
 

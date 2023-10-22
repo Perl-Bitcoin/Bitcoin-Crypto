@@ -25,12 +25,12 @@ subtest 'should allow creation of P2TR outputs' => sub {
 	);
 
 	$tx->add_output(
-		locking_script => [P2PKH => '1FWQiwK27EnGXb6BiBMRLJvunJQZZPMcGd'],
+		locking_script => [address => '1FWQiwK27EnGXb6BiBMRLJvunJQZZPMcGd'],
 		value => 7_45212495,
 	);
 
 	$tx->add_output(
-		locking_script => [P2TR => 'bc1p9hqnycmek9nejeqj8pjhq24sepsfued79908lxhwtnxhg5g4ck2q8a6zsm'],
+		locking_script => [address => 'bc1p9hqnycmek9nejeqj8pjhq24sepsfued79908lxhwtnxhg5g4ck2q8a6zsm'],
 		value => 24057000,
 	);
 

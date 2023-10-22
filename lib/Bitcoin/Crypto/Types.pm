@@ -74,7 +74,7 @@ my $scripttype = __PACKAGE__->add_type(
 my $scriptdesc = __PACKAGE__->add_type(
 	name => 'ScriptDesc',
 	parent => Tuple->of(
-		$scripttype,
+		$scripttype | Enum->of(qw(address)),
 		Defined,
 	)
 );
@@ -136,5 +136,6 @@ __PACKAGE__->make_immutable;
 
 1;
 
-# Internal use only
+# This module is mostly used internally, but it can be used from outside for
+# bitcoin-specific types like BIP44Purpose.
 
