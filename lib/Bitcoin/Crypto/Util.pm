@@ -12,6 +12,7 @@ use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::BIP39 qw(gen_bip39_mnemonic entropy_to_bip39_mnemonic);
 use Try::Tiny;
+use Scalar::Util qw(blessed);
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Constants;
@@ -146,7 +147,7 @@ sub get_address_type
 			);
 		}
 		catch {
-			die $_ unless $_->isa('Bitcoin::Crypto::Exception::Bech32InputFormat');
+			die $_ unless blessed $_ && $_->isa('Bitcoin::Crypto::Exception::Bech32InputFormat');
 		};
 
 		return $type if $type;
@@ -160,18 +161,18 @@ sub get_address_type
 		$type = 'P2PKH' if $byte eq $network->p2pkh_byte;
 		$type = 'P2SH' if $byte eq $network->p2sh_byte;
 
+		Bitcoin::Crypto::Exception::Address->raise(
+			'invalid legacy address'
+		) unless length $data == 20;
+
 		return if $type;
 
 		Bitcoin::Crypto::Exception::Address->raise(
 			'invalid first byte in address'
 		);
-
-		Bitcoin::Crypto::Exception::Address->raise(
-			'invalid legacy address'
-		) unless length $data == 20;
 	}
 	catch {
-		die $_ unless $_->isa('Bitcoin::Crypto::Exception::Base58InputFormat');
+		die $_ unless blessed $_ && $_->isa('Bitcoin::Crypto::Exception::Base58InputFormat');
 	};
 
 	return $type if $type;

@@ -75,7 +75,9 @@ including running the script step by step, stopping after each opcode.
 
 =item * work with Bitcoin-related encodings
 
-See L<Bitcoin::Crypto::Base58> and L<Bitcoin::Crypto::Bech32>.
+There are L<Bitcoin::Crypto::Base58> and L<Bitcoin::Crypto::Bech32>. You can
+validate an address and get its type using
+L<Bitcoin::Crypto::Util/get_address_type>.
 
 =item * work with other cryptocurrencies
 
