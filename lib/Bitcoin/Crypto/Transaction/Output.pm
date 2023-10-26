@@ -189,7 +189,8 @@ interacted with directly.
 
 =head3 value
 
-Non-negative integer value of the output in the smallest unit (satoshi).
+Non-negative integer value of the output in the smallest unit (satoshi). It is
+an instance of L<Math::BigInt> with type coercions from integers and strings.
 Required.
 
 I<Available in the constructor>.

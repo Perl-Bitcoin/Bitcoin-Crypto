@@ -91,6 +91,17 @@ Bitcoin::Crypto test suite contains pretty thorough testing of following output 
 
 =back
 
+=head2 Coin values
+
+All the value fields used by this module are in the smallest unit (satoshi) and
+are BigInt objects. This is to ensure 32-bit compatibility of 64-bit
+value fields. There are type coercions implemented to make it as opaque as
+possible, but you may sometimes bump into issues with these objects when doing
+value calculations. Refer to L<Math::BigInt> documentation when required.
+
+If you need to calculate full coin value, you may use
+C<Bitcoin::Crypto::Constants::units_per_coin> constant.
+
 =head2 Transaction examples
 
 Bundled directory C<ex/tx/> contains scripts with transactions which were
