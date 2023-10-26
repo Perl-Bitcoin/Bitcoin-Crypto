@@ -175,7 +175,7 @@ the subject some bugs may still be present. In the world of digital money, a
 single bug may lead to losing funds. I encourage anyone to test the module
 themselves, review the test cases and use the module with care. Suggestions for
 improvements and more edge cases to test will be gladly accepted, but there is
-B<no warranty on your funds being manipulated by this module>.
+B<no warranty on funds manipulated by this module>.
 
 =head1 TODO
 
