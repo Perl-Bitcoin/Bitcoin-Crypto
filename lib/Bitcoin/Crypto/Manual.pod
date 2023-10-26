@@ -154,6 +154,13 @@ contains data specific to that script type, usually the address:
 		locking_script => [P2WPKH => 'bc1qr9htu5sy02q6kv6mx7axz2zdg3k9nrh8pe4l47'],
 	);
 
+You may also leave address detection up to the module by using the string C<address>:
+
+	# the same thing
+	$transaction->add_output(
+		locking_script => [address => 'bc1qr9htu5sy02q6kv6mx7axz2zdg3k9nrh8pe4l47'],
+	);
+
 Note that the script created like this always belongs to the currently set
 default network (C<bitcoin> by default). Passing address from the wrong network
 will result in an exception.
