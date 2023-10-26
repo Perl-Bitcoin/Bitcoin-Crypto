@@ -1,5 +1,10 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+2.003 Thu Oct 26 2023
+	[Improvements]
+	- fixed undefined value warnings when dumping input without an address
+	- documentation improvements
+
 2.002 Sun Oct 22 2023
 	[New features]
 	- added Bitcoin::Crypto::Util::get_address_type (address validation and recognition)
