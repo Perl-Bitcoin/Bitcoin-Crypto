@@ -104,8 +104,6 @@ See L<Bitcoin::Crypto::Manual> for an overview of the module.
 
 =head1 SHORTCUT FUNCTIONS
 
-=head2 Exported interface
-
 This package exports the following functions when asked for them. These are
 shourtcut functions and will load needed packages and return their names. You
 can then use names of loaded packages to instantiate them however you want. You
@@ -118,35 +116,35 @@ be used as follows:
 	# we can now use it to run its methods
 	my $public_key = btc_pub->from_serialized([hex => $hex_data]);
 
-=head3 btc_extprv
+=head2 btc_extprv
 
 Loads L<Bitcoin::Crypto::Key::ExtPrivate>
 
-=head3 btc_prv
+=head2 btc_prv
 
 Loads L<Bitcoin::Crypto::Key::Private>
 
-=head3 btc_extpub
+=head2 btc_extpub
 
 Loads L<Bitcoin::Crypto::Key::ExtPublic>
 
-=head3 btc_pub
+=head2 btc_pub
 
 Loads L<Bitcoin::Crypto::Key::Public>
 
-=head3 btc_script
+=head2 btc_script
 
 Loads L<Bitcoin::Crypto::Script>
 
-=head3 btc_transaction
+=head2 btc_transaction
 
 Loads L<Bitcoin::Crypto::Transaction>
 
-=head3 btc_utxo
+=head2 btc_utxo
 
 Loads L<Bitcoin::Crypto::Transaction::UTXO>
 
-=head3 btc_block
+=head2 btc_block
 
 Loads L<Bitcoin::Crypto::Block>
 
