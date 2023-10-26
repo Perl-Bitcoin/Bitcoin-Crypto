@@ -244,7 +244,7 @@ sub dump
 	my ($self, $params) = @_;
 
 	my $type = $self->utxo->output->locking_script->type // 'Custom';
-	my $address = $self->utxo->output->locking_script->get_address;
+	my $address = $self->utxo->output->locking_script->get_address // '';
 	$address = " from $address" if $address;
 
 	my @result;
