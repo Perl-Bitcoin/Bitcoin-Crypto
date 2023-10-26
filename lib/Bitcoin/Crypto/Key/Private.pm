@@ -278,6 +278,11 @@ Signs the transaction C<$tx> using this private key. This automatic signing
 only works for standard script types, if your script is non-standard then you
 will have to sign manually.
 
+Note that the module will let you sign any transaction with any private key.
+You have to manually run L<Bitcoin::Crypto::Transaction/verify> to ensure you
+used the right private key and the signature is correct for the corresponding
+locking script.
+
 Returns nothing - the result of the function is the modification of transaction
 C<$tx>.
 

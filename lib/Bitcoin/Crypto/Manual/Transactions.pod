@@ -16,8 +16,8 @@ system is B<incomplete>. A full reimplementation would not only be very hard to
 achieve but also very likely insecure (see
 L<https://bitcointalk.org/index.php?topic=260595.0>). In addition, it would be
 very ineffective to verify the entire blockchain using Perl + XS code. Instead,
-we focus on support to standard transaction types (see below) under today's
-consensus rules (without much regard for transactions' backward compatibility
+we focus on support for standard transaction types (see below) under today's
+consensus rules (without much regard to transactions' backward compatibility
 quirks).
 
 By using the transaction system of this module you take full responsibility for
