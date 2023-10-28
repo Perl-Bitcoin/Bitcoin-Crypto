@@ -435,7 +435,8 @@ C<translate_5to8> during decoding. They are used as means to store full byte
 data in bech32 strings, like so:
 
 	my $data = encode_bech32('hrp', translate_8to5($bytes));
-	my $decoded = translate_5to8(decode_bech32($data));
+	my @decoded_parts = decode_bech32($data);
+	my $decoded = translate_5to8($decoded_parts[1]);
 
 =head2 get_hrp
 
