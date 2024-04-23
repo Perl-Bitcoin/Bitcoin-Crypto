@@ -1,5 +1,12 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+2.004 Tue Apr 23 2024
+	[Improvements]
+	- documentation fixes and improvements
+
+	[Breaking changes]
+	- removed deprecated Bitcoin::Crypto::Segwit package
+
 2.003 Thu Oct 26 2023
 	[Improvements]
 	- fixed undefined value warnings when dumping input without an address
