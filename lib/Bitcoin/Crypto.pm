@@ -98,17 +98,17 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 
 =head1 DESCRIPTION
 
-Cryptographic module for common Bitcoin-related tasks.
-
-See L<Bitcoin::Crypto::Manual> for an overview of the module.
+This is a cryptographic module for common Bitcoin-related tasks. It enables
+low-level manipulation of Bitcoin keys, transactions and encodings. See
+L<Bitcoin::Crypto::Manual> for an overview of the module.
 
 =head1 SHORTCUT FUNCTIONS
 
 This package exports the following functions when asked for them. These are
 shourtcut functions and will load needed packages and return their names. You
-can then use names of loaded packages to instantiate them however you want. You
-can also load all of them with the I<:all> tag in import. These functions can
-be used as follows:
+can then use names of loaded packages to instantiate them however you want.
+It's also possible to load all of them with the I<:all> tag in import. They
+functions can be used as follows:
 
 	use Bitcoin::Crypto qw(btc_pub);
 
@@ -158,11 +158,11 @@ L<https://github.com/bitcoin/bips>
 
 Bartosz Jarzyna E<lt>bbrtj.pro@gmail.comE<gt>
 
-Consider supporting: L<https://bbrtj.eu/support>
+Consider supporting my effort: L<https://bbrtj.eu/support>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2018 - 2023 by Bartosz Jarzyna
+Copyright (C) 2018 - 2024 by Bartosz Jarzyna
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

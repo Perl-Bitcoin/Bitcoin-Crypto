@@ -224,7 +224,7 @@ This class allows you to create an extended private key instance.
 
 You can use an extended private key to:
 
-=over 2
+=over
 
 =item * generate extended public keys
 
@@ -379,7 +379,7 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it
 encounters an error. It can produce the following error types from the
 L<Bitcoin::Crypto::Exception> namespace:
 
-=over 2
+=over
 
 =item * MnemonicGenerate - mnemonic couldn't be generated correctly
 
@@ -395,7 +395,7 @@ L<Bitcoin::Crypto::Exception> namespace:
 
 =head1 SEE ALSO
 
-=over 2
+=over
 
 =item L<Bitcoin::Crypto::Key::ExtPublic>
 

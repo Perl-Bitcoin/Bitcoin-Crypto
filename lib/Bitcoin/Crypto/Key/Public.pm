@@ -208,7 +208,7 @@ Deprecated. Use C<< $class->from_serialized($data) >> instead.
 
 =head2 to_bytes
 
-Deprecated. Use C<< $key->to_serialized($data) >> instead.
+Deprecated. Use C<< $key->to_serialized() >> instead.
 
 =head2 from_hex
 
@@ -216,7 +216,7 @@ Deprecated. Use C<< $class->from_serialized([hex => $data]) >> instead.
 
 =head2 to_hex
 
-Deprecated. Use C<< to_format [hex => $key->to_serialized($data)] >> instead.
+Deprecated. Use C<< to_format [hex => $key->to_serialized()] >> instead.
 
 =head2 set_compressed
 

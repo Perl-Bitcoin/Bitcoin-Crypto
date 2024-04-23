@@ -107,7 +107,7 @@ This class allows you to create an extended public key instance.
 
 You can use an extended public key to:
 
-=over 2
+=over
 
 =item * derive extended keys using a path (only public keys)
 
@@ -196,7 +196,7 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it
 encounters an error. It can produce the following error types from the
 L<Bitcoin::Crypto::Exception> namespace:
 
-=over 2
+=over
 
 =item * KeyDerive - key couldn't be derived correctly
 
@@ -208,7 +208,7 @@ L<Bitcoin::Crypto::Exception> namespace:
 
 =head1 SEE ALSO
 
-=over 2
+=over
 
 =item L<Bitcoin::Crypto::Key::ExtPrivate>
 

@@ -149,7 +149,7 @@ This class allows you to create a private key instance.
 
 You can use a private key to:
 
-=over 2
+=over
 
 =item * generate public keys
 
@@ -191,7 +191,7 @@ Deprecated. Use C<< $class->from_serialized($data) >> instead.
 
 =head2 to_bytes
 
-Deprecated. Use C<< $key->to_serialized($data) >> instead.
+Deprecated. Use C<< $key->to_serialized() >> instead.
 
 =head2 from_hex
 
@@ -199,7 +199,7 @@ Deprecated. Use C<< $class->from_serialized([hex => $data]) >> instead.
 
 =head2 to_hex
 
-Deprecated. Use C<< to_format [hex => $key->to_serialized($data)] >> instead.
+Deprecated. Use C<< to_format [hex => $key->to_serialized()] >> instead.
 
 =head2 from_wif
 
@@ -345,7 +345,7 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it
 encounters an error. It can produce the following error types from the
 L<Bitcoin::Crypto::Exception> namespace:
 
-=over 2
+=over
 
 =item * Sign - couldn't sign the message correctly
 
@@ -361,7 +361,7 @@ L<Bitcoin::Crypto::Exception> namespace:
 
 =head1 SEE ALSO
 
-=over 2
+=over
 
 =item L<Bitcoin::Crypto::Key::Public>
 

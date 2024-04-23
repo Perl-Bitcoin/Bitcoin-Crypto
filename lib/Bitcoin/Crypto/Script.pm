@@ -714,7 +714,7 @@ This class allows you to create Perl representation of a Bitcoin script.
 
 You can use a script object to:
 
-=over 2
+=over
 
 =item * create a script from opcodes
 
@@ -904,7 +904,7 @@ This module throws an instance of L<Bitcoin::Crypto::Exception> if it
 encounters an error. It can produce the following error types from the
 L<Bitcoin::Crypto::Exception> namespace:
 
-=over 2
+=over
 
 =item * ScriptOpcode - unknown opcode was specified
 
