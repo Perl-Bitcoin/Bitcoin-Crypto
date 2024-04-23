@@ -375,7 +375,7 @@ Bech32 encoding / decoding valid for SegWit addresses. Human readable part
 validation is not included.
 
 These functions also perform segwit program validation, see
-L<Bitcoin::Crypto::Segwit>.
+L<Bitcoin::Crypto::Util/validate_segwit>.
 
 Encoding takes two arguments which are a human readable part and a bytestring
 (segwit program).
@@ -463,6 +463,4 @@ L<Bitcoin::Crypto::Exception> namespace:
 =head1 SEE ALSO
 
 L<Bitcoin::Crypto::Base58>
-
-L<Bitcoin::Crypto::Segwit>
 
