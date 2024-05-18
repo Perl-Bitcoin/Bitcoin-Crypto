@@ -15,6 +15,7 @@ use Try::Tiny;
 use Scalar::Util qw(blessed);
 use Type::Params -sigs;
 
+use Bitcoin::Crypto::Helpers qw(parse_formatdesc);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types qw(Str ByteStr FormatStr InstanceOf Maybe PositiveInt Tuple);
 use Bitcoin::Crypto::Exception;
@@ -29,6 +30,7 @@ our @EXPORT_OK = qw(
 	mnemonic_from_entropy
 	mnemonic_to_seed
 	get_path_info
+	from_format
 	to_format
 	hash160
 	hash256
@@ -307,20 +309,21 @@ sub get_path_info
 }
 
 # use signature, not signature_for, because of the prototype
+sub from_format ($)
+{
+	state $sig = signature(positional => [Tuple [FormatStr, Str]]);
+	my ($format, $data) = @{($sig->(@_))[0]};
+
+	return parse_formatdesc($format, $data);
+}
+
+# use signature, not signature_for, because of the prototype
 sub to_format ($)
 {
 	state $sig = signature(positional => [Tuple [FormatStr, ByteStr]]);
 	my ($format, $data) = @{($sig->(@_))[0]};
 
-	if ($format eq 'hex') {
-		$data = unpack 'H*', $data;
-	}
-	elsif ($format eq 'base58') {
-		require Bitcoin::Crypto::Base58;
-		$data = Bitcoin::Crypto::Base58::encode_base58check($data);
-	}
-
-	return $data;
+	return parse_formatdesc($format, $data, 1);
 }
 
 signature_for hash160 => (
@@ -519,6 +522,18 @@ C<bytes>, does nothing
 C<hex>, encodes as a hexadecimal string (no C<0x> prefix)
 
 C<base58>, uses base58 and includes the checksum (base58check)
+
+C<base64>, uses base64
+
+=head2 from_format
+
+	$decoded = from_format [$format => $string];
+
+Reverse of L</to_format> - decodes C<$string> into bytestring, treating it as
+C<$format>.
+
+I<Note: this is not usually needed to be called explicitly, as every bytestring
+parameter of the module will do this conversion implicitly.>
 
 =head2 hash160
 

@@ -1,5 +1,12 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+2.005 NOT RELEASED
+	[New features]
+	- added Bitcoin::Crypto::Util::from_format function, the reverse of existing to_format
+
+	[Improvements]
+	- format descriptions now also handle base64
+
 2.004 Tue Apr 23 2024
 	[Improvements]
 	- documentation fixes and improvements

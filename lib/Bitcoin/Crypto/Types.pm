@@ -34,6 +34,7 @@ my $formatstr = __PACKAGE__->add_type(
 		'bytes',
 		'hex',
 		'base58',
+		'base64',
 	)
 );
 
@@ -63,7 +64,7 @@ my $bytestr = __PACKAGE__->add_type(
 );
 
 $bytestr->coercion->add_type_coercions(
-	$formatdesc, q{ Bitcoin::Crypto::Helpers::parse_formatdesc($_) }
+	$formatdesc, q{ Bitcoin::Crypto::Helpers::parse_formatdesc(@{$_}) }
 );
 
 my $scripttype = __PACKAGE__->add_type(

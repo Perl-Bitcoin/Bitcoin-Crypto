@@ -7,6 +7,7 @@ use Exporter qw(import);
 use List::Util qw(max);
 use Crypt::PK::ECC;
 use Carp qw(carp);
+use MIME::Base64;
 
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
@@ -30,6 +31,7 @@ our @EXPORT_OK = qw(
 	pack_varint
 	unpack_varint
 	carp_once
+	parse_formatdesc
 );
 
 our @CARP_NOT;
@@ -201,18 +203,30 @@ sub add_ec_points
 		: undef;
 }
 
-# not exported - used exclusively by the internal FormatDesc type
-
+# default operation is to decode based on formatdesc
+# passing $reverse makes it encode instead
 sub parse_formatdesc
 {
-	my ($type, $data) = @{$_[0]};
+	my ($type, $data, $reverse) = @_;
 
 	if ($type eq 'hex') {
-		$data = pack 'H*', pad_hex $data;
+		$data = $reverse
+			? unpack 'H*', $data
+			: pack 'H*', pad_hex $data
+			;
 	}
 	elsif ($type eq 'base58') {
 		require Bitcoin::Crypto::Base58;
-		$data = Bitcoin::Crypto::Base58::decode_base58check($data);
+		$data = $reverse
+			? Bitcoin::Crypto::Base58::encode_base58check($data)
+			: Bitcoin::Crypto::Base58::decode_base58check($data)
+			;
+	}
+	elsif ($type eq 'base64') {
+		$data = $reverse
+			? encode_base64($data, '')
+			: decode_base64($data)
+			;
 	}
 
 	return $data;

@@ -23,6 +23,7 @@ BEGIN {
 			hash160
 			hash256
 			to_format
+			from_format
 		)
 	);
 }
@@ -194,16 +195,18 @@ subtest 'should pass validation of segwit version 15 program' => sub {
 	};
 };
 
-subtest 'to_format should handle bytes' => sub {
-	is to_format [bytes => "\x00\xff\x55"], "\x00\xff\x55";
+subtest 'testing to_format' => sub {
+	is to_format [bytes => "\x00\xff\x55"], "\x00\xff\x55", 'should handle bytes';
+	is to_format [hex => "\x00\xff\x55"], '00ff55', 'should handle hex';
+	is to_format [base58 => "\x00\xff\x55"], '13C9fhDMSM', 'should handle base58';
+	is to_format [base64 => "\x00\xff\x55"], 'AP9V', 'should handle base64';
 };
 
-subtest 'to_format should handle hexadecimals' => sub {
-	is to_format [hex => "\x00\xff\x55"], '00ff55';
-};
-
-subtest 'to_format should handle base58' => sub {
-	is to_format [base58 => "\x00\xff\x55"], '13C9fhDMSM';
+subtest 'testing from_format' => sub {
+	is from_format [bytes => "\x00\xff\x55"], "\x00\xff\x55", 'should handle bytes';
+	is from_format [hex => '00ff55'], "\x00\xff\x55", 'should handle hex';
+	is from_format [base58 => '13C9fhDMSM'], "\x00\xff\x55", 'should handle base58';
+	is from_format [base64 => 'AP9V'], "\x00\xff\x55", 'should handle base64';
 };
 
 done_testing;

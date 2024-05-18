@@ -132,8 +132,17 @@ For strings of hex data, this may look like this:
 	use Bitcoin::Crypto qw(btc_prv);
 	my $private = btc_prv->from_serialized([hex => '152a3f549597a2bef783']);
 
-Currently supported values for the first argument are: C<hex> (hexadecimal
-string, may be prefixed by C<0x>) and C<base58> (base58check string).
+Currently supported values for the first argument are:
+
+=over
+
+=item C<hex> (hexadecimal string, may be prefixed by C<0x>)
+
+=item C<base58> (base58-encoded string with the checksum)
+
+=item C<base64> (base64-encoded string)
+
+=back
 
 It is also common for functions to return bytestrings (like C<to_serialized>).
 If you need help changing that output format you may use
