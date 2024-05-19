@@ -6,6 +6,7 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
+use Type::Params -sigs;
 
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
@@ -967,13 +968,14 @@ $opcodes{OP_TRUE} = $opcodes{OP_1};
 
 %opcodes = map { $_, __PACKAGE__->new(name => $_, %{$opcodes{$_}}) } keys %opcodes;
 
+signature_for get_opcode_by_code => (
+	method => Str,
+	positional => [StrLength [1, 1]],
+);
+
 sub get_opcode_by_code
 {
 	my ($self, $code) = @_;
-
-	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
-		'undefined opcode code argument'
-	) unless defined $code;
 
 	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
 		"unknown opcode code " . unpack 'H*', $code
@@ -982,19 +984,20 @@ sub get_opcode_by_code
 	return $opcodes{$opcodes_reverse{$code}};
 }
 
+signature_for get_opcode_by_name => (
+	method => Str,
+	positional => [Str],
+);
+
 sub get_opcode_by_name
 {
-	my ($self, $opcode) = @_;
+	my ($self, $name) = @_;
 
 	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
-		'undefined opcode name argument'
-	) unless defined $opcode;
+		"unknown opcode $name"
+	) unless exists $opcodes{$name};
 
-	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
-		"unknown opcode $opcode"
-	) unless exists $opcodes{$opcode};
-
-	return $opcodes{$opcode};
+	return $opcodes{$name};
 }
 
 1;
