@@ -51,7 +51,7 @@ with qw(
 
 signature_for add_input => (
 	method => Object,
-	positional => [ArrayRef, {slurpy => 1}],
+	positional => [ArrayRef, {slurpy => !!1}],
 );
 
 sub add_input
@@ -75,7 +75,7 @@ sub add_input
 
 signature_for add_output => (
 	method => Object,
-	positional => [ArrayRef, {slurpy => 1}],
+	positional => [ArrayRef, {slurpy => !!1}],
 );
 
 sub add_output
@@ -103,6 +103,7 @@ signature_for to_serialized => (
 		witness => Bool,
 		{default => 1},
 	],
+	bless => !!0,
 );
 
 sub to_serialized
@@ -134,7 +135,7 @@ sub to_serialized
 	# Process inputs
 	my @inputs = @{$self->inputs};
 
-	my $with_witness = $args->witness && grep { $_->has_witness } @inputs;
+	my $with_witness = $args->{witness} && grep { $_->has_witness } @inputs;
 	if ($with_witness) {
 		$serialized .= "\x00\x01";
 	}
@@ -492,14 +493,15 @@ signature_for verify => (
 	method => Object,
 	named => [
 		block => InstanceOf ['Bitcoin::Crypto::Block'],
-		{optional => 1},
+		{optional => !!1},
 	],
+	bless => !!0,
 );
 
 sub verify
 {
 	my ($self, $args) = @_;
-	my $block = $args->block;
+	my $block = $args->{block};
 
 	my $script_runner = Bitcoin::Crypto::Script::Runner->new(
 		transaction => $self,
@@ -580,13 +582,12 @@ sub verify
 
 signature_for dump => (
 	method => Object,
-	named => [
-	],
+	positional => [],
 );
 
 sub dump
 {
-	my ($self, $params) = @_;
+	my ($self) = @_;
 
 	my @result;
 	push @result, 'Transaction ' . to_format [hex => $self->get_hash];

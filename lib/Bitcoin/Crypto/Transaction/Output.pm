@@ -99,15 +99,16 @@ signature_for from_serialized => (
 	head => [ByteStr],
 	named => [
 		pos => ScalarRef [PositiveOrZeroInt],
-		{optional => 1},
+		{optional => !!1},
 	],
+	bless => !!0,
 );
 
 sub from_serialized
 {
 	my ($class, $serialized, $args) = @_;
-	my $partial = $args->pos;
-	my $pos = $partial ? ${$args->pos} : 0;
+	my $partial = !!$args->{pos};
+	my $pos = $partial ? ${$args->{pos}} : 0;
 
 	my $value = reverse substr $serialized, $pos, 8;
 	$pos += 8;
@@ -126,7 +127,7 @@ sub from_serialized
 		'serialized output data is corrupted'
 	) if !$partial && $pos != length $serialized;
 
-	${$args->pos} = $pos
+	${$args->{pos}} = $pos
 		if $partial;
 
 	return $class->new(
@@ -137,13 +138,12 @@ sub from_serialized
 
 signature_for dump => (
 	method => Object,
-	named => [
-	],
+	positional => [],
 );
 
 sub dump
 {
-	my ($self, $params) = @_;
+	my ($self) = @_;
 
 	my $type = $self->locking_script->type // 'Custom';
 	my $address = $self->locking_script->get_address // '';

@@ -78,8 +78,8 @@ has param 'bip44_coin' => (
 );
 
 signature_for register => (
-	method => 1,
-	positional => [HashRef, {slurpy => 1}],
+	method => !!1,
+	positional => [HashRef, {slurpy => !!1}],
 );
 
 sub register
@@ -125,7 +125,7 @@ sub supports_segwit
 
 signature_for find => (
 	method => Str,
-	positional => [CodeRef, {optional => 1}],
+	positional => [CodeRef, {optional => !!1}],
 );
 
 sub find

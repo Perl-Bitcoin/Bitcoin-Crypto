@@ -21,7 +21,7 @@ sub _is_private { 0 }
 
 signature_for derive_key_bip44 => (
 	method => Object,
-	positional => [HashRef, {slurpy => 1}],
+	positional => [HashRef, {slurpy => !!1}],
 );
 
 sub derive_key_bip44

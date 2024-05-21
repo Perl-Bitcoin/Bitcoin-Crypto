@@ -136,15 +136,16 @@ signature_for from_serialized => (
 	head => [ByteStr],
 	named => [
 		pos => ScalarRef [PositiveOrZeroInt],
-		{optional => 1},
+		{optional => !!1},
 	],
+	bless => !!0,
 );
 
 sub from_serialized
 {
 	my ($class, $serialized, $args) = @_;
-	my $partial = $args->pos;
-	my $pos = $partial ? ${$args->pos} : 0;
+	my $partial = !!$args->{pos};
+	my $pos = $partial ? ${$args->{pos}} : 0;
 
 	my $transaction_hash = scalar reverse substr $serialized, $pos, 32;
 	$pos += 32;
@@ -169,7 +170,7 @@ sub from_serialized
 		'serialized input data is corrupted'
 	) if !$partial && $pos != length $serialized;
 
-	${$args->pos} = $pos
+	${$args->{pos}} = $pos
 		if $partial;
 
 	return $class->new(
@@ -235,13 +236,12 @@ sub script_base
 
 signature_for dump => (
 	method => Object,
-	named => [
-	],
+	positional => [],
 );
 
 sub dump
 {
-	my ($self, $params) = @_;
+	my ($self) = @_;
 
 	my $type = $self->utxo->output->locking_script->type // 'Custom';
 	my $address = $self->utxo->output->locking_script->get_address // '';

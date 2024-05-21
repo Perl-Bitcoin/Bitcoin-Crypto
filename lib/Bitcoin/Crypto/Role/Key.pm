@@ -91,7 +91,7 @@ sub _create_key
 
 signature_for raw_key => (
 	method => Object,
-	positional => [Enum [qw(private public public_compressed)], {optional => 1}],
+	positional => [Enum [qw(private public public_compressed)], {optional => !!1}],
 );
 
 sub raw_key

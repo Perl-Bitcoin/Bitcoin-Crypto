@@ -220,7 +220,7 @@ sub get_public_key_compressed
 }
 
 signature_for mnemonic_to_seed => (
-	positional => [Str, Maybe [Str], {optional => 1}],
+	positional => [Str, Maybe [Str], {optional => !!1}],
 );
 
 sub mnemonic_to_seed
