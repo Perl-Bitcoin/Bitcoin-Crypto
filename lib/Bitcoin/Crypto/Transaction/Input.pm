@@ -10,8 +10,7 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto qw(btc_script);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(pack_varint unpack_varint);
-use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Util qw(to_format pack_varint unpack_varint);
 use Bitcoin::Crypto::Types
 	qw(ByteStr Str IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined ScalarRef PositiveOrZeroInt);
 use Bitcoin::Crypto::Exception;
@@ -153,8 +152,7 @@ sub from_serialized
 	my $transaction_output_index = unpack 'V', substr $serialized, $pos, 4;
 	$pos += 4;
 
-	my ($script_size_len, $script_size) = unpack_varint $serialized, $pos;
-	$pos += $script_size_len;
+	my $script_size = unpack_varint $serialized, \$pos;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'serialized input script data is corrupted'

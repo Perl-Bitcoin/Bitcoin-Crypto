@@ -9,8 +9,8 @@ use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Types qw(Int BitcoinScript InstanceOf Object Str ByteStr PositiveOrZeroInt ScalarRef);
-use Bitcoin::Crypto::Helpers qw(pack_varint unpack_varint ensure_length);    # loads BigInt
-use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Helpers qw(ensure_length);
+use Bitcoin::Crypto::Util qw(to_format pack_varint unpack_varint);
 use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
@@ -113,8 +113,7 @@ sub from_serialized
 	my $value = reverse substr $serialized, $pos, 8;
 	$pos += 8;
 
-	my ($script_size_len, $script_size) = unpack_varint $serialized, $pos;
-	$pos += $script_size_len;
+	my $script_size = unpack_varint $serialized, \$pos;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'serialized input script data is corrupted'

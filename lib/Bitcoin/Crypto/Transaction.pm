@@ -17,8 +17,7 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Transaction::Digest;
-use Bitcoin::Crypto::Util qw(hash256 to_format);
-use Bitcoin::Crypto::Helpers qw(pack_varint unpack_varint);
+use Bitcoin::Crypto::Util qw(pack_varint unpack_varint hash256 to_format);
 use Bitcoin::Crypto::Types
 	qw(IntMaxBits ArrayRef InstanceOf HashRef Object ByteStr Str PositiveInt PositiveOrZeroInt Enum BitcoinScript Bool);
 use Bitcoin::Crypto::Script::Common;
@@ -185,9 +184,7 @@ sub from_serialized
 	my $witness_flag = (substr $serialized, $pos, 2) eq "\x00\x01";
 	$pos += 2 if $witness_flag;
 
-	my ($input_count_len, $input_count) = unpack_varint $serialized, $pos;
-	$pos += $input_count_len;
-
+	my $input_count = unpack_varint $serialized, \$pos;
 	my @inputs;
 	for (1 .. $input_count) {
 		push @inputs, Bitcoin::Crypto::Transaction::Input->from_serialized(
@@ -195,9 +192,7 @@ sub from_serialized
 		);
 	}
 
-	my ($output_count_len, $output_count) = unpack_varint $serialized, $pos;
-	$pos += $output_count_len;
-
+	my $output_count = unpack_varint $serialized, \$pos;
 	my @outputs;
 	for (1 .. $output_count) {
 		push @outputs, Bitcoin::Crypto::Transaction::Output->from_serialized(
@@ -207,13 +202,10 @@ sub from_serialized
 
 	if ($witness_flag) {
 		foreach my $input (@inputs) {
-			my ($input_witness_len, $input_witness) = unpack_varint $serialized, $pos;
-			$pos += $input_witness_len;
-
+			my $input_witness = unpack_varint $serialized, \$pos;
 			my @witness;
 			for (1 .. $input_witness) {
-				my ($witness_count_len, $witness_count) = unpack_varint $serialized, $pos;
-				$pos += $witness_count_len;
+				my $witness_count = unpack_varint $serialized, \$pos;
 
 				push @witness, substr $serialized, $pos, $witness_count;
 				$pos += $witness_count;

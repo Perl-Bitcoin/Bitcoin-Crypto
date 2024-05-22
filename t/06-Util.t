@@ -24,6 +24,8 @@ BEGIN {
 			hash256
 			to_format
 			from_format
+			pack_varint
+			unpack_varint
 		)
 	);
 }
@@ -207,6 +209,46 @@ subtest 'testing from_format' => sub {
 	is from_format [hex => '00ff55'], "\x00\xff\x55", 'should handle hex';
 	is from_format [base58 => '13C9fhDMSM'], "\x00\xff\x55", 'should handle base58';
 	is from_format [base64 => 'AP9V'], "\x00\xff\x55", 'should handle base64';
+};
+
+subtest 'testing varint one byte' => sub {
+	is pack_varint(128), "\x80", 'packing ok';
+	is unpack_varint("\x80"), 128, 'unpacking ok';
+};
+
+subtest 'testing varint one byte (high)' => sub {
+	is pack_varint(255), "\xfd\xff\x00", 'packing ok';
+	is unpack_varint("\xfd\xff\x00"), 255, 'unpacking ok';
+};
+
+subtest 'testing varint two bytes' => sub {
+	is pack_varint(515), "\xfd\x03\x02", 'packing ok';
+	is unpack_varint("\xfd\x03\x02"), 515, 'unpacking ok';
+};
+
+subtest 'testing varint four bytes' => sub {
+	is pack_varint(75105), "\xfe\x61\x25\x01\x00", 'packing ok';
+	is unpack_varint("\xfe\x61\x25\x01\x00"), 75105, 'unpacking ok';
+};
+
+subtest 'testing varint eight bytes' => sub {
+	plan skip_all => 'requires 64 bit system'
+		unless Bitcoin::Crypto::Constants::is_64bit;
+
+	is pack_varint(7451076510762517), "\xff\x15\x46\x9e\xf0\xb6\x78\x1a\x00", 'packing ok';
+	is unpack_varint("\xff\x15\x46\x9e\xf0\xb6\x78\x1a\x00"), 7451076510762517, 'unpacking ok';
+};
+
+subtest 'testing unpack_varint with pos argument' => sub {
+	my $pos = 2;
+	is unpack_varint("\x00\x00\xfe\x61\x25\x01\x00\x00", \$pos), 75105, 'unpacking ok';
+	is $pos, 7, 'position ok';
+};
+
+subtest 'testing unpack_varint with leftover data' => sub {
+	throws_ok {
+		unpack_varint("\xfe\x61\x25\x01\x00\x00");
+	} 'Bitcoin::Crypto::Exception';
 };
 
 done_testing;

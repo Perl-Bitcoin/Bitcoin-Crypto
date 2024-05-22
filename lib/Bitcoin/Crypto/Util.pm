@@ -4,7 +4,6 @@ use v5.10;
 use strict;
 use warnings;
 use Exporter qw(import);
-use Crypt::PK::ECC;
 use Unicode::Normalize;
 use Crypt::KeyDerivation qw(pbkdf2);
 use Encode qw(encode);
@@ -17,7 +16,7 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto::Helpers qw(parse_formatdesc);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Types qw(Str ByteStr FormatStr InstanceOf Maybe PositiveInt Tuple);
+use Bitcoin::Crypto::Types qw(Str ByteStr FormatStr InstanceOf Maybe PositiveInt Tuple ScalarRef PositiveOrZeroInt);
 use Bitcoin::Crypto::Exception;
 
 our @EXPORT_OK = qw(
@@ -32,6 +31,8 @@ our @EXPORT_OK = qw(
 	get_path_info
 	from_format
 	to_format
+	pack_varint
+	unpack_varint
 	hash160
 	hash256
 );
@@ -326,6 +327,80 @@ sub to_format ($)
 	return parse_formatdesc($format, $data, 1);
 }
 
+signature_for pack_varint => (
+	positional => [PositiveOrZeroInt],
+);
+
+sub pack_varint
+{
+	my ($value) = @_;
+
+	if ($value <= 0xfc) {
+		return pack 'C', $value;
+	}
+	elsif ($value <= 0xffff) {
+		return "\xfd" . pack 'v', $value;
+	}
+	elsif ($value <= 0xffffffff) {
+		return "\xfe" . pack 'V', $value;
+	}
+	else {
+		# 32 bit archs should not reach this
+		return "\xff" . (pack 'V', $value & 0xffffffff) . (pack 'V', $value >> 32);
+	}
+}
+
+signature_for unpack_varint => (
+	positional => [ByteStr, ScalarRef [PositiveOrZeroInt], {optional => !!1}],
+);
+
+sub unpack_varint
+{
+	my ($stream, $pos_ref) = @_;
+	my $partial = !!$pos_ref;
+	my $pos = $partial ? $$pos_ref : 0;
+
+	# if the first byte is 0xfd, 0xfe or 0xff, then VarInt contains 2, 4 or 8
+	# bytes respectively
+	my $value = ord substr $stream, $pos++, 1;
+	my $length = 2**($value - 0xfd + 1);
+
+	if ($length > 1) {
+		Bitcoin::Crypto::Exception->raise(
+			"cannot unpack VarInt: not enough data in stream"
+		) if length $stream < $length;
+
+		if ($length == 2) {
+			$value = unpack 'v', substr $stream, $pos, 2;
+		}
+		elsif ($length == 4) {
+			$value = unpack 'V', substr $stream, $pos, 4;
+		}
+		else {
+			Bitcoin::Crypto::Exception->raise(
+				"cannot unpack VarInt: no 64 bit support"
+			) if !Bitcoin::Crypto::Constants::is_64bit;
+
+			my $lower = unpack 'V', substr $stream, $pos, 4;
+			my $higher = unpack 'V', substr $stream, $pos + 4, 4;
+			$value = ($higher << 32) + $lower;
+		}
+
+		$pos += $length;
+	}
+
+	if ($partial) {
+		$$pos_ref = $pos;
+	}
+	else {
+		Bitcoin::Crypto::Exception->raise(
+			"cannot unpack VarInt: leftover data in stream"
+		) unless $pos == length $stream;
+	}
+
+	return $value;
+}
+
 signature_for hash160 => (
 	positional => [ByteStr],
 );
@@ -367,7 +442,10 @@ Bitcoin::Crypto::Util - General Bitcoin utilities
 		mnemonic_from_entropy
 		mnemonic_to_seed
 		get_path_info
+		from_format
 		to_format
+		pack_varint
+		unpack_varint
 		hash160
 		hash256
 	);
@@ -534,6 +612,23 @@ C<$format>.
 
 I<Note: this is not usually needed to be called explicitly, as every bytestring
 parameter of the module will do this conversion implicitly.>
+
+=head2 pack_varint
+
+	my $bytestr = pack_varint($integer);
+
+Serializes C<$integer> as Bitcoin's VarInt format and returns it as a byte string.
+
+=head2 unpack_varint
+
+	my $integer = unpack_varint($bytestr, $pos = undef);
+
+Deserializes VarInt from C<$bytestr>, returning an integer.
+
+If C<$pos> is passed, it must be a reference to a scalar containing the
+position at which to start the decoding. It will be modified to contain the
+next position after the varint. If not, decoding will start at 0 and will raise
+an exception if C<$bytestr> contains anything other than varint.
 
 =head2 hash160
 

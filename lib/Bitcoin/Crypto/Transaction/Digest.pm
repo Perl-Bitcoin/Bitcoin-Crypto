@@ -7,8 +7,7 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 
-use Bitcoin::Crypto::Helpers qw(pack_varint);
-use Bitcoin::Crypto::Util qw(hash256);
+use Bitcoin::Crypto::Util qw(hash256 pack_varint);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types qw(InstanceOf ByteStr PositiveOrZeroInt PositiveOrZeroInt);

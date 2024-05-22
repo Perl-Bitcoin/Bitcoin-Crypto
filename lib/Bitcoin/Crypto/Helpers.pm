@@ -4,7 +4,6 @@ use v5.10;
 use strict;
 use warnings;
 use Exporter qw(import);
-use List::Util qw(max);
 use Crypt::PK::ECC;
 use Carp qw(carp);
 use MIME::Base64;
@@ -28,8 +27,6 @@ our @EXPORT_OK = qw(
 	pad_hex
 	ensure_length
 	add_ec_points
-	pack_varint
-	unpack_varint
 	carp_once
 	parse_formatdesc
 );
@@ -65,71 +62,6 @@ sub ensure_length
 	) if $missing < 0;
 
 	return pack("x$missing") . $packed;
-}
-
-sub pack_varint
-{
-	my ($value) = @_;
-
-	Bitcoin::Crypto::Exception->raise(
-		"VarInt must be positive or zero"
-	) if $value < 0;
-
-	if ($value <= 0xfc) {
-		return pack 'C', $value;
-	}
-	elsif ($value <= 0xffff) {
-		return "\xfd" . pack 'v', $value;
-	}
-	elsif ($value <= 0xffffffff) {
-		return "\xfe" . pack 'V', $value;
-	}
-	else {
-		# 32 bit archs should not reach this
-		return "\xff" . (pack 'V', $value & 0xffffffff) . (pack 'V', $value >> 32);
-	}
-}
-
-sub unpack_varint
-{
-	my ($stream, $at) = @_;
-	$at //= 0;
-
-	my $value = ord substr $stream, $at++, 1;
-	my $length = 1;
-
-	if ($value == 0xfd) {
-		Bitcoin::Crypto::Exception->raise(
-			"cannot unpack VarInt: not enough data in stream"
-		) if length $stream < $at + 2;
-
-		$value = unpack 'v', substr $stream, $at, 2;
-		$length += 2;
-	}
-	elsif ($value == 0xfe) {
-		Bitcoin::Crypto::Exception->raise(
-			"cannot unpack VarInt: not enough data in stream"
-		) if length $stream < $at + 4;
-
-		$value = unpack 'V', substr $stream, $at, 4;
-		$length += 4;
-	}
-	elsif ($value == 0xff) {
-		Bitcoin::Crypto::Exception->raise(
-			"cannot unpack VarInt: no 64 bit support"
-		) if !Bitcoin::Crypto::Constants::is_64bit;
-
-		Bitcoin::Crypto::Exception->raise(
-			"cannot unpack VarInt: not enough data in stream"
-		) if length $stream < $at + 8;
-
-		my $lower = unpack 'V', substr $stream, $at, 4;
-		my $higher = unpack 'V', substr $stream, $at + 4, 4;
-		$value = ($higher << 32) + $lower;
-		$length += 8;
-	}
-
-	return ($length, $value);
 }
 
 # Self-contained implementation on elliptic curve points addition.
