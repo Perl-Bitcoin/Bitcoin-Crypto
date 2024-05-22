@@ -153,7 +153,7 @@ sub from_serialized
 	my $transaction_output_index = unpack 'V', substr $serialized, $pos, 4;
 	$pos += 4;
 
-	my ($script_size_len, $script_size) = unpack_varint(substr $serialized, $pos, 9);
+	my ($script_size_len, $script_size) = unpack_varint $serialized, $pos;
 	$pos += $script_size_len;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(

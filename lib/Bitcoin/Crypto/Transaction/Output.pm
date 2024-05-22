@@ -113,7 +113,7 @@ sub from_serialized
 	my $value = reverse substr $serialized, $pos, 8;
 	$pos += 8;
 
-	my ($script_size_len, $script_size) = unpack_varint(substr $serialized, $pos, 9);
+	my ($script_size_len, $script_size) = unpack_varint $serialized, $pos;
 	$pos += $script_size_len;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(

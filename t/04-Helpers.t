@@ -52,5 +52,17 @@ subtest 'testing varint four bytes' => sub {
 	is unpack_varint("\xfe\x61\x25\x01\x00"), 75105, 'unpacking ok';
 };
 
+subtest 'testing varint eight bytes' => sub {
+	plan skip_all => 'requires 64 bit system'
+		unless Bitcoin::Crypto::Constants::is_64bit;
+
+	is pack_varint(7451076510762517), "\xff\x15\x46\x9e\xf0\xb6\x78\x1a\x00", 'packing ok';
+	is unpack_varint("\xff\x15\x46\x9e\xf0\xb6\x78\x1a\x00"), 7451076510762517, 'unpacking ok';
+};
+
+subtest 'testing unpack_varint with pos argument' => sub {
+	is unpack_varint("\x00\x00\xfe\x61\x25\x01\x00\x00", 2), 75105, 'unpacking ok';
+};
+
 done_testing;
 

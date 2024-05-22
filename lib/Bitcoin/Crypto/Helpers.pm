@@ -92,25 +92,26 @@ sub pack_varint
 
 sub unpack_varint
 {
-	my ($stream) = @_;
+	my ($stream, $at) = @_;
+	$at //= 0;
 
-	my $value = ord substr $stream, 0, 1, '';
+	my $value = ord substr $stream, $at++, 1;
 	my $length = 1;
 
 	if ($value == 0xfd) {
 		Bitcoin::Crypto::Exception->raise(
 			"cannot unpack VarInt: not enough data in stream"
-		) if length $stream < 2;
+		) if length $stream < $at + 2;
 
-		$value = unpack 'v', substr $stream, 0, 2;
+		$value = unpack 'v', substr $stream, $at, 2;
 		$length += 2;
 	}
 	elsif ($value == 0xfe) {
 		Bitcoin::Crypto::Exception->raise(
 			"cannot unpack VarInt: not enough data in stream"
-		) if length $stream < 4;
+		) if length $stream < $at + 4;
 
-		$value = unpack 'V', substr $stream, 0, 4;
+		$value = unpack 'V', substr $stream, $at, 4;
 		$length += 4;
 	}
 	elsif ($value == 0xff) {
@@ -120,10 +121,10 @@ sub unpack_varint
 
 		Bitcoin::Crypto::Exception->raise(
 			"cannot unpack VarInt: not enough data in stream"
-		) if length $stream < 8;
+		) if length $stream < $at + 8;
 
-		my $lower = unpack 'V', substr $stream, 0, 4;
-		my $higher = unpack 'V', substr $stream, 4, 4;
+		my $lower = unpack 'V', substr $stream, $at, 4;
+		my $higher = unpack 'V', substr $stream, $at + 4, 4;
 		$value = ($higher << 32) + $lower;
 		$length += 8;
 	}
