@@ -270,6 +270,7 @@ sub fee
 
 	my $input_value = 0;
 	foreach my $input (@{$self->inputs}) {
+		return undef unless $input->utxo_registered;
 		$input_value += $input->utxo->output->value;
 	}
 
@@ -291,8 +292,9 @@ sub fee_rate
 	my ($self) = @_;
 
 	my $fee = $self->fee;
-	my $size = $self->virtual_size;
+	return undef unless defined $fee;
 
+	my $size = $self->virtual_size;
 	return $fee->as_float / $size;
 }
 
@@ -373,7 +375,7 @@ sub update_utxos
 	my ($self) = @_;
 
 	foreach my $input (@{$self->inputs}) {
-		$input->utxo->unregister;
+		$input->utxo->unregister if $input->utxo_registered;
 	}
 
 	foreach my $output_index (0 .. $#{$self->outputs}) {
@@ -581,11 +583,15 @@ sub dump
 {
 	my ($self) = @_;
 
+	my $fee = $self->fee;
+	my $fee_rate = defined $fee ? int($self->fee_rate * 100) / 100 : '??';
+	$fee //= '??';
+
 	my @result;
 	push @result, 'Transaction ' . to_format [hex => $self->get_hash];
 	push @result, 'version: ' . $self->version;
 	push @result, 'size: ' . $self->virtual_size . 'vB, ' . $self->weight . 'WU';
-	push @result, 'fee: ' . $self->fee . ' sat (~' . (int($self->fee_rate * 100) / 100) . ' sat/vB)';
+	push @result, "fee: $fee sat (~$fee_rate sat/vB)";
 	push @result, 'replace-by-fee: ' . ($self->has_rbf ? 'yes' : 'no');
 	push @result, 'locktime: ' . $self->locktime;
 	push @result, '';
@@ -771,14 +777,15 @@ The sighash which should be used for the digest. By default C<SIGHASH_ALL>.
 	$fee = $object->fee()
 
 Returns the fee - the difference between sum of input values and the sum of
-output values. The fee is always zero or positive integer.
+output values. The fee is always zero or positive integer, but can be undefined
+if the UTXOs were not registered.
 
 =head3 fee_rate
 
 	$fee_rate = $object->fee_rate()
 
 Returns the fee rate - the amount of satoshi per virtual byte (a floating point
-value).
+value) or undef if C<fee> is undef.
 
 NOTE: since weight of the transaction changes after signing it, it is not
 possible to accurately measure fee rate prior to signing.

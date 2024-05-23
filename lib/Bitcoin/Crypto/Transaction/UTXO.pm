@@ -117,28 +117,9 @@ sub extract
 {
 	my ($class, $serialized_tx) = @_;
 
-	# hijack the utxo loader
-	my $old_loader = $loader;
-	$loader = sub {
-		if ($old_loader) {
-			my $loaded = $old_loader->(@_);
-			return $loaded if $loaded;
-		}
-
-		return $class->new(
-			txid => shift,
-			output_index => shift,
-			output => {
-				locking_script => [NULLDATA => 'stub utxo'],
-				value => 0,
-			},
-		);
-	};
-
 	my $tx = Bitcoin::Crypto::Transaction->from_serialized($serialized_tx);
-	$loader = $old_loader;
-
 	$tx->update_utxos;
+
 	return;
 }
 
@@ -253,13 +234,14 @@ The subroutine should accept the same parameters as L</get> and return a
 constructed UTXO object. If possible, the loader should not return the same
 UTXO twice in a single runtime of the script.
 
-Returns nothing. Passing undef disables the loader.
+Returns nothing. Passing undef disables the custom loader.
 
 =head3 extract
 
 	$class->extract($serialized_tx)
 
-Extracts all outputs from the C<$serialized_tx> (a bytestring).
+Extracts all outputs from the C<$serialized_tx> (a bytestring). Same can be
+achieved by calling C<update_utxos> on a transaction object.
 
 Returns nothing.
 

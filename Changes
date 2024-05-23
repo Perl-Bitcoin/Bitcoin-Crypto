@@ -7,6 +7,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- added Bitcoin::Crypto::Util::unpack_varint function
 
 	[Improvements]
+	- transactions can now be created without registering UTXOs beforehand (with limited functionality)
 	- format descriptions now also handle base64
 
 2.004 Tue Apr 23 2024

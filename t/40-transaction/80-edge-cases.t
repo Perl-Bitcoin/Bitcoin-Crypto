@@ -236,5 +236,16 @@ subtest 'should not allow to create transactions using incorrect network address
 	} 'Bitcoin::Crypto::Exception::NetworkCheck';
 };
 
+subtest 'should be able to create transactions without registered UTXOs' => sub {
+	$tx = btc_transaction->from_serialized(
+		[
+			hex =>
+				'0200000000010137246b127eba7ccbbbbcc7bdf83fbbbeb31bf652ade1980d52125c337af94b0f0100000000fdffffff0200000000000000000a6a5d0714ddc1331492109c1201000000000022512048395825340764722b018d2136768734ee23b4ab2985f17d6f533f2fe02c02a60140e52e49d416d31bce0b9980146f1c12d2f9157a6b2443e6b4aea61e3080fec04f4538277968249135cc6d875528ea028ba251caed95ef665474091d9559ce478f00000000'
+		]
+	);
+
+	ok !defined $tx->fee, 'fee is not defined without the UTXOs';
+};
+
 done_testing;
 

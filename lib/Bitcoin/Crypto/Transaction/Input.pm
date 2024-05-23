@@ -7,25 +7,26 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
+use Scalar::Util qw(blessed);
+use Try::Tiny;
 
-use Bitcoin::Crypto qw(btc_script);
+use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(to_format pack_varint unpack_varint);
 use Bitcoin::Crypto::Types
-	qw(ByteStr Str IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined ScalarRef PositiveOrZeroInt);
+	qw(ByteStr Str IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined ScalarRef PositiveOrZeroInt Tuple);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Script::Common;
 
 use namespace::clean;
 
-has param 'utxo' => (
-	coerce => (InstanceOf ['Bitcoin::Crypto::Transaction::UTXO'])
-		->plus_coercions(
-			ArrayRef, q{
-				require Bitcoin::Crypto::Transaction::UTXO;
-				Bitcoin::Crypto::Transaction::UTXO->get(@$_)
-			}
-		)
+has param 'utxo_location' => (
+	coerce => Tuple [ByteStr, PositiveOrZeroInt],
+);
+
+has option 'utxo' => (
+	isa => InstanceOf ['Bitcoin::Crypto::Transaction::UTXO'],
+	lazy => 1,
 );
 
 has param 'signature_script' => (
@@ -101,10 +102,53 @@ sub _script_code
 	return $program;
 }
 
+sub _build_utxo
+{
+	my ($self) = @_;
+
+	return btc_utxo->get(@{$self->utxo_location});
+}
+
+around BUILDARGS => sub {
+	my ($orig, $class, @params) = @_;
+	my %hash_params = @params;
+	my $utxo = delete $hash_params{utxo};
+
+	if ($utxo) {
+		if (blessed $utxo && $utxo->isa('Bitcoin::Crypto::Transaction::UTXO')) {
+			return {
+				%hash_params,
+				utxo => $utxo,
+				utxo_location => [$utxo->txid, $utxo->output_index],
+			};
+		}
+		elsif (ref $utxo eq 'ARRAY') {
+			return {
+				%hash_params,
+				utxo_location => $utxo,
+			};
+		}
+	}
+
+	return $class->$orig(@params);
+};
+
+signature_for utxo_registered => (
+	method => Object,
+	positional => [],
+);
+
+sub utxo_registered
+{
+	my ($self) = @_;
+
+	try { $self->utxo } unless $self->has_utxo;
+	return $self->has_utxo;
+}
+
 signature_for to_serialized => (
 	method => Object,
-	positional => [
-	],
+	positional => [],
 );
 
 sub to_serialized
@@ -210,9 +254,9 @@ signature_for prevout => (
 sub prevout
 {
 	my ($self) = @_;
-	my $utxo = $self->utxo;
+	my ($txid, $index) = @{$self->utxo_location};
 
-	return scalar reverse($utxo->txid) . pack 'V', $utxo->output_index;
+	return scalar reverse($txid) . pack 'V', $index;
 }
 
 signature_for script_base => (
@@ -241,16 +285,27 @@ sub dump
 {
 	my ($self) = @_;
 
-	my $type = $self->utxo->output->locking_script->type // 'Custom';
-	my $address = $self->utxo->output->locking_script->get_address // '';
-	$address = " from $address" if $address;
+	my $utxo = $self->utxo_registered ? $self->utxo : undef;
+	my $utxo_location = $self->utxo_location;
 
 	my @result;
-	push @result, "$type Input$address";
-	push @result, 'spending output #' . $self->utxo->output_index . ' from ' . to_format([hex => $self->utxo->txid]);
-	push @result, 'value: ' . $self->utxo->output->value;
+
+	if ($utxo) {
+		my $type = $utxo->output->locking_script->type // 'Custom';
+		my $address = $utxo->output->locking_script->get_address // '';
+		$address = " from $address" if $address;
+		push @result, "$type Input$address";
+	}
+	else {
+		push @result, "Unknown Input (UTXO was not registered, data is incomplete)";
+	}
+
+	push @result, 'spending output #' . $utxo_location->[1] . ' from ' . to_format([hex => $utxo_location->[0]]);
+	push @result, 'value: ' . $utxo->output->value
+		if $utxo;
 	push @result, sprintf 'sequence: 0x%X', $self->sequence_no;
-	push @result, 'locking script: ' . to_format [hex => $self->utxo->output->locking_script->to_serialized];
+	push @result, 'locking script: ' . to_format [hex => $utxo->output->locking_script->to_serialized]
+		if $utxo;
 
 	if (!$self->signature_script->is_empty) {
 		push @result, 'signature script: ' . to_format [hex => $self->signature_script->to_serialized];
@@ -300,9 +355,17 @@ interacted with directly.
 An instance of L<Bitcoin::Crypto::Transaction::UTXO>. Required.
 
 Can also be passed an array reference of two parameters, which will be fed to
-L<Bitcoin::Crypto::Transaction::UTXO/get> to fetch the UTXO instance.
+L<Bitcoin::Crypto::Transaction::UTXO/get> to fetch the UTXO instance. It will
+be done lazily, so that you can freely deserialize transactions without the
+need to set up their UTXOs.
 
 I<Available in the constructor>.
+
+=head3 utxo_location
+
+An array reference with the same data as passed to
+L<Bitcoin::Crypto::Transaction::UTXO/get>. Will be pulled out of whatever was
+passed to L</utxo>.
 
 =head3 signature_script
 
@@ -349,6 +412,17 @@ This is a standard Moo constructor, which can be used to create the object. It
 takes arguments specified in L</Attributes>.
 
 Returns class instance.
+
+=head3 utxo_registered
+
+	$boolean = $object->utxo_registered()
+
+Returns boolean value indicating whether UTXO for this input is reachable. If
+it isn't, getting L</utxo> will throw an exception.
+
+Creating transactions without registered UTXOs will work in very basic cases
+but can randomly throw C<Bitcoin::Crypto::Exception::UTXO> exception. It is
+mainly useful for getting data encoded in a serialized transaction.
 
 =head3 to_serialized
 
