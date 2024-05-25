@@ -8,9 +8,11 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
+use Bitcoin::Crypto qw(btc_transaction);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Object Str Maybe HashRef PositiveOrZeroInt Enum);
+use Bitcoin::Crypto::Util qw(pack_varint unpack_varint);
+use Bitcoin::Crypto::Types qw(Object Str Maybe HashRef PositiveOrZeroInt Enum CodeRef);
 
 use namespace::clean;
 
@@ -33,6 +35,20 @@ has param 'code' => (
 	isa => PositiveOrZeroInt,
 );
 
+has param 'serializer' => (
+	isa => CodeRef,
+	default => sub {
+		sub { $_[0] }
+	},
+);
+
+has param 'deserializer' => (
+	isa => CodeRef,
+	default => sub {
+		sub { $_[0] }
+	},
+);
+
 has param 'key_data' => (
 	isa => Maybe [Str],
 );
@@ -52,6 +68,8 @@ my %types = (
 		code => 0x00,
 		key_data => undef,
 		value_data => "<bytes transaction>",
+		serializer => sub { shift->to_serialized },
+		deserializer => sub { btc_transaction->from_serialized(shift) },
 		version_status => {
 			0 => REQUIRED,
 		},
@@ -69,6 +87,8 @@ my %types = (
 		code => 0x02,
 		key_data => undef,
 		value_data => "<32-bit little endian int version>",
+		serializer => sub { pack 'V', shift },
+		deserializer => sub { unpack 'V', shift },
 		version_status => {
 			2 => REQUIRED,
 		},
@@ -85,6 +105,8 @@ my %types = (
 		code => 0x04,
 		key_data => undef,
 		value_data => "<compact size uint input count>",
+		serializer => sub { pack_varint shift },
+		deserializer => sub { unpack_varint shift },
 		version_status => {
 			2 => REQUIRED,
 		},
@@ -93,6 +115,8 @@ my %types = (
 		code => 0x05,
 		key_data => undef,
 		value_data => "<compact size uint input count>",
+		serializer => sub { pack_varint shift },
+		deserializer => sub { unpack_varint shift },
 		version_status => {
 			2 => REQUIRED,
 		},
@@ -109,6 +133,8 @@ my %types = (
 		code => 0xfb,
 		key_data => undef,
 		value_data => "<32-bit little endian uint version>",
+		serializer => sub { pack 'V', shift },
+		deserializer => sub { unpack 'V', shift },
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,

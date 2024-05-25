@@ -8,7 +8,6 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
-use Bitcoin::Crypto qw(btc_transaction);
 use Bitcoin::Crypto::PSBT::FieldType;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
@@ -135,8 +134,8 @@ sub _deserialize_map
 
 sub _deserialize_version0
 {
-	my ($self, $serialized, $pos) = @_;
-	my $tx = btc_transaction->from_serialized($self->get_field('PSBT_GLOBAL_UNSIGNED_TX'));
+	my ($self, $serialized, $pos_ref) = @_;
+	my $tx = $self->get_field('PSBT_GLOBAL_UNSIGNED_TX');
 	my $input_count = @{$tx->inputs};
 	my $output_count = @{$tx->outputs};
 
@@ -144,7 +143,7 @@ sub _deserialize_version0
 		$self->_deserialize_map(
 			$serialized,
 			map_type => Bitcoin::Crypto::PSBT::FieldType->INPUT,
-			pos => \$pos,
+			pos => $pos_ref,
 			index => $index,
 		);
 	}
@@ -153,19 +152,35 @@ sub _deserialize_version0
 		$self->_deserialize_map(
 			$serialized,
 			map_type => Bitcoin::Crypto::PSBT::FieldType->OUTPUT,
-			pos => \$pos,
+			pos => $pos_ref,
 			index => $index,
 		);
 	}
-
-	Bitcoin::Crypto::Exception::PSBT->raise(
-		'serialized PSBT data is corrupted'
-	) if $pos != length $serialized;
 }
 
 sub _deserialize_version2
 {
-	...;
+	my ($self, $serialized, $pos_ref) = @_;
+	my $input_count = $self->get_field('PSBT_GLOBAL_INPUT_COUNT');
+	my $output_count = $self->get_field('PSBT_GLOBAL_OUTPUT_COUNT');
+
+	foreach my $index (0 .. $input_count - 1) {
+		$self->_deserialize_map(
+			$serialized,
+			map_type => Bitcoin::Crypto::PSBT::FieldType->INPUT,
+			pos => $pos_ref,
+			index => $index,
+		);
+	}
+
+	foreach my $index (0 .. $output_count - 1) {
+		$self->_deserialize_map(
+			$serialized,
+			map_type => Bitcoin::Crypto::PSBT::FieldType->OUTPUT,
+			pos => $pos_ref,
+			index => $index,
+		);
+	}
 }
 
 sub _check_integrity
@@ -191,13 +206,13 @@ sub _check_integrity
 			$check_field->($field->name);
 		}
 		elsif ($field_type eq Bitcoin::Crypto::PSBT::FieldType->INPUT) {
-			for my $input_index (0 .. $self->input_count) {
-				$check_field->($field->name, index => $input_index);
+			for my $input_index (0 .. $self->input_count - 1) {
+				$check_field->($field->name, $input_index);
 			}
 		}
 		elsif ($field_type eq Bitcoin::Crypto::PSBT::FieldType->OUTPUT) {
-			for my $output_index (0 .. $self->output_count) {
-				$check_field->($field->name, index => $output_index);
+			for my $output_index (0 .. $self->output_count - 1) {
+				$check_field->($field->name, $output_index);
 			}
 		}
 	}
@@ -229,7 +244,7 @@ sub output_count
 
 signature_for set_field => (
 	method => Object,
-	head => [Str, ByteStr],
+	head => [Str, Defined],
 	named => [
 		key_data => ByteStr,
 		{optional => !!1},
@@ -244,7 +259,7 @@ sub set_field
 	my ($self, $name, $value, $args) = @_;
 
 	my $type = Bitcoin::Crypto::PSBT::FieldType->get_field_by_name($name);
-	${$self->_get_map_value_ref($type, %$args, set => !!1)} = $value;
+	${$self->_get_map_value_ref($type, %$args, set => !!1)} = $type->serializer->($value);
 
 	return $self;
 }
@@ -268,7 +283,7 @@ sub get_field
 	my $type = Bitcoin::Crypto::PSBT::FieldType->get_field_by_name($name);
 	my $ref = $self->_get_map_value_ref($type, %$args);
 
-	return $$ref if defined $ref;
+	return $type->deserializer->($$ref) if defined $ref;
 	return undef;
 }
 
@@ -313,7 +328,11 @@ sub from_serialized
 	Bitcoin::Crypto::Exception::PSBT->raise(
 		"PSBT version $version is not supported"
 	) unless $self->can($method);
-	$self->$method($serialized, $pos);
+	$self->$method($serialized, \$pos);
+
+	Bitcoin::Crypto::Exception::PSBT->raise(
+		'serialized PSBT data is corrupted'
+	) if $pos != length $serialized;
 
 	$self->_check_integrity;
 

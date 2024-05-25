@@ -16,8 +16,8 @@ subtest 'should deserialize a version 0 PSBT' => sub {
 		]
 	);
 
-	is to_format [hex => $psbt->get_field('PSBT_GLOBAL_UNSIGNED_TX')],
-		'020000000258e87a21b56daf0c23be8e7070456c336f7cbaa5c8757924f545887bb2abdd750000000000ffffffff838d0427d0ec650a68aa46bb0b098aea4422c071b2ca78352a077959d07cea1d0100000000ffffffff0270aaf00800000000160014d85c2b71d0060b09c9886aeb815e50991dda124d00e1f5050000000016001400aea9a2e5f0f876a588df5546e8742d1d87008f00000000',
+	is to_format [hex => $psbt->get_field('PSBT_GLOBAL_UNSIGNED_TX')->get_hash],
+		'82efd652d7ab1197f01a5f4d9a30cb4c68bb79ab6fec58dfa1bf112291d1617b',
 		'transaction field ok';
 
 	is $psbt->input_count, 2, 'input count ok';
@@ -27,6 +27,18 @@ subtest 'should deserialize a version 0 PSBT' => sub {
 subtest 'getting a field from a non-existent input should not create it' => sub {
 	$psbt->get_field('PSBT_IN_WITNESS_SCRIPT', index => 2);
 	is $psbt->input_count, 2, 'input count ok';
+};
+
+subtest 'should deserialize a version 2 PSBT' => sub {
+	$psbt = btc_psbt->from_serialized(
+		[
+			base64 =>
+				'cHNidP8BAgQCAAAAAQQBAQEFAQIB+wQCAAAAAAEOIAsK2SFBnByHGXNdctxzn56p4GONH+TB7vD5lECEgV/IAQ8EAAAAAAABAwgACK8vAAAAAAEEFgAUxDD2TEdW2jENvRoIVXLvKZkmJywAAQMIi73rCwAAAAABBBYAFE3Rk6yWSlasG54cyoRU/i9HT4UTAA=='
+		]
+	);
+
+	is $psbt->input_count, 1, 'input count ok';
+	is $psbt->output_count, 2, 'output count ok';
 };
 
 done_testing;
