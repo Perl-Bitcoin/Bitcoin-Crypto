@@ -33,6 +33,8 @@ use constant {
 
 	p2sh_timestamp_threshold => 1333238400,
 	rbf_sequence_no_threshold => 0xffffffff - 2,
+
+	psbt_magic => "\x70\x73\x62\x74\xff",
 };
 
 # These constants are environment-specific and internal only

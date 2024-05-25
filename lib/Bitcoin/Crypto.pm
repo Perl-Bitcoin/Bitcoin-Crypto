@@ -14,6 +14,7 @@ our @EXPORT_OK = qw(
 	btc_transaction
 	btc_block
 	btc_utxo
+	btc_psbt
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -64,6 +65,12 @@ sub btc_block
 {
 	require Bitcoin::Crypto::Block;
 	return 'Bitcoin::Crypto::Block';
+}
+
+sub btc_psbt
+{
+	require Bitcoin::Crypto::PSBT;
+	return 'Bitcoin::Crypto::PSBT';
 }
 
 __END__
