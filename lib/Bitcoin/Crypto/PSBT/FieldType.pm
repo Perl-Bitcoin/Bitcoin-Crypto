@@ -11,7 +11,7 @@ use Type::Params -sigs;
 use Bitcoin::Crypto qw(btc_transaction);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Util qw(pack_varint unpack_varint);
+use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Types qw(Object Str Maybe HashRef PositiveOrZeroInt Enum CodeRef);
 
 use namespace::clean;
@@ -105,8 +105,8 @@ my %types = (
 		code => 0x04,
 		key_data => undef,
 		value_data => "<compact size uint input count>",
-		serializer => sub { pack_varint shift },
-		deserializer => sub { unpack_varint shift },
+		serializer => sub { pack_compactsize shift },
+		deserializer => sub { unpack_compactsize shift },
 		version_status => {
 			2 => REQUIRED,
 		},
@@ -115,8 +115,8 @@ my %types = (
 		code => 0x05,
 		key_data => undef,
 		value_data => "<compact size uint input count>",
-		serializer => sub { pack_varint shift },
-		deserializer => sub { unpack_varint shift },
+		serializer => sub { pack_compactsize shift },
+		deserializer => sub { unpack_compactsize shift },
 		version_status => {
 			2 => REQUIRED,
 		},

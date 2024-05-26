@@ -12,7 +12,7 @@ use Try::Tiny;
 
 use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(to_format pack_varint unpack_varint);
+use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Types
 	qw(ByteStr Str IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined ScalarRef PositiveOrZeroInt Tuple Maybe);
 use Bitcoin::Crypto::Exception;
@@ -166,7 +166,7 @@ sub to_serialized
 	$serialized .= $self->prevout;
 
 	my $script = $self->signature_script->to_serialized;
-	$serialized .= pack_varint(length $script);
+	$serialized .= pack_compactsize(length $script);
 	$serialized .= $script;
 
 	$serialized .= pack 'V', $self->sequence_no;
@@ -196,7 +196,7 @@ sub from_serialized
 	my $transaction_output_index = unpack 'V', substr $serialized, $pos, 4;
 	$pos += 4;
 
-	my $script_size = unpack_varint $serialized, \$pos;
+	my $script_size = unpack_compactsize $serialized, \$pos;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'serialized input script data is corrupted'

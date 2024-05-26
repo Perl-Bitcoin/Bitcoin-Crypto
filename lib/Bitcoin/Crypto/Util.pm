@@ -31,8 +31,8 @@ our @EXPORT_OK = qw(
 	get_path_info
 	from_format
 	to_format
-	pack_varint
-	unpack_varint
+	pack_compactsize
+	unpack_compactsize
 	hash160
 	hash256
 );
@@ -323,11 +323,11 @@ sub to_format ($)
 	return parse_formatdesc($format, $data, 1);
 }
 
-signature_for pack_varint => (
+signature_for pack_compactsize => (
 	positional => [PositiveOrZeroInt],
 );
 
-sub pack_varint
+sub pack_compactsize
 {
 	my ($value) = @_;
 
@@ -346,24 +346,24 @@ sub pack_varint
 	}
 }
 
-signature_for unpack_varint => (
+signature_for unpack_compactsize => (
 	positional => [ByteStr, Maybe [ScalarRef [PositiveOrZeroInt]], {default => undef}],
 );
 
-sub unpack_varint
+sub unpack_compactsize
 {
 	my ($stream, $pos_ref) = @_;
 	my $partial = !!$pos_ref;
 	my $pos = $partial ? $$pos_ref : 0;
 
-	# if the first byte is 0xfd, 0xfe or 0xff, then VarInt contains 2, 4 or 8
+	# if the first byte is 0xfd, 0xfe or 0xff, then CompactSize contains 2, 4 or 8
 	# bytes respectively
 	my $value = ord substr $stream, $pos++, 1;
 	my $length = 2**($value - 0xfd + 1);
 
 	if ($length > 1) {
 		Bitcoin::Crypto::Exception->raise(
-			"cannot unpack VarInt: not enough data in stream"
+			"cannot unpack CompactSize: not enough data in stream"
 		) if length $stream < $length;
 
 		if ($length == 2) {
@@ -374,7 +374,7 @@ sub unpack_varint
 		}
 		else {
 			Bitcoin::Crypto::Exception->raise(
-				"cannot unpack VarInt: no 64 bit support"
+				"cannot unpack CompactSize: no 64 bit support"
 			) if !Bitcoin::Crypto::Constants::is_64bit;
 
 			my $lower = unpack 'V', substr $stream, $pos, 4;
@@ -390,7 +390,7 @@ sub unpack_varint
 	}
 	else {
 		Bitcoin::Crypto::Exception->raise(
-			"cannot unpack VarInt: leftover data in stream"
+			"cannot unpack CompactSize: leftover data in stream"
 		) unless $pos == length $stream;
 	}
 
@@ -440,8 +440,8 @@ Bitcoin::Crypto::Util - General Bitcoin utilities
 		get_path_info
 		from_format
 		to_format
-		pack_varint
-		unpack_varint
+		pack_compactsize
+		unpack_compactsize
 		hash160
 		hash256
 	);
@@ -609,22 +609,22 @@ C<$format>.
 I<Note: this is not usually needed to be called explicitly, as every bytestring
 parameter of the module will do this conversion implicitly.>
 
-=head2 pack_varint
+=head2 pack_compactsize
 
-	my $bytestr = pack_varint($integer);
+	my $bytestr = pack_compactsize($integer);
 
-Serializes C<$integer> as Bitcoin's VarInt format and returns it as a byte string.
+Serializes C<$integer> as Bitcoin's CompactSize format and returns it as a byte string.
 
-=head2 unpack_varint
+=head2 unpack_compactsize
 
-	my $integer = unpack_varint($bytestr, $pos = undef);
+	my $integer = unpack_compactsize($bytestr, $pos = undef);
 
-Deserializes VarInt from C<$bytestr>, returning an integer.
+Deserializes CompactSize from C<$bytestr>, returning an integer.
 
 If C<$pos> is passed, it must be a reference to a scalar containing the
 position at which to start the decoding. It will be modified to contain the
-next position after the varint. If not, decoding will start at 0 and will raise
-an exception if C<$bytestr> contains anything other than varint.
+next position after the CompactSize. If not, decoding will start at 0 and will raise
+an exception if C<$bytestr> contains anything other than CompactSize.
 
 =head2 hash160
 

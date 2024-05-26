@@ -10,7 +10,7 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto::Types qw(Int BitcoinScript InstanceOf Object Str ByteStr PositiveOrZeroInt ScalarRef Maybe);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
-use Bitcoin::Crypto::Util qw(to_format pack_varint unpack_varint);
+use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
@@ -88,7 +88,7 @@ sub to_serialized
 	$serialized .= $self->value_serialized;
 
 	my $script = $self->locking_script->to_serialized;
-	$serialized .= pack_varint(length $script);
+	$serialized .= pack_compactsize(length $script);
 	$serialized .= $script;
 
 	return $serialized;
@@ -113,7 +113,7 @@ sub from_serialized
 	my $value = reverse substr $serialized, $pos, 8;
 	$pos += 8;
 
-	my $script_size = unpack_varint $serialized, \$pos;
+	my $script_size = unpack_compactsize $serialized, \$pos;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'serialized input script data is corrupted'

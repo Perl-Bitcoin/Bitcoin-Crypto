@@ -7,7 +7,7 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 
-use Bitcoin::Crypto::Util qw(hash256 pack_varint);
+use Bitcoin::Crypto::Util qw(hash256 pack_compactsize);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types qw(InstanceOf ByteStr PositiveOrZeroInt PositiveOrZeroInt);
@@ -163,7 +163,7 @@ sub _get_digest_segwit
 	my @outputs;
 	foreach my $output (@{$transaction->outputs}) {
 		my $tmp = $output->locking_script->to_serialized;
-		push @outputs, $output->value_serialized . pack_varint(length $tmp) . $tmp;
+		push @outputs, $output->value_serialized . pack_compactsize(length $tmp) . $tmp;
 	}
 
 	# handle prevouts
@@ -181,7 +181,7 @@ sub _get_digest_segwit
 	$serialized .= $this_input->prevout;
 
 	my $script_base = $this_input->script_base->to_serialized;
-	$serialized .= pack_varint(length $script_base);
+	$serialized .= pack_compactsize(length $script_base);
 	$serialized .= $script_base;
 
 	$serialized .= $this_input->utxo->output->value_serialized;

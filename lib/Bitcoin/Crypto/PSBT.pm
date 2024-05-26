@@ -11,7 +11,7 @@ use Type::Params -sigs;
 use Bitcoin::Crypto::PSBT::FieldType;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Util qw(to_format pack_varint unpack_varint);
+use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Types qw(Defined Object Str ByteStr ArrayRef HashRef PositiveOrZeroInt Maybe);
 
 use namespace::clean;
@@ -108,15 +108,15 @@ sub _deserialize_map
 	$self->_get_map($args{map_type}, %args, set => !!1);
 
 	while ($pos < length $serialized) {
-		my $keylen = unpack_varint $serialized, \$pos;
+		my $keylen = unpack_compactsize $serialized, \$pos;
 		last if $keylen == 0;
 
 		my $keydata = substr $serialized, $pos, $keylen;
-		my $keytype = unpack_varint $keydata, \(my $keytype_pos = 0);
+		my $keytype = unpack_compactsize $keydata, \(my $keytype_pos = 0);
 		$keydata = substr $keydata, $keytype_pos;
 		$pos += $keylen;
 
-		my $valuelen = unpack_varint $serialized, \$pos;
+		my $valuelen = unpack_compactsize $serialized, \$pos;
 		my $valuedata = substr $serialized, $pos, $valuelen;
 		$pos += $valuelen;
 
