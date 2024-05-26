@@ -41,5 +41,11 @@ subtest 'should deserialize a version 2 PSBT' => sub {
 	is $psbt->output_count, 2, 'output count ok';
 };
 
+subtest 'should serialize any PSBT' => sub {
+	is to_format [base64 => $psbt->to_serialized],
+		'cHNidP8BAgQCAAAAAQQBAQEFAQIB+wQCAAAAAAEOIAsK2SFBnByHGXNdctxzn56p4GONH+TB7vD5lECEgV/IAQ8EAAAAAAABAwgACK8vAAAAAAEEFgAUxDD2TEdW2jENvRoIVXLvKZkmJywAAQMIi73rCwAAAAABBBYAFE3Rk6yWSlasG54cyoRU/i9HT4UTAA==',
+		'serialization ok';
+};
+
 done_testing;
 

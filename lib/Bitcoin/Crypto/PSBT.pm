@@ -132,6 +132,44 @@ sub _deserialize_map
 	${$args{pos}} = $pos;
 }
 
+sub _serialize_map
+{
+	my ($self, %args) = @_;
+
+	my $map = $self->_get_map($args{map_type}, index => $args{index});
+	my %to_encode;
+
+	foreach my $keytype (keys %$map) {
+		my $field_type = Bitcoin::Crypto::PSBT::FieldType->get_field_by_code($args{map_type}, $keytype);
+		if (defined $field_type->key_data) {
+			foreach my $keydata (keys %{$map->{$keytype}}) {
+				my $value = $map->{$keytype}{$keydata};
+				my $enckey = pack_compactsize($keytype) . $keydata;
+
+				$to_encode{$enckey} = $value;
+			}
+		}
+		else {
+			my $value = $map->{$keytype};
+			my $enckey = pack_compactsize($keytype);
+
+			$to_encode{$enckey} = $value;
+		}
+	}
+
+	my @keypairs;
+	foreach my $key (sort keys %to_encode) {
+		push @keypairs, join '',
+			pack_compactsize(length $key),
+			$key,
+			pack_compactsize(length $to_encode{$key}),
+			$to_encode{$key}
+			;
+	}
+
+	return join('', @keypairs) . pack_compactsize(0);
+}
+
 sub _deserialize_version0
 {
 	my ($self, $serialized, $pos_ref) = @_;
@@ -337,6 +375,37 @@ sub from_serialized
 	$self->_check_integrity;
 
 	return $self;
+}
+
+signature_for to_serialized => (
+	method => Object,
+	positional => [],
+);
+
+sub to_serialized
+{
+	my ($self) = @_;
+
+	$self->_check_integrity;
+
+	my $serialized = Bitcoin::Crypto::Constants::psbt_magic;
+	$serialized .= $self->_serialize_map(map_type => Bitcoin::Crypto::PSBT::FieldType->GLOBAL);
+
+	for my $input_index (0 .. $self->input_count - 1) {
+		$serialized .= $self->_serialize_map(
+			map_type => Bitcoin::Crypto::PSBT::FieldType->INPUT,
+			index => $input_index,
+		);
+	}
+
+	for my $output_index (0 .. $self->output_count - 1) {
+		$serialized .= $self->_serialize_map(
+			map_type => Bitcoin::Crypto::PSBT::FieldType->OUTPUT,
+			index => $output_index,
+		);
+	}
+
+	return $serialized;
 }
 
 signature_for dump => (
