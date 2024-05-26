@@ -102,11 +102,7 @@ sub validate_segwit
 }
 
 signature_for get_address_type => (
-	positional => [
-		Str,
-		Maybe [Str],
-		{optional => !!1},
-	],
+	positional => [Str, Maybe [Str], {default => undef}],
 );
 
 sub get_address_type
@@ -221,7 +217,7 @@ sub get_public_key_compressed
 }
 
 signature_for mnemonic_to_seed => (
-	positional => [Str, Maybe [Str], {optional => !!1}],
+	positional => [Str, Maybe [Str], {default => undef}],
 );
 
 sub mnemonic_to_seed
@@ -351,7 +347,7 @@ sub pack_varint
 }
 
 signature_for unpack_varint => (
-	positional => [ByteStr, ScalarRef [PositiveOrZeroInt], {optional => !!1}],
+	positional => [ByteStr, Maybe [ScalarRef [PositiveOrZeroInt]], {default => undef}],
 );
 
 sub unpack_varint

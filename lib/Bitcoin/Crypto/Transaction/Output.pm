@@ -8,7 +8,7 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
-use Bitcoin::Crypto::Types qw(Int BitcoinScript InstanceOf Object Str ByteStr PositiveOrZeroInt ScalarRef);
+use Bitcoin::Crypto::Types qw(Int BitcoinScript InstanceOf Object Str ByteStr PositiveOrZeroInt ScalarRef Maybe);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Util qw(to_format pack_varint unpack_varint);
 use Bitcoin::Crypto::Exception;
@@ -98,8 +98,8 @@ signature_for from_serialized => (
 	method => Str,
 	head => [ByteStr],
 	named => [
-		pos => ScalarRef [PositiveOrZeroInt],
-		{optional => !!1},
+		pos => Maybe [ScalarRef [PositiveOrZeroInt]],
+		{default => undef},
 	],
 	bless => !!0,
 );

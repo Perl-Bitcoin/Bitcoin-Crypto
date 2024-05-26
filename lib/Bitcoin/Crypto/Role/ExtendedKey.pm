@@ -95,7 +95,7 @@ sub to_serialized
 
 signature_for from_serialized => (
 	method => Str,
-	positional => [ByteStr, Maybe [Str], {optional => !!1}],
+	positional => [ByteStr, Maybe [Str], {default => undef}],
 );
 
 sub from_serialized

@@ -14,7 +14,7 @@ use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(to_format pack_varint unpack_varint);
 use Bitcoin::Crypto::Types
-	qw(ByteStr Str IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined ScalarRef PositiveOrZeroInt Tuple);
+	qw(ByteStr Str IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined ScalarRef PositiveOrZeroInt Tuple Maybe);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Script::Common;
 
@@ -178,8 +178,8 @@ signature_for from_serialized => (
 	method => Str,
 	head => [ByteStr],
 	named => [
-		pos => ScalarRef [PositiveOrZeroInt],
-		{optional => !!1},
+		pos => Maybe [ScalarRef [PositiveOrZeroInt]],
+		{default => undef},
 	],
 	bless => !!0,
 );

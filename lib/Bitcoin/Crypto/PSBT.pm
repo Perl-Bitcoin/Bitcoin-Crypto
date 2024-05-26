@@ -12,7 +12,7 @@ use Bitcoin::Crypto::PSBT::FieldType;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(to_format pack_varint unpack_varint);
-use Bitcoin::Crypto::Types qw(Defined Object Str ByteStr ArrayRef HashRef PositiveOrZeroInt);
+use Bitcoin::Crypto::Types qw(Defined Object Str ByteStr ArrayRef HashRef PositiveOrZeroInt Maybe);
 
 use namespace::clean;
 
@@ -246,10 +246,10 @@ signature_for set_field => (
 	method => Object,
 	head => [Str, Defined],
 	named => [
-		key_data => ByteStr,
-		{optional => !!1},
-		index => PositiveOrZeroInt,
-		{optional => !!1},
+		key_data => Maybe [ByteStr],
+		{default => undef},
+		index => Maybe [PositiveOrZeroInt],
+		{default => undef},
 	],
 	bless => !!0,
 );
@@ -268,10 +268,10 @@ signature_for get_field => (
 	method => Object,
 	head => [Str],
 	named => [
-		key_data => ByteStr,
-		{optional => !!1},
-		index => PositiveOrZeroInt,
-		{optional => !!1},
+		key_data => Maybe [ByteStr],
+		{default => undef},
+		index => Maybe [PositiveOrZeroInt],
+		{default => undef},
 	],
 	bless => !!0,
 );

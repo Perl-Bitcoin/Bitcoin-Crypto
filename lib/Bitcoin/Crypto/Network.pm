@@ -9,7 +9,7 @@ use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Object HashRef CodeRef Str StrLength Int);
+use Bitcoin::Crypto::Types qw(Object HashRef CodeRef Str StrLength Int Maybe);
 
 use namespace::clean;
 
@@ -125,7 +125,7 @@ sub supports_segwit
 
 signature_for find => (
 	method => Str,
-	positional => [CodeRef, {optional => !!1}],
+	positional => [Maybe [CodeRef], {default => undef}],
 );
 
 sub find

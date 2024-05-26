@@ -19,7 +19,7 @@ use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Transaction::Digest;
 use Bitcoin::Crypto::Util qw(pack_varint unpack_varint hash256 to_format);
 use Bitcoin::Crypto::Types
-	qw(IntMaxBits ArrayRef InstanceOf HashRef Object ByteStr Str PositiveInt PositiveOrZeroInt Enum BitcoinScript Bool);
+	qw(IntMaxBits ArrayRef InstanceOf HashRef Object ByteStr Str PositiveInt PositiveOrZeroInt Enum BitcoinScript Bool Maybe);
 use Bitcoin::Crypto::Script::Common;
 
 use namespace::clean;
@@ -486,8 +486,8 @@ sub _verify_script_segwit
 signature_for verify => (
 	method => Object,
 	named => [
-		block => InstanceOf ['Bitcoin::Crypto::Block'],
-		{optional => !!1},
+		block => Maybe [InstanceOf ['Bitcoin::Crypto::Block']],
+		{default => undef},
 	],
 	bless => !!0,
 );

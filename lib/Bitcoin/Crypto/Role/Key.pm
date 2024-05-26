@@ -8,7 +8,7 @@ use Scalar::Util qw(blessed);
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
-use Bitcoin::Crypto::Types qw(Object InstanceOf BIP44Purpose Enum);
+use Bitcoin::Crypto::Types qw(Object InstanceOf BIP44Purpose Enum Maybe);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length);    # loads Math::BigInt
@@ -91,7 +91,7 @@ sub _create_key
 
 signature_for raw_key => (
 	method => Object,
-	positional => [Enum [qw(private public public_compressed)], {optional => !!1}],
+	positional => [Maybe [Enum [qw(private public public_compressed)]], {default => undef}],
 );
 
 sub raw_key
