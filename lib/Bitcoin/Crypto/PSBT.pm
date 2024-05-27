@@ -429,13 +429,13 @@ sub dump
 		my ($name, $maptype, $map) = @_;
 
 		$add_line->($name . ' map:');
-		foreach my $key (keys %{$map}) {
+		foreach my $key (sort keys %{$map}) {
 			my $type = Bitcoin::Crypto::PSBT::FieldType->get_field_by_code($maptype, $key);
 			my $value = $map->{$key};
 
 			$add_line->($type->name . ':', 1);
 			if (ref $value eq 'HASH') {
-				foreach my $keydata (keys %{$value}) {
+				foreach my $keydata (sort keys %{$value}) {
 					$add_line->('key ' . (to_format [hex => $keydata]) . ':', 2);
 					$add_line->(to_format [hex => $value->{$keydata}], 3);
 				}
