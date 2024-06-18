@@ -1,3 +1,7 @@
+<div align="center" width="100%">
+    <p><img width="60%" src="art/logo.png" alt="logo"></p>
+</div>
+
 # Bitcoin::Crypto
 A Perl module for performing Bitcoin cryptographic operations.
 
