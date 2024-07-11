@@ -8,26 +8,18 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
+use Bitcoin::Crypto::PSBT::Map;
+use Bitcoin::Crypto::PSBT::Field;
 use Bitcoin::Crypto::PSBT::FieldType;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
-use Bitcoin::Crypto::Types qw(Defined Object Str ByteStr ArrayRef HashRef PositiveOrZeroInt Maybe);
+use Bitcoin::Crypto::Types qw(Object Str InstanceOf ByteStr ArrayRef PositiveOrZeroInt Maybe PSBTFieldType);
 
 use namespace::clean;
 
-has field 'global_map' => (
-	isa => HashRef,
-	default => sub { {} },
-);
-
-has field 'input_maps' => (
-	isa => ArrayRef [HashRef],
-	default => sub { [] },
-);
-
-has field 'output_maps' => (
-	isa => ArrayRef [HashRef],
+has field 'maps' => (
+	isa => ArrayRef [InstanceOf ['Bitcoin::Crypto::PSBT::Map']],
 	default => sub { [] },
 );
 
@@ -35,64 +27,25 @@ sub _get_map
 {
 	my ($self, $maptype, %args) = @_;
 
-	my %map_dispatch = (
-		Bitcoin::Crypto::PSBT::FieldType->GLOBAL => {
-			method => 'global_map',
-			need_index => !!0,
-		},
-		Bitcoin::Crypto::PSBT::FieldType->INPUT => {
-			method => 'input_maps',
-			need_index => !!1,
-		},
-		Bitcoin::Crypto::PSBT::FieldType->OUTPUT => {
-			method => 'output_maps',
-			need_index => !!1,
-		},
-	);
+	my $found_map;
+	foreach my $map (@{$self->maps}) {
+		next unless $map->type eq $maptype;
+		next if $map->need_index && (!defined $args{index} || $map->index ne $args{index});
 
-	my $dispatch = $map_dispatch{$maptype};
-	my $result = $self->can($dispatch->{method})->($self);
-
-	if ($dispatch->{need_index}) {
-		Bitcoin::Crypto::Exception::PSBT->raise(
-			"map type '$maptype' requires an index"
-		) if !defined $args{index};
-
-		$result->[$args{index}] //= {}
-			if $args{set};
-
-		$result = $result->[$args{index}];
+		$found_map = $map;
+		last;
 	}
 
-	return $result;
-}
+	if (!$found_map && $args{set}) {
+		$found_map = Bitcoin::Crypto::PSBT::Map->new(
+			type => $maptype,
+			index => $args{index},
+		);
 
-sub _get_map_value_ref
-{
-	my ($self, $type, %args) = @_;
-
-	my $map = $self->_get_map($type->get_map_type, %args);
-	if ($type->has_key_data) {
-		Bitcoin::Crypto::Exception::PSBT->raise(
-			'get/set of ' . $type->name . ' requires key_data argument'
-		) unless length $args{key_data};
-
-		$map = $map->{$type->code};
-
-		return \($map->{$args{key_data}})
-			if $args{set} || ($map && exists $map->{$args{key_data}});
-	}
-	else {
-		Bitcoin::Crypto::Exception::PSBT->raise(
-			'get/set of ' . $type->name . ' cannot handle key_data argument'
-		) if length $args{key_data};
-
-		return \($map->{$type->code})
-			if $args{set} || exists $map->{$type->code};
+		push @{$self->maps}, $found_map;
 	}
 
-	# not found (when getting)
-	return undef;
+	return $found_map;
 }
 
 sub _deserialize_map
@@ -104,8 +57,8 @@ sub _deserialize_map
 		'map expected but end of stream was reached'
 	) unless $pos < length $serialized;
 
-	# make sure to create map if there isn't one
-	$self->_get_map($args{map_type}, %args, set => !!1);
+	# make sure to create a map if there isn't one
+	my $map = $self->_get_map($args{map_type}, index => $args{index}, set => !!1);
 
 	while ($pos < length $serialized) {
 		my $keylen = unpack_compactsize $serialized, \$pos;
@@ -120,13 +73,13 @@ sub _deserialize_map
 		my $valuedata = substr $serialized, $pos, $valuelen;
 		$pos += $valuelen;
 
-		my $field_type = Bitcoin::Crypto::PSBT::FieldType->get_field_by_code($args{map_type}, $keytype);
-		my $value_ref = $self->_get_map_value_ref($field_type, key_data => $keydata, index => $args{index}, set => !!1);
+		my $item = Bitcoin::Crypto::PSBT::Field->new(
+			type => [$args{map_type}, $keytype],
+			raw_key => $keydata,
+			raw_value => $valuedata,
+		);
 
-		Bitcoin::Crypto::Exception::PSBT->raise(
-			'duplicate field ' . $field_type->name
-		) if defined $$value_ref;
-		$$value_ref = $valuedata;
+		$map->add($item);
 	}
 
 	${$args{pos}} = $pos;
@@ -139,22 +92,12 @@ sub _serialize_map
 	my $map = $self->_get_map($args{map_type}, index => $args{index});
 	my %to_encode;
 
-	foreach my $keytype (keys %$map) {
-		my $field_type = Bitcoin::Crypto::PSBT::FieldType->get_field_by_code($args{map_type}, $keytype);
-		if (defined $field_type->key_data) {
-			foreach my $keydata (keys %{$map->{$keytype}}) {
-				my $value = $map->{$keytype}{$keydata};
-				my $enckey = pack_compactsize($keytype) . $keydata;
+	foreach my $item (@{$map->fields}) {
+		my $key = $item->raw_key;
+		my $value = $item->raw_value;
+		my $enckey = pack_compactsize($item->type->code) . $key // '';
 
-				$to_encode{$enckey} = $value;
-			}
-		}
-		else {
-			my $value = $map->{$keytype};
-			my $enckey = pack_compactsize($keytype);
-
-			$to_encode{$enckey} = $value;
-		}
+		$to_encode{$enckey} = $value;
 	}
 
 	my @keypairs;
@@ -173,14 +116,14 @@ sub _serialize_map
 sub _deserialize_version0
 {
 	my ($self, $serialized, $pos_ref) = @_;
-	my $tx = $self->get_field('PSBT_GLOBAL_UNSIGNED_TX');
+	my $tx = $self->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value;
 	my $input_count = @{$tx->inputs};
 	my $output_count = @{$tx->outputs};
 
 	foreach my $index (0 .. $input_count - 1) {
 		$self->_deserialize_map(
 			$serialized,
-			map_type => Bitcoin::Crypto::PSBT::FieldType->INPUT,
+			map_type => Bitcoin::Crypto::Constants::psbt_input_map,
 			pos => $pos_ref,
 			index => $index,
 		);
@@ -189,7 +132,7 @@ sub _deserialize_version0
 	foreach my $index (0 .. $output_count - 1) {
 		$self->_deserialize_map(
 			$serialized,
-			map_type => Bitcoin::Crypto::PSBT::FieldType->OUTPUT,
+			map_type => Bitcoin::Crypto::Constants::psbt_output_map,
 			pos => $pos_ref,
 			index => $index,
 		);
@@ -199,13 +142,13 @@ sub _deserialize_version0
 sub _deserialize_version2
 {
 	my ($self, $serialized, $pos_ref) = @_;
-	my $input_count = $self->get_field('PSBT_GLOBAL_INPUT_COUNT');
-	my $output_count = $self->get_field('PSBT_GLOBAL_OUTPUT_COUNT');
+	my $input_count = $self->get_field('PSBT_GLOBAL_INPUT_COUNT')->value;
+	my $output_count = $self->get_field('PSBT_GLOBAL_OUTPUT_COUNT')->value;
 
 	foreach my $index (0 .. $input_count - 1) {
 		$self->_deserialize_map(
 			$serialized,
-			map_type => Bitcoin::Crypto::PSBT::FieldType->INPUT,
+			map_type => Bitcoin::Crypto::Constants::psbt_input_map,
 			pos => $pos_ref,
 			index => $index,
 		);
@@ -214,7 +157,7 @@ sub _deserialize_version2
 	foreach my $index (0 .. $output_count - 1) {
 		$self->_deserialize_map(
 			$serialized,
-			map_type => Bitcoin::Crypto::PSBT::FieldType->OUTPUT,
+			map_type => Bitcoin::Crypto::Constants::psbt_output_map,
 			pos => $pos_ref,
 			index => $index,
 		);
@@ -229,9 +172,10 @@ sub _check_integrity
 	my $check_field = sub {
 		my ($name, $index) = @_;
 
+		my @values = $self->get_field($name, $index);
 		Bitcoin::Crypto::Exception::PSBT->raise(
 			"PSBT field $name is required in version $version"
-		) unless defined $self->get_field($name, (defined $index ? (index => $index) : ()));
+		) unless @values == 1;
 	};
 
 	my $required_fields = Bitcoin::Crypto::PSBT::FieldType->get_fields_required_in_version($version);
@@ -240,15 +184,15 @@ sub _check_integrity
 		# NOTE: no required fields need keydata
 
 		my $field_type = $field->get_map_type;
-		if ($field_type eq Bitcoin::Crypto::PSBT::FieldType->GLOBAL) {
+		if ($field_type eq Bitcoin::Crypto::Constants::psbt_global_map) {
 			$check_field->($field->name);
 		}
-		elsif ($field_type eq Bitcoin::Crypto::PSBT::FieldType->INPUT) {
+		elsif ($field_type eq Bitcoin::Crypto::Constants::psbt_input_map) {
 			for my $input_index (0 .. $self->input_count - 1) {
 				$check_field->($field->name, $input_index);
 			}
 		}
-		elsif ($field_type eq Bitcoin::Crypto::PSBT::FieldType->OUTPUT) {
+		elsif ($field_type eq Bitcoin::Crypto::Constants::psbt_output_map) {
 			for my $output_index (0 .. $self->output_count - 1) {
 				$check_field->($field->name, $output_index);
 			}
@@ -265,7 +209,7 @@ sub input_count
 {
 	my ($self) = @_;
 
-	return scalar @{$self->input_maps};
+	return scalar grep { $_->type eq Bitcoin::Crypto::Constants::psbt_input_map } @{$self->maps};
 }
 
 signature_for output_count => (
@@ -277,52 +221,21 @@ sub output_count
 {
 	my ($self) = @_;
 
-	return scalar @{$self->output_maps};
-}
-
-signature_for set_field => (
-	method => Object,
-	head => [Str, Defined],
-	named => [
-		key_data => Maybe [ByteStr],
-		{default => undef},
-		index => Maybe [PositiveOrZeroInt],
-		{default => undef},
-	],
-	bless => !!0,
-);
-
-sub set_field
-{
-	my ($self, $name, $value, $args) = @_;
-
-	my $type = Bitcoin::Crypto::PSBT::FieldType->get_field_by_name($name);
-	${$self->_get_map_value_ref($type, %$args, set => !!1)} = $type->serializer->($value);
-
-	return $self;
+	return scalar grep { $_->type eq Bitcoin::Crypto::Constants::psbt_output_map } @{$self->maps};
 }
 
 signature_for get_field => (
 	method => Object,
-	head => [Str],
-	named => [
-		key_data => Maybe [ByteStr],
-		{default => undef},
-		index => Maybe [PositiveOrZeroInt],
-		{default => undef},
-	],
-	bless => !!0,
+	positional => [PSBTFieldType, Maybe [PositiveOrZeroInt], {default => undef}],
 );
 
 sub get_field
 {
-	my ($self, $name, $args) = @_;
+	my ($self, $type, $index) = @_;
 
-	my $type = Bitcoin::Crypto::PSBT::FieldType->get_field_by_name($name);
-	my $ref = $self->_get_map_value_ref($type, %$args);
-
-	return $type->deserializer->($$ref) if defined $ref;
-	return undef;
+	my $map = $self->_get_map($type->get_map_type, index => $index);
+	return () unless $map;
+	return $map->find($type);
 }
 
 signature_for version => (
@@ -334,7 +247,8 @@ sub version
 {
 	my ($self) = @_;
 
-	return $self->get_field('PSBT_GLOBAL_VERSION') // 0;
+	my $version = $self->get_field('PSBT_GLOBAL_VERSION');
+	return $version ? $version->value : 0;
 }
 
 signature_for from_serialized => (
@@ -356,7 +270,7 @@ sub from_serialized
 
 	$self->_deserialize_map(
 		$serialized,
-		map_type => Bitcoin::Crypto::PSBT::FieldType->GLOBAL,
+		map_type => Bitcoin::Crypto::Constants::psbt_global_map,
 		pos => \$pos,
 	);
 
@@ -389,18 +303,18 @@ sub to_serialized
 	$self->_check_integrity;
 
 	my $serialized = Bitcoin::Crypto::Constants::psbt_magic;
-	$serialized .= $self->_serialize_map(map_type => Bitcoin::Crypto::PSBT::FieldType->GLOBAL);
+	$serialized .= $self->_serialize_map(map_type => Bitcoin::Crypto::Constants::psbt_global_map);
 
 	for my $input_index (0 .. $self->input_count - 1) {
 		$serialized .= $self->_serialize_map(
-			map_type => Bitcoin::Crypto::PSBT::FieldType->INPUT,
+			map_type => Bitcoin::Crypto::Constants::psbt_input_map,
 			index => $input_index,
 		);
 	}
 
 	for my $output_index (0 .. $self->output_count - 1) {
 		$serialized .= $self->_serialize_map(
-			map_type => Bitcoin::Crypto::PSBT::FieldType->OUTPUT,
+			map_type => Bitcoin::Crypto::Constants::psbt_output_map,
 			index => $output_index,
 		);
 	}
@@ -425,42 +339,24 @@ sub dump
 		push @result, ('> ' x $level) . $line;
 	};
 
-	my $dump_map = sub {
-		my ($name, $maptype, $map) = @_;
-
-		$add_line->($name . ' map:');
-		foreach my $key (sort keys %{$map}) {
-			my $type = Bitcoin::Crypto::PSBT::FieldType->get_field_by_code($maptype, $key);
-			my $value = $map->{$key};
-
-			$add_line->($type->name . ':', 1);
-			if (ref $value eq 'HASH') {
-				foreach my $keydata (sort keys %{$value}) {
-					$add_line->('key ' . (to_format [hex => $keydata]) . ':', 2);
-					$add_line->(to_format [hex => $value->{$keydata}], 3);
-				}
-			}
-			else {
-				$add_line->(to_format [hex => $value], 2);
-			}
+	my @maps = sort {
+		my $ret = $a->type cmp $b->type;
+		if ($ret == 0 && $a->need_index) {
+			$ret = $a->index <=> $b->index;
 		}
-	};
 
-	$dump_map->('Global', Bitcoin::Crypto::PSBT::FieldType->GLOBAL, $self->global_map);
+		$ret;
+	} @{$self->maps};
 
-	foreach my $input_number (0 .. $#{$self->input_maps}) {
-		$dump_map->(
-			"Input[$input_number]", Bitcoin::Crypto::PSBT::FieldType->INPUT,
-			$self->input_maps->[$input_number]
-		);
-	}
-
-	foreach my $output_number (0 .. $#{$self->output_maps}) {
-		$dump_map->(
-			"Output[$output_number]",
-			Bitcoin::Crypto::PSBT::FieldType->OUTPUT,
-			$self->output_maps->[$output_number]
-		);
+	foreach my $map (@maps) {
+		$add_line->($map->name . ' map:');
+		foreach my $item (@{$map->fields}) {
+			$add_line->($item->type->name . ':', 1);
+			if (defined $item->raw_key) {
+				$add_line->('key ' . (to_format [hex => $item->raw_key]) . ':', 2);
+			}
+			$add_line->(to_format [hex => $item->raw_value], 3);
+		}
 	}
 
 	return join "\n", @result;

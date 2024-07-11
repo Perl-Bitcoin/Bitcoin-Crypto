@@ -8,23 +8,17 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
-use Bitcoin::Crypto qw(btc_transaction);
+use Bitcoin::Crypto qw(btc_extpub btc_transaction);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize);
-use Bitcoin::Crypto::Types qw(Object Str Maybe HashRef PositiveOrZeroInt Enum CodeRef);
+use Bitcoin::Crypto::Types qw(Object Str Maybe HashRef PositiveOrZeroInt Enum CodeRef PSBTMapType);
 
 use namespace::clean;
 
 use constant {
 	REQUIRED => 'required',
 	AVAILABLE => 'available',
-};
-
-use constant {
-	GLOBAL => 'global',
-	INPUT => 'in',
-	OUTPUT => 'out',
 };
 
 has param 'name' => (
@@ -43,6 +37,20 @@ has param 'serializer' => (
 );
 
 has param 'deserializer' => (
+	isa => CodeRef,
+	default => sub {
+		sub { $_[0] }
+	},
+);
+
+has param 'key_serializer' => (
+	isa => CodeRef,
+	default => sub {
+		sub { $_[0] }
+	},
+);
+
+has param 'key_deserializer' => (
 	isa => CodeRef,
 	default => sub {
 		sub { $_[0] }
@@ -74,10 +82,26 @@ my %types = (
 			0 => REQUIRED,
 		},
 	},
+
 	PSBT_GLOBAL_XPUB => {
 		code => 0x01,
 		key_data => "<bytes xpub>",
 		value_data => "<4 byte fingerprint> <32-bit little endian uint path element>*",
+		key_serializer => sub { shift->to_serialized },
+		key_deserializer => sub { btc_extpub->from_serialized(shift) },
+		serializer => sub {
+			my @vals = @{shift()};
+			my $fingerprint = shift @vals;
+			return $fingerprint . pack 'V*', @vals;
+		},
+		deserializer => sub {
+			my $val = shift;
+			my $fingerprint = substr $val, 0, 4, '';
+			return [
+				$fingerprint,
+				unpack 'V*', $val,
+			];
+		},
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -97,6 +121,8 @@ my %types = (
 		code => 0x03,
 		key_data => undef,
 		value_data => "<32-bit little endian uint locktime>",
+		serializer => sub { pack 'V', shift },
+		deserializer => sub { unpack 'V', shift },
 		version_status => {
 			2 => AVAILABLE,
 		},
@@ -125,6 +151,8 @@ my %types = (
 		code => 0x06,
 		key_data => undef,
 		value_data => "<8-bit uint flags>",
+		serializer => sub { pack 'C', shift },
+		deserializer => sub { unpack 'C', shift },
 		version_status => {
 			2 => AVAILABLE
 		},
@@ -145,6 +173,8 @@ my %types = (
 		key_data =>
 			"<compact size uint identifier length> <bytes identifier> <compact size uint subtype> <bytes subkey_data>",
 		value_data => "<bytes data>",
+
+		# TODO serializer
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -477,7 +507,7 @@ foreach my $type (values %types) {
 
 signature_for get_field_by_code => (
 	method => Str,
-	positional => [Enum [GLOBAL, INPUT, OUTPUT], PositiveOrZeroInt],
+	positional => [PSBTMapType, PositiveOrZeroInt],
 );
 
 sub get_field_by_code
@@ -572,7 +602,6 @@ sub get_map_type
 	# module programming error has occured if those die
 	die unless $name =~ /^PSBT_([A-Z]+)_/;
 	my $namespace = lc $1;
-	die unless grep { $namespace eq $_ } GLOBAL, INPUT, OUTPUT;
 
 	return $namespace;
 }

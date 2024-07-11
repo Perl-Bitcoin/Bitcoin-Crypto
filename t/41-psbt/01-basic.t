@@ -16,7 +16,7 @@ subtest 'should deserialize a version 0 PSBT' => sub {
 		]
 	);
 
-	is to_format [hex => $psbt->get_field('PSBT_GLOBAL_UNSIGNED_TX')->get_hash],
+	is to_format [hex => $psbt->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value->get_hash],
 		'82efd652d7ab1197f01a5f4d9a30cb4c68bb79ab6fec58dfa1bf112291d1617b',
 		'transaction field ok';
 
@@ -25,7 +25,7 @@ subtest 'should deserialize a version 0 PSBT' => sub {
 };
 
 subtest 'getting a field from a non-existent input should not create it' => sub {
-	$psbt->get_field('PSBT_IN_WITNESS_SCRIPT', index => 2);
+	$psbt->get_field('PSBT_IN_WITNESS_SCRIPT', 2);
 	is $psbt->input_count, 2, 'input count ok';
 };
 

@@ -90,6 +90,26 @@ $script->coercion->add_type_coercions(
 	$bytestr->coercibles, q{ require Bitcoin::Crypto::Script; Bitcoin::Crypto::Script->from_serialized($_) },
 );
 
+my $psbt_map_type = __PACKAGE__->add_type(
+	name => 'PSBTMapType',
+	parent => Enum->of(
+		Bitcoin::Crypto::Constants::psbt_global_map,
+		Bitcoin::Crypto::Constants::psbt_input_map,
+		Bitcoin::Crypto::Constants::psbt_output_map,
+	),
+);
+
+my $psbt_field_type = __PACKAGE__->add_type(
+	name => 'PSBTFieldType',
+	parent => InstanceOf->of('Bitcoin::Crypto::PSBT::FieldType'),
+);
+
+$psbt_field_type->coercion->add_type_coercions(
+	Tuple->of($psbt_map_type, PositiveOrZeroInt),
+	q{ require Bitcoin::Crypto::PSBT::FieldType; Bitcoin::Crypto::PSBT::FieldType->get_field_by_code(@$_) },
+	Str, q{ require Bitcoin::Crypto::PSBT::FieldType; Bitcoin::Crypto::PSBT::FieldType->get_field_by_name($_) },
+);
+
 __PACKAGE__->add_type(
 	name => 'IntMaxBits',
 	parent => PositiveOrZeroInt,
