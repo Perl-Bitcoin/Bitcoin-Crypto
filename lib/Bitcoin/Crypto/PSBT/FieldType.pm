@@ -8,10 +8,12 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
-use Bitcoin::Crypto qw(btc_extpub btc_transaction);
+use Bitcoin::Crypto qw(btc_extpub btc_pub btc_transaction btc_script);
+use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize);
+use Bitcoin::Crypto::Helpers; # loads Math::BigInt
 use Bitcoin::Crypto::Types qw(Object Str Maybe HashRef PositiveOrZeroInt Enum CodeRef PSBTMapType);
 
 use namespace::clean;
@@ -69,9 +71,76 @@ has param 'version_status' => (
 	isa => HashRef,
 );
 
+# REUSABLE SERIALIZERS
+
+my %uint_32bitLE_serializers = (
+	serializer => sub { pack 'V', shift },
+	deserializer => sub { unpack 'V', shift },
+);
+
+my %uint_compactsize_serializers = (
+	serializer => sub { pack_compactsize shift },
+	deserializer => sub { unpack_compactsize shift },
+);
+
+my %fingerprint_and_path_serializers = (
+	serializer => sub {
+		my @vals = @{shift()};
+		my $fingerprint = shift @vals;
+		return $fingerprint . pack 'V*', @vals;
+	},
+	deserializer => sub {
+		my $val = shift;
+		my $fingerprint = substr $val, 0, 4, '';
+		return [
+			$fingerprint,
+			unpack 'V*', $val,
+		];
+	},
+);
+
+my %script_serializers = (
+	serializer => sub { shift->to_serialized },
+	deserializer => sub { btc_script->from_serialized(shift) },
+);
+
+my %proprietary_key_serializers = (
+	key_serializer => sub {
+		my ($ident, $subkey, @rest) = @{shift()};
+
+		die 'invalid data for PROPRIETARY, expected identifier data and subkey data'
+			if @rest > 0;
+
+		my $result = '';
+		$result .= pack_compactsize(length $ident);
+		$result .= $ident;
+		$result .= pack_compactsize(length $subkey);
+		$result .= $subkey;
+
+		return $result;
+	},
+	key_deserializer => sub {
+		my $val = shift;
+		my $pos = 0;
+
+		my $ident_len = unpack_compactsize($val, \$pos);
+		my $ident = substr $val, $pos, $ident_len;
+		$pos += $ident_len;
+
+		my $subkey_len = unpack_compactsize($val, \$pos);
+		my $subkey = substr $val, $pos, $subkey_len;
+		$pos += $subkey_len;
+
+		return [$ident, $subkey];
+	},
+);
+
+# TYPES
+
 my %types = (
 
 	# GLOBAL
+
 	PSBT_GLOBAL_UNSIGNED_TX => {
 		code => 0x00,
 		key_data => undef,
@@ -89,64 +158,53 @@ my %types = (
 		value_data => "<4 byte fingerprint> <32-bit little endian uint path element>*",
 		key_serializer => sub { shift->to_serialized },
 		key_deserializer => sub { btc_extpub->from_serialized(shift) },
-		serializer => sub {
-			my @vals = @{shift()};
-			my $fingerprint = shift @vals;
-			return $fingerprint . pack 'V*', @vals;
-		},
-		deserializer => sub {
-			my $val = shift;
-			my $fingerprint = substr $val, 0, 4, '';
-			return [
-				$fingerprint,
-				unpack 'V*', $val,
-			];
-		},
+		%fingerprint_and_path_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_GLOBAL_TX_VERSION => {
 		code => 0x02,
 		key_data => undef,
 		value_data => "<32-bit little endian int version>",
-		serializer => sub { pack 'V', shift },
-		deserializer => sub { unpack 'V', shift },
+		%uint_32bitLE_serializers,
 		version_status => {
 			2 => REQUIRED,
 		},
 	},
+
 	PSBT_GLOBAL_FALLBACK_LOCKTIME => {
 		code => 0x03,
 		key_data => undef,
 		value_data => "<32-bit little endian uint locktime>",
-		serializer => sub { pack 'V', shift },
-		deserializer => sub { unpack 'V', shift },
+		%uint_32bitLE_serializers,
 		version_status => {
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_GLOBAL_INPUT_COUNT => {
 		code => 0x04,
 		key_data => undef,
 		value_data => "<compact size uint input count>",
-		serializer => sub { pack_compactsize shift },
-		deserializer => sub { unpack_compactsize shift },
+		%uint_compactsize_serializers,
 		version_status => {
 			2 => REQUIRED,
 		},
 	},
+
 	PSBT_GLOBAL_OUTPUT_COUNT => {
 		code => 0x05,
 		key_data => undef,
 		value_data => "<compact size uint input count>",
-		serializer => sub { pack_compactsize shift },
-		deserializer => sub { unpack_compactsize shift },
+		%uint_compactsize_serializers,
 		version_status => {
 			2 => REQUIRED,
 		},
 	},
+
 	PSBT_GLOBAL_TX_MODIFIABLE => {
 		code => 0x06,
 		key_data => undef,
@@ -157,24 +215,24 @@ my %types = (
 			2 => AVAILABLE
 		},
 	},
+
 	PSBT_GLOBAL_VERSION => {
 		code => 0xfb,
 		key_data => undef,
 		value_data => "<32-bit little endian uint version>",
-		serializer => sub { pack 'V', shift },
-		deserializer => sub { unpack 'V', shift },
+		%uint_32bitLE_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_GLOBAL_PROPRIETARY => {
 		code => 0xfc,
 		key_data =>
 			"<compact size uint identifier length> <bytes identifier> <compact size uint subtype> <bytes subkey_data>",
 		value_data => "<bytes data>",
-
-		# TODO serializer
+		%proprietary_key_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -186,6 +244,8 @@ my %types = (
 		code => 0x00,
 		key_data => undef,
 		value_data => "<bytes transaction>",
+		serializer => sub { shift->to_serialized },
+		deserializer => sub { btc_transaction->from_serialized(shift) },
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -195,6 +255,8 @@ my %types = (
 		code => 0x01,
 		key_data => undef,
 		value_data => "<64-bit little endian int amount> <compact size uint scriptPubKeylen> <bytes scriptPubKey>",
+		serializer => sub { shift->to_serialized },
+		deserializer => sub { Bitcoin::Crypto::Transaction::Output->from_serialized(shift) },
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -204,6 +266,8 @@ my %types = (
 		code => 0x02,
 		key_data => "<bytes pubkey>",
 		value_data => "<bytes signature>",
+		key_serializer => sub { shift->to_serialized },
+		key_deserializer => sub { btc_pub->from_serialized(shift) },
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -213,6 +277,7 @@ my %types = (
 		code => 0x03,
 		key_data => undef,
 		value_data => "<32-bit little endian uint sighash type>",
+		%uint_32bitLE_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -222,6 +287,7 @@ my %types = (
 		code => 0x04,
 		key_data => undef,
 		value_data => "<bytes redeemScript>",
+		%script_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -231,6 +297,7 @@ my %types = (
 		code => 0x05,
 		key_data => undef,
 		value_data => "<bytes witnessScript>",
+		%script_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -240,6 +307,9 @@ my %types = (
 		code => 0x06,
 		key_data => "<bytes pubkey>",
 		value_data => "<4 byte fingerprint> <32-bit little endian uint path element>*",
+		key_serializer => sub { shift->to_serialized },
+		key_deserializer => sub { btc_pub->from_serialized(shift) },
+		%fingerprint_and_path_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -249,6 +319,7 @@ my %types = (
 		code => 0x07,
 		key_data => undef,
 		value_data => "<bytes scriptSig>",
+		%script_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -320,6 +391,7 @@ my %types = (
 		code => 0x0f,
 		key_data => undef,
 		value_data => "<32-bit little endian uint index>",
+		%uint_32bitLE_serializers,
 		version_status => {
 			2 => REQUIRED,
 		},
@@ -328,6 +400,7 @@ my %types = (
 		code => 0x10,
 		key_data => undef,
 		value_data => "<32-bit little endian uint sequence>",
+		%uint_32bitLE_serializers,
 		version_status => {
 			2 => AVAILABLE,
 		},
@@ -336,6 +409,7 @@ my %types = (
 		code => 0x11,
 		key_data => undef,
 		value_data => "<32-bit little endian uint locktime>",
+		%uint_32bitLE_serializers,
 		version_status => {
 			2 => AVAILABLE,
 		},
@@ -344,6 +418,7 @@ my %types = (
 		code => 0x12,
 		key_data => undef,
 		value_data => "<32-bit uint locktime>",
+		%uint_32bitLE_serializers,
 		version_status => {
 			2 => AVAILABLE,
 		},
@@ -352,6 +427,7 @@ my %types = (
 		code => 0x13,
 		key_data => undef,
 		value_data => "<64 or 65 byte signature>",
+		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -361,6 +437,7 @@ my %types = (
 		code => 0x14,
 		key_data => "<32 byte xonlypubkey> <leafhash>",
 		value_data => "<64 or 65 byte signature>",
+		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -370,6 +447,7 @@ my %types = (
 		code => 0x15,
 		key_data => "<bytes control block>",
 		value_data => "<bytes script> <8-bit uint leaf version>",
+		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -380,6 +458,7 @@ my %types = (
 		key_data => "<32 byte xonlypubkey>",
 		value_data =>
 			"<compact size uint number of hashes> <32 byte leaf hash>* <4 byte fingerprint> <32-bit little endian uint path element>*",
+		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -389,6 +468,7 @@ my %types = (
 		code => 0x17,
 		key_data => undef,
 		value_data => "<32 byte xonlypubkey>",
+		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -398,6 +478,7 @@ my %types = (
 		code => 0x18,
 		key_data => undef,
 		value_data => "<32-byte hash>",
+		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -408,6 +489,7 @@ my %types = (
 		key_data =>
 			"<compact size uint identifier length> <bytes identifier> <compact size uint subtype> <bytes subkey_data>",
 		value_data => "<bytes data>",
+		%proprietary_key_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -419,6 +501,7 @@ my %types = (
 		code => 0x00,
 		key_data => undef,
 		value_data => "<bytes redeemScript>",
+		%script_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -428,6 +511,7 @@ my %types = (
 		code => 0x01,
 		key_data => undef,
 		value_data => "<bytes witnessScript>",
+		%script_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -437,6 +521,9 @@ my %types = (
 		code => 0x02,
 		key_data => "<bytes public key>",
 		value_data => "<4 byte fingerprint> <32-bit little endian uint path element>*",
+		key_serializer => sub { shift->to_serialized },
+		key_deserializer => sub { btc_pub->from_serialized(shift) },
+		%fingerprint_and_path_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -446,6 +533,8 @@ my %types = (
 		code => 0x03,
 		key_data => undef,
 		value_data => "<64-bit int amount>",
+		serializer => sub { scalar reverse shift->to_bytes },
+		deserializer => sub { Math::BigInt->from_bytes(scalar reverse shift) },
 		version_status => {
 			2 => REQUIRED,
 		},
@@ -454,6 +543,7 @@ my %types = (
 		code => 0x04,
 		key_data => undef,
 		value_data => "<bytes script>",
+		%script_serializers,
 		version_status => {
 			2 => REQUIRED,
 		},
@@ -462,6 +552,7 @@ my %types = (
 		code => 0x05,
 		key_data => undef,
 		value_data => "<32 byte xonlypubkey>",
+		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -472,6 +563,7 @@ my %types = (
 		key_data => undef,
 		value_data =>
 			"{<8-bit uint depth> <8-bit uint leaf version> <compact size uint scriptlen> <bytes script>}*",
+		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -482,6 +574,7 @@ my %types = (
 		key_data => "<32 byte xonlypubkey>",
 		value_data =>
 			"<compact size uint number of hashes> <32 byte leaf hash>* <4 byte fingerprint> <32-bit little endian uint path element>*",
+		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -492,6 +585,7 @@ my %types = (
 		key_data =>
 			"<compact size uint identifier length> <bytes identifier> <compact size uint subtype> <bytes subkey_data>",
 		value_data => "<bytes data>",
+		%proprietary_key_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
