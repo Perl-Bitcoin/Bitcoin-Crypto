@@ -95,7 +95,7 @@ sub _serialize_map
 	foreach my $item (@{$map->fields}) {
 		my $key = $item->raw_key;
 		my $value = $item->raw_value;
-		my $enckey = pack_compactsize($item->type->code) . $key // '';
+		my $enckey = pack_compactsize($item->type->code) . ($key // '');
 
 		$to_encode{$enckey} = $value;
 	}
@@ -350,12 +350,21 @@ sub dump
 
 	foreach my $map (@maps) {
 		$add_line->($map->name . ' map:');
+
+		my %fields;
 		foreach my $item (@{$map->fields}) {
-			$add_line->($item->type->name . ':', 1);
-			if (defined $item->raw_key) {
-				$add_line->('key ' . (to_format [hex => $item->raw_key]) . ':', 2);
+			push @{$fields{$item->type->name}}, $item;
+		}
+
+		foreach my $key (sort keys %fields) {
+			$add_line->("${key}:", 1);
+			foreach my $item (@{$fields{$key}}) {
+				my $line = 2;
+				if (defined $item->raw_key) {
+					$add_line->('key ' . (to_format [hex => $item->raw_key]) . ':', $line++);
+				}
+				$add_line->(to_format [hex => $item->raw_value], $line);
 			}
-			$add_line->(to_format [hex => $item->raw_value], 3);
 		}
 	}
 

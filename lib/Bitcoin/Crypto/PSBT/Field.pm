@@ -39,6 +39,20 @@ signature_for key => (
 	positional => []
 );
 
+sub BUILD
+{
+	my ($self) = @_;
+
+	if (defined $self->raw_key && !defined $self->type->key_data) {
+		Bitcoin::Crypto::Exception::PSBT->raise(
+			'Field ' . $self->type->name . ' does not define key data'
+		) if length $self->raw_key;
+
+		$self->_set_raw_key(undef);
+	}
+
+}
+
 sub key
 {
 	my ($self) = @_;
