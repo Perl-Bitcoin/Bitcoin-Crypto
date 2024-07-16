@@ -9,7 +9,7 @@ use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 use Scalar::Util qw(blessed);
 use Carp qw(carp);
-use List::Util qw(sum);
+use List::Util qw(sum any);
 
 use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants;
@@ -134,7 +134,7 @@ sub to_serialized
 	# Process inputs
 	my @inputs = @{$self->inputs};
 
-	my $with_witness = $args->{witness} && grep { $_->has_witness } @inputs;
+	my $with_witness = $args->{witness} && any { $_->has_witness } @inputs;
 	if ($with_witness) {
 		$serialized .= "\x00\x01";
 	}
@@ -513,7 +513,7 @@ sub verify
 
 	# locktime checking
 	if (
-		$self->locktime > 0 && grep {
+		$self->locktime > 0 && any {
 			$_->sequence_no != Bitcoin::Crypto::Constants::max_sequence_no
 		} @inputs
 		)

@@ -7,6 +7,7 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
+use List::Util qw(notall);
 
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
@@ -772,7 +773,7 @@ my %opcodes = (
 			my @pubkeys = splice @$stack, -$pubkeys_num;
 
 			script_error('SegWit validation requires all public keys to be compressed')
-				if $runner->transaction->is_native_segwit && grep { !get_public_key_compressed($_) } @pubkeys;
+				if $runner->transaction->is_native_segwit && notall { get_public_key_compressed($_) } @pubkeys;
 
 			my $signatures_num = $runner->to_int(pop @$stack);
 			stack_error unless $signatures_num > 0 && @$stack >= $signatures_num;

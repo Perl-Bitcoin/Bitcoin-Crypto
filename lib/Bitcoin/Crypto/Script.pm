@@ -8,6 +8,7 @@ use Crypt::Digest::SHA256 qw(sha256);
 use Mooish::AttributeBuilder -standard;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
+use List::Util qw(any);
 use Type::Params -sigs;
 use Carp qw(carp);
 
@@ -468,7 +469,7 @@ sub is_native_segwit
 
 	my $script_type = $self->type // '';
 
-	return 0 != grep { $script_type eq $_ } @segwit_types;
+	return any { $script_type eq $_ } @segwit_types;
 }
 
 sub get_script

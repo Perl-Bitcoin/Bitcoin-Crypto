@@ -7,6 +7,7 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
+use List::Util qw(any);
 
 use Bitcoin::Crypto::Types qw(Maybe Enum ByteStr PositiveOrZeroInt Object InstanceOf PSBTMapType);
 use Bitcoin::Crypto::Exception;
@@ -66,7 +67,7 @@ sub need_index
 	my ($self) = @_;
 	my $type = $self->type;
 
-	return 1 == grep { $type eq $_ }
+	return any { $type eq $_ }
 		Bitcoin::Crypto::Constants::psbt_input_map,
 		Bitcoin::Crypto::Constants::psbt_output_map,
 		;

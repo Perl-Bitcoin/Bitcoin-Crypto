@@ -7,6 +7,7 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 use Bitcoin::Crypto::Types qw(InstanceOf);
+use List::Util qw(any);
 use Try::Tiny;
 
 use Bitcoin::Crypto::Script::Opcode;
@@ -130,7 +131,7 @@ sub _check_blueprint
 		if ($kind eq 'address' || $kind eq 'data') {
 			my $len = ord substr $this_script, $pos, 1;
 
-			return !!0 unless grep { $_ == $len } @vars;
+			return !!0 unless any { $_ == $len } @vars;
 			if ($self->_check_blueprint($pos + $len + 1, @more_parts)) {
 				$self->set_address(substr $this_script, $pos + 1, $len)
 					if $kind eq 'address';
@@ -141,7 +142,7 @@ sub _check_blueprint
 			my $count = 0;
 			while (1) {
 				my $len = ord substr $this_script, $pos, 1;
-				last unless grep { $_ == $len } @vars;
+				last unless any { $_ == $len } @vars;
 
 				$pos += $len + 1;
 				$count += 1;
@@ -160,7 +161,7 @@ sub _check_blueprint
 
 			return !!0 unless $opcode;
 			return !!0 unless $opcode->name =~ /\AOP_(\d+)\z/;
-			return !!0 unless grep { $_ == $1 } @vars;
+			return !!0 unless any { $_ == $1 } @vars;
 			return $self->_check_blueprint($pos + 1, @more_parts);
 		}
 		else {
