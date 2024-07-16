@@ -16,7 +16,8 @@ use Type::Params -sigs;
 
 use Bitcoin::Crypto::Helpers qw(parse_formatdesc);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Types qw(Str ByteStr FormatStr InstanceOf Maybe PositiveInt Tuple ScalarRef PositiveOrZeroInt);
+use Bitcoin::Crypto::Types qw(Str ByteStr FormatStr ConsumerOf Maybe PositiveInt Tuple ScalarRef PositiveOrZeroInt);
+use Bitcoin::Crypto::DerivationPath;
 use Bitcoin::Crypto::Exception;
 
 our @EXPORT_OK = qw(
@@ -271,38 +272,17 @@ sub mnemonic_from_entropy
 }
 
 signature_for get_path_info => (
-	positional => [Str | InstanceOf ['Bitcoin::Crypto::BIP44']],
+	positional => [Str | ConsumerOf ['Bitcoin::Crypto::Role::WithDerivationPath']],
 );
 
 sub get_path_info
 {
 	my ($path) = @_;
-	if ($path =~ m{\A ([mM]) ((?: / \d+ '?)*) \z}x) {
-		my ($head, $rest) = ($1, $2);
-		my @path;
+	return $path->get_derivation_path if blessed $path;
 
-		if (defined $rest && length $rest > 0) {
-
-			# remove leading slash (after $head)
-			substr $rest, 0, 1, '';
-
-			for my $part (split '/', $rest) {
-				my $is_hardened = $part =~ tr/'//d;
-
-				return undef if $part >= Bitcoin::Crypto::Constants::max_child_keys;
-
-				$part += Bitcoin::Crypto::Constants::max_child_keys if $is_hardened;
-				push @path, $part;
-			}
-		}
-
-		return {
-			private => $head eq 'm',
-			path => \@path,
-		};
-	}
-
-	return undef;
+	return scalar try {
+		Bitcoin::Crypto::DerivationPath->from_string($path);
+	};
 }
 
 # use signature, not signature_for, because of the prototype
@@ -571,8 +551,11 @@ wallet.
 
 	$path_data = get_path_info($path);
 
-Tries to get derivation path data from C<$path>  (like C<"m/1/3'">). Returns
-undef if C<$path> is not a valid path, otherwise returns the structure:
+Tries to get derivation path data from C<$path>, which can be a string like
+C<"m/1/3'"> or an object which implements C<get_derivation_path> method (and
+does C<Bitcoin::Crypto::Role::WithDerivationPath>). Returns undef if C<$path>
+is not a valid path, otherwise returns the structure as an instance of
+L<Bitcoin::Crypto::DerivationPath>:
 
 	{
 		private => bool, # is path derivation private (lowercase m)

@@ -227,7 +227,7 @@ sub _get_purpose_from_BIP44
 
 signature_for derive_key => (
 	method => Object,
-	positional => [Str | InstanceOf ['Bitcoin::Crypto::BIP44']],
+	positional => [Str | Object],
 );
 
 sub derive_key
@@ -241,10 +241,10 @@ sub derive_key
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
 		'cannot derive key: key type mismatch'
-	) if !!$self->_is_private ne !!$path_info->{private};
+	) if !!$self->_is_private ne !!$path_info->private;
 
 	my $key = $self;
-	for my $child_num (@{$path_info->{path}}) {
+	for my $child_num (@{$path_info->path}) {
 		my $hardened = $child_num >= Bitcoin::Crypto::Constants::max_child_keys;
 
 		# dies if hardened-from-public requested

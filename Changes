@@ -9,6 +9,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 	[Improvements]
 	- transactions can now be created without registering UTXOs beforehand (with limited functionality)
 	- format descriptions now also handle base64
+	- Bitcoin::Crypto::Util::get_path_info now returns instances of Bitcoin::Crypto::DerivationPath (internal structure remains unchanged)
+	- Extended keys can now be derived by directly passing Bitcoin::Crypto::DerivationPath
 
 2.004 Tue Apr 23 2024
 	[Improvements]

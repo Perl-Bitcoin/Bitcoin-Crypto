@@ -4,10 +4,13 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
-use Scalar::Util qw(blessed);
 use Mooish::AttributeBuilder -standard;
+use Type::Params -sigs;
 
-use Bitcoin::Crypto::Types qw(BIP44Purpose PositiveOrZeroInt Bool Enum);
+use Scalar::Util qw(blessed);
+
+use Bitcoin::Crypto::DerivationPath;
+use Bitcoin::Crypto::Types qw(Object BIP44Purpose PositiveOrZeroInt Bool Enum);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
 
@@ -83,9 +86,16 @@ has param 'public' => (
 	default => !!0,
 );
 
+with qw(Bitcoin::Crypto::Role::WithDerivationPath);
+
 use overload
-	q{""} => 'as_string',
+	q{""} => sub { shift->as_string },
 	fallback => 1;
+
+signature_for as_string => (
+	method => Object,
+	positional => [],
+);
 
 sub as_string
 {
@@ -105,6 +115,18 @@ sub as_string
 
 	return sprintf "%s/%u/%u",
 		$path, $self->change, $self->index;
+}
+
+signature_for get_derivation_path => (
+	method => Object,
+	positional => [],
+);
+
+sub get_derivation_path
+{
+	my ($self) = @_;
+
+	return Bitcoin::Crypto::DerivationPath->from_string($self->as_string);
 }
 
 1;
@@ -240,6 +262,12 @@ Returns class instance.
 
 Stringifies the object as BIP44-compilant key derivation path. Can be used
 indirectly by just stringifying the object.
+
+=head3 get_derivation_path
+
+	my $path_obj = $object->get_derivation_path()
+
+Returns an object of class L<Bitcoin::Crypto::DerivationPath>.
 
 =head1 EXCEPTIONS
 

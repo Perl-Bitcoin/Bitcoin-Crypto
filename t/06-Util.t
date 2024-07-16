@@ -108,6 +108,8 @@ subtest 'testing get_path_info' => sub {
 	);
 
 	for my $case (@path_test_data) {
+		isa_ok(get_path_info($case->[0]), 'Bitcoin::Crypto::DerivationPath')
+			if defined $case->[1];
 		is_deeply(get_path_info($case->[0]), $case->[1], "test case $case->[0]");
 	}
 };

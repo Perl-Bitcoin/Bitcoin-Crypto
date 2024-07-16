@@ -275,5 +275,17 @@ for my $tdata (@test_data_error) {
 	++$case_num;
 }
 
+subtest 'should derive keys by using DerivationPath object directly' => sub {
+	my $parent = $test_data_public[0]{parent};
+	my $path = Bitcoin::Crypto::DerivationPath->new(
+		private => 0,
+		path => [],
+	);
+
+	my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized([base58 => $parent]);
+	my $key = $base_key->derive_key($path);
+	is(to_format [base58 => $key->to_serialized], $parent, 'derived ok');
+};
+
 done_testing;
 
