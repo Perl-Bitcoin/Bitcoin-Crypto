@@ -7,13 +7,14 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
+use List::Util qw(any notall);
 
 use Bitcoin::Crypto qw(btc_extpub btc_pub btc_transaction btc_script);
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize);
-use Bitcoin::Crypto::Helpers; # loads Math::BigInt
+use Bitcoin::Crypto::Helpers;    # loads Math::BigInt
 use Bitcoin::Crypto::Types qw(Object Str Maybe HashRef PositiveOrZeroInt Enum CodeRef PSBTMapType);
 
 use namespace::clean;
@@ -57,6 +58,10 @@ has param 'key_deserializer' => (
 	default => sub {
 		sub { $_[0] }
 	},
+);
+
+has option 'validator' => (
+	isa => CodeRef,
 );
 
 has param 'key_data' => (
@@ -147,6 +152,15 @@ my %types = (
 		value_data => "<bytes transaction>",
 		serializer => sub { shift->to_serialized },
 		deserializer => sub { btc_transaction->from_serialized(shift) },
+		validator => sub {
+			my ($tx) = @_;
+
+			die 'must not have signatures'
+				if notall { $_->signature_script->is_empty } @{$tx->inputs};
+
+			die 'must be in non-witness format'
+				if any { $_->has_witness } @{$tx->inputs};
+		},
 		version_status => {
 			0 => REQUIRED,
 		},
@@ -427,6 +441,7 @@ my %types = (
 		code => 0x13,
 		key_data => undef,
 		value_data => "<64 or 65 byte signature>",
+
 		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
@@ -437,6 +452,7 @@ my %types = (
 		code => 0x14,
 		key_data => "<32 byte xonlypubkey> <leafhash>",
 		value_data => "<64 or 65 byte signature>",
+
 		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
@@ -447,6 +463,7 @@ my %types = (
 		code => 0x15,
 		key_data => "<bytes control block>",
 		value_data => "<bytes script> <8-bit uint leaf version>",
+
 		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
@@ -458,6 +475,7 @@ my %types = (
 		key_data => "<32 byte xonlypubkey>",
 		value_data =>
 			"<compact size uint number of hashes> <32 byte leaf hash>* <4 byte fingerprint> <32-bit little endian uint path element>*",
+
 		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
@@ -468,6 +486,7 @@ my %types = (
 		code => 0x17,
 		key_data => undef,
 		value_data => "<32 byte xonlypubkey>",
+
 		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
@@ -478,6 +497,7 @@ my %types = (
 		code => 0x18,
 		key_data => undef,
 		value_data => "<32-byte hash>",
+
 		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
@@ -552,6 +572,7 @@ my %types = (
 		code => 0x05,
 		key_data => undef,
 		value_data => "<32 byte xonlypubkey>",
+
 		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
@@ -563,6 +584,7 @@ my %types = (
 		key_data => undef,
 		value_data =>
 			"{<8-bit uint depth> <8-bit uint leaf version> <compact size uint scriptlen> <bytes script>}*",
+
 		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,
@@ -574,6 +596,7 @@ my %types = (
 		key_data => "<32 byte xonlypubkey>",
 		value_data =>
 			"<compact size uint number of hashes> <32 byte leaf hash>* <4 byte fingerprint> <32-bit little endian uint path element>*",
+
 		# TODO: taproot not yet supported
 		version_status => {
 			0 => AVAILABLE,

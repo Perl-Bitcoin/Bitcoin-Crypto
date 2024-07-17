@@ -233,6 +233,23 @@ sub get_field
 {
 	my ($self, $type, $index) = @_;
 
+	my @values = $self->get_all_fields($type, $index);
+	Bitcoin::Crypto::Exception::PSBT->raise(
+		'Could not get value for field ' . $type->name . ': found ' . @values . ' values in PSBT'
+	) unless @values == 1;
+
+	return $values[0];
+}
+
+signature_for get_all_fields => (
+	method => Object,
+	positional => [PSBTFieldType, Maybe [PositiveOrZeroInt], {default => undef}],
+);
+
+sub get_all_fields
+{
+	my ($self, $type, $index) = @_;
+
 	my $map = $self->_get_map($type->get_map_type, index => $index);
 	return () unless $map;
 	return $map->find($type);
@@ -247,7 +264,7 @@ sub version
 {
 	my ($self) = @_;
 
-	my $version = $self->get_field('PSBT_GLOBAL_VERSION');
+	my $version = $self->get_all_fields('PSBT_GLOBAL_VERSION');
 	return $version ? $version->value : 0;
 }
 

@@ -34,11 +34,6 @@ has param 'raw_value' => (
 	default => '',
 );
 
-signature_for key => (
-	method => Object,
-	positional => []
-);
-
 sub BUILD
 {
 	my ($self) = @_;
@@ -52,6 +47,38 @@ sub BUILD
 	}
 
 }
+
+signature_for validate => (
+	method => Object,
+	positional => []
+);
+
+sub validate
+{
+	my ($self) = @_;
+
+	# at the very least, try deserializing value and key. If there is a
+	# dedicated validator, run that as well with these values
+	Bitcoin::Crypto::Exception::PSBT->trap_into(
+		sub {
+			my @args = ($self->value);
+			if (defined $self->type->key_data) {
+				unshift @args, $self->key;
+			}
+
+			$self->type->validator->(@args)
+				if $self->type->has_validator;
+		},
+		'validation failed for type ' . $self->type->name
+	);
+
+	return !!1;
+}
+
+signature_for key => (
+	method => Object,
+	positional => []
+);
 
 sub key
 {

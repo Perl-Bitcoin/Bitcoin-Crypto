@@ -2,6 +2,7 @@ use v5.10;
 use strict;
 use warnings;
 use Test::More;
+use Test::Exception;
 
 use Bitcoin::Crypto qw(btc_psbt);
 use Bitcoin::Crypto::Util qw(to_format);
@@ -25,7 +26,9 @@ subtest 'should deserialize a version 0 PSBT' => sub {
 };
 
 subtest 'getting a field from a non-existent input should not create it' => sub {
-	$psbt->get_field('PSBT_IN_WITNESS_SCRIPT', 2);
+	dies_ok {
+		$psbt->get_field('PSBT_IN_WITNESS_SCRIPT', 2);
+	};
 	is $psbt->input_count, 2, 'input count ok';
 };
 
