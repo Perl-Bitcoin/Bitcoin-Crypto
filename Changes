@@ -9,6 +9,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::BIP44::get_derivation_path method (getting internal representation of BIP44 path)
 	- Bitcoin::Crypto::Network::single_network class method (single-network mode)
 	- Bitcoin::Crypto::Network::set_single method
+	- Bitcoin::Crypto::Network::unregister method
 
 	[Improvements]
 	- transactions can now be created without registering UTXOs beforehand (with limited functionality)

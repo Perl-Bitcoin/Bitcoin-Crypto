@@ -70,5 +70,12 @@ subtest 'single-network mode works' => sub {
 	is(!!Bitcoin::Crypto::Network->single_network, !!0, 'single network 2 ok');
 };
 
+subtest 'unregistering a network works' => sub {
+	Bitcoin::Crypto::Network->get('litecoin')->unregister;
+
+	ok !Bitcoin::Crypto::Network->find(sub { shift->id eq 'litecoin' }),
+		'unregistered network not found';
+};
+
 done_testing;
 

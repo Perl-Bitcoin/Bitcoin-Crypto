@@ -107,6 +107,23 @@ sub register
 	return $self;
 }
 
+signature_for unregister => (
+	method => Object,
+	positional => [],
+);
+
+sub unregister
+{
+	my ($self) = @_;
+
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		'cannot unregister the default network - set another network as default first'
+	) if $default_network eq $self->id;
+
+	delete $networks{$self->id};
+	return $self;
+}
+
 signature_for set_default => (
 	method => Object,
 	positional => [],
@@ -417,6 +434,15 @@ context.
 
 Returns the network instance.
 
+=head2 unregister
+
+	my $network_object = $object->unregister()
+
+Does the opposite of L</register>. The network object will no longer be stored
+in the module, so it will be destroyed if you let go of its reference.
+
+Can be useful if some of the default networks are interferring with your use case.
+
 =head2 set_default
 
 	$network_object = $object->set_default()
@@ -477,7 +503,7 @@ Example:
 		return $instance->name eq 'Some name';
 	}
 
-Returns a list of network instances (objects).
+Returns a list of network instance ids (strings).
 
 =head1 SEE ALSO
 
