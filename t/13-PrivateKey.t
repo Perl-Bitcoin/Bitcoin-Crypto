@@ -110,10 +110,33 @@ subtest 'should validate key length' => sub {
 	} 'Bitcoin::Crypto::Exception::KeyCreate', 'Too long key got rejected';
 };
 
-subtest 'should not allow creation of keys from public key data' => sub {
+subtest 'should not allow creation of private keys from public key data' => sub {
 	throws_ok {
 		btc_prv->from_serialized([hex => $cases[0]{pub}]);
 	} 'Bitcoin::Crypto::Exception::KeyCreate', 'Public key got rejected';
+};
+
+subtest 'should handle duplicate networks if one of them is default' => sub {
+	Bitcoin::Crypto::Network->register(
+		id => 'bitcoin2',
+		name => 'Bitcoin mock',
+		p2pkh_byte => "\x00",
+		p2sh_byte => "\x05",
+		wif_byte => "\x80",
+	);
+
+	my $key = btc_prv->from_serialized([hex => $cases[0]{priv}]);
+	my $wif = $key->to_wif;
+
+	lives_and {
+		my $key2 = btc_prv->from_wif($wif);
+		is $key->to_serialized, $key2->to_serialized, 'keys ok';
+	};
+
+	Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
+	throws_ok {
+		my $key2 = btc_prv->from_wif($wif);
+	} qr{multiple networks};
 };
 
 done_testing;

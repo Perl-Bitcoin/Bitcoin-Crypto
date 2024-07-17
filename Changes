@@ -11,6 +11,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- format descriptions now also handle base64
 	- Bitcoin::Crypto::Util::get_path_info now returns instances of Bitcoin::Crypto::DerivationPath (internal structure remains unchanged)
 	- Extended keys can now be derived by directly passing Bitcoin::Crypto::DerivationPath
+	- exception is no longer raised if the default network is among multiple possible networks after deserialization of WIFs and extended keys
 
 2.004 Tue Apr 23 2024
 	[Improvements]

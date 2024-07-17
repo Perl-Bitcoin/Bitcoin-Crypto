@@ -176,6 +176,21 @@ will result in an exception.
 
 See L<Bitcoin::Crypto::Script/from_standard> for more details.
 
+=head2 Network support
+
+Bitcoin::Crypto has limited support for other cryptocurrency networks through
+L<Bitcoin::Crypto::Network>. The network must be fully compatible with Bitcoin
+- no extra cases will exist in the code, only constant values can differ
+between the networks. Lack of certain constant values can be used to mark
+feature unsupported in the given network, for example lack of C<segwit_hrp>
+network constant will be interpreted as network not supporting Segregated
+Witness. Note that Bitcoin testnet is also considered a separate network.
+
+Networks can be set globally through default network or on per-object basis for
+basic and extended keys, and scripts. Other parts of the system does not
+support per-object setting of networks and rely on the currently set default
+network.
+
 =head1 DISCLAIMER
 
 Although the module was written with an extra care and appropriate tests are in

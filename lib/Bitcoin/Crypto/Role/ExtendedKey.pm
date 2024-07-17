@@ -7,6 +7,7 @@ use Scalar::Util qw(blessed);
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 use Carp qw(carp);
+use List::Util qw(none);
 
 use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
@@ -143,9 +144,15 @@ sub from_serialized
 			last if @found_networks > 0;
 		}
 
-		Bitcoin::Crypto::Exception::KeyCreate->raise(
-			'found multiple networks possible for given serialized key'
-		) if @found_networks > 1;
+		if (@found_networks > 1) {
+			my $default_network = Bitcoin::Crypto::Network->get->id;
+
+			Bitcoin::Crypto::Exception::KeyCreate->raise(
+				'found multiple networks possible for given serialized key: ' . join ', ', @found_networks
+			) if none { $_ eq $default_network } @found_networks;
+
+			@found_networks = ($default_network);
+		}
 
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
 			"network name $network cannot be used for given serialized key"

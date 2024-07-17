@@ -7,6 +7,7 @@ use Moo;
 use Crypt::PK::ECC;
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
 use Type::Params -sigs;
+use List::Util qw(none);
 
 use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
@@ -73,9 +74,15 @@ sub from_wif
 	@found_networks = grep { $_ eq $network } @found_networks
 		if defined $network;
 
-	Bitcoin::Crypto::Exception::KeyCreate->raise(
-		'found multiple networks possible for given WIF'
-	) if @found_networks > 1;
+	if (@found_networks > 1) {
+		my $default_network = Bitcoin::Crypto::Network->get->id;
+
+		Bitcoin::Crypto::Exception::KeyCreate->raise(
+			'found multiple networks possible for given WIF: ' . join ', ', @found_networks
+		) if none { $_ eq $default_network } @found_networks;
+
+		@found_networks = ($default_network);
+	}
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(
 		"network name $network cannot be used for given WIF"
