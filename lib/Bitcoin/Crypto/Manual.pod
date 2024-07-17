@@ -84,7 +84,7 @@ L<Bitcoin::Crypto::Util/get_address_type>.
 You can work with any cryptocurrency as long as it is based on the same
 fundamentals as Bitcoin. You have to register a network in
 L<Bitcoin::Crypto::Network> first, with the protocol data valid for your
-cryptocurrency.
+cryptocurrency. Also see L</Support for other cryptocurrencies>
 
 =back
 
@@ -176,20 +176,27 @@ will result in an exception.
 
 See L<Bitcoin::Crypto::Script/from_standard> for more details.
 
-=head2 Network support
+=head2 Support for other cryptocurrencies
 
 Bitcoin::Crypto has limited support for other cryptocurrency networks through
 L<Bitcoin::Crypto::Network>. The network must be fully compatible with Bitcoin
-- no extra cases will exist in the code, only constant values can differ
-between the networks. Lack of certain constant values can be used to mark
-feature unsupported in the given network, for example lack of C<segwit_hrp>
-network constant will be interpreted as network not supporting Segregated
-Witness. Note that Bitcoin testnet is also considered a separate network.
+(a Bitcoin clone or a strict subset of Bitcoin features) - no extra cases will
+exist in the code, only constant values can differ between the networks. Lack
+of certain constant values can be used to mark feature unsupported in the given
+network, for example lack of C<segwit_hrp> network constant will be interpreted
+as network not supporting Segregated Witness. Note that Bitcoin testnet is also
+considered a separate network.
 
 Networks can be set globally through default network or on per-object basis for
 basic and extended keys, and scripts. Other parts of the system does not
 support per-object setting of networks and rely on the currently set default
-network.
+network. Setting keys for every object separately is considered an outdated
+feature which is kept for backwards compatibility (and convenience, sometimes).
+If you want to make sure all your keys are in the same, default network, see
+single-network mode in L<Bitcoin::Crypto::Network/single_network>. This mode
+will disallow creation of objects with other network than the default. It can
+come handy if you are de-serializing keys from non-constant strings, for
+example fetched from the Internet or entered by the user.
 
 =head1 DISCLAIMER
 
@@ -209,7 +216,7 @@ I will gladly accept help working on these:
 
 =item * All listed in L<Bitcoin::Crypto::Manual::Transactions/Current known problems with transactions>
 
-=item * Taproot compatibility
+=item * All issues with C<help wanted> tag on GitHub
 
 =item * Better error checking (edge cases etc.)
 

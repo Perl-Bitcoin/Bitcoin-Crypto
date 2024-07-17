@@ -63,6 +63,13 @@ block, but for the purpose of checking locktime or sequence the very incomplete
 L<Bitcoin::Crypto::Block> class can be instantiated and passed as C<block>
 parameter to C<< $tx->verify >> and C<< btc_utxo->new >> constructor.
 
+There is no way to set network (L<Bitcoin::Crypto::Network>) on
+per-transaction-object basis like you can do with keys. Most of transaction
+functionality is not network-dependent, but some addresses will be encoded
+using given network settings, which will be pulled from the default network.
+Note that only networks which use the B<exact> consensus rules of Bitcoin can
+be used successfully. No special cases for other networks will be implemented.
+
 =head2 Which types of transactions are supported?
 
 Bitcoin::Crypto test suite contains pretty thorough testing of following output types:
@@ -131,16 +138,6 @@ while verifying the signature though). Low S signatures mentioned in BIP62 are
 generated, but not verified. Some others like minimal push opcodes and
 OP_PUSHDATA 520 byte push limit are not implemented.
 
-=item * Only the default network is used for transactions
-
-There is currently no way to set network (L<Bitcoin::Crypto::Network>) on
-per-transaction-object basis like you can do with keys. Most of transaction
-functionality is not network-dependent, but some addresses will be encoded
-using given network settings, which will be pulled from the default network.
-
-Note that only networks which use the B<exact> consensus rules of Bitcoin can
-be used successfully. No special cases for other networks will be implemented.
-
 =item * legacy SIGHASH_SINGLE with more inputs than outputs
 
 It should result in the transaction digest of static value (value C<1> encoded
@@ -159,10 +156,6 @@ C<Bitcoin::Crypto::Constants::p2sh_timestamp_threshold>.
 
 To properly validate coinbase transactions some special cases must be
 introduced, which are not implemented right now.
-
-=item * PSBT (BIP174) is not supported
-
-It would be very nice to have the format implemented, but currently it's not.
 
 =item * Non-standard transactions may not work as intended
 

@@ -180,22 +180,5 @@ subtest 'testing network handling' => sub {
 	is($key->get_basic_key->network->name, 'Bitcoin Testnet', "basic key inherited extended key's network");
 };
 
-subtest 'should handle duplicate networks if one of them is default' => sub {
-	Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
-	my $mnemonic = generate_mnemonic;
-	my $key = btc_extprv->from_mnemonic($mnemonic);
-	my $serialized = to_format [base58 => $key->to_serialized];
-
-	lives_and {
-		my $key2 = btc_extprv->from_serialized([base58 => $serialized]);
-		is $key->get_fingerprint, $key2->get_fingerprint, 'keys ok';
-	};
-
-	Bitcoin::Crypto::Network->get('bitcoin')->set_default;
-	throws_ok {
-		my $key2 = btc_extprv->from_serialized([base58 => $serialized]);
-	} qr{multiple networks};
-};
-
 done_testing;
 

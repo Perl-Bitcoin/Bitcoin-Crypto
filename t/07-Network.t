@@ -59,5 +59,16 @@ subtest 'finding a network works' => sub {
 		'non-existent network not found';
 };
 
+subtest 'single-network mode works' => sub {
+	Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_single;
+
+	is(Bitcoin::Crypto::Network->get->id, 'bitcoin_testnet', 'default network ok');
+	is(!!Bitcoin::Crypto::Network->single_network, !!1, 'single network ok');
+
+	Bitcoin::Crypto::Network->get('bitcoin')->set_default;
+	is(Bitcoin::Crypto::Network->get->id, 'bitcoin', 'default network 2 ok');
+	is(!!Bitcoin::Crypto::Network->single_network, !!0, 'single network 2 ok');
+};
+
 done_testing;
 

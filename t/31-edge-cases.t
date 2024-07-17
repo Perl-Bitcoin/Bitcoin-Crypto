@@ -102,11 +102,75 @@ subtest 'should handle importing wif (multiple networks) with network parameter'
 	is $key->network->id, 'bitcoin2';
 };
 
+subtest 'should handle importing wif (multiple networks) with default' => sub {
+	my $wif = '5JxsKGzCoJwaWEjQvfNqD4qPEoUQ696BUEq68Y68WQ2GNR6zrxW';
+	my $key = btc_prv->from_wif($wif);
+	is $key->network->id, 'bitcoin';
+};
+
+subtest 'should not handle importing wif (multiple networks) if default is not one of the networks' => sub {
+	my $old_default = Bitcoin::Crypto::Network->get;
+	Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
+
+	my $wif = '5JxsKGzCoJwaWEjQvfNqD4qPEoUQ696BUEq68Y68WQ2GNR6zrxW';
+	throws_ok {
+		my $key2 = btc_prv->from_wif($wif);
+	} qr{multiple networks};
+
+	$old_default->set_default;
+};
+
 subtest 'should handle importing serialized prv (multiple networks) with network parameter' => sub {
 	my $ser =
 		'xprv9xoYZivLq3T7RYS1sN5uhzQDyGk7gkfvgUKgD7gzwtUGbPu8LxMexvZE39x4Te5r62ekj9aNrjxcfDm4Di3qmHLKeacnmkfQWY8Xubba1Ya';
 	my $key = btc_extprv->from_serialized([base58 => $ser], 'bitcoin2');
 	is $key->network->id, 'bitcoin2';
+};
+
+subtest 'should handle importing serialized prv (multiple networks) with default' => sub {
+	my $ser =
+		'xprv9xoYZivLq3T7RYS1sN5uhzQDyGk7gkfvgUKgD7gzwtUGbPu8LxMexvZE39x4Te5r62ekj9aNrjxcfDm4Di3qmHLKeacnmkfQWY8Xubba1Ya';
+	my $key = btc_extprv->from_serialized([base58 => $ser]);
+	is $key->network->id, 'bitcoin';
+};
+
+subtest 'should not handle importing wif (multiple networks) if default is not one of the networks' => sub {
+	my $old_default = Bitcoin::Crypto::Network->get;
+	Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
+
+	my $ser =
+		'xprv9xoYZivLq3T7RYS1sN5uhzQDyGk7gkfvgUKgD7gzwtUGbPu8LxMexvZE39x4Te5r62ekj9aNrjxcfDm4Di3qmHLKeacnmkfQWY8Xubba1Ya';
+	throws_ok {
+		my $key = btc_extprv->from_serialized([base58 => $ser]);
+	} qr{multiple networks};
+
+	$old_default->set_default;
+};
+
+subtest 'refuses to create keys with invalid network in single-network mode' => sub {
+	Bitcoin::Crypto::Network->get->set_single;
+
+	my $ser =
+		'tpubDC9sLxZVcV2s4Kwy2RjcYnjwks6zuWvekLpfwtAPvrntwSDUQAyt27DdDRHwDL63NxX7RuXD7Bgw7Qaf4vvssYdcVuv5MfvkFjZiDiRsfC7';
+	throws_ok {
+		my $pub = btc_extpub->from_serialized([base58 => $ser], 'bitcoin_testnet');
+	} qr{single-network mode with bitcoin};
+
+	Bitcoin::Crypto::Network->get->set_default;
+};
+
+subtest 'refuses to change network in single-network mode' => sub {
+	Bitcoin::Crypto::Network->get->set_single;
+
+	my $ser =
+		'xprv9xoYZivLq3T7RYS1sN5uhzQDyGk7gkfvgUKgD7gzwtUGbPu8LxMexvZE39x4Te5r62ekj9aNrjxcfDm4Di3qmHLKeacnmkfQWY8Xubba1Ya';
+	my $key = btc_extprv->from_serialized([base58 => $ser]);
+
+	throws_ok {
+		$key->set_network('bitcoin2');
+	} qr{single-network mode with bitcoin};
+
+	Bitcoin::Crypto::Network->get->set_default;
 };
 
 done_testing;
