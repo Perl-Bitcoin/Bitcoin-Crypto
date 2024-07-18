@@ -169,33 +169,21 @@ sub _check_integrity
 	my ($self) = @_;
 	my $version = $self->version;
 
-	my $check_field = sub {
-		my ($name, $index) = @_;
-
-		my @values = $self->get_field($name, $index);
-		Bitcoin::Crypto::Exception::PSBT->raise(
-			"PSBT field $name is required in version $version"
-		) unless @values == 1;
-	};
-
 	my $required_fields = Bitcoin::Crypto::PSBT::FieldType->get_fields_required_in_version($version);
-	foreach my $field (@{$required_fields}) {
+	foreach my $map (@{$self->maps}) {
+		foreach my $field_type (@{$required_fields}) {
+			next unless $field_type->map_type eq $map->type;
 
-		# NOTE: no required fields need keydata
+			my @values = $map->find($field_type);
+			Bitcoin::Crypto::Exception::PSBT->raise(
+				"PSBT field " . $field_type->name . " is required in version $version"
+			) unless @values == 1;
+		}
 
-		my $field_type = $field->get_map_type;
-		if ($field_type eq Bitcoin::Crypto::Constants::psbt_global_map) {
-			$check_field->($field->name);
-		}
-		elsif ($field_type eq Bitcoin::Crypto::Constants::psbt_input_map) {
-			for my $input_index (0 .. $self->input_count - 1) {
-				$check_field->($field->name, $input_index);
-			}
-		}
-		elsif ($field_type eq Bitcoin::Crypto::Constants::psbt_output_map) {
-			for my $output_index (0 .. $self->output_count - 1) {
-				$check_field->($field->name, $output_index);
-			}
+		foreach my $field (@{$map->fields}) {
+			Bitcoin::Crypto::Exception::PSBT->raise(
+				"PSBT field " . $field->type->name . " is not available in version $version"
+			) unless $field->type->available_in_version($version);
 		}
 	}
 }
@@ -250,7 +238,7 @@ sub get_all_fields
 {
 	my ($self, $type, $index) = @_;
 
-	my $map = $self->_get_map($type->get_map_type, index => $index);
+	my $map = $self->_get_map($type->map_type, index => $index);
 	return () unless $map;
 	return $map->find($type);
 }

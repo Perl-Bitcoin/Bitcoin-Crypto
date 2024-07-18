@@ -86,7 +86,6 @@ sub add
 		'This field is already used in another map'
 	) if $field->map;
 
-	$field->validate;
 	$field->set_map($self);
 	push @{$self->fields}, $field;
 

@@ -32,6 +32,16 @@ has param 'code' => (
 	isa => PositiveOrZeroInt,
 );
 
+has param 'map_type' => (
+	isa => PSBTMapType,
+	lazy => sub {
+		my $self = shift;
+		my $name = $self->name;
+		die unless $name =~ /^PSBT_([A-Z]+)_/;
+		return lc $1;
+	}
+);
+
 has param 'serializer' => (
 	isa => CodeRef,
 	default => sub {
@@ -424,6 +434,11 @@ my %types = (
 		key_data => undef,
 		value_data => "<32-bit little endian uint locktime>",
 		%uint_32bitLE_serializers,
+		validator => sub {
+			my ($value) = @_;
+			die 'must be greather than or equal to 500000000'
+				if $value < 500000000;
+		},
 		version_status => {
 			2 => AVAILABLE,
 		},
@@ -433,6 +448,11 @@ my %types = (
 		key_data => undef,
 		value_data => "<32-bit uint locktime>",
 		%uint_32bitLE_serializers,
+		validator => sub {
+			my ($value) = @_;
+			die 'must be less than 500000000'
+				unless $value < 500000000;
+		},
 		version_status => {
 			2 => AVAILABLE,
 		},
@@ -619,7 +639,7 @@ my %types = (
 %types = map { $_, __PACKAGE__->new(name => $_, %{$types{$_}}) } keys %types;
 my %types_reverse;
 foreach my $type (values %types) {
-	$types_reverse{$type->get_map_type}{$type->code} = $type->name;
+	$types_reverse{$type->map_type}{$type->code} = $type->name;
 }
 
 signature_for get_field_by_code => (
@@ -631,11 +651,20 @@ sub get_field_by_code
 {
 	my ($self, $map_type, $code) = @_;
 
-	Bitcoin::Crypto::Exception::PSBT->raise(
-		"unknown field type code $code in map $map_type"
-	) unless exists $types_reverse{$map_type}{$code};
+	return $types{$types_reverse{$map_type}{$code}}
+		if exists $types_reverse{$map_type}{$code};
 
-	return $types{$types_reverse{$map_type}{$code}};
+	return $self->new(
+		name => 'UNKNOWN',
+		map_type => $map_type,
+		code => $code,
+		key_data => 'unknown',
+		value_data => 'unknown',
+		version_status => {
+			0 => AVAILABLE,
+			2 => AVAILABLE,
+		},
+	);
 }
 
 signature_for get_field_by_name => (
@@ -704,23 +733,6 @@ sub required_in_version
 	my ($self, $version) = @_;
 
 	return ($self->version_status->{$version} // '') eq REQUIRED;
-}
-
-signature_for get_map_type => (
-	method => Object,
-	positional => [],
-);
-
-sub get_map_type
-{
-	my ($self) = @_;
-	my $name = $self->name;
-
-	# module programming error has occured if those die
-	die unless $name =~ /^PSBT_([A-Z]+)_/;
-	my $namespace = lc $1;
-
-	return $namespace;
 }
 
 1;

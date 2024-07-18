@@ -154,6 +154,7 @@ sub set_map
 {
 	my ($self, $map) = @_;
 
+	$self->validate;
 	$self->_set_map($map);
 	$map->_check_integrity($self);
 	return;
