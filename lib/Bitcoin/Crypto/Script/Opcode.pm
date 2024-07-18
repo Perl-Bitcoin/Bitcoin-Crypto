@@ -16,7 +16,7 @@ use Crypt::Digest::SHA1 qw(sha1);
 use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Str StrLength CodeRef Bool);
+use Bitcoin::Crypto::Types qw(Str IntMaxBits CodeRef Bool);
 use Bitcoin::Crypto::Util qw(hash160 hash256 get_public_key_compressed);
 use Bitcoin::Crypto::Transaction::Input;
 
@@ -48,7 +48,7 @@ has param 'name' => (
 );
 
 has param 'code' => (
-	isa => StrLength [1, 1],
+	isa => IntMaxBits [8],
 );
 
 has param 'needs_transaction' => (
@@ -78,7 +78,7 @@ sub execute
 
 my %opcodes = (
 	OP_0 => {
-		code => "\x00",
+		code => 0x00,
 		pushes => !!1,
 		runner => sub {
 			my $runner = shift;
@@ -87,7 +87,7 @@ my %opcodes = (
 		},
 	},
 	OP_PUSHDATA1 => {
-		code => "\x4c",
+		code => 0x4c,
 		pushes => !!1,
 		runner => sub {
 			my ($runner, $bytes) = @_;
@@ -96,19 +96,19 @@ my %opcodes = (
 		},
 	},
 	OP_PUSHDATA2 => {
-		code => "\x4d",
+		code => 0x4d,
 		pushes => !!1,
 
 		# see runner below
 	},
 	OP_PUSHDATA4 => {
-		code => "\x4e",
+		code => 0x4e,
 		pushes => !!1,
 
 		# see runner below
 	},
 	OP_1NEGATE => {
-		code => "\x4f",
+		code => 0x4f,
 		runner => sub {
 			my $runner = shift;
 
@@ -116,22 +116,22 @@ my %opcodes = (
 		},
 	},
 	OP_RESERVED => {
-		code => "\x50",
+		code => 0x50,
 		runner => sub { invalid_script },
 	},
 	OP_NOP => {
-		code => "\x61",
+		code => 0x61,
 		runner => sub {
 
 			# does nothing
 		},
 	},
 	OP_VER => {
-		code => "\x62",
+		code => 0x62,
 		runner => sub { invalid_script },
 	},
 	OP_IF => {
-		code => "\x63",
+		code => 0x63,
 		runner => sub {
 			my ($runner, $else_pos, $endif_pos) = @_;
 			my $stack = $runner->stack;
@@ -152,24 +152,24 @@ my %opcodes = (
 		},
 	},
 	OP_NOTIF => {
-		code => "\x64",
+		code => 0x64,
 
 		# see runner below
 	},
 	OP_VERIF => {
-		code => "\x65",
+		code => 0x65,
 
 		# NOTE: should also be invalid if the op is not run
 		runner => sub { invalid_script },
 	},
 	OP_VERNOTIF => {
-		code => "\x66",
+		code => 0x66,
 
 		# NOTE: should also be invalid if the op is not run
 		runner => sub { invalid_script },
 	},
 	OP_ELSE => {
-		code => "\x67",
+		code => 0x67,
 
 		# should only get called when IF branch ops are depleted
 		runner => sub {
@@ -179,7 +179,7 @@ my %opcodes = (
 		},
 	},
 	OP_ENDIF => {
-		code => "\x68",
+		code => 0x68,
 
 		# should only get called when IF or ELSE branch ops are depleted
 		runner => sub {
@@ -188,7 +188,7 @@ my %opcodes = (
 		},
 	},
 	OP_VERIFY => {
-		code => "\x69",
+		code => 0x69,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -200,11 +200,11 @@ my %opcodes = (
 		},
 	},
 	OP_RETURN => {
-		code => "\x6a",
+		code => 0x6a,
 		runner => sub { invalid_script },
 	},
 	OP_TOALTSTACK => {
-		code => "\x6b",
+		code => 0x6b,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -214,7 +214,7 @@ my %opcodes = (
 		},
 	},
 	OP_FROMALTSTACK => {
-		code => "\x6c",
+		code => 0x6c,
 		runner => sub {
 			my $runner = shift;
 			my $alt = $runner->alt_stack;
@@ -224,7 +224,7 @@ my %opcodes = (
 		},
 	},
 	OP_2DROP => {
-		code => "\x6d",
+		code => 0x6d,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -234,7 +234,7 @@ my %opcodes = (
 		},
 	},
 	OP_2DUP => {
-		code => "\x6e",
+		code => 0x6e,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -244,7 +244,7 @@ my %opcodes = (
 		},
 	},
 	OP_3DUP => {
-		code => "\x6f",
+		code => 0x6f,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -254,7 +254,7 @@ my %opcodes = (
 		},
 	},
 	OP_2OVER => {
-		code => "\x70",
+		code => 0x70,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -264,7 +264,7 @@ my %opcodes = (
 		},
 	},
 	OP_2ROT => {
-		code => "\x71",
+		code => 0x71,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -274,7 +274,7 @@ my %opcodes = (
 		},
 	},
 	OP_2SWAP => {
-		code => "\x72",
+		code => 0x72,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -284,7 +284,7 @@ my %opcodes = (
 		},
 	},
 	OP_IFDUP => {
-		code => "\x73",
+		code => 0x73,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -296,7 +296,7 @@ my %opcodes = (
 		},
 	},
 	OP_DEPTH => {
-		code => "\x74",
+		code => 0x74,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -305,7 +305,7 @@ my %opcodes = (
 		},
 	},
 	OP_DROP => {
-		code => "\x75",
+		code => 0x75,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -315,7 +315,7 @@ my %opcodes = (
 		},
 	},
 	OP_DUP => {
-		code => "\x76",
+		code => 0x76,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -325,7 +325,7 @@ my %opcodes = (
 		},
 	},
 	OP_NIP => {
-		code => "\x77",
+		code => 0x77,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -335,7 +335,7 @@ my %opcodes = (
 		},
 	},
 	OP_OVER => {
-		code => "\x78",
+		code => 0x78,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -345,7 +345,7 @@ my %opcodes = (
 		},
 	},
 	OP_PICK => {
-		code => "\x79",
+		code => 0x79,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -359,7 +359,7 @@ my %opcodes = (
 		},
 	},
 	OP_ROLL => {
-		code => "\x7a",
+		code => 0x7a,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -373,7 +373,7 @@ my %opcodes = (
 		},
 	},
 	OP_ROT => {
-		code => "\x7b",
+		code => 0x7b,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -383,7 +383,7 @@ my %opcodes = (
 		},
 	},
 	OP_SWAP => {
-		code => "\x7c",
+		code => 0x7c,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -393,7 +393,7 @@ my %opcodes = (
 		},
 	},
 	OP_TUCK => {
-		code => "\x7d",
+		code => 0x7d,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -403,7 +403,7 @@ my %opcodes = (
 		},
 	},
 	OP_SIZE => {
-		code => "\x82",
+		code => 0x82,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -413,7 +413,7 @@ my %opcodes = (
 		},
 	},
 	OP_EQUAL => {
-		code => "\x87",
+		code => 0x87,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -423,20 +423,20 @@ my %opcodes = (
 		},
 	},
 	OP_EQUALVERIFY => {
-		code => "\x88",
+		code => 0x88,
 
 		# see runner below
 	},
 	OP_RESERVED1 => {
-		code => "\x89",
+		code => 0x89,
 		runner => sub { invalid_script },
 	},
 	OP_RESERVED2 => {
-		code => "\x8a",
+		code => 0x8a,
 		runner => sub { invalid_script },
 	},
 	OP_1ADD => {
-		code => "\x8b",
+		code => 0x8b,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -446,7 +446,7 @@ my %opcodes = (
 		},
 	},
 	OP_1SUB => {
-		code => "\x8c",
+		code => 0x8c,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -456,7 +456,7 @@ my %opcodes = (
 		},
 	},
 	OP_NEGATE => {
-		code => "\x8f",
+		code => 0x8f,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -466,7 +466,7 @@ my %opcodes = (
 		},
 	},
 	OP_ABS => {
-		code => "\x90",
+		code => 0x90,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -476,7 +476,7 @@ my %opcodes = (
 		},
 	},
 	OP_NOT => {
-		code => "\x91",
+		code => 0x91,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -486,7 +486,7 @@ my %opcodes = (
 		},
 	},
 	OP_0NOTEQUAL => {
-		code => "\x92",
+		code => 0x92,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -496,7 +496,7 @@ my %opcodes = (
 		},
 	},
 	OP_ADD => {
-		code => "\x93",
+		code => 0x93,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -509,7 +509,7 @@ my %opcodes = (
 		},
 	},
 	OP_SUB => {
-		code => "\x94",
+		code => 0x94,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -522,7 +522,7 @@ my %opcodes = (
 		},
 	},
 	OP_BOOLAND => {
-		code => "\x9a",
+		code => 0x9a,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -537,7 +537,7 @@ my %opcodes = (
 		},
 	},
 	OP_BOOLOR => {
-		code => "\x9b",
+		code => 0x9b,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -552,7 +552,7 @@ my %opcodes = (
 		},
 	},
 	OP_NUMEQUAL => {
-		code => "\x9c",
+		code => 0x9c,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -565,12 +565,12 @@ my %opcodes = (
 		},
 	},
 	OP_NUMEQUALVERIFY => {
-		code => "\x9d",
+		code => 0x9d,
 
 		# see runner below
 	},
 	OP_NUMNOTEQUAL => {
-		code => "\x9e",
+		code => 0x9e,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -583,7 +583,7 @@ my %opcodes = (
 		},
 	},
 	OP_LESSTHAN => {
-		code => "\x9f",
+		code => 0x9f,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -596,7 +596,7 @@ my %opcodes = (
 		},
 	},
 	OP_GREATERTHAN => {
-		code => "\xa0",
+		code => 0xa0,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -609,7 +609,7 @@ my %opcodes = (
 		},
 	},
 	OP_LESSTHANOREQUAL => {
-		code => "\xa1",
+		code => 0xa1,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -622,7 +622,7 @@ my %opcodes = (
 		},
 	},
 	OP_GREATERTHANOREQUAL => {
-		code => "\xa2",
+		code => 0xa2,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -635,7 +635,7 @@ my %opcodes = (
 		},
 	},
 	OP_MIN => {
-		code => "\xa3",
+		code => 0xa3,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -647,7 +647,7 @@ my %opcodes = (
 		},
 	},
 	OP_MAX => {
-		code => "\xa4",
+		code => 0xa4,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -659,7 +659,7 @@ my %opcodes = (
 		},
 	},
 	OP_WITHIN => {
-		code => "\xa5",
+		code => 0xa5,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -670,7 +670,7 @@ my %opcodes = (
 		},
 	},
 	OP_RIPEMD160 => {
-		code => "\xa6",
+		code => 0xa6,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -680,7 +680,7 @@ my %opcodes = (
 		},
 	},
 	OP_SHA1 => {
-		code => "\xa7",
+		code => 0xa7,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -690,7 +690,7 @@ my %opcodes = (
 		},
 	},
 	OP_SHA256 => {
-		code => "\xa8",
+		code => 0xa8,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -700,7 +700,7 @@ my %opcodes = (
 		},
 	},
 	OP_HASH160 => {
-		code => "\xa9",
+		code => 0xa9,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -710,7 +710,7 @@ my %opcodes = (
 		},
 	},
 	OP_HASH256 => {
-		code => "\xaa",
+		code => 0xaa,
 		runner => sub {
 			my $runner = shift;
 			my $stack = $runner->stack;
@@ -720,7 +720,7 @@ my %opcodes = (
 		},
 	},
 	OP_CODESEPARATOR => {
-		code => "\xab",
+		code => 0xab,
 		needs_transaction => !!1,
 
 		runner => sub {
@@ -729,7 +729,7 @@ my %opcodes = (
 		},
 	},
 	OP_CHECKSIG => {
-		code => "\xac",
+		code => 0xac,
 		needs_transaction => !!1,
 
 		runner => sub {
@@ -753,13 +753,13 @@ my %opcodes = (
 		},
 	},
 	OP_CHECKSIGVERIFY => {
-		code => "\xad",
+		code => 0xad,
 		needs_transaction => !!1,
 
 		# see runner below
 	},
 	OP_CHECKMULTISIG => {
-		code => "\xae",
+		code => 0xae,
 		needs_transaction => !!1,
 
 		runner => sub {
@@ -805,17 +805,17 @@ my %opcodes = (
 		},
 	},
 	OP_CHECKMULTISIGVERIFY => {
-		code => "\xaf",
+		code => 0xaf,
 		needs_transaction => !!1,
 
 		# see runner below
 	},
 	OP_NOP1 => {
-		code => "\xb0",
+		code => 0xb0,
 		runner => sub { 'NOP' },
 	},
 	OP_CHECKLOCKTIMEVERIFY => {
-		code => "\xb1",
+		code => 0xb1,
 		needs_transaction => !!1,
 
 		runner => sub {
@@ -848,7 +848,7 @@ my %opcodes = (
 		},
 	},
 	OP_CHECKSEQUENCEVERIFY => {
-		code => "\xb2",
+		code => 0xb2,
 		needs_transaction => !!1,
 
 		runner => sub {
@@ -886,38 +886,38 @@ my %opcodes = (
 		},
 	},
 	OP_NOP4 => {
-		code => "\xb3",
+		code => 0xb3,
 		runner => sub { 'NOP' },
 	},
 	OP_NOP5 => {
-		code => "\xb4",
+		code => 0xb4,
 		runner => sub { 'NOP' },
 	},
 	OP_NOP6 => {
-		code => "\xb5",
+		code => 0xb5,
 		runner => sub { 'NOP' },
 	},
 	OP_NOP7 => {
-		code => "\xb6",
+		code => 0xb6,
 		runner => sub { 'NOP' },
 	},
 	OP_NOP8 => {
-		code => "\xb7",
+		code => 0xb7,
 		runner => sub { 'NOP' },
 	},
 	OP_NOP9 => {
-		code => "\xb8",
+		code => 0xb8,
 		runner => sub { 'NOP' },
 	},
 	OP_NOP10 => {
-		code => "\xb9",
+		code => 0xb9,
 		runner => sub { 'NOP' },
 	},
 );
 
 for my $num (1 .. 16) {
 	$opcodes{"OP_$num"} = {
-		code => chr(0x50 + $num),
+		code => 0x50 + $num,
 		pushes => !!1,
 		runner => sub {
 			my $runner = shift;
@@ -971,7 +971,7 @@ $opcodes{OP_TRUE} = $opcodes{OP_1};
 
 signature_for get_opcode_by_code => (
 	method => Str,
-	positional => [StrLength [1, 1]],
+	positional => [IntMaxBits [8]],
 );
 
 sub get_opcode_by_code
@@ -1013,11 +1013,11 @@ Bitcoin::Crypto::Script::Opcode - Bitcoin Script opcode
 
 	use Bitcoin::Crypto::Script::Opcode;
 
-	my $opcode1 = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code("\x00");
+	my $opcode1 = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code(0x00);
 	my $opcode2 = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name('OP_1');
 
 	print $opcode1->name; # 'OP_0'
-	print $opcode1->code; # "\x00"
+	print $opcode1->code; # 0
 	print 'implemented' if $opcode1->implemented;
 
 =head1 DESCRIPTION
@@ -1041,9 +1041,9 @@ If opcode was not found an exception is raised
 
 =head3 get_opcode_by_code
 
-	my $object = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code($bytestr);
+	my $object = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code($int);
 
-Finds an opcode by its code (bytestring of length 1) and returns an object
+Finds an opcode by its code (integer in range 0-255) and returns an object
 instance.
 
 If opcode was not found an exception is raised (C<Bitcoin::Crypto::Exception::ScriptOpcode>).

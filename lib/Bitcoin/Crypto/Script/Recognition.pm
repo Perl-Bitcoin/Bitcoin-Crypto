@@ -122,7 +122,7 @@ sub _check_blueprint
 
 	if (!ref $part) {
 		my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name($part);
-		return !!0 unless $opcode->code eq substr $this_script, $pos, 1;
+		return !!0 unless chr($opcode->code) eq substr $this_script, $pos, 1;
 		return $self->_check_blueprint($pos + 1, @more_parts);
 	}
 	else {
@@ -150,13 +150,13 @@ sub _check_blueprint
 
 			return !!0 if $count == 0 || $count > 16;
 			my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name("OP_$count");
-			return !!0 unless $opcode->code eq substr $this_script, $pos, 1;
+			return !!0 unless chr($opcode->code) eq substr $this_script, $pos, 1;
 			return $self->_check_blueprint($pos, @more_parts);
 		}
 		elsif ($kind eq 'op_n') {
 			my $opcode;
 			try {
-				$opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code(substr $this_script, $pos, 1);
+				$opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code(ord substr $this_script, $pos, 1);
 			};
 
 			return !!0 unless $opcode;

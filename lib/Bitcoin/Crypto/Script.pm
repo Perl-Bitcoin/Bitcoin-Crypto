@@ -305,7 +305,7 @@ sub operations
 			my $this_byte = substr $serialized, 0, 1, '';
 
 			try {
-				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code($this_byte);
+				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code(ord $this_byte);
 				push @debug_ops, $opcode->name;
 				my $to_push = [$opcode, $this_byte];
 
@@ -391,7 +391,7 @@ sub add_operation
 	my ($self, $name) = @_;
 
 	my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name($name);
-	$self->add_raw($opcode->code);
+	$self->add_raw(chr $opcode->code);
 
 	return $self;
 }
