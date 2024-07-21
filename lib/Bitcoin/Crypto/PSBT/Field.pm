@@ -116,7 +116,7 @@ sub set_key
 {
 	my ($self, $key) = @_;
 
-	$self->set_raw_key($self->type->key_serializer($key));
+	$self->set_raw_key($self->type->key_serializer->($key));
 	return;
 }
 
@@ -141,7 +141,7 @@ sub set_value
 {
 	my ($self, $value) = @_;
 
-	$self->set_raw_value($self->type->serializer($value));
+	$self->set_raw_value($self->type->serializer->($value));
 	return;
 }
 

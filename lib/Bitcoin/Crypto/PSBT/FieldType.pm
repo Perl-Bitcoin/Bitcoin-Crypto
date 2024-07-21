@@ -14,7 +14,7 @@ use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize);
-use Bitcoin::Crypto::Helpers;    # loads Math::BigInt
+use Bitcoin::Crypto::Helpers qw(ensure_length);    # loads Math::BigInt
 use Bitcoin::Crypto::Types qw(Object Str Maybe HashRef PositiveOrZeroInt Enum CodeRef PSBTMapType);
 
 use namespace::clean;
@@ -233,8 +233,25 @@ my %types = (
 		code => 0x06,
 		key_data => undef,
 		value_data => "<8-bit uint flags>",
-		serializer => sub { pack 'C', shift },
-		deserializer => sub { unpack 'C', shift },
+		serializer => sub {
+			my $hash = shift;
+			my $raw = $hash->{raw_value} // 0;
+			$raw |= 0x01 if $hash->{inputs_modifiable};
+			$raw |= 0x02 if $hash->{outputs_modifiable};
+			$raw |= 0x04 if $hash->{has_sighash_single};
+
+			return pack 'C', $raw;
+		},
+		deserializer => sub {
+			my $raw = unpack 'C', shift;
+
+			return {
+				raw_value => $raw,
+				inputs_modifiable => !!($raw & 0x01),
+				outputs_modifiable => !!($raw & 0x02),
+				has_sighash_single => !!($raw & 0x04),
+			};
+		},
 		version_status => {
 			2 => AVAILABLE
 		},
@@ -264,6 +281,7 @@ my %types = (
 	},
 
 	# INPUT
+
 	PSBT_IN_NON_WITNESS_UTXO => {
 		code => 0x00,
 		key_data => undef,
@@ -275,6 +293,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_WITNESS_UTXO => {
 		code => 0x01,
 		key_data => undef,
@@ -286,6 +305,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_PARTIAL_SIG => {
 		code => 0x02,
 		key_data => "<bytes pubkey>",
@@ -297,6 +317,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_SIGHASH_TYPE => {
 		code => 0x03,
 		key_data => undef,
@@ -307,6 +328,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_REDEEM_SCRIPT => {
 		code => 0x04,
 		key_data => undef,
@@ -317,6 +339,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_WITNESS_SCRIPT => {
 		code => 0x05,
 		key_data => undef,
@@ -327,6 +350,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_BIP32_DERIVATION => {
 		code => 0x06,
 		key_data => "<bytes pubkey>",
@@ -339,6 +363,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_FINAL_SCRIPTSIG => {
 		code => 0x07,
 		key_data => undef,
@@ -349,6 +374,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_FINAL_SCRIPTWITNESS => {
 		code => 0x08,
 		key_data => undef,
@@ -358,6 +384,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_POR_COMMITMENT => {
 		code => 0x09,
 		key_data => undef,
@@ -367,6 +394,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_RIPEMD160 => {
 		code => 0x0a,
 		key_data => "<20-byte hash>",
@@ -376,6 +404,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_SHA256 => {
 		code => 0x0b,
 		key_data => "<32-byte hash>",
@@ -385,6 +414,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_HASH160 => {
 		code => 0x0c,
 		key_data => "<20-byte hash>",
@@ -394,6 +424,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_HASH256 => {
 		code => 0x0d,
 		key_data => "<32-byte hash>",
@@ -403,14 +434,19 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
+	# NOTE: as usual, txids are represented in different byte order when serialized
 	PSBT_IN_PREVIOUS_TXID => {
 		code => 0x0e,
 		key_data => undef,
 		value_data => "<32 byte txid>",
+		serializer => sub { scalar reverse shift },
+		deserializer => sub { scalar reverse shift },
 		version_status => {
 			2 => REQUIRED,
 		},
 	},
+
 	PSBT_IN_OUTPUT_INDEX => {
 		code => 0x0f,
 		key_data => undef,
@@ -420,6 +456,7 @@ my %types = (
 			2 => REQUIRED,
 		},
 	},
+
 	PSBT_IN_SEQUENCE => {
 		code => 0x10,
 		key_data => undef,
@@ -429,6 +466,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_REQUIRED_TIME_LOCKTIME => {
 		code => 0x11,
 		key_data => undef,
@@ -443,6 +481,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_REQUIRED_HEIGHT_LOCKTIME => {
 		code => 0x12,
 		key_data => undef,
@@ -457,6 +496,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_TAP_KEY_SIG => {
 		code => 0x13,
 		key_data => undef,
@@ -468,6 +508,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_TAP_SCRIPT_SIG => {
 		code => 0x14,
 		key_data => "<32 byte xonlypubkey> <leafhash>",
@@ -479,6 +520,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_TAP_LEAF_SCRIPT => {
 		code => 0x15,
 		key_data => "<bytes control block>",
@@ -490,6 +532,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_TAP_BIP32_DERIVATION => {
 		code => 0x16,
 		key_data => "<32 byte xonlypubkey>",
@@ -502,6 +545,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_TAP_INTERNAL_KEY => {
 		code => 0x17,
 		key_data => undef,
@@ -513,6 +557,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_TAP_MERKLE_ROOT => {
 		code => 0x18,
 		key_data => undef,
@@ -524,6 +569,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_IN_PROPRIETARY => {
 		code => 0xfc,
 		key_data =>
@@ -547,6 +593,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_OUT_WITNESS_SCRIPT => {
 		code => 0x01,
 		key_data => undef,
@@ -557,6 +604,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_OUT_BIP32_DERIVATION => {
 		code => 0x02,
 		key_data => "<bytes public key>",
@@ -569,16 +617,18 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_OUT_AMOUNT => {
 		code => 0x03,
 		key_data => undef,
 		value_data => "<64-bit int amount>",
-		serializer => sub { scalar reverse shift->to_bytes },
+		serializer => sub { scalar reverse ensure_length shift->to_bytes, 8 },
 		deserializer => sub { Math::BigInt->from_bytes(scalar reverse shift) },
 		version_status => {
 			2 => REQUIRED,
 		},
 	},
+
 	PSBT_OUT_SCRIPT => {
 		code => 0x04,
 		key_data => undef,
@@ -588,6 +638,7 @@ my %types = (
 			2 => REQUIRED,
 		},
 	},
+
 	PSBT_OUT_TAP_INTERNAL_KEY => {
 		code => 0x05,
 		key_data => undef,
@@ -599,6 +650,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_OUT_TAP_TREE => {
 		code => 0x06,
 		key_data => undef,
@@ -611,6 +663,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_OUT_TAP_BIP32_DERIVATION => {
 		code => 0x07,
 		key_data => "<32 byte xonlypubkey>",
@@ -623,6 +676,7 @@ my %types = (
 			2 => AVAILABLE,
 		},
 	},
+
 	PSBT_OUT_PROPRIETARY => {
 		code => 0xfc,
 		key_data =>
