@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Moo;
 use Type::Params -sigs;
+use Carp qw(carp);
 
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
@@ -19,16 +20,25 @@ with qw(Bitcoin::Crypto::Role::BasicKey);
 
 sub _is_private { 0 }
 
-signature_for key_hash => (
+signature_for get_hash => (
 	method => Object,
 	positional => [],
 );
 
-sub key_hash
+sub get_hash
 {
 	my ($self) = @_;
 
 	return hash160($self->to_serialized);
+}
+
+sub key_hash
+{
+	my $self = shift;
+	my $class = ref $self;
+
+	carp "$class->key_hash() is now deprecated. Use $class->get_hash() instead";
+	return $self->get_hash(@_);
 }
 
 around from_serialized => sub {
@@ -52,7 +62,7 @@ sub witness_program
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
 	$program
 		->add_operation('OP_' . Bitcoin::Crypto::Constants::segwit_witness_version)
-		->push_bytes($self->key_hash);
+		->push_bytes($self->get_hash);
 
 	return $program;
 }
@@ -70,7 +80,7 @@ sub get_legacy_address
 		'legacy addresses can only be created with BIP44 in legacy (BIP44) mode'
 	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_purpose);
 
-	my $pkh = $self->network->p2pkh_byte . $self->key_hash;
+	my $pkh = $self->network->p2pkh_byte . $self->get_hash;
 	return encode_base58check($pkh);
 }
 
@@ -217,6 +227,16 @@ Deprecated. Use C<< $class->from_serialized([hex => $data]) >> instead.
 =head2 to_hex
 
 Deprecated. Use C<< to_format [hex => $key->to_serialized()] >> instead.
+
+=head2 get_hash
+
+	$bytestr = $object->get_hash()
+
+Returns hash160 of the serialized public key.
+
+=head2 key_hash
+
+Deprecated. Use C<< $key->get_hash() >> instead.
 
 =head2 set_compressed
 

@@ -18,9 +18,10 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- exception is no longer raised if the default network is among multiple possible networks after deserialization of WIFs and extended keys
 	- module can now be configured to work in single-network mode, disallowing creation of objects with different networks
 
-	[Changes]
+	[Changes and deprecations]
 	- codes in Bitcoin::Crypto::Script::Opcode are now integers instead of bytestrings of length 1
 	- Bitcoin::Crypto::Util::get_path_info now returns instances of Bitcoin::Crypto::DerivationPath (internal structure remains unchanged)
+	- Bitcoin::Crypto::Key::Public::key_hash is now deprecated, added new method get_hash (consistent naming with other modules)
 
 2.004 Tue Apr 23 2024
 	[Improvements]
