@@ -128,6 +128,8 @@ foreach my $error_case (@cases) {
 	throws_ok {
 		btc_psbt->from_serialized([base64 => $base64]);
 	} $err, $name;
+
+	isa_ok $@, 'Bitcoin::Crypto::Exception::PSBT';
 }
 
 done_testing;

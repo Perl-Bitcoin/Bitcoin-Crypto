@@ -35,6 +35,7 @@ use constant {
 	rbf_sequence_no_threshold => 0xffffffff - 2,
 
 	psbt_magic => "\x70\x73\x62\x74\xff",
+	psbt_separator => "\x00",
 	psbt_global_map => 'global',
 	psbt_input_map => 'in',
 	psbt_output_map => 'out',

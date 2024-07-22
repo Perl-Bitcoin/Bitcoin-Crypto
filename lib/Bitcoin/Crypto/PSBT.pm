@@ -14,7 +14,6 @@ use Bitcoin::Crypto::PSBT::Field;
 use Bitcoin::Crypto::PSBT::FieldType;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Types qw(Object Str InstanceOf ByteStr ArrayRef PositiveOrZeroInt Maybe PSBTFieldType);
 
 use namespace::clean;
@@ -23,14 +22,6 @@ has field 'maps' => (
 	isa => ArrayRef [InstanceOf ['Bitcoin::Crypto::PSBT::Map']],
 	default => sub { [] },
 );
-
-sub BUILD
-{
-	my ($self) = @_;
-
-	# create a global map
-	$self->_get_map(Bitcoin::Crypto::Constants::psbt_global_map, set => !!1);
-}
 
 sub _get_map
 {
@@ -55,71 +46,6 @@ sub _get_map
 	}
 
 	return $found_map;
-}
-
-sub _deserialize_map
-{
-	my ($self, $serialized, %args) = @_;
-	my $pos = ${$args{pos}};
-
-	Bitcoin::Crypto::Exception::PSBT->raise(
-		'map expected but end of stream was reached'
-	) unless $pos < length $serialized;
-
-	# make sure to create a map if there isn't one
-	my $map = $self->_get_map($args{map_type}, index => $args{index}, set => !!1);
-
-	while ($pos < length $serialized) {
-		my $keylen = unpack_compactsize $serialized, \$pos;
-		last if $keylen == 0;
-
-		my $keydata = substr $serialized, $pos, $keylen;
-		my $keytype = unpack_compactsize $keydata, \(my $keytype_pos = 0);
-		$keydata = substr $keydata, $keytype_pos;
-		$pos += $keylen;
-
-		my $valuelen = unpack_compactsize $serialized, \$pos;
-		my $valuedata = substr $serialized, $pos, $valuelen;
-		$pos += $valuelen;
-
-		my $item = Bitcoin::Crypto::PSBT::Field->new(
-			type => [$args{map_type}, $keytype],
-			raw_key => $keydata,
-			raw_value => $valuedata,
-		);
-
-		$map->add($item);
-	}
-
-	${$args{pos}} = $pos;
-}
-
-sub _serialize_map
-{
-	my ($self, %args) = @_;
-
-	my $map = $self->_get_map($args{map_type}, index => $args{index});
-	my %to_encode;
-
-	foreach my $item (@{$map->fields}) {
-		my $key = $item->raw_key;
-		my $value = $item->raw_value;
-		my $enckey = pack_compactsize($item->type->code) . ($key // '');
-
-		$to_encode{$enckey} = $value;
-	}
-
-	my @keypairs;
-	foreach my $key (sort keys %to_encode) {
-		push @keypairs, join '',
-			pack_compactsize(length $key),
-			$key,
-			pack_compactsize(length $to_encode{$key}),
-			$to_encode{$key}
-			;
-	}
-
-	return join('', @keypairs) . pack_compactsize(0);
 }
 
 signature_for input_count => (
@@ -253,14 +179,14 @@ sub from_serialized
 		'serialized string does not contain the PSBT header'
 	) unless $magic eq Bitcoin::Crypto::Constants::psbt_magic;
 
-	$self->_deserialize_map(
+	push @{$self->maps}, Bitcoin::Crypto::PSBT::Map->from_serialized(
 		$serialized,
 		map_type => Bitcoin::Crypto::Constants::psbt_global_map,
 		pos => \$pos,
 	);
 
 	foreach my $index (0 .. $self->input_count - 1) {
-		$self->_deserialize_map(
+		push @{$self->maps}, Bitcoin::Crypto::PSBT::Map->from_serialized(
 			$serialized,
 			map_type => Bitcoin::Crypto::Constants::psbt_input_map,
 			pos => \$pos,
@@ -269,7 +195,7 @@ sub from_serialized
 	}
 
 	foreach my $index (0 .. $self->output_count - 1) {
-		$self->_deserialize_map(
+		push @{$self->maps}, Bitcoin::Crypto::PSBT::Map->from_serialized(
 			$serialized,
 			map_type => Bitcoin::Crypto::Constants::psbt_output_map,
 			pos => \$pos,
@@ -298,20 +224,16 @@ sub to_serialized
 	$self->check;
 
 	my $serialized = Bitcoin::Crypto::Constants::psbt_magic;
-	$serialized .= $self->_serialize_map(map_type => Bitcoin::Crypto::Constants::psbt_global_map);
+	$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_global_map)->to_serialized;
 
 	for my $input_index (0 .. $self->input_count - 1) {
-		$serialized .= $self->_serialize_map(
-			map_type => Bitcoin::Crypto::Constants::psbt_input_map,
-			index => $input_index,
-		);
+		$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_input_map, index => $input_index)
+			->to_serialized;
 	}
 
 	for my $output_index (0 .. $self->output_count - 1) {
-		$serialized .= $self->_serialize_map(
-			map_type => Bitcoin::Crypto::Constants::psbt_output_map,
-			index => $output_index,
-		);
+		$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_output_map, index => $output_index)
+			->to_serialized;
 	}
 
 	return $serialized;
@@ -370,13 +292,6 @@ sub dump
 	my ($self) = @_;
 	my @result;
 
-	my $add_line = sub {
-		my ($line, $level) = @_;
-		$level //= 0;
-
-		push @result, ('> ' x $level) . $line;
-	};
-
 	my @maps = sort {
 		my $ret = $a->type cmp $b->type;
 		if ($ret == 0 && $a->need_index) {
@@ -387,23 +302,11 @@ sub dump
 	} @{$self->maps};
 
 	foreach my $map (@maps) {
-		$add_line->($map->name . ' map:');
+		push @result, $map->name . ' map:';
 
-		my %fields;
-		foreach my $item (@{$map->fields}) {
-			push @{$fields{$item->type->name}}, $item;
-		}
-
-		foreach my $key (sort keys %fields) {
-			$add_line->("${key}:", 1);
-			foreach my $item (@{$fields{$key}}) {
-				my $line = 2;
-				if (defined $item->raw_key) {
-					$add_line->('key ' . (to_format [hex => $item->raw_key]) . ':', $line++);
-				}
-				$add_line->(to_format [hex => $item->raw_value], $line);
-			}
-		}
+		my $dumped = $map->dump;
+		push @result, $dumped
+			if length $dumped;
 	}
 
 	return join "\n", @result;

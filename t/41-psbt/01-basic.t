@@ -11,7 +11,7 @@ use Bitcoin::Crypto::PSBT::Field;
 subtest 'should allow creation of a version 0 PSBT' => sub {
 	my $psbt = btc_psbt->new;
 
-	dies_ok { $psbt->check } 'check on empty ok';
+	throws_ok { $psbt->check } 'Bitcoin::Crypto::Exception::PSBT';
 };
 
 subtest 'should be able to add new fields' => sub {
@@ -42,6 +42,7 @@ subtest 'should be able to add new fields' => sub {
 	lives_and {
 		my @sigs = $psbt->get_all_fields('PSBT_IN_PARTIAL_SIG', 0);
 		is scalar @sigs, 0, 'no sigs ok';
+		is scalar $psbt->get_all_fields('PSBT_IN_PARTIAL_SIG', 0), undef, 'scalar get_all_fields ok';
 	};
 };
 

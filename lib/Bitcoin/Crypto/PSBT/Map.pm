@@ -9,7 +9,8 @@ use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 use List::Util qw(any);
 
-use Bitcoin::Crypto::Types qw(Maybe Enum ByteStr PositiveOrZeroInt Object InstanceOf PSBTMapType);
+use Bitcoin::Crypto::PSBT::Field;
+use Bitcoin::Crypto::Types qw(Maybe Enum ByteStr PositiveOrZeroInt Str Object InstanceOf PSBTMapType ScalarRef);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
 
@@ -91,7 +92,7 @@ sub add
 	$field->set_map($self);
 	push @{$self->fields}, $field;
 
-	return;
+	return $self;
 }
 
 sub _integrity_violation
@@ -147,6 +148,107 @@ sub find
 	my ($self, $type, $key) = @_;
 
 	return $self->_find($type, $key);
+}
+
+signature_for from_serialized => (
+	method => Str,
+	head => [ByteStr],
+	named => [
+		map_type => PSBTMapType,
+		index => Maybe [PositiveOrZeroInt],
+		{default => undef},
+		pos => Maybe [ScalarRef [PositiveOrZeroInt]],
+		{default => undef},
+	],
+	bless => !!0,
+);
+
+sub from_serialized
+{
+	my ($class, $serialized, $args) = @_;
+	my $partial = !!$args->{pos};
+	my $pos = $partial ? ${$args->{pos}} : 0;
+
+	Bitcoin::Crypto::Exception::PSBT->raise(
+		'map expected but end of stream was reached'
+	) unless $pos < length $serialized;
+
+	my $self = $class->new(
+		type => $args->{map_type},
+		index => $args->{index},
+	);
+
+	while ($pos < length $serialized) {
+		if (substr($serialized, $pos, 1) eq Bitcoin::Crypto::Constants::psbt_separator) {
+			$pos += 1;
+			last;
+		}
+
+		my $field = Bitcoin::Crypto::PSBT::Field->from_serialized(
+			$serialized,
+			map_type => $args->{map_type},
+			pos => \$pos,
+		);
+
+		$self->add($field);
+	}
+
+	Bitcoin::Crypto::Exception::PSBT->raise(
+		'serialized map data is corrupted'
+	) if !$partial && $pos != length $serialized;
+
+	${$args->{pos}} = $pos
+		if $partial;
+
+	return $self;
+}
+
+signature_for to_serialized => (
+	method => Object,
+	positional => [],
+);
+
+sub to_serialized
+{
+	my ($self) = @_;
+
+	my %encoded;
+	foreach my $item (@{$self->fields}) {
+		$encoded{$item->serialized_key} = $item->to_serialized;
+	}
+
+	my @sorted = map { $encoded{$_} } sort keys %encoded;
+	return join('', @sorted) . Bitcoin::Crypto::Constants::psbt_separator;
+}
+
+signature_for dump => (
+	method => Object,
+	positional => [],
+);
+
+sub dump
+{
+	my ($self) = @_;
+
+	my @result;
+
+	my %fields;
+	foreach my $item (@{$self->fields}) {
+		push @{$fields{$item->type->name}}, $item;
+	}
+
+	foreach my $key (sort keys %fields) {
+		push @result, "> ${key}:";
+
+		foreach my $item (@{$fields{$key}}) {
+			my $dumped = $item->dump;
+			$dumped =~ s/^/> > /g;
+
+			push @result, $dumped;
+		}
+	}
+
+	return join "\n", @result;
 }
 
 1;
