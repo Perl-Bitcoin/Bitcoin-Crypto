@@ -8,7 +8,7 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
 
-use Bitcoin::Crypto::Types qw(Int BitcoinScript InstanceOf Object Str ByteStr PositiveOrZeroInt ScalarRef Maybe);
+use Bitcoin::Crypto::Types qw(BitcoinScript Object Str ByteStr PositiveOrZeroInt ScalarRef Maybe SatoshiAmount);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Exception;
@@ -17,9 +17,7 @@ use namespace::clean;
 
 has param 'value' => (
 	writer => 1,
-	coerce => (InstanceOf ['Math::BigInt'])
-		->where(q{$_ >= 0})
-		->plus_coercions(Int | Str, q{ Math::BigInt->new($_) }),
+	coerce => SatoshiAmount,
 );
 
 has param 'locking_script' => (

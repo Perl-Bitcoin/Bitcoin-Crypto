@@ -12,6 +12,8 @@ use Bitcoin::Crypto::Types qw(Object Maybe Defined ByteStr InstanceOf PSBTFieldT
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::PSBT::FieldType;
 
+use namespace::clean;
+
 has field 'map' => (
 	isa => InstanceOf ['Bitcoin::Crypto::PSBT::Map'],
 	writer => -hidden,
@@ -36,7 +38,7 @@ has param 'raw_value' => (
 
 sub BUILD
 {
-	my ($self) = @_;
+	my ($self, $args) = @_;
 
 	if (defined $self->raw_key && !defined $self->type->key_data) {
 		Bitcoin::Crypto::Exception::PSBT->raise(
@@ -44,6 +46,14 @@ sub BUILD
 		) if length $self->raw_key;
 
 		$self->_set_raw_key(undef);
+	}
+
+	if (exists $args->{value}) {
+		$self->set_value($args->{value});
+	}
+
+	if (exists $args->{key}) {
+		$self->set_key($args->{key});
 	}
 
 }

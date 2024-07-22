@@ -13,6 +13,8 @@ use Bitcoin::Crypto::Types qw(Maybe Enum ByteStr PositiveOrZeroInt Object Instan
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
 
+use namespace::clean;
+
 has param 'type' => (
 	isa => PSBTMapType,
 );

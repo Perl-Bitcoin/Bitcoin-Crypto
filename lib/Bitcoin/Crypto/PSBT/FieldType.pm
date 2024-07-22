@@ -15,7 +15,8 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Helpers qw(ensure_length);    # loads Math::BigInt
-use Bitcoin::Crypto::Types qw(Object Str Maybe HashRef PositiveOrZeroInt Enum CodeRef PSBTMapType);
+use Bitcoin::Crypto::Types
+	qw(Object Str Maybe HashRef ByteStr ArrayRef PositiveOrZeroInt Enum CodeRef PSBTMapType BitcoinScript InstanceOf SatoshiAmount Tuple);
 
 use namespace::clean;
 
@@ -45,7 +46,11 @@ has param 'map_type' => (
 has param 'serializer' => (
 	isa => CodeRef,
 	default => sub {
-		sub { $_[0] }
+		sub {
+			state $sig = signature(positional => [ByteStr]);
+			my $value = ($sig->(@_))[0];
+			return $value;
+		}
 	},
 );
 
@@ -59,7 +64,11 @@ has param 'deserializer' => (
 has param 'key_serializer' => (
 	isa => CodeRef,
 	default => sub {
-		sub { $_[0] }
+		sub {
+			state $sig = signature(positional => [ByteStr]);
+			my $value = ($sig->(@_))[0];
+			return $value;
+		}
 	},
 );
 
@@ -89,20 +98,29 @@ has param 'version_status' => (
 # REUSABLE SERIALIZERS
 
 my %uint_32bitLE_serializers = (
-	serializer => sub { pack 'V', shift },
+	serializer => sub {
+		state $sig = signature(positional => [PositiveOrZeroInt]);
+		my $value = ($sig->(@_))[0];
+		return pack 'V', $value;
+	},
 	deserializer => sub { unpack 'V', shift },
 );
 
 my %uint_compactsize_serializers = (
-	serializer => sub { pack_compactsize shift },
+	serializer => sub {
+		state $sig = signature(positional => [PositiveOrZeroInt]);
+		my $value = ($sig->(@_))[0];
+		return pack_compactsize $value;
+	},
 	deserializer => sub { unpack_compactsize shift },
 );
 
 my %fingerprint_and_path_serializers = (
 	serializer => sub {
-		my @vals = @{shift()};
-		my $fingerprint = shift @vals;
-		return $fingerprint . pack 'V*', @vals;
+		state $sig = signature(positional => [ByteStr, ArrayRef [PositiveOrZeroInt], {slurpy => !!1}]);
+		my ($fingerprint, $path) = $sig->(@{$_[0]});
+
+		return $fingerprint . pack 'V*', @$path;
 	},
 	deserializer => sub {
 		my $val = shift;
@@ -115,16 +133,18 @@ my %fingerprint_and_path_serializers = (
 );
 
 my %script_serializers = (
-	serializer => sub { shift->to_serialized },
+	serializer => sub {
+		state $sig = signature(positional => [BitcoinScript]);
+		my $value = ($sig->(@_))[0];
+		return $value->to_serialized;
+	},
 	deserializer => sub { btc_script->from_serialized(shift) },
 );
 
 my %proprietary_key_serializers = (
 	key_serializer => sub {
-		my ($ident, $subkey, @rest) = @{shift()};
-
-		die 'invalid data for PROPRIETARY, expected identifier data and subkey data'
-			if @rest > 0;
+		state $sig = signature(positional => [Tuple [ByteStr, ByteStr]]);
+		my ($ident, $subkey) = @{($sig->(@_))[0]};
 
 		my $result = '';
 		$result .= pack_compactsize(length $ident);
@@ -148,6 +168,15 @@ my %proprietary_key_serializers = (
 
 		return [$ident, $subkey];
 	},
+);
+
+my %public_key_serializers = (
+	key_serializer => sub {
+		state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Key::Public']]);
+		my $value = ($sig->(@_))[0];
+		return $value->to_serialized;
+	},
+	key_deserializer => sub { btc_pub->from_serialized(shift) },
 );
 
 # TYPES
@@ -180,7 +209,11 @@ my %types = (
 		code => 0x01,
 		key_data => "<bytes xpub>",
 		value_data => "<4 byte fingerprint> <32-bit little endian uint path element>*",
-		key_serializer => sub { shift->to_serialized },
+		key_serializer => sub {
+			state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Key::ExtPublic']]);
+			my $value = ($sig->(@_))[0];
+			return $value->to_serialized;
+		},
 		key_deserializer => sub { btc_extpub->from_serialized(shift) },
 		%fingerprint_and_path_serializers,
 		version_status => {
@@ -234,7 +267,9 @@ my %types = (
 		key_data => undef,
 		value_data => "<8-bit uint flags>",
 		serializer => sub {
-			my $hash = shift;
+			state $sig = signature(positional => [HashRef]);
+			my $hash = ($sig->(@_))[0];
+
 			my $raw = $hash->{raw_value} // 0;
 			$raw |= 0x01 if $hash->{inputs_modifiable};
 			$raw |= 0x02 if $hash->{outputs_modifiable};
@@ -286,7 +321,11 @@ my %types = (
 		code => 0x00,
 		key_data => undef,
 		value_data => "<bytes transaction>",
-		serializer => sub { shift->to_serialized },
+		serializer => sub {
+			state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Transaction']]);
+			my $value = ($sig->(@_))[0];
+			return $value->to_serialized;
+		},
 		deserializer => sub { btc_transaction->from_serialized(shift) },
 		version_status => {
 			0 => AVAILABLE,
@@ -298,7 +337,11 @@ my %types = (
 		code => 0x01,
 		key_data => undef,
 		value_data => "<64-bit little endian int amount> <compact size uint scriptPubKeylen> <bytes scriptPubKey>",
-		serializer => sub { shift->to_serialized },
+		serializer => sub {
+			state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Transaction::Output']]);
+			my $value = ($sig->(@_))[0];
+			return $value->to_serialized;
+		},
 		deserializer => sub { Bitcoin::Crypto::Transaction::Output->from_serialized(shift) },
 		version_status => {
 			0 => AVAILABLE,
@@ -310,8 +353,7 @@ my %types = (
 		code => 0x02,
 		key_data => "<bytes pubkey>",
 		value_data => "<bytes signature>",
-		key_serializer => sub { shift->to_serialized },
-		key_deserializer => sub { btc_pub->from_serialized(shift) },
+		%public_key_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -355,8 +397,7 @@ my %types = (
 		code => 0x06,
 		key_data => "<bytes pubkey>",
 		value_data => "<4 byte fingerprint> <32-bit little endian uint path element>*",
-		key_serializer => sub { shift->to_serialized },
-		key_deserializer => sub { btc_pub->from_serialized(shift) },
+		%public_key_serializers,
 		%fingerprint_and_path_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -440,7 +481,11 @@ my %types = (
 		code => 0x0e,
 		key_data => undef,
 		value_data => "<32 byte txid>",
-		serializer => sub { scalar reverse shift },
+		serializer => sub {
+			state $sig = signature(positional => [ByteStr]);
+			my $value = ($sig->(@_))[0];
+			return scalar reverse $value;
+		},
 		deserializer => sub { scalar reverse shift },
 		version_status => {
 			2 => REQUIRED,
@@ -609,8 +654,7 @@ my %types = (
 		code => 0x02,
 		key_data => "<bytes public key>",
 		value_data => "<4 byte fingerprint> <32-bit little endian uint path element>*",
-		key_serializer => sub { shift->to_serialized },
-		key_deserializer => sub { btc_pub->from_serialized(shift) },
+		%public_key_serializers,
 		%fingerprint_and_path_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -622,7 +666,11 @@ my %types = (
 		code => 0x03,
 		key_data => undef,
 		value_data => "<64-bit int amount>",
-		serializer => sub { scalar reverse ensure_length shift->to_bytes, 8 },
+		serializer => sub {
+			state $sig = signature(positional => [SatoshiAmount]);
+			my $value = ($sig->(@_))[0];
+			return scalar reverse ensure_length $value->to_bytes, 8;
+		},
 		deserializer => sub { Math::BigInt->from_bytes(scalar reverse shift) },
 		version_status => {
 			2 => REQUIRED,
@@ -746,10 +794,13 @@ sub get_fields_required_in_version
 {
 	my ($class, $version) = @_;
 
+	# sort to have a deterministic error message
 	return [
 		grep {
 			$_->required_in_version($version)
-		} values %types
+		} map {
+			$types{$_}
+		} sort keys %types
 	];
 }
 

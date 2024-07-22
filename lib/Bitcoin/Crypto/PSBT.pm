@@ -7,6 +7,7 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 use Type::Params -sigs;
+use List::Util qw(any);
 
 use Bitcoin::Crypto::PSBT::Map;
 use Bitcoin::Crypto::PSBT::Field;
@@ -22,6 +23,14 @@ has field 'maps' => (
 	isa => ArrayRef [InstanceOf ['Bitcoin::Crypto::PSBT::Map']],
 	default => sub { [] },
 );
+
+sub BUILD
+{
+	my ($self) = @_;
+
+	# create a global map
+	$self->_get_map(Bitcoin::Crypto::Constants::psbt_global_map, set => !!1);
+}
 
 sub _get_map
 {
@@ -113,81 +122,6 @@ sub _serialize_map
 	return join('', @keypairs) . pack_compactsize(0);
 }
 
-sub _deserialize_version0
-{
-	my ($self, $serialized, $pos_ref) = @_;
-	my $tx = $self->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value;
-	my $input_count = @{$tx->inputs};
-	my $output_count = @{$tx->outputs};
-
-	foreach my $index (0 .. $input_count - 1) {
-		$self->_deserialize_map(
-			$serialized,
-			map_type => Bitcoin::Crypto::Constants::psbt_input_map,
-			pos => $pos_ref,
-			index => $index,
-		);
-	}
-
-	foreach my $index (0 .. $output_count - 1) {
-		$self->_deserialize_map(
-			$serialized,
-			map_type => Bitcoin::Crypto::Constants::psbt_output_map,
-			pos => $pos_ref,
-			index => $index,
-		);
-	}
-}
-
-sub _deserialize_version2
-{
-	my ($self, $serialized, $pos_ref) = @_;
-	my $input_count = $self->get_field('PSBT_GLOBAL_INPUT_COUNT')->value;
-	my $output_count = $self->get_field('PSBT_GLOBAL_OUTPUT_COUNT')->value;
-
-	foreach my $index (0 .. $input_count - 1) {
-		$self->_deserialize_map(
-			$serialized,
-			map_type => Bitcoin::Crypto::Constants::psbt_input_map,
-			pos => $pos_ref,
-			index => $index,
-		);
-	}
-
-	foreach my $index (0 .. $output_count - 1) {
-		$self->_deserialize_map(
-			$serialized,
-			map_type => Bitcoin::Crypto::Constants::psbt_output_map,
-			pos => $pos_ref,
-			index => $index,
-		);
-	}
-}
-
-sub _check_integrity
-{
-	my ($self) = @_;
-	my $version = $self->version;
-
-	my $required_fields = Bitcoin::Crypto::PSBT::FieldType->get_fields_required_in_version($version);
-	foreach my $map (@{$self->maps}) {
-		foreach my $field_type (@{$required_fields}) {
-			next unless $field_type->map_type eq $map->type;
-
-			my @values = $map->find($field_type);
-			Bitcoin::Crypto::Exception::PSBT->raise(
-				"PSBT field " . $field_type->name . " is required in version $version"
-			) unless @values == 1;
-		}
-
-		foreach my $field (@{$map->fields}) {
-			Bitcoin::Crypto::Exception::PSBT->raise(
-				"PSBT field " . $field->type->name . " is not available in version $version"
-			) unless $field->type->available_in_version($version);
-		}
-	}
-}
-
 signature_for input_count => (
 	method => Object,
 	positional => []
@@ -196,8 +130,15 @@ signature_for input_count => (
 sub input_count
 {
 	my ($self) = @_;
+	my $version = $self->version;
 
-	return scalar grep { $_->type eq Bitcoin::Crypto::Constants::psbt_input_map } @{$self->maps};
+	if ($version == 0) {
+		my $tx = $self->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value;
+		return scalar @{$tx->inputs};
+	}
+	elsif ($version == 2) {
+		return $self->get_field('PSBT_GLOBAL_INPUT_COUNT')->value;
+	}
 }
 
 signature_for output_count => (
@@ -208,8 +149,15 @@ signature_for output_count => (
 sub output_count
 {
 	my ($self) = @_;
+	my $version = $self->version;
 
-	return scalar grep { $_->type eq Bitcoin::Crypto::Constants::psbt_output_map } @{$self->maps};
+	if ($version == 0) {
+		my $tx = $self->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value;
+		return scalar @{$tx->outputs};
+	}
+	elsif ($version == 2) {
+		return $self->get_field('PSBT_GLOBAL_OUTPUT_COUNT')->value;
+	}
 }
 
 signature_for get_field => (
@@ -243,6 +191,32 @@ sub get_all_fields
 	return $map->find($type);
 }
 
+signature_for add_field => (
+	method => Object,
+	positional => [ArrayRef, {slurpy => !!1}],
+);
+
+sub add_field
+{
+	my ($self, $data) = @_;
+	my $field;
+	my $index;
+
+	if ((@$data == 1 || @$data == 2) && blessed $data->[0] && $data->[0]->isa('Bitcoin::Crypto::PSBT::Field')) {
+		($field, $index) = @$data;
+	}
+	else {
+		my %data = @$data;
+		$index = delete $data{index};
+		$field = Bitcoin::Crypto::PSBT::Field->new(%data);
+	}
+
+	my $map = $self->_get_map($field->type->map_type, index => $index, set => !!1);
+	$map->add($field);
+
+	return $self;
+}
+
 signature_for version => (
 	method => Object,
 	positional => [],
@@ -253,7 +227,13 @@ sub version
 	my ($self) = @_;
 
 	my $version = $self->get_all_fields('PSBT_GLOBAL_VERSION');
-	return $version ? $version->value : 0;
+	$version = $version ? $version->value : 0;
+
+	Bitcoin::Crypto::Exception::PSBT->raise(
+		"PSBT version $version is not supported"
+	) unless any { $_ == $version } 0, 2;
+
+	return $version;
 }
 
 signature_for from_serialized => (
@@ -279,19 +259,29 @@ sub from_serialized
 		pos => \$pos,
 	);
 
-	my $version = $self->version;
-	my $method = "_deserialize_version" . $version;
+	foreach my $index (0 .. $self->input_count - 1) {
+		$self->_deserialize_map(
+			$serialized,
+			map_type => Bitcoin::Crypto::Constants::psbt_input_map,
+			pos => \$pos,
+			index => $index,
+		);
+	}
 
-	Bitcoin::Crypto::Exception::PSBT->raise(
-		"PSBT version $version is not supported"
-	) unless $self->can($method);
-	$self->$method($serialized, \$pos);
+	foreach my $index (0 .. $self->output_count - 1) {
+		$self->_deserialize_map(
+			$serialized,
+			map_type => Bitcoin::Crypto::Constants::psbt_output_map,
+			pos => \$pos,
+			index => $index,
+		);
+	}
 
 	Bitcoin::Crypto::Exception::PSBT->raise(
 		'serialized PSBT data is corrupted'
 	) if $pos != length $serialized;
 
-	$self->_check_integrity;
+	$self->check;
 
 	return $self;
 }
@@ -305,7 +295,7 @@ sub to_serialized
 {
 	my ($self) = @_;
 
-	$self->_check_integrity;
+	$self->check;
 
 	my $serialized = Bitcoin::Crypto::Constants::psbt_magic;
 	$serialized .= $self->_serialize_map(map_type => Bitcoin::Crypto::Constants::psbt_global_map);
@@ -325,6 +315,49 @@ sub to_serialized
 	}
 
 	return $serialized;
+}
+
+signature_for check => (
+	method => Object,
+	positional => [],
+);
+
+sub check
+{
+	my ($self) = @_;
+	my $version = $self->version;
+
+	my $required_fields = Bitcoin::Crypto::PSBT::FieldType->get_fields_required_in_version($version);
+	foreach my $field_type (@{$required_fields}) {
+		my @maps;
+
+		if ($field_type->map_type eq Bitcoin::Crypto::Constants::psbt_global_map) {
+			@maps = ($self->_get_map($field_type->map_type));
+		}
+		elsif ($field_type->map_type eq Bitcoin::Crypto::Constants::psbt_input_map) {
+			@maps = map { $self->_get_map($field_type->map_type, index => $_) } 0 .. $self->input_count - 1;
+		}
+		elsif ($field_type->map_type eq Bitcoin::Crypto::Constants::psbt_output_map) {
+			@maps = map { $self->_get_map($field_type->map_type, index => $_) } 0 .. $self->output_count - 1;
+		}
+
+		foreach my $map (@maps) {
+			my @values = defined $map ? $map->find($field_type) : ();
+			Bitcoin::Crypto::Exception::PSBT->raise(
+				"PSBT field " . $field_type->name . " is required in version $version"
+			) unless @values == 1;
+		}
+	}
+
+	foreach my $map (@{$self->maps}) {
+		foreach my $field (@{$map->fields}) {
+			Bitcoin::Crypto::Exception::PSBT->raise(
+				"PSBT field " . $field->type->name . " is not available in version $version"
+			) unless $field->type->available_in_version($version);
+		}
+	}
+
+	return $self;
 }
 
 signature_for dump => (

@@ -153,6 +153,15 @@ __PACKAGE__->add_type(
 	},
 );
 
+my $satoshi_amount = __PACKAGE__->add_type(
+	name => 'SatoshiAmount',
+	parent => InstanceOf->of('Math::BigInt')->where(q{$_ >= 0}),
+);
+
+$satoshi_amount->coercion->add_type_coercions(
+	Int | Str, q{ Math::BigInt->new($_) },
+);
+
 __PACKAGE__->make_immutable;
 
 1;
