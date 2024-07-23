@@ -253,3 +253,139 @@ sub dump
 
 1;
 
+__END__
+=head1 NAME
+
+Bitcoin::Crypto::PSBT::Map - Single map of a PSBT
+
+=head1 SYNOPSIS
+
+	use Bitcoin::Crypto qw(btc_psbt);
+
+	my $maps = btc_psbt->from_serialized([base64 => $psbt_string])->maps;
+
+=head1 DESCRIPTION
+
+This is a helper class which holds a number of PSBT fields in a single namespace.
+
+=head1 INTERFACE
+
+=head2 Attributes
+
+=head3 type
+
+B<Required in the constructor>. The type of the map. Must be one of the
+C<psbt_*_map> constants defined in C<Bitcoin::Crypto::Constants>.
+
+=head3 index
+
+B<Available in the constructor>. This is the index of this map. It is required
+for input and output maps and will be ignored for global maps.
+
+=head3 fields
+
+An array reference holding the fields for this map, instances of
+L<Bitcoin::Crypto::PSBT::Field>.
+
+=head2 Methods
+
+=head3 new
+
+	$map = $class->new(%args)
+
+This is a standard Moo constructor, which can be used to create the object. It
+takes arguments specified in L</Attributes>.
+
+Returns class instance.
+
+=head3 name
+
+	$name = $map->name()
+
+Returns a human-readabable name of this map.
+
+=head3 need_index
+
+	$bool = $map->need_index;
+
+Whether this map requires an index.
+
+=head3 add
+
+	$map = $map->add($field);
+
+Same as L<Bitcoin::Crypto::PSBT/add_field>, but only accepts a constructed
+field. There is also no need to specify the index, since the map knows its own
+index.
+
+=head3 find
+
+	@fields = $map->find($field_type, $key = undef);
+
+Similar to L<Bitcoin::Crypto::PSBT/get_all_fields>. Instead of index, accepts
+raw C<$key> data as second argument.
+
+=head3 to_serialized
+
+	$serialized = $object->to_serialized()
+
+Serializes a map into a bytestring.
+
+=head3 from_serialized
+
+	$object = $class->from_serialized($data, %params)
+
+Deserializes the bytestring C<$data> into a map.
+
+C<%params> can be any of:
+
+=over
+
+=item * C<map_type>
+
+A constant for map type - required.
+
+=item * C<index>
+
+An index of the map. Required if the map is for input or for output.
+
+=item * C<pos>
+
+Position for partial string decoding. Optional. If passed, must be a scalar
+reference to an integer value.
+
+This integer will mark the starting position of C<$bytestring> from which to
+start decoding. It will be set to the next byte after end of input stream.
+
+=back
+
+=head3 dump
+
+	$text = $object->dump()
+
+Returns a readable description of all the fields in the map.
+
+=head1 EXCEPTIONS
+
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
+
+=over
+
+=item * PSBT - general error with the PSBT
+
+=back
+
+=head1 SEE ALSO
+
+=over
+
+=item L<Bitcoin::Crypto::PSBT>
+
+=item L<Bitcoin::Crypto::PSBT::Field>
+
+=back
+
+=cut
+

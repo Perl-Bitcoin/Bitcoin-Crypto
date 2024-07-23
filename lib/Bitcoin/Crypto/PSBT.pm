@@ -314,3 +314,179 @@ sub dump
 
 1;
 
+__END__
+=head1 NAME
+
+Bitcoin::Crypto::PSBT - Partially Signed Bitcoin Transactions
+
+=head1 SYNOPSIS
+
+	use Bitcoin::Crypto qw(btc_psbt);
+
+	# import PSBT from a serialized form
+	my $psbt = btc_psbt->from_serialized([base64 => $psbt_string]);
+
+	# dump in readable format
+	print $psbt->dump;
+
+	# get a single PSBT field
+	my $field = $psbt->get_field('PSBT_GLOBAL_TX_VERSION');
+
+	# get decoded field key and value
+	my $key = $field->key;
+	my $value = $field->value;
+
+	# get all PSBT fields of a given type
+	my @fields = $psbt->get_all_fields('PSBT_GLOBAL_PROPRIETARY');
+
+=head1 DESCRIPTION
+
+This is a class implementing the PSBT format as described in BIP174 and
+BIP370. It currently supports versions 0 and 2 of the spec. It allows
+serialization, deserialization, validation and access to PSBT fields. It
+currently does not support the roles defined by the PSBT documents, so all the
+operations on PSBTs (like adding inputs or creating a final transaction out of
+it) must be done manually.
+
+PSBT consists of a number of maps: one global, one for each transaction input
+and one for each transaction output. Each map holds a number of fields. Each
+field has a value and can optionally have extra key data.
+
+=head1 INTERFACE
+
+=head2 Attributes
+
+=head3 maps
+
+An array reference of PSBT internal maps - objects of class
+L<Bitcoin::Crypto::PSBT::Map>. It should seldom be handled manually - use
+L</get_field>, L</get_all_fields> and L</add_field> to access fields of
+specific map.
+
+=head2 Methods
+
+=head3 new
+
+	$psbt = $class->new(%args)
+
+This is a standard Moo constructor, which can be used to create the object. It
+takes arguments specified in L</Attributes>.
+
+Returns class instance.
+
+=head3 version
+
+	$version = $object->version()
+
+Returns the version of the PSBT (C<0> or C<2>).
+
+=head3 input_count
+
+	$int = $object->input_count()
+
+Returns the number of inputs the PSBT defines.
+
+=head3 output_count
+
+	$int = $object->output_count()
+
+Returns the number of outputs the PSBT defines.
+
+=head3 get_field
+
+	$field = $object->get_field($field_type_name, $map_index = undef)
+
+Tries to get a field of C<$field_type_name> as defined in BIP174, for example
+C<PSBT_GLOBAL_UNSIGNED_TX>. If the field is from input or output maps, it also
+requires C<$map_index> to be passed (0-based index of the input or output).
+
+Returns an instance of L<Bitcoin::Crypto::PSBT::Field>, which you can use to
+access key and value data.
+
+If there isn't exactly one field with this type in the map, it will throw an
+exception. This allows you to write the following without checking the return
+value of the function:
+
+	my $output_index_0 = $object->get_field('PSBT_IN_OUTPUT_INDEX', 0)->value;
+
+See L</get_all_fields> for a variant which does not check the field count.
+
+=head3 get_all_fields
+
+	@fields = $object->get_all_fields($field_type_name, $map_index = undef)
+
+Same as L</get_field>, but will return all the fields of given type from a
+given map. It may be used if the field exists, or to get multiple fields with
+different key data.
+
+The return value is a list (not an array), so using it in scalar context will
+get the last found field (as opposed to a field count).
+
+=head3 add_field
+
+	$object = $object->add_field(%field_data)
+	$object = $object->add_field($field_object, $map_index = undef)
+
+Adds a new field to the PSBT. It can be run either with C<%field_data> (a hash
+arguments for the L<Bitcoin::Crypto::PSBT::Field/new>) or with C<$field_object>
+(constructed L<Bitcoin::Crypto::PSBT::Field>) and C<$map_index>.
+
+If passing C<%field_data> hash, it can contain an additional C<index> key to
+represent C<$map_index>. The field will be constructed and added to the map.
+Adding the index to a map triggers its validations, so it must be complete
+enough to pass them. For this reason, sometimes it could be more preferable to
+construct and fill the field by hand before adding it to the PSBT.
+
+Note that a field cannot be used in more than one map at a time.
+
+=head3 check
+
+	$object = $object->check()
+
+Checks the internal state of PSBT fields and throws an exception if it is
+invalid. Returns the object itself.
+
+=head3 to_serialized
+
+	$serialized = $object->to_serialized()
+
+Serializes a PSBT into a bytestring. L</check> is called automatically before
+serializing.
+
+=head3 from_serialized
+
+	$object = $class->from_serialized($data)
+
+Deserializes the bytestring C<$data> into a PSBT object. L</check> is called
+automatically after deserializing.
+
+=head3 dump
+
+	$text = $object->dump()
+
+Returns a readable description of all the maps in the PSBT.
+
+=head1 EXCEPTIONS
+
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
+
+=over
+
+=item * PSBT - general error with the PSBT
+
+=back
+
+=head1 SEE ALSO
+
+=over
+
+=item L<Bitcoin::Crypto::PSBT::Field>
+
+=item L<Bitcoin::Crypto::Transaction>
+
+=back
+
+=cut
+

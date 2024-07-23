@@ -275,3 +275,155 @@ sub dump
 
 1;
 
+__END__
+=head1 NAME
+
+Bitcoin::Crypto::PSBT::Field - Single field of a PSBT
+
+=head1 SYNOPSIS
+
+	use Bitcoin::Crypto::PSBT::Field;
+
+	my $field = Bitcoin::Crypto::PSBT::Field->new(
+		type => 'PSBT_IN_OUTPUT_INDEX',
+		value => 1,
+	);
+
+	$psbt->add_field($field, 1);
+
+=head1 DESCRIPTION
+
+This is a helper class which represents a single PSBT field.
+
+While fields hold bytestring data, Bitcoin::Crypto defines some serializers and
+deserializers to make it easier to handle the keys and values. These try to
+DWIM and should be pretty straightforward, for example
+C<PSBT_GLOBAL_UNSIGNED_TX> deserializes into an object of
+L<Bitcoin::Crypto::Transaction>. Serializers are not currently documented, so
+reading the source of L<Bitcoin::Crypto::PSBT::FieldType> may be required if it
+isn't clear how they are implemented for a specific field.
+
+Reading the value through L</raw_value> will return a bytestring, but reading
+thourgh C<value> will use the deserializer. Calling C<set_value> will use the
+serializer to update L</raw_value>. The field only holds raw data and uses the
+serializers to update it as a convenience.
+
+=head1 INTERFACE
+
+=head2 Attributes
+
+=head3 map
+
+The L<Bitcoin::Crypto::PSBT::Map> object this field belongs to. Field can only
+belong to a single map at a time. There is no need to set it manually, it will
+be set when adding the field to a map.
+
+I<writer:> C<set_map>
+
+=head3 type
+
+B<Required in the constructor>. The type of the field. Must be an instance of
+L<Bitcoin::Crypto::PSBT::FieldType>. Can be coerced from a C<PSBT_*> field name.
+
+=head3 raw_key
+
+B<Available in the constructor>. Raw bytestring keydata for this field. Only
+valid for field types which actually define key data.
+
+To use a dedicated serializer for a key, use C<key> (constructor key), C<key>
+(reader method) or C<set_key> (writer method).
+
+I<writer:> C<set_raw_key>
+
+=head3 raw_value
+
+B<Available in the constructor>. Raw bytestring valuedata for this field.
+
+To use a dedicated serializer for a value, use C<value> (constructor key), C<value>
+(reader method) or C<set_value> (writer method).
+
+I<writer:> C<set_raw_value>
+
+=head2 Methods
+
+=head3 new
+
+	$field = $class->new(%args)
+
+This is a standard Moo constructor, which can be used to create the object. It
+takes arguments specified in L</Attributes>.
+
+Returns class instance.
+
+=head3 validate
+
+	$object = $object->validate()
+
+Performs a validation of this field. Will throw an exception if the validation
+fails. This method is called automatically when a field is added to a map.
+
+=head3 serialized_key
+
+	$bytestring = $object->serialized_key()
+
+Returns a key in the serialized form (compactsize type + key). Used to sort the
+keys for the serialized PSBT map.
+
+=head3 to_serialized
+
+	$serialized = $object->to_serialized()
+
+Serializes a field into a bytestring.
+
+=head3 from_serialized
+
+	$object = $class->from_serialized($data, %params)
+
+Deserializes the bytestring C<$data> into a field.
+
+C<%params> can be any of:
+
+=over
+
+=item * C<map_type>
+
+A constant for map type - required.
+
+=item * C<pos>
+
+Position for partial string decoding. Optional. If passed, must be a scalar
+reference to an integer value.
+
+This integer will mark the starting position of C<$bytestring> from which to
+start decoding. It will be set to the next byte after end of input stream.
+
+=back
+
+=head3 dump
+
+	$text = $object->dump()
+
+Returns a readable description of this field.
+
+=head1 EXCEPTIONS
+
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
+
+=over
+
+=item * PSBT - general error with the PSBT
+
+=back
+
+=head1 SEE ALSO
+
+=over
+
+=item L<Bitcoin::Crypto::PSBT>
+
+=back
+
+=cut
+

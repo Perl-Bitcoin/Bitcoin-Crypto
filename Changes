@@ -2,6 +2,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 
 2.005 NOT RELEASED
 	[Added interface]
+	- Bitcoin::Crypto::PSBT namespace (support for PSBT)
 	- Bitcoin::Crypto::Util::from_format function (the reverse of existing to_format)
 	- Bitcoin::Crypto::Util::pack_compactsize function
 	- Bitcoin::Crypto::Util::unpack_compactsize function
@@ -12,6 +13,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Network::unregister method
 
 	[Improvements]
+	- PSBT format from BIP174 can now be serialized, deserialized and validated using Bitcoin::Crypto::PSBT
 	- transactions can now be created without registering UTXOs beforehand (with limited functionality)
 	- format descriptions now also handle base64
 	- extended keys can now be derived by directly passing Bitcoin::Crypto::DerivationPath

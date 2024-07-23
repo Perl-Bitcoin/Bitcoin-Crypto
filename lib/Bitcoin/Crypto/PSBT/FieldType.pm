@@ -801,3 +801,154 @@ sub required_in_version
 
 1;
 
+__END__
+=head1 NAME
+
+Bitcoin::Crypto::PSBT::FieldType - PSBT field types
+
+=head1 SYNOPSIS
+
+	use Bitcoin::Crypto::PSBT::FieldType;
+
+	my $type = Bitcoin::Crypto::PSBT::FieldType->get_field_by_name('PSBT_IN_OUTPUT_INDEX');
+
+=head1 DESCRIPTION
+
+This is both a library of field types and a small struct-like class for types.
+
+An anonymous instance of this class can be created when a non-defined field type is encountered.
+
+=head1 INTERFACE
+
+=head2 Attributes
+
+=head3 name
+
+B<Required in the constructor.> Name of the field type defined in BIP174.
+
+=head3 code
+
+B<Required in the constructor.> Code of the field type defined in BIP174.
+
+=head3 map_type
+
+B<Available in the constructor.> A map type this field belongs to. If not
+passed, it will be guessed from L</name>. Map types are defined as constants in
+C<Bitcoin::Crypto::Constants>.
+
+=head3 serializer
+
+B<Available in the constructor.> A coderef which will be used to do DWIM
+serialization of the value for easier handling. If not passed, a simple coderef
+will be installed which will only coerce format descriptions into bytestrings.
+
+=head3 deserializer
+
+B<Available in the constructor.> A coderef which will be used to do DWIM
+deserialization of the value, the reverse of L</serializer>.
+
+=head3 key_serializer
+
+B<Available in the constructor.> A coderef which will be used to do DWIM
+serialization of the key for easier handling. If not passed, a simple coderef
+will be installed which will only coerce format descriptions into bytestrings.
+
+=head3 key_deserializer
+
+B<Available in the constructor.> A coderef which will be used to do DWIM
+deserialization of the key, the reverse of L</key_serializer>.
+
+=head3 validator
+
+B<Available in the constructor.> A coderef which will be used to validate the
+value. It will be passed deserialized key (if available) and value. It should
+throw a string exception if it encounters a problem. This exception will be
+then turned to C<Bitcoin::Crypto::Exception::PSBT>. The return value will be
+ignored.
+
+I<predicate:> C<has_validator>
+
+=head3 key_data
+
+B<Available in the constructor.> Key data of the field type, copied over from
+BIP174. It should be a string describing the key data.
+
+I<predicate:> C<has_key_data>
+
+=head3 value_data
+
+B<Required in the constructor.> Value data of the field type, copied over from
+BIP174. It should be a string describing the value data.
+
+=head3 version_status
+
+B<Required in the constructor.> A hash reference, where keys are PSBT versions
+and values are string, either C<required> or C<available>.
+
+=head2 Methods
+
+=head3 new
+
+	$field = $class->new(%args)
+
+This is a standard Moo constructor, which can be used to create the object. It
+takes arguments specified in L</Attributes>.
+
+Returns class instance.
+
+=head3 get_field_by_code
+
+	$type = $class->get_field_by_code($map_type, $code)
+
+Returns a field type with a given C<$code> for C<$map_type>.
+
+If no such field is defined, a new unknown field type will be created.
+
+=head3 get_field_by_name
+
+	$type = $class->get_field_by_name($name)
+
+Returns a field type with a given C<$name>.
+
+If no such field is defined, an exception will be thrown.
+
+=head3 get_fields_required_in_version
+
+	$fields_aref = $class->get_fields_required_in_version($version)
+
+Returns an array reference of field types which are required in a given C<$version> number.
+
+=head3 required_in_version
+
+	$boolean = $object->required_in_version($version)
+
+Returns true if this field type is required in a given C<$version> number.
+
+=head3 available_in_version
+
+	$boolean = $object->available_in_version($version)
+
+Returns true if this field type is available in a given C<$version> number.
+
+=head1 EXCEPTIONS
+
+This module throws an instance of L<Bitcoin::Crypto::Exception> if it
+encounters an error. It can produce the following error types from the
+L<Bitcoin::Crypto::Exception> namespace:
+
+=over
+
+=item * PSBT - general error with the PSBT
+
+=back
+
+=head1 SEE ALSO
+
+=over
+
+=item L<Bitcoin::Crypto::PSBT>
+
+=back
+
+=cut
+
