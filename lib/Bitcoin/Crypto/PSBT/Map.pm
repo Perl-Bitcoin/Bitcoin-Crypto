@@ -121,7 +121,7 @@ sub _find
 {
 	my ($self, $type, $key) = @_;
 	my $code = $type->code;
-	my $has_key = defined $type->key_data && defined $key;
+	my $has_key = $type->has_key_data && defined $key;
 
 	my @found;
 	foreach my $field (@{$self->fields}) {

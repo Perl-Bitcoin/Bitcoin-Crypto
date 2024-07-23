@@ -42,7 +42,7 @@ sub BUILD
 {
 	my ($self, $args) = @_;
 
-	if (defined $self->raw_key && !defined $self->type->key_data) {
+	if (defined $self->raw_key && !$self->type->has_key_data) {
 		Bitcoin::Crypto::Exception::PSBT->raise(
 			'Field ' . $self->type->name . ' does not define key data'
 		) if length $self->raw_key;
@@ -74,7 +74,7 @@ sub validate
 	Bitcoin::Crypto::Exception::PSBT->trap_into(
 		sub {
 			my @args = ($self->value);
-			if (defined $self->type->key_data) {
+			if ($self->type->has_key_data) {
 				unshift @args, $self->key;
 			}
 
@@ -110,7 +110,7 @@ sub set_raw_key
 
 	Bitcoin::Crypto::Exception::PSBT->raise(
 		'Field ' . $self->type->name . ' does not define key data'
-	) if !defined $self->type->key_data;
+	) if !$self->type->has_key_data;
 
 	$self->_set_raw_key($key);
 	$self->map->_check_integrity($self)

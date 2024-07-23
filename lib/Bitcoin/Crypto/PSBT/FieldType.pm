@@ -83,8 +83,8 @@ has option 'validator' => (
 	isa => CodeRef,
 );
 
-has param 'key_data' => (
-	isa => Maybe [Str],
+has option 'key_data' => (
+	isa => Str,
 );
 
 has param 'value_data' => (
@@ -187,7 +187,6 @@ my %types = (
 
 	PSBT_GLOBAL_UNSIGNED_TX => {
 		code => 0x00,
-		key_data => undef,
 		value_data => "<bytes transaction>",
 		serializer => sub { shift->to_serialized },
 		deserializer => sub { btc_transaction->from_serialized(shift) },
@@ -224,7 +223,6 @@ my %types = (
 
 	PSBT_GLOBAL_TX_VERSION => {
 		code => 0x02,
-		key_data => undef,
 		value_data => "<32-bit little endian int version>",
 		%uint_32bitLE_serializers,
 		version_status => {
@@ -234,7 +232,6 @@ my %types = (
 
 	PSBT_GLOBAL_FALLBACK_LOCKTIME => {
 		code => 0x03,
-		key_data => undef,
 		value_data => "<32-bit little endian uint locktime>",
 		%uint_32bitLE_serializers,
 		version_status => {
@@ -244,7 +241,6 @@ my %types = (
 
 	PSBT_GLOBAL_INPUT_COUNT => {
 		code => 0x04,
-		key_data => undef,
 		value_data => "<compact size uint input count>",
 		%uint_compactsize_serializers,
 		version_status => {
@@ -254,7 +250,6 @@ my %types = (
 
 	PSBT_GLOBAL_OUTPUT_COUNT => {
 		code => 0x05,
-		key_data => undef,
 		value_data => "<compact size uint input count>",
 		%uint_compactsize_serializers,
 		version_status => {
@@ -264,7 +259,6 @@ my %types = (
 
 	PSBT_GLOBAL_TX_MODIFIABLE => {
 		code => 0x06,
-		key_data => undef,
 		value_data => "<8-bit uint flags>",
 		serializer => sub {
 			state $sig = signature(positional => [HashRef]);
@@ -294,7 +288,6 @@ my %types = (
 
 	PSBT_GLOBAL_VERSION => {
 		code => 0xfb,
-		key_data => undef,
 		value_data => "<32-bit little endian uint version>",
 		%uint_32bitLE_serializers,
 		version_status => {
@@ -319,7 +312,6 @@ my %types = (
 
 	PSBT_IN_NON_WITNESS_UTXO => {
 		code => 0x00,
-		key_data => undef,
 		value_data => "<bytes transaction>",
 		serializer => sub {
 			state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Transaction']]);
@@ -335,7 +327,6 @@ my %types = (
 
 	PSBT_IN_WITNESS_UTXO => {
 		code => 0x01,
-		key_data => undef,
 		value_data => "<64-bit little endian int amount> <compact size uint scriptPubKeylen> <bytes scriptPubKey>",
 		serializer => sub {
 			state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Transaction::Output']]);
@@ -362,7 +353,6 @@ my %types = (
 
 	PSBT_IN_SIGHASH_TYPE => {
 		code => 0x03,
-		key_data => undef,
 		value_data => "<32-bit little endian uint sighash type>",
 		%uint_32bitLE_serializers,
 		version_status => {
@@ -373,7 +363,6 @@ my %types = (
 
 	PSBT_IN_REDEEM_SCRIPT => {
 		code => 0x04,
-		key_data => undef,
 		value_data => "<bytes redeemScript>",
 		%script_serializers,
 		version_status => {
@@ -384,7 +373,6 @@ my %types = (
 
 	PSBT_IN_WITNESS_SCRIPT => {
 		code => 0x05,
-		key_data => undef,
 		value_data => "<bytes witnessScript>",
 		%script_serializers,
 		version_status => {
@@ -407,7 +395,6 @@ my %types = (
 
 	PSBT_IN_FINAL_SCRIPTSIG => {
 		code => 0x07,
-		key_data => undef,
 		value_data => "<bytes scriptSig>",
 		%script_serializers,
 		version_status => {
@@ -418,7 +405,6 @@ my %types = (
 
 	PSBT_IN_FINAL_SCRIPTWITNESS => {
 		code => 0x08,
-		key_data => undef,
 		value_data => "<bytes scriptWitness>",
 		version_status => {
 			0 => AVAILABLE,
@@ -428,7 +414,6 @@ my %types = (
 
 	PSBT_IN_POR_COMMITMENT => {
 		code => 0x09,
-		key_data => undef,
 		value_data => "<bytes porCommitment>",
 		version_status => {
 			0 => AVAILABLE,
@@ -479,7 +464,6 @@ my %types = (
 	# NOTE: as usual, txids are represented in different byte order when serialized
 	PSBT_IN_PREVIOUS_TXID => {
 		code => 0x0e,
-		key_data => undef,
 		value_data => "<32 byte txid>",
 		serializer => sub {
 			state $sig = signature(positional => [ByteStr]);
@@ -494,7 +478,6 @@ my %types = (
 
 	PSBT_IN_OUTPUT_INDEX => {
 		code => 0x0f,
-		key_data => undef,
 		value_data => "<32-bit little endian uint index>",
 		%uint_32bitLE_serializers,
 		version_status => {
@@ -504,7 +487,6 @@ my %types = (
 
 	PSBT_IN_SEQUENCE => {
 		code => 0x10,
-		key_data => undef,
 		value_data => "<32-bit little endian uint sequence>",
 		%uint_32bitLE_serializers,
 		version_status => {
@@ -514,7 +496,6 @@ my %types = (
 
 	PSBT_IN_REQUIRED_TIME_LOCKTIME => {
 		code => 0x11,
-		key_data => undef,
 		value_data => "<32-bit little endian uint locktime>",
 		%uint_32bitLE_serializers,
 		validator => sub {
@@ -529,7 +510,6 @@ my %types = (
 
 	PSBT_IN_REQUIRED_HEIGHT_LOCKTIME => {
 		code => 0x12,
-		key_data => undef,
 		value_data => "<32-bit uint locktime>",
 		%uint_32bitLE_serializers,
 		validator => sub {
@@ -544,7 +524,6 @@ my %types = (
 
 	PSBT_IN_TAP_KEY_SIG => {
 		code => 0x13,
-		key_data => undef,
 		value_data => "<64 or 65 byte signature>",
 
 		# TODO: taproot not yet supported
@@ -593,7 +572,6 @@ my %types = (
 
 	PSBT_IN_TAP_INTERNAL_KEY => {
 		code => 0x17,
-		key_data => undef,
 		value_data => "<32 byte xonlypubkey>",
 
 		# TODO: taproot not yet supported
@@ -605,7 +583,6 @@ my %types = (
 
 	PSBT_IN_TAP_MERKLE_ROOT => {
 		code => 0x18,
-		key_data => undef,
 		value_data => "<32-byte hash>",
 
 		# TODO: taproot not yet supported
@@ -630,7 +607,6 @@ my %types = (
 	# OUTPUT
 	PSBT_OUT_REDEEM_SCRIPT => {
 		code => 0x00,
-		key_data => undef,
 		value_data => "<bytes redeemScript>",
 		%script_serializers,
 		version_status => {
@@ -641,7 +617,6 @@ my %types = (
 
 	PSBT_OUT_WITNESS_SCRIPT => {
 		code => 0x01,
-		key_data => undef,
 		value_data => "<bytes witnessScript>",
 		%script_serializers,
 		version_status => {
@@ -664,7 +639,6 @@ my %types = (
 
 	PSBT_OUT_AMOUNT => {
 		code => 0x03,
-		key_data => undef,
 		value_data => "<64-bit int amount>",
 		serializer => sub {
 			state $sig = signature(positional => [SatoshiAmount]);
@@ -679,7 +653,6 @@ my %types = (
 
 	PSBT_OUT_SCRIPT => {
 		code => 0x04,
-		key_data => undef,
 		value_data => "<bytes script>",
 		%script_serializers,
 		version_status => {
@@ -689,7 +662,6 @@ my %types = (
 
 	PSBT_OUT_TAP_INTERNAL_KEY => {
 		code => 0x05,
-		key_data => undef,
 		value_data => "<32 byte xonlypubkey>",
 
 		# TODO: taproot not yet supported
@@ -701,7 +673,6 @@ my %types = (
 
 	PSBT_OUT_TAP_TREE => {
 		code => 0x06,
-		key_data => undef,
 		value_data =>
 			"{<8-bit uint depth> <8-bit uint leaf version> <compact size uint scriptlen> <bytes script>}*",
 
@@ -802,18 +773,6 @@ sub get_fields_required_in_version
 			$types{$_}
 		} sort keys %types
 	];
-}
-
-signature_for has_key_data => (
-	method => Object,
-	positional => [],
-);
-
-sub has_key_data
-{
-	my ($self) = @_;
-
-	return defined $self->key_data;
 }
 
 signature_for available_in_version => (
