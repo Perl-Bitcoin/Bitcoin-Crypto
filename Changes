@@ -1,6 +1,6 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
-2.005 NOT RELEASED
+2.005 Wed Jul 24 2024
 	[Added interface]
 	- Bitcoin::Crypto::PSBT namespace (support for PSBT)
 	- Bitcoin::Crypto::Util::from_format function (the reverse of existing to_format)
