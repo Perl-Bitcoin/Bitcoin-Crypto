@@ -16,7 +16,7 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Helpers qw(ensure_length);    # loads Math::BigInt
 use Bitcoin::Crypto::Types
-	qw(Object Str Maybe HashRef ByteStr ArrayRef PositiveOrZeroInt Enum CodeRef PSBTMapType BitcoinScript InstanceOf SatoshiAmount Tuple);
+	qw(Object Str Maybe HashRef ByteStr ArrayRef PositiveOrZeroInt Enum CodeRef PSBTMapType BitcoinScript InstanceOf SatoshiAmount Tuple IntMaxBits);
 
 use namespace::clean;
 
@@ -97,9 +97,20 @@ has param 'version_status' => (
 
 # REUSABLE SERIALIZERS
 
-my %uint_32bitLE_serializers = (
+my %transaction_serializers = (
+	value_data => "Bitcoin::Crypto::Transaction object",
 	serializer => sub {
-		state $sig = signature(positional => [PositiveOrZeroInt]);
+		state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Transaction']]);
+		my $value = ($sig->(@_))[0];
+		return $value->to_serialized;
+	},
+	deserializer => sub { btc_transaction->from_serialized(shift) },
+);
+
+my %uint_32bitLE_serializers = (
+	value_data => "32-bit positive integer value",
+	serializer => sub {
+		state $sig = signature(positional => [IntMaxBits [32]]);
 		my $value = ($sig->(@_))[0];
 		return pack 'V', $value;
 	},
@@ -107,6 +118,7 @@ my %uint_32bitLE_serializers = (
 );
 
 my %uint_compactsize_serializers = (
+	value_data => "Positive integer value",
 	serializer => sub {
 		state $sig = signature(positional => [PositiveOrZeroInt]);
 		my $value = ($sig->(@_))[0];
@@ -116,6 +128,7 @@ my %uint_compactsize_serializers = (
 );
 
 my %fingerprint_and_path_serializers = (
+	value_data => "Array reference, where the first item is a fingerprint and the rest are integer path elements",
 	serializer => sub {
 		state $sig = signature(positional => [ByteStr, ArrayRef [PositiveOrZeroInt], {slurpy => !!1}]);
 		my ($fingerprint, $path) = $sig->(@{$_[0]});
@@ -133,6 +146,7 @@ my %fingerprint_and_path_serializers = (
 );
 
 my %script_serializers = (
+	value_data => "Bitcoin::Crypto::Script object",
 	serializer => sub {
 		state $sig = signature(positional => [BitcoinScript]);
 		my $value = ($sig->(@_))[0];
@@ -142,6 +156,7 @@ my %script_serializers = (
 );
 
 my %proprietary_key_serializers = (
+	key_data => "Array reference with two bytestring items",
 	key_serializer => sub {
 		state $sig = signature(positional => [Tuple [ByteStr, ByteStr]]);
 		my ($ident, $subkey) = @{($sig->(@_))[0]};
@@ -171,6 +186,7 @@ my %proprietary_key_serializers = (
 );
 
 my %public_key_serializers = (
+	key_data => "Bitcoin::Crypto::Key::Public object",
 	key_serializer => sub {
 		state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Key::Public']]);
 		my $value = ($sig->(@_))[0];
@@ -187,9 +203,7 @@ my %types = (
 
 	PSBT_GLOBAL_UNSIGNED_TX => {
 		code => 0x00,
-		value_data => "<bytes transaction>",
-		serializer => sub { shift->to_serialized },
-		deserializer => sub { btc_transaction->from_serialized(shift) },
+		%transaction_serializers,
 		validator => sub {
 			my ($tx) = @_;
 
@@ -206,8 +220,7 @@ my %types = (
 
 	PSBT_GLOBAL_XPUB => {
 		code => 0x01,
-		key_data => "<bytes xpub>",
-		value_data => "<4 byte fingerprint> <32-bit little endian uint path element>*",
+		key_data => "Bitcoin::Crypto::Key::ExtPublic object",
 		key_serializer => sub {
 			state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Key::ExtPublic']]);
 			my $value = ($sig->(@_))[0];
@@ -223,7 +236,6 @@ my %types = (
 
 	PSBT_GLOBAL_TX_VERSION => {
 		code => 0x02,
-		value_data => "<32-bit little endian int version>",
 		%uint_32bitLE_serializers,
 		version_status => {
 			2 => REQUIRED,
@@ -232,7 +244,6 @@ my %types = (
 
 	PSBT_GLOBAL_FALLBACK_LOCKTIME => {
 		code => 0x03,
-		value_data => "<32-bit little endian uint locktime>",
 		%uint_32bitLE_serializers,
 		version_status => {
 			2 => AVAILABLE,
@@ -241,7 +252,6 @@ my %types = (
 
 	PSBT_GLOBAL_INPUT_COUNT => {
 		code => 0x04,
-		value_data => "<compact size uint input count>",
 		%uint_compactsize_serializers,
 		version_status => {
 			2 => REQUIRED,
@@ -250,7 +260,6 @@ my %types = (
 
 	PSBT_GLOBAL_OUTPUT_COUNT => {
 		code => 0x05,
-		value_data => "<compact size uint input count>",
 		%uint_compactsize_serializers,
 		version_status => {
 			2 => REQUIRED,
@@ -259,7 +268,7 @@ my %types = (
 
 	PSBT_GLOBAL_TX_MODIFIABLE => {
 		code => 0x06,
-		value_data => "<8-bit uint flags>",
+		value_data => "Hash reference with flags: inputs_modifiable, outputs_modifiable, has_sighash_single",
 		serializer => sub {
 			state $sig = signature(positional => [HashRef]);
 			my $hash = ($sig->(@_))[0];
@@ -288,7 +297,6 @@ my %types = (
 
 	PSBT_GLOBAL_VERSION => {
 		code => 0xfb,
-		value_data => "<32-bit little endian uint version>",
 		%uint_32bitLE_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -298,9 +306,7 @@ my %types = (
 
 	PSBT_GLOBAL_PROPRIETARY => {
 		code => 0xfc,
-		key_data =>
-			"<compact size uint identifier length> <bytes identifier> <compact size uint subtype> <bytes subkey_data>",
-		value_data => "<bytes data>",
+		value_data => "Bytestring value",
 		%proprietary_key_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -312,13 +318,7 @@ my %types = (
 
 	PSBT_IN_NON_WITNESS_UTXO => {
 		code => 0x00,
-		value_data => "<bytes transaction>",
-		serializer => sub {
-			state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Transaction']]);
-			my $value = ($sig->(@_))[0];
-			return $value->to_serialized;
-		},
-		deserializer => sub { btc_transaction->from_serialized(shift) },
+		%transaction_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -327,7 +327,7 @@ my %types = (
 
 	PSBT_IN_WITNESS_UTXO => {
 		code => 0x01,
-		value_data => "<64-bit little endian int amount> <compact size uint scriptPubKeylen> <bytes scriptPubKey>",
+		value_data => "Bitcoin::Crypto::Transaction::Output object",
 		serializer => sub {
 			state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Transaction::Output']]);
 			my $value = ($sig->(@_))[0];
@@ -342,8 +342,7 @@ my %types = (
 
 	PSBT_IN_PARTIAL_SIG => {
 		code => 0x02,
-		key_data => "<bytes pubkey>",
-		value_data => "<bytes signature>",
+		value_data => "Bytestring value",
 		%public_key_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -353,7 +352,6 @@ my %types = (
 
 	PSBT_IN_SIGHASH_TYPE => {
 		code => 0x03,
-		value_data => "<32-bit little endian uint sighash type>",
 		%uint_32bitLE_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -363,7 +361,6 @@ my %types = (
 
 	PSBT_IN_REDEEM_SCRIPT => {
 		code => 0x04,
-		value_data => "<bytes redeemScript>",
 		%script_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -373,7 +370,6 @@ my %types = (
 
 	PSBT_IN_WITNESS_SCRIPT => {
 		code => 0x05,
-		value_data => "<bytes witnessScript>",
 		%script_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -383,8 +379,6 @@ my %types = (
 
 	PSBT_IN_BIP32_DERIVATION => {
 		code => 0x06,
-		key_data => "<bytes pubkey>",
-		value_data => "<4 byte fingerprint> <32-bit little endian uint path element>*",
 		%public_key_serializers,
 		%fingerprint_and_path_serializers,
 		version_status => {
@@ -395,7 +389,6 @@ my %types = (
 
 	PSBT_IN_FINAL_SCRIPTSIG => {
 		code => 0x07,
-		value_data => "<bytes scriptSig>",
 		%script_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -405,7 +398,7 @@ my %types = (
 
 	PSBT_IN_FINAL_SCRIPTWITNESS => {
 		code => 0x08,
-		value_data => "<bytes scriptWitness>",
+		value_data => "Bytestring value",
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -414,7 +407,7 @@ my %types = (
 
 	PSBT_IN_POR_COMMITMENT => {
 		code => 0x09,
-		value_data => "<bytes porCommitment>",
+		value_data => "Bytestring value",
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -423,8 +416,8 @@ my %types = (
 
 	PSBT_IN_RIPEMD160 => {
 		code => 0x0a,
-		key_data => "<20-byte hash>",
-		value_data => "<bytes preimage>",
+		key_data => "Bytestring value",
+		value_data => "Bytestring value",
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -433,8 +426,8 @@ my %types = (
 
 	PSBT_IN_SHA256 => {
 		code => 0x0b,
-		key_data => "<32-byte hash>",
-		value_data => "<bytes preimage>",
+		key_data => "Bytestring value",
+		value_data => "Bytestring value",
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -443,8 +436,8 @@ my %types = (
 
 	PSBT_IN_HASH160 => {
 		code => 0x0c,
-		key_data => "<20-byte hash>",
-		value_data => "<bytes preimage>",
+		key_data => "Bytestring value",
+		value_data => "Bytestring value",
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -453,8 +446,8 @@ my %types = (
 
 	PSBT_IN_HASH256 => {
 		code => 0x0d,
-		key_data => "<32-byte hash>",
-		value_data => "<bytes preimage>",
+		key_data => "Bytestring value",
+		value_data => "Bytestring value",
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -464,7 +457,7 @@ my %types = (
 	# NOTE: as usual, txids are represented in different byte order when serialized
 	PSBT_IN_PREVIOUS_TXID => {
 		code => 0x0e,
-		value_data => "<32 byte txid>",
+		value_data => "Bytestring value",
 		serializer => sub {
 			state $sig = signature(positional => [ByteStr]);
 			my $value = ($sig->(@_))[0];
@@ -478,7 +471,6 @@ my %types = (
 
 	PSBT_IN_OUTPUT_INDEX => {
 		code => 0x0f,
-		value_data => "<32-bit little endian uint index>",
 		%uint_32bitLE_serializers,
 		version_status => {
 			2 => REQUIRED,
@@ -487,7 +479,6 @@ my %types = (
 
 	PSBT_IN_SEQUENCE => {
 		code => 0x10,
-		value_data => "<32-bit little endian uint sequence>",
 		%uint_32bitLE_serializers,
 		version_status => {
 			2 => AVAILABLE,
@@ -496,7 +487,6 @@ my %types = (
 
 	PSBT_IN_REQUIRED_TIME_LOCKTIME => {
 		code => 0x11,
-		value_data => "<32-bit little endian uint locktime>",
 		%uint_32bitLE_serializers,
 		validator => sub {
 			my ($value) = @_;
@@ -510,7 +500,6 @@ my %types = (
 
 	PSBT_IN_REQUIRED_HEIGHT_LOCKTIME => {
 		code => 0x12,
-		value_data => "<32-bit uint locktime>",
 		%uint_32bitLE_serializers,
 		validator => sub {
 			my ($value) = @_;
@@ -594,9 +583,7 @@ my %types = (
 
 	PSBT_IN_PROPRIETARY => {
 		code => 0xfc,
-		key_data =>
-			"<compact size uint identifier length> <bytes identifier> <compact size uint subtype> <bytes subkey_data>",
-		value_data => "<bytes data>",
+		value_data => "Bytestring value",
 		%proprietary_key_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -607,7 +594,6 @@ my %types = (
 	# OUTPUT
 	PSBT_OUT_REDEEM_SCRIPT => {
 		code => 0x00,
-		value_data => "<bytes redeemScript>",
 		%script_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -617,7 +603,6 @@ my %types = (
 
 	PSBT_OUT_WITNESS_SCRIPT => {
 		code => 0x01,
-		value_data => "<bytes witnessScript>",
 		%script_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -627,8 +612,6 @@ my %types = (
 
 	PSBT_OUT_BIP32_DERIVATION => {
 		code => 0x02,
-		key_data => "<bytes public key>",
-		value_data => "<4 byte fingerprint> <32-bit little endian uint path element>*",
 		%public_key_serializers,
 		%fingerprint_and_path_serializers,
 		version_status => {
@@ -639,7 +622,7 @@ my %types = (
 
 	PSBT_OUT_AMOUNT => {
 		code => 0x03,
-		value_data => "<64-bit int amount>",
+		value_data => "Math::BigInt object",
 		serializer => sub {
 			state $sig = signature(positional => [SatoshiAmount]);
 			my $value = ($sig->(@_))[0];
@@ -653,7 +636,6 @@ my %types = (
 
 	PSBT_OUT_SCRIPT => {
 		code => 0x04,
-		value_data => "<bytes script>",
 		%script_serializers,
 		version_status => {
 			2 => REQUIRED,
@@ -698,9 +680,7 @@ my %types = (
 
 	PSBT_OUT_PROPRIETARY => {
 		code => 0xfc,
-		key_data =>
-			"<compact size uint identifier length> <bytes identifier> <compact size uint subtype> <bytes subkey_data>",
-		value_data => "<bytes data>",
+		value_data => "Bytestring value",
 		%proprietary_key_serializers,
 		version_status => {
 			0 => AVAILABLE,
@@ -731,8 +711,8 @@ sub get_field_by_code
 		name => 'UNKNOWN',
 		map_type => $map_type,
 		code => $code,
-		key_data => 'unknown',
-		value_data => 'unknown',
+		key_data => 'Bytestring value',
+		value_data => 'Bytestring value',
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -870,15 +850,17 @@ I<predicate:> C<has_validator>
 
 =head3 key_data
 
-B<Available in the constructor.> Key data of the field type, copied over from
-BIP174. It should be a string describing the key data.
+B<Available in the constructor.> Key data of the field type. It should be a
+string describing what is the effect of deserialization and what the serializer
+expects. It may be undefined if the field does not support extra key data.
 
 I<predicate:> C<has_key_data>
 
 =head3 value_data
 
-B<Required in the constructor.> Value data of the field type, copied over from
-BIP174. It should be a string describing the value data.
+B<Required in the constructor.> Value data of the field type. It should be a
+string describing what is the effect of deserialization and what the serializer
+expects.
 
 =head3 version_status
 

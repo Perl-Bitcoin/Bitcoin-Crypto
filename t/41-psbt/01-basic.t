@@ -35,6 +35,12 @@ subtest 'should be able to add new fields' => sub {
 
 	lives_ok { $psbt->check } 'check ok';
 
+	lives_and {
+		my $field = $psbt->get_field('PSBT_GLOBAL_UNSIGNED_TX');
+		is $field->type->value_data, 'Bitcoin::Crypto::Transaction object', 'field description ok';
+		isa_ok $field->value, 'Bitcoin::Crypto::Transaction', 'field serializer ok';
+	};
+
 	is $psbt->input_count, 1, 'input count ok';
 	is $psbt->output_count, 1, 'output count ok';
 

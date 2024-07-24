@@ -299,13 +299,15 @@ While fields hold bytestring data, Bitcoin::Crypto defines some serializers and
 deserializers to make it easier to handle the keys and values. These try to
 DWIM and should be pretty straightforward, for example
 C<PSBT_GLOBAL_UNSIGNED_TX> deserializes into an object of
-L<Bitcoin::Crypto::Transaction>. Serializers are not currently documented, so
-reading the source of L<Bitcoin::Crypto::PSBT::FieldType> may be required if it
-isn't clear how they are implemented for a specific field.
+L<Bitcoin::Crypto::Transaction>. Serializers are not currently documented, but
+fields C<key_data> and C<value_data> of L<Bitcoin::Crypto::PSBT::FieldType>
+holds the descriptions of what is the type after deserialization (and before
+serialization). Reading the source of L<Bitcoin::Crypto::PSBT::FieldType> may
+be required if it isn't clear how they are implemented for a specific field.
 
 Reading the value through L</raw_value> will return a bytestring, but reading
 thourgh C<value> will use the deserializer. Calling C<set_value> will use the
-serializer to update L</raw_value>. The field only holds raw data and uses the
+serializer to update L</raw_value>. The field only holds raw data and uses
 serializers to update it as a convenience.
 
 =head1 INTERFACE
