@@ -500,8 +500,8 @@ my %types = (
 		%uint_32bitLE_serializers,
 		validator => sub {
 			my ($value) = @_;
-			die 'must be greather than or equal to 500000000'
-				if $value < 500000000;
+			die 'must be greather than or equal to ' . Bitcoin::Crypto::Constants::locktime_height_threshold
+				if $value < Bitcoin::Crypto::Constants::locktime_height_threshold;
 		},
 		version_status => {
 			2 => AVAILABLE,
@@ -514,8 +514,8 @@ my %types = (
 		%uint_32bitLE_serializers,
 		validator => sub {
 			my ($value) = @_;
-			die 'must be less than 500000000'
-				unless $value < 500000000;
+			die 'must be less than ' . Bitcoin::Crypto::Constants::locktime_height_threshold
+				unless $value < Bitcoin::Crypto::Constants::locktime_height_threshold;
 		},
 		version_status => {
 			2 => AVAILABLE,

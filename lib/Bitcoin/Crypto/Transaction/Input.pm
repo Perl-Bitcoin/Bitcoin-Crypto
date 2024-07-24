@@ -421,8 +421,9 @@ Returns boolean value indicating whether UTXO for this input is reachable. If
 it isn't, getting L</utxo> will throw an exception.
 
 Creating transactions without registered UTXOs will work in very basic cases
-but can randomly throw C<Bitcoin::Crypto::Exception::UTXO> exception. It is
-mainly useful for getting data encoded in a serialized transaction.
+but can raise C<Bitcoin::Crypto::Exception::UTXO> exception if a function
+cannot be finished without a full UTXO data. It is mainly useful for getting
+data encoded in a serialized transaction.
 
 =head3 to_serialized
 

@@ -159,8 +159,9 @@ Bitcoin::Crypto::Transaction::UTXO - Unspent transaction output instance
 =head1 DESCRIPTION
 
 UTXO is a transaction output which hasn't been spent yet. All transaction
-inputs must be UTXOs. Bitcoin::Crypto requires you to register UTXOs before you
-can create a transaction.
+inputs must be UTXOs. You need to register UTXOs before you can fully utilize a
+transaction. If a transaction has its UTXOs unregistered, its methods may raise
+an exception if they require full UTXO data.
 
 =head1 INTERFACE
 

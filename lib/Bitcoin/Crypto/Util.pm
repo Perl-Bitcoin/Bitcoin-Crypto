@@ -574,13 +574,17 @@ manual unpacking.
 
 Supported C<$format> values are:
 
-C<bytes>, does nothing
+=over
 
-C<hex>, encodes as a hexadecimal string (no C<0x> prefix)
+=item * C<bytes>, does nothing
 
-C<base58>, uses base58 and includes the checksum (base58check)
+=item * C<hex>, encodes as a hexadecimal string (no C<0x> prefix)
 
-C<base64>, uses base64
+=item * C<base58>, uses base58 and includes the checksum (base58check)
+
+=item * C<base64>, uses base64
+
+=back
 
 =head2 from_format
 
@@ -594,13 +598,13 @@ parameter of the module will do this conversion implicitly.>
 
 =head2 pack_compactsize
 
-	my $bytestr = pack_compactsize($integer);
+	$bytestr = pack_compactsize($integer);
 
 Serializes C<$integer> as Bitcoin's CompactSize format and returns it as a byte string.
 
 =head2 unpack_compactsize
 
-	my $integer = unpack_compactsize($bytestr, $pos = undef);
+	$integer = unpack_compactsize($bytestr, $pos = undef);
 
 Deserializes CompactSize from C<$bytestr>, returning an integer.
 
@@ -611,13 +615,13 @@ an exception if C<$bytestr> contains anything other than CompactSize.
 
 =head2 hash160
 
-	my $hash = hash160($data);
+	$hash = hash160($data);
 
 This is hash160 used by Bitcoin (C<RIPEMD160> of C<SHA256>)
 
 =head2 hash256
 
-	my $hash = hash256($data);
+	$hash = hash256($data);
 
 This is hash256 used by Bitcoin (C<SHA256> of C<SHA256>)
 

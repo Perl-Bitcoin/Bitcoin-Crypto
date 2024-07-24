@@ -729,10 +729,10 @@ data. Note that this is a no-op in non-segwit transactions.
 
 Deserializes the bytestring C<$data> into a transaction object.
 
-Keep in mind deserialization requires a full set of UTXO to be registered. If
-they are not, an exception will be raised with missing transaction id and
-output index, which should help you fill in the blanks. See
-L<Bitcoin::Crypto::Transaction::UTXO> for details.
+Keep in mind it's best to have a full set of UTXOs registered. If they are not,
+an exception may be raised if a function requires full UTXO data. That
+exception will contain transaction ID and output index, which should help you
+fill in the blanks. See L<Bitcoin::Crypto::Transaction::UTXO> for details.
 
 =head3 get_hash
 

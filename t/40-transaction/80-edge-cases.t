@@ -245,6 +245,10 @@ subtest 'should be able to create transactions without registered UTXOs' => sub 
 	);
 
 	ok !defined $tx->fee, 'fee is not defined without the UTXOs';
+
+	throws_ok {
+		$tx->verify;
+	} 'Bitcoin::Crypto::Exception::UTXO';
 };
 
 done_testing;

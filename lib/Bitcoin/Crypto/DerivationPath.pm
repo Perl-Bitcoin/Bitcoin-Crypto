@@ -98,26 +98,26 @@ the C<m> notation. It is returned by L<Bitcoin::Crypto::Util/get_path_info>.
 
 =head3 private
 
-B<Required>. A boolean - whether the path is private (started with lowercase
+B<Required in the constructor>. A boolean - whether the path is private (started with lowercase
 C<m>).
 
 =head3 path
 
-B<Required>. An array reference of unsigned integers - the derivation path.
-Hardened keys are greater than or equal to 2^32
+B<Required in the constructor>. An array reference of unsigned integers - the derivation path.
+Hardened keys are greater than or equal to C<2^31>
 (C<Bitcoin::Crypto::Constants::max_child_keys>).
 
 =head2 Methods
 
 =head3 from_string
 
-	my $path = Bitcoin::Crypto::DerivationPath->from_string($m_notation_string)
+	$path = Bitcoin::Crypto::DerivationPath->from_string($m_notation_string)
 
 Constructs a new derivation path based on the string.
 
 =head3 get_derivation_path
 
-	my $self = $path->get_derivation_path()
+	$path = $path->get_derivation_path()
 
 A helper which returns self.
 

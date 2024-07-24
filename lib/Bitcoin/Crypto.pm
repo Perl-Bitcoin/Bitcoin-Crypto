@@ -155,6 +155,10 @@ Loads L<Bitcoin::Crypto::Transaction::UTXO>
 
 Loads L<Bitcoin::Crypto::Block>
 
+=head2 btc_psbt
+
+Loads L<Bitcoin::Crypto::PSBT>
+
 =head1 SEE ALSO
 
 L<Bitcoin::RPC::Client>

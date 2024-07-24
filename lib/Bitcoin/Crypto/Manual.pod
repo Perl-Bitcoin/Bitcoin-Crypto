@@ -75,9 +75,9 @@ including running the script step by step, stopping after each opcode.
 
 =item * work with Bitcoin-related encodings
 
-There are L<Bitcoin::Crypto::Base58> and L<Bitcoin::Crypto::Bech32>. You can
-validate an address and get its type using
-L<Bitcoin::Crypto::Util/get_address_type>.
+There are L<Bitcoin::Crypto::Base58> and L<Bitcoin::Crypto::Bech32>. PSBT
+format is supported in L<Bitcoin::Crypto::PSBT>. You can validate an address
+and get its type using L<Bitcoin::Crypto::Util/get_address_type>.
 
 =item * work with other cryptocurrencies
 
@@ -136,11 +136,11 @@ Currently supported values for the first argument are:
 
 =over
 
-=item C<hex> (hexadecimal string, may be prefixed by C<0x>)
+=item * C<hex> (hexadecimal string, may be prefixed by C<0x>)
 
-=item C<base58> (base58-encoded string with the checksum)
+=item * C<base58> (base58-encoded string with the checksum)
 
-=item C<base64> (base64-encoded string)
+=item * C<base64> (base64-encoded string)
 
 =back
 
