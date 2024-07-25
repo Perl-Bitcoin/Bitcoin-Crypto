@@ -1,13 +1,8 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
-use lib 't/lib';
-
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
+
+use lib 't/lib';
 use TransactionStore;
 
 # partial taproot support test script
@@ -36,9 +31,7 @@ subtest 'should allow creation of P2TR outputs' => sub {
 
 	is to_format [hex => $tx->get_hash], 'a8ae6eb5213cac8d7d4cf6a0d955d1099fae621ea0ffb2b0910c08c3fbe9c17a',
 		'transaction hash ok';
-	lives_ok {
-		$tx->verify;
-	} 'tx verified ok';
+	ok lives { $tx->verify }, 'tx verified ok';
 };
 
 subtest 'should recognize P2TR outputs' => sub {

@@ -1,15 +1,5 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
-BEGIN {
-	use_ok(
-		'Bitcoin::Crypto::Helpers',
-		qw(pad_hex ensure_length)
-	);
-}
+use Test2::V0;
+use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length);
 
 subtest 'testing pad_hex' => sub {
 	my @hexes = qw(1a3efb 1a3ef 0);
@@ -27,9 +17,10 @@ subtest 'testing ensure_length' => sub {
 		pack('x4'), 'ensuring length does not change data for equal length'
 	);
 	is(ensure_length(pack('x30'), 32), pack('x32'), 'ensuring length adds missing zero bytes');
-	dies_ok {
+
+	ok dies {
 		ensure_length pack('x5'), 4;
-	} 'packed data that was too long failed as expected';
+	}, 'packed data that was too long failed as expected';
 };
 
 done_testing;

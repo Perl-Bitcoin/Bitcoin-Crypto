@@ -1,10 +1,4 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
-use utf8;
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_extprv);
 use Bitcoin::Crypto::Util qw(generate_mnemonic to_format);
 

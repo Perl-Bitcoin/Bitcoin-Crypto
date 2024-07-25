@@ -1,9 +1,5 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
+# HARNESS-DURATION-LONG
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
 
@@ -51,7 +47,7 @@ subtest 'should sign transactions (P2PK)' => sub {
 	);
 
 	$prv->sign_transaction($tx, signing_index => 0);
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should sign transactions (P2PKH)' => sub {
@@ -76,7 +72,7 @@ subtest 'should sign transactions (P2PKH)' => sub {
 	);
 
 	$prv->sign_transaction($tx, signing_index => 0);
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should sign transactions (P2SH(P2WPKH))' => sub {
@@ -101,7 +97,7 @@ subtest 'should sign transactions (P2SH(P2WPKH))' => sub {
 	);
 
 	$prv->sign_transaction($tx, signing_index => 0);
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should sign transactions (P2WPKH)' => sub {
@@ -126,7 +122,7 @@ subtest 'should sign transactions (P2WPKH)' => sub {
 	);
 
 	$prv->sign_transaction($tx, signing_index => 0);
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should sign transactions (P2SH)' => sub {
@@ -161,7 +157,7 @@ subtest 'should sign transactions (P2SH)' => sub {
 
 	$prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [1, 2]);
 	$other_prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [2, 2]);
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should sign transactions (P2SH(P2WSH))' => sub {
@@ -197,7 +193,7 @@ subtest 'should sign transactions (P2SH(P2WSH))' => sub {
 	$prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [1, 2]);
 	$other_prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [2, 2]);
 
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should sign transactions (P2WSH)' => sub {
@@ -233,10 +229,11 @@ subtest 'should sign transactions (P2WSH)' => sub {
 	$prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [1, 2]);
 	$other_prv->sign_transaction($tx, signing_index => 0, redeem_script => $redeem_script, multisig => [2, 2]);
 
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should sign transactions (two inputs)' => sub {
+	my $ex;
 	$tx = btc_transaction->new;
 
 	# NOTE: uses UTXOs from previous subtests
@@ -256,17 +253,20 @@ subtest 'should sign transactions (two inputs)' => sub {
 		],
 	);
 
-	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::TransactionScript',
-		'input verification failed ok (none signed)';
+	$ex = dies { $tx->verify };
+	ok $ex, 'input verification failed ok (none signed)';
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::TransactionScript';
 
 	$prv->sign_transaction($tx, signing_index => 0);
 
-	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::TransactionScript',
-		'input verification failed ok (one signed)';
+	$ex = dies { $tx->verify };
+	ok $ex, 'input verification failed ok (one signed)';
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::TransactionScript';
 
 	$prv->sign_transaction($tx, signing_index => 1);
 
-	lives_ok { $tx->verify } 'input verification ok (two signed)';
+	my $alive = lives { $tx->verify };
+	ok $alive, 'input verification ok (two signed)';
 };
 
 done_testing;

@@ -1,11 +1,6 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
+use Test2::V0;
 use Crypt::Digest::SHA256 qw(sha256);
-
-BEGIN { use_ok('Bitcoin::Crypto::Base58', qw(:all)) }
+use Bitcoin::Crypto::Base58 qw(:all);
 
 my @cases = (
 	[
@@ -63,9 +58,9 @@ foreach my $case (@cases) {
 $case_num = 0;
 foreach my $case (@cases_error) {
 	subtest "testing invalid base58, case $case_num" => sub {
-		throws_ok {
+		isa_ok dies {
 			decode_base58check($case->[0]);
-		} 'Bitcoin::Crypto::Exception::' . $case->[1], 'invalid data raises an exception';
+		}, 'Bitcoin::Crypto::Exception::' . $case->[1];
 	};
 
 	++$case_num;

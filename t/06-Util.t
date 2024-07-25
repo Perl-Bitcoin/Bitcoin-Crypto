@@ -1,34 +1,10 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
+use Test2::V0;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 
+use Bitcoin::Crypto::Util qw(:all);
 use Bitcoin::Crypto::Helpers;    # loads Math::BigInt
 use Bitcoin::Crypto::Key::ExtPrivate;
-use utf8;
-
-BEGIN {
-	use_ok(
-		'Bitcoin::Crypto::Util', qw(
-			validate_wif
-			validate_segwit
-			get_address_type
-			get_path_info
-			generate_mnemonic
-			mnemonic_from_entropy
-			mnemonic_to_seed
-			hash160
-			hash256
-			to_format
-			from_format
-			pack_compactsize
-			unpack_compactsize
-		)
-	);
-}
 
 subtest 'testing mnemonic_to_seed' => sub {
 	is mnemonic_to_seed(
@@ -52,14 +28,14 @@ subtest 'testing validate_wif' => sub {
 	foreach my $case (@cases) {
 		my ($to_test, $result) = @$case;
 		if (defined $result) {
-			lives_and {
+			ok lives {
 				is(validate_wif($to_test), $result)
-			} 'wif validation ok';
+			}, 'wif validation ok';
 		}
 		else {
-			throws_ok {
+			isa_ok dies {
 				validate_wif($to_test);
-			} 'Bitcoin::Crypto::Exception', 'wif validation failed as expected';
+			}, 'Bitcoin::Crypto::Exception';
 		}
 	}
 };
@@ -110,7 +86,7 @@ subtest 'testing get_path_info' => sub {
 	for my $case (@path_test_data) {
 		isa_ok(get_path_info($case->[0]), 'Bitcoin::Crypto::DerivationPath')
 			if defined $case->[1];
-		is_deeply(get_path_info($case->[0]), $case->[1], "test case $case->[0]");
+		is(get_path_info($case->[0]), $case->[1], "test case $case->[0]");
 	}
 };
 
@@ -127,9 +103,9 @@ subtest 'testing mnemonic_from_entropy' => sub {
 	is $mnemonic,
 		'charge ski orange scorpion kiwi trust lyrics soul scrap tackle drum quote inspire story artwork shuffle exile ahead first slender risk city collect silver';
 
-	throws_ok {
+	isa_ok dies {
 		my $mnemonic = mnemonic_from_entropy("\x01" x 17, 'en');
-	} 'Bitcoin::Crypto::Exception::MnemonicGenerate', 'invalid entropy dies';
+	}, 'Bitcoin::Crypto::Exception::MnemonicGenerate';
 };
 
 subtest 'testing generate_mnemonic / mnemonic_from_entropy' => sub {
@@ -144,15 +120,15 @@ subtest 'testing generate_mnemonic / mnemonic_from_entropy' => sub {
 		foreach my $mnemonic (@mnemonics) {
 			my $length = $bits / 8 - 4;
 			ok($mnemonic =~ /^(\w+ ?){$length}$/, "generated mnemonic looks valid ($bits bits)");
-			lives_ok {
+			ok lives {
 				Bitcoin::Crypto::Key::ExtPrivate->from_mnemonic($mnemonic, '', 'en');
-			} 'generated mnemonic can be imported';
+			}, 'generated mnemonic can be imported';
 		}
 	}
 
-	throws_ok {
+	isa_ok dies {
 		my $mnemonic = generate_mnemonic(129, 'en');
-	} 'Bitcoin::Crypto::Exception::MnemonicGenerate', 'invalid entropy dies';
+	}, 'Bitcoin::Crypto::Exception::MnemonicGenerate';
 
 };
 
@@ -163,38 +139,39 @@ subtest 'testing get_address_type' => sub {
 	is get_address_type('bc1qxrv57xwn050dht30kt9msenkqf67rh0cjcurhukznucjwk63xm3skajjcc'), 'P2WSH', 'P2WSH ok';
 	is get_address_type('bc1pag3474cedulvygrj0xlk77lr94dnknx4yl5ygawkcwe2dq5gq7xqjxwe5q'), 'P2TR', 'P2WSH ok';
 
-	dies_ok {
+	ok dies {
 		get_address_type('aoreduroadeuro');
-	} 'random letters not an address';
+	}, 'random letters not an address';
 
-	dies_ok {
+	ok dies {
 		get_address_type('');
-	} 'empty string not an address';
+	}, 'empty string not an address';
 
-	dies_ok {
+	ok dies {
 		get_address_type('tb1q26jy9d4vkfqezh6hm7qp7txvk8nggkwv2y72x0');
-	} 'testnet address not on mainnet';
+	}, 'testnet address not on mainnet';
 
-	get_address_type('tb1q26jy9d4vkfqezh6hm7qp7txvk8nggkwv2y72x0', 'bitcoin_testnet'), 'P2WPKH', 'network param ok';
+	is get_address_type('tb1q26jy9d4vkfqezh6hm7qp7txvk8nggkwv2y72x0', 'bitcoin_testnet'), 'P2WPKH',
+		'network param ok';
 };
 
 # segwit program passing common length valiadion (no version)
 my $program = "\x55\xff\x33";
 
 subtest 'should fail validation of segwit version 0 program' => sub {
-	throws_ok {
+	isa_ok dies {
 		validate_segwit("\x00" . $program);
-	} 'Bitcoin::Crypto::Exception::SegwitProgram';
+	}, 'Bitcoin::Crypto::Exception::SegwitProgram';
 };
 
 subtest 'should pass validation of segwit version 1 program' => sub {
-	lives_ok {
+	ok lives {
 		validate_segwit("\x01" . $program);
 	};
 };
 
 subtest 'should pass validation of segwit version 15 program' => sub {
-	lives_ok {
+	ok lives {
 		validate_segwit("\x0f" . $program);
 	};
 };
@@ -248,9 +225,9 @@ subtest 'testing unpack_compactsize with pos argument' => sub {
 };
 
 subtest 'testing unpack_compactsize with leftover data' => sub {
-	throws_ok {
+	isa_ok dies {
 		unpack_compactsize("\xfe\x61\x25\x01\x00\x00");
-	} 'Bitcoin::Crypto::Exception';
+	}, 'Bitcoin::Crypto::Exception';
 };
 
 done_testing;

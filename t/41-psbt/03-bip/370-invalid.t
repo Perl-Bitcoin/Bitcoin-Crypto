@@ -1,9 +1,4 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_psbt);
 
 my @cases = (
@@ -137,9 +132,12 @@ my @cases = (
 foreach my $error_case (@cases) {
 	my ($name, $err, $base64) = @{$error_case};
 
-	throws_ok {
+	my $caught = dies {
 		btc_psbt->from_serialized([base64 => $base64]);
-	} $err, $name;
+	};
+
+	like $caught, $err, $name;
+	isa_ok $caught, 'Bitcoin::Crypto::Exception::PSBT';
 }
 
 done_testing;

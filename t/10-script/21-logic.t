@@ -1,12 +1,8 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
+use Test2::V0;
+use Bitcoin::Crypto::Script;
 
 use lib 't/lib';
 use ScriptTest;
-
-use Bitcoin::Crypto::Script;
 
 my @cases = (
 	[

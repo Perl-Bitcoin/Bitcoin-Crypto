@@ -1,11 +1,5 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
-BEGIN { use_ok('Bitcoin::Crypto::Types', qw(-types)) }
-
+use Test2::V0;
+use Bitcoin::Crypto::Types qw(-types);
 use Bitcoin::Crypto::Constants;
 
 subtest 'testing IntMaxBits[5]' => sub {

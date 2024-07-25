@@ -1,0 +1,4 @@
+[test]
+-PBitcoin::Crypto::Types
+--jobs 4
+

@@ -1,9 +1,4 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_psbt btc_transaction);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::PSBT::Field;
@@ -11,7 +6,7 @@ use Bitcoin::Crypto::PSBT::Field;
 subtest 'should allow creation of a version 0 PSBT' => sub {
 	my $psbt = btc_psbt->new;
 
-	throws_ok { $psbt->check } 'Bitcoin::Crypto::Exception::PSBT';
+	isa_ok dies { $psbt->check }, 'Bitcoin::Crypto::Exception::PSBT';
 };
 
 subtest 'should be able to add new fields' => sub {
@@ -33,23 +28,23 @@ subtest 'should be able to add new fields' => sub {
 		value => $tx,
 	);
 
-	lives_ok { $psbt->check } 'check ok';
+	ok lives { $psbt->check }, 'check ok';
 
-	lives_and {
+	ok lives {
 		my $field = $psbt->get_field('PSBT_GLOBAL_UNSIGNED_TX');
 		is $field->type->value_data, 'Bitcoin::Crypto::Transaction object', 'field description ok';
-		isa_ok $field->value, 'Bitcoin::Crypto::Transaction', 'field serializer ok';
-	};
+		isa_ok $field->value, 'Bitcoin::Crypto::Transaction';
+	}, 'no exception ok';
 
 	is $psbt->input_count, 1, 'input count ok';
 	is $psbt->output_count, 1, 'output count ok';
 
 	# check if we are able to get a field from an input
-	lives_and {
+	ok lives {
 		my @sigs = $psbt->get_all_fields('PSBT_IN_PARTIAL_SIG', 0);
 		is scalar @sigs, 0, 'no sigs ok';
 		is scalar $psbt->get_all_fields('PSBT_IN_PARTIAL_SIG', 0), undef, 'scalar get_all_fields ok';
-	};
+	}, 'no exception ok';
 };
 
 subtest 'should allow creation of a version 2 PSBT' => sub {
@@ -118,11 +113,11 @@ subtest 'should allow creation of a version 2 PSBT' => sub {
 		is $value, $expected, "value roundtrip for $field->{type} ok";
 	}
 
-	lives_and {
+	ok lives {
 		is to_format [base64 => $psbt->to_serialized],
 			'cHNidP8BAgQAAAAAAQQBAQEFAQEB+wQCAAAAAAEOIGR1+1rq16TBu0q5neOtfXro9twBYgnRmKahGrUv2yDhAQ8EAQAAAAABAwjSBAAAAAAAAAEEIlEglk1GGqfeVt0a4VP4Bs4tAJzRznsSNh4N+/iJAvBoxC8A',
 			'serialized psbt ok';
-	};
+	}, 'no exception ok';
 };
 
 done_testing;

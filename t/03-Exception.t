@@ -1,31 +1,28 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
-BEGIN { use_ok('Bitcoin::Crypto::Exception') }
+use Test2::V0;
+use Bitcoin::Crypto::Exception;
 
 subtest 'test exception throwing' => sub {
-	throws_ok {
+	isa_ok dies {
 		Bitcoin::Crypto::Exception->raise('test_message');
-	} 'Bitcoin::Crypto::Exception', 'exception was raised';
-	throws_ok {
-		Bitcoin::Crypto::Exception->throw('test_message');
-	} 'Bitcoin::Crypto::Exception', 'exception was raised';
-	my $err = $@;
+	}, 'Bitcoin::Crypto::Exception';
 
+	my $err = dies {
+		Bitcoin::Crypto::Exception->throw('test_message');
+	};
+
+	isa_ok($err, 'Bitcoin::Crypto::Exception');
 	is($err->message, 'test_message', 'message ok');
-	ok("$err" =~ /test_message/, 'class stringified');
+	like("$err", qr/test_message/, 'class stringified');
 	note("$err");
 };
 
 subtest 'test exception raising' => sub {
-	throws_ok {
+	my $err = dies {
 		Bitcoin::Crypto::Exception::KeyCreate->raise('message');
-	} 'Bitcoin::Crypto::Exception::KeyCreate', 'exception was raised';
+	};
 
-	note $@;
+	isa_ok($err, 'Bitcoin::Crypto::Exception::KeyCreate');
+	note($err);
 };
 
 {
@@ -44,31 +41,32 @@ subtest 'test exception raising' => sub {
 }
 
 subtest 'test exception trapping' => sub {
-	throws_ok {
+	isa_ok dies {
 		Bitcoin::Crypto::Exception->trap_into(
 			sub { die 'test'; }
 		);
-	} 'Bitcoin::Crypto::Exception', 'exception was trapped';
+	}, 'Bitcoin::Crypto::Exception';
 
-	lives_and {
+	ok lives {
 		is(
 			Bitcoin::Crypto::Exception->trap_into(
 				sub { 54321 }
 			),
 			54321
 		);
-	} 'trapped return value ok';
+	}, 'trapped return value ok';
 
-	throws_ok {
+	my $err = dies {
 		Bitcoin::Crypto::Exception->trap_into(
 			sub {
 				my $var = BuggyDestroy->new;
 				die 'test';
 			}
 		);
-	} 'Bitcoin::Crypto::Exception', 'exception was trapped despite DESTROY';
+	};
 
-	note $@;
+	isa_ok($err, 'Bitcoin::Crypto::Exception');
+	note($err);
 };
 
 done_testing;

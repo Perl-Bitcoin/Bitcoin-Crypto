@@ -1,11 +1,8 @@
 package ScriptTest;
 
-use v5.10;
-use strict;
-use warnings;
+use Test2::V0;
 
 use Exporter qw(import);
-use Test::More;
 
 use Bitcoin::Crypto::Script::Runner;
 
@@ -53,7 +50,7 @@ sub stack_is
 		die 'invalid argument to stack_is';
 	}
 
-	is_deeply $out_stack, $stack_aref, $message;
+	is $out_stack, $stack_aref, $message;
 }
 
 sub ops_are
@@ -62,7 +59,7 @@ sub ops_are
 	$message //= 'script ops ok';
 
 	my $out_ops = [map { $_->[0]->name } @{$script->operations}];
-	is_deeply $out_ops, $ops_aref, $message;
+	is $out_ops, $ops_aref, $message;
 }
 
 1;

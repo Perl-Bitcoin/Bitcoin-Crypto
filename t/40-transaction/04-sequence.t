@@ -1,9 +1,4 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Try::Tiny;
-
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_transaction btc_utxo btc_block btc_script);
 use Bitcoin::Crypto::Script::Runner;
 
@@ -240,21 +235,15 @@ foreach my $case (@cases) {
 			sequence_no => $args->{input_sequence},
 		);
 
-		try {
+		my $ex = dies {
 			$transaction->verify(block => btc_block->new($args->{block}));
-			ok !$exception, 'exception ok';
-		}
-		catch {
-			my $ex = $_;
-
-			if ($exception) {
-				is ref $ex, $exception, 'exception class ok';
-			}
-			else {
-				note "died: $ex";
-				fail "should've lived";
-			}
 		};
+
+		is !!$ex, !!$exception, 'exception ok';
+
+		if ($exception) {
+			isa_ok $ex, $exception;
+		}
 	};
 }
 

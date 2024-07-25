@@ -1,9 +1,4 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
+use Test2::V0;
 use Bitcoin::Crypto::Key::ExtPrivate;
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Util qw(to_format);
@@ -266,10 +261,10 @@ for my $tdata (@test_data_public) {
 $case_num = 0;
 for my $tdata (@test_data_error) {
 	subtest "testing invalid data, case $case_num" => sub {
-		throws_ok {
+		isa_ok dies {
 			my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized([base58 => $tdata->[0]]);
 			$base_key->derive_key($tdata->[1]);
-		} 'Bitcoin::Crypto::Exception', 'incorrect derivation failed with exception';
+		}, 'Bitcoin::Crypto::Exception';
 	};
 
 	++$case_num;

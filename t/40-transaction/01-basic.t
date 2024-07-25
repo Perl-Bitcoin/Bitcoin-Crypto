@@ -1,9 +1,4 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
 
@@ -60,13 +55,13 @@ subtest 'should deserialize transactions' => sub {
 subtest 'should update UTXOs' => sub {
 	$tx->update_utxos;
 
-	throws_ok {
+	isa_ok dies {
 		btc_utxo->get(
 			[hex => 'a34b7271d2add50bb6eaeaaaffaebe33bf4e3fe0454ca5d46ab64e6dbbbf1174'], 0
 		);
-	} 'Bitcoin::Crypto::Exception::UTXO';
+	}, 'Bitcoin::Crypto::Exception::UTXO';
 
-	lives_ok {
+	ok lives {
 		btc_utxo->get(
 			[hex => '35a5c65c26549079d8369a2d445a79e0c195f4651495eb6f360a3e8766e30757'], 0
 		);
@@ -75,11 +70,11 @@ subtest 'should update UTXOs' => sub {
 		);
 	};
 
-	throws_ok {
+	isa_ok dies {
 		btc_utxo->get(
 			[hex => '35a5c65c26549079d8369a2d445a79e0c195f4651495eb6f360a3e8766e30757'], 2
 		);
-	} 'Bitcoin::Crypto::Exception::UTXO';
+	}, 'Bitcoin::Crypto::Exception::UTXO';
 };
 
 # run this test last, as changing sequence changes transaction id (collides with UTXO test)

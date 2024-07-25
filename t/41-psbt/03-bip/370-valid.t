@@ -1,10 +1,5 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
+use Test2::V0;
 use List::Util qw(first);
-
 use Bitcoin::Crypto qw(btc_psbt);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Network;
@@ -96,7 +91,7 @@ my @cases = (
 			my $psbt = shift;
 
 			my $flags = $psbt->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
-			is_deeply $flags->value, {
+			is $flags->value, {
 				raw_value => 1,
 				inputs_modifiable => !!1,
 				outputs_modifiable => !!0,
@@ -123,7 +118,7 @@ my @cases = (
 			my $psbt = shift;
 
 			my $flags = $psbt->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
-			is_deeply $flags->value, {
+			is $flags->value, {
 				raw_value => 2,
 				inputs_modifiable => !!0,
 				outputs_modifiable => !!1,
@@ -140,7 +135,7 @@ my @cases = (
 			my $psbt = shift;
 
 			my $flags = $psbt->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
-			is_deeply $flags->value, {
+			is $flags->value, {
 				raw_value => 4,
 				inputs_modifiable => !!0,
 				outputs_modifiable => !!0,
@@ -157,7 +152,7 @@ my @cases = (
 			my $psbt = shift;
 
 			my $flags = $psbt->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
-			is_deeply $flags->value, {
+			is $flags->value, {
 				raw_value => 8,
 				inputs_modifiable => !!0,
 				outputs_modifiable => !!0,
@@ -174,7 +169,7 @@ my @cases = (
 			my $psbt = shift;
 
 			my $flags = $psbt->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
-			is_deeply $flags->value, {
+			is $flags->value, {
 				raw_value => 3,
 				inputs_modifiable => !!1,
 				outputs_modifiable => !!1,
@@ -199,7 +194,7 @@ my @cases = (
 			my $psbt = shift;
 
 			my $flags = $psbt->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
-			is_deeply $flags->value, {
+			is $flags->value, {
 				raw_value => 5,
 				inputs_modifiable => !!1,
 				outputs_modifiable => !!0,
@@ -216,7 +211,7 @@ my @cases = (
 			my $psbt = shift;
 
 			my $flags = $psbt->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
-			is_deeply $flags->value, {
+			is $flags->value, {
 				raw_value => 6,
 				inputs_modifiable => !!0,
 				outputs_modifiable => !!1,
@@ -233,7 +228,7 @@ my @cases = (
 			my $psbt = shift;
 
 			my $flags = $psbt->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
-			is_deeply $flags->value, {
+			is $flags->value, {
 				raw_value => 7,
 				inputs_modifiable => !!1,
 				outputs_modifiable => !!1,
@@ -250,7 +245,7 @@ my @cases = (
 			my $psbt = shift;
 
 			my $flags = $psbt->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
-			is_deeply $flags->value, {
+			is $flags->value, {
 				raw_value => 255,
 				inputs_modifiable => !!1,
 				outputs_modifiable => !!1,
@@ -296,9 +291,9 @@ foreach my $case (@cases) {
 
 	subtest $name => sub {
 		my $psbt;
-		lives_ok {
+		ok lives {
 			$psbt = btc_psbt->from_serialized([base64 => $base64]);
-		} 'deserialization ok';
+		}, 'deserialization ok';
 
 		$checker->($psbt) if $checker;
 		is to_format [base64 => $psbt->to_serialized], $base64, 'serialized again ok';

@@ -1,16 +1,12 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-
-use lib 't/lib';
-use ScriptTest;
-
+use Test2::V0;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA1 qw(sha1);
 use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 use Bitcoin::Crypto::Script;
+
+use lib 't/lib';
+use ScriptTest;
 
 my $input = 'test input!';
 my $input_hex = unpack 'H*', $input;

@@ -1,10 +1,5 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
+use Test2::V0;
 use List::Util qw(first);
-
 use Bitcoin::Crypto qw(btc_psbt);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Network;
@@ -127,7 +122,7 @@ my @cases = (
 
 				my ($fingerprint, @path) = @{$values[0]->value};
 				is to_format [hex => $fingerprint], $expected_fingerprint, 'fingerprint ok';
-				is_deeply \@path, $expected_path, 'path ok';
+				is \@path, $expected_path, 'path ok';
 			}
 		},
 	],
@@ -182,7 +177,7 @@ my @cases = (
 
 				my ($fingerprint, @path) = @{$key->value};
 				is to_format [hex => $fingerprint], $expected_fingerprint, 'fingerprint ok';
-				is_deeply \@path, $expected_path, 'path ok';
+				is \@path, $expected_path, 'path ok';
 
 				if ($expected_signature) {
 					my $signature = first { $_->raw_key eq $key->raw_key } @signatures;
@@ -231,7 +226,7 @@ my @cases = (
 			my ($xpub_fingerprint, @xpub_path) = @{$xpub->value};
 			is to_format [hex => $xpub_key->get_fingerprint], 'a0c1121e', 'xpub fingerprint ok';
 			is to_format [hex => $xpub_fingerprint], '27569c50', 'fingerprint ok';
-			is_deeply \@xpub_path, [2147483697, 2147483648, 2147483648], 'path ok';
+			is \@xpub_path, [2147483697, 2147483648, 2147483648], 'path ok';
 		},
 	],
 
@@ -251,9 +246,9 @@ foreach my $case (@cases) {
 
 	subtest $name => sub {
 		my $psbt;
-		lives_ok {
+		ok lives {
 			$psbt = btc_psbt->from_serialized([base64 => $base64]);
-		} 'deserialization ok';
+		}, 'deserialization ok';
 
 		$checker->($psbt) if $checker;
 		is to_format [base64 => $psbt->to_serialized], $base64, 'serialized again ok';

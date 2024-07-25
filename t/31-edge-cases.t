@@ -1,9 +1,4 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
+use Test2::V0;
 use Bitcoin::Crypto qw(:all);
 use Bitcoin::Crypto::Base58 qw(:all);
 use Bitcoin::Crypto::Bech32 qw(:all);
@@ -11,69 +6,69 @@ use Bitcoin::Crypto::Util qw(generate_mnemonic);
 use Bitcoin::Crypto::Network;
 
 subtest 'testing invalid hex' => sub {
-	throws_ok {
+	isa_ok dies {
 		btc_pub->from_serialized([hex => 'not-a-hex']);
-	} 'Bitcoin::Crypto::Exception::KeyCreate';
+	}, 'Bitcoin::Crypto::Exception::KeyCreate';
 };
 
 subtest 'testing undef as a bytestring' => sub {
-	throws_ok {
+	like dies {
 		btc_pub->from_serialized(undef);
-	} qr/not a bytestring/;
+	}, qr/not a bytestring/;
 };
 
 subtest 'testing empty string as a bytestring' => sub {
-	throws_ok {
+	isa_ok dies {
 		btc_pub->from_serialized('');
-	} 'Bitcoin::Crypto::Exception::KeyCreate';
+	}, 'Bitcoin::Crypto::Exception::KeyCreate';
 };
 
 subtest 'testing reference as a bytestring' => sub {
-	throws_ok {
+	like dies {
 		btc_pub->from_serialized(['11']);
-	} qr/not a bytestring/;
+	}, qr/not a bytestring/;
 };
 
 subtest 'testing invalid base58' => sub {
-	throws_ok {
+	isa_ok dies {
 		decode_base58('158ZaF+');
-	} 'Bitcoin::Crypto::Exception::Base58InputFormat';
+	}, 'Bitcoin::Crypto::Exception::Base58InputFormat';
 };
 
 subtest 'testing invalid bech32' => sub {
-	throws_ok {
+	isa_ok dies {
 		decode_bech32('bc1+-aaa');
-	} 'Bitcoin::Crypto::Exception::Bech32InputFormat';
+	}, 'Bitcoin::Crypto::Exception::Bech32InputFormat';
 };
 
 subtest 'should not handle importing unknown wif' => sub {
 	my $wif = 'VHC6BRSLeqgpZYSgLDFfA5tG1LKSk1j9DZczQKNQA3kJVctM4D8h';
-	throws_ok {
+	isa_ok dies {
 		my $key = btc_prv->from_wif($wif);
-	} 'Bitcoin::Crypto::Exception::NetworkConfig';
+	}, 'Bitcoin::Crypto::Exception::NetworkConfig';
 };
 
 subtest 'should not handle importing unknown wif with network parameter' => sub {
 	my $wif = 'VHC6BRSLeqgpZYSgLDFfA5tG1LKSk1j9DZczQKNQA3kJVctM4D8h';
-	throws_ok {
+	isa_ok dies {
 		my $key = btc_prv->from_wif($wif, 'bitcoin');
-	} 'Bitcoin::Crypto::Exception::KeyCreate';
+	}, 'Bitcoin::Crypto::Exception::KeyCreate';
 };
 
 subtest 'should not handle importing unknown serialized prv' => sub {
 	my $ser =
 		'Ltpv71G8qDifUiNetg7qxKgZqxMZM1Dy8zeEb7Bz14gE1ZJdVY5xnHEyREwWRYpKTJHD3rS9T3YDvyRNcWaeBp64XWSsDWNST2co9S4eU1Cxz7c';
-	throws_ok {
+	isa_ok dies {
 		my $key = btc_extprv->from_serialized([base58 => $ser]);
-	} 'Bitcoin::Crypto::Exception::NetworkConfig';
+	}, 'Bitcoin::Crypto::Exception::NetworkConfig';
 };
 
 subtest 'should not handle importing unknown serialized prv with network parameter' => sub {
 	my $ser =
 		'Ltpv71G8qDifUiNetg7qxKgZqxMZM1Dy8zeEb7Bz14gE1ZJdVY5xnHEyREwWRYpKTJHD3rS9T3YDvyRNcWaeBp64XWSsDWNST2co9S4eU1Cxz7c';
-	throws_ok {
+	isa_ok dies {
 		my $key = btc_extprv->from_serialized([base58 => $ser], 'bitcoin');
-	} 'Bitcoin::Crypto::Exception::KeyCreate';
+	}, 'Bitcoin::Crypto::Exception::KeyCreate';
 };
 
 Bitcoin::Crypto::Network->register(
@@ -113,9 +108,9 @@ subtest 'should not handle importing wif (multiple networks) if default is not o
 	Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 	my $wif = '5JxsKGzCoJwaWEjQvfNqD4qPEoUQ696BUEq68Y68WQ2GNR6zrxW';
-	throws_ok {
+	like dies {
 		my $key2 = btc_prv->from_wif($wif);
-	} qr{multiple networks};
+	}, qr{multiple networks};
 
 	$old_default->set_default;
 };
@@ -140,9 +135,9 @@ subtest 'should not handle importing wif (multiple networks) if default is not o
 
 	my $ser =
 		'xprv9xoYZivLq3T7RYS1sN5uhzQDyGk7gkfvgUKgD7gzwtUGbPu8LxMexvZE39x4Te5r62ekj9aNrjxcfDm4Di3qmHLKeacnmkfQWY8Xubba1Ya';
-	throws_ok {
+	like dies {
 		my $key = btc_extprv->from_serialized([base58 => $ser]);
-	} qr{multiple networks};
+	}, qr{multiple networks};
 
 	$old_default->set_default;
 };
@@ -152,9 +147,9 @@ subtest 'refuses to create keys with invalid network in single-network mode' => 
 
 	my $ser =
 		'tpubDC9sLxZVcV2s4Kwy2RjcYnjwks6zuWvekLpfwtAPvrntwSDUQAyt27DdDRHwDL63NxX7RuXD7Bgw7Qaf4vvssYdcVuv5MfvkFjZiDiRsfC7';
-	throws_ok {
+	like dies {
 		my $pub = btc_extpub->from_serialized([base58 => $ser], 'bitcoin_testnet');
-	} qr{single-network mode with bitcoin};
+	}, qr{single-network mode with bitcoin};
 
 	Bitcoin::Crypto::Network->get->set_default;
 };
@@ -166,9 +161,9 @@ subtest 'refuses to change network in single-network mode' => sub {
 		'xprv9xoYZivLq3T7RYS1sN5uhzQDyGk7gkfvgUKgD7gzwtUGbPu8LxMexvZE39x4Te5r62ekj9aNrjxcfDm4Di3qmHLKeacnmkfQWY8Xubba1Ya';
 	my $key = btc_extprv->from_serialized([base58 => $ser]);
 
-	throws_ok {
+	like dies {
 		$key->set_network('bitcoin2');
-	} qr{single-network mode with bitcoin};
+	}, qr{single-network mode with bitcoin};
 
 	Bitcoin::Crypto::Network->get->set_default;
 };

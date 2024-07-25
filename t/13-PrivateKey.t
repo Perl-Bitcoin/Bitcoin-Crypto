@@ -1,14 +1,10 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-use Encode qw(encode);
+# HARNESS-DURATION-MEDIUM
 
+use Test2::V0;
+use Encode qw(encode);
 use Bitcoin::Crypto qw(btc_prv);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(to_format);
-use utf8;
 
 # silence warnings
 local $SIG{__WARN__} = sub { };
@@ -105,15 +101,15 @@ subtest 'should validate key length' => sub {
 		Bitcoin::Crypto::Constants::key_max_length, 'Longer key length OK'
 	);
 
-	throws_ok {
+	isa_ok dies {
 		btc_prv->from_serialized([hex => $too_long_key]);
-	} 'Bitcoin::Crypto::Exception::KeyCreate', 'Too long key got rejected';
+	}, 'Bitcoin::Crypto::Exception::KeyCreate';
 };
 
 subtest 'should not allow creation of private keys from public key data' => sub {
-	throws_ok {
+	isa_ok dies {
 		btc_prv->from_serialized([hex => $cases[0]{pub}]);
-	} 'Bitcoin::Crypto::Exception::KeyCreate', 'Public key got rejected';
+	}, 'Bitcoin::Crypto::Exception::KeyCreate';
 };
 
 done_testing;

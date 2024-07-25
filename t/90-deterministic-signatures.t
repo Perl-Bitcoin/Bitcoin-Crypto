@@ -1,7 +1,4 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_prv btc_transaction);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Key::Private;

@@ -41,10 +41,6 @@ jobs:
         perl -v
         cpanm -v
 
-    - name: Install Test::More
-      if:  ${{ startsWith( matrix.perl, '5.10') }}
-      run: |
-        cpanm --notest Test::More
     - name: Check if the code is tidy
       if:  ${{ startsWith(matrix.runner, 'ubuntu-') && startsWith(matrix.perl, '5.36') }}
       run: |

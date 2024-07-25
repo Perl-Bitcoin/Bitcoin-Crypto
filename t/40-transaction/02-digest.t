@@ -1,14 +1,9 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
-use lib 't/lib';
-
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Constants;
+
+use lib 't/lib';
 use TransactionStore;
 
 my $tx;

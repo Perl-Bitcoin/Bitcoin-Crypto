@@ -1,13 +1,8 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
-use lib 't/lib';
-
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo btc_block);
 use Bitcoin::Crypto::Util qw(to_format);
+
+use lib 't/lib';
 use TransactionStore;
 
 my $tx;
@@ -72,9 +67,9 @@ subtest 'should verify multisig transactions (P2SH)' => sub {
 	);
 
 	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
-	lives_ok {
+	ok lives {
 		$tx->verify(block => btc_block->new(height => 602300))
-	} 'input verification ok';
+	}, 'input verification ok';
 };
 
 subtest 'should not verify incorrect multisig transactions (P2SH)' => sub {
@@ -115,7 +110,7 @@ subtest 'should not verify incorrect multisig transactions (P2SH)' => sub {
 	);
 
 	# NOTE: modified signature - no txid test
-	dies_ok { $tx->verify } 'input verification ok';
+	ok dies { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should verify multisig transactions (P2WSH)' => sub {
@@ -126,14 +121,15 @@ subtest 'should verify multisig transactions (P2WSH)' => sub {
 		]
 	);
 
-	lives_ok { $tx->verify } 'input verification ok';
-	lives_ok { $tx->verify } 'input verification ok (second time)';
+	ok lives { $tx->verify }, 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok (second time)';
 
 	# NOTE: try modifying witness signature, see if it still verifies
 	# (segwit transactions are backward compatible, so it would pass without support for segwit)
 	$tx->inputs->[0]->witness->[1] .= "\x01";
-	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::Transaction',
-		'input verification ok after modifying witness';
+	my $ex = dies { $tx->verify };
+	ok $ex, 'input verification ok after modifying witness';
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
 };
 
 subtest 'should verify multisig transactions (nested P2WSH)' => sub {
@@ -144,14 +140,15 @@ subtest 'should verify multisig transactions (nested P2WSH)' => sub {
 		]
 	);
 
-	lives_ok { $tx->verify } 'input verification ok';
-	lives_ok { $tx->verify } 'input verification ok (second time)';
+	ok lives { $tx->verify }, 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok (second time)';
 
 	# NOTE: try modifying witness signature, see if it still verifies
 	# (segwit transactions are backward compatible, so it would pass without support for segwit)
 	$tx->inputs->[0]->witness->[1] .= "\x01";
-	throws_ok { $tx->verify } 'Bitcoin::Crypto::Exception::Transaction',
-		'input verification ok after modifying witness';
+	my $ex = dies { $tx->verify };
+	ok $ex, 'input verification ok after modifying witness';
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
 };
 
 done_testing;

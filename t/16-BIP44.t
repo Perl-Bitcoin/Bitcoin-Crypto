@@ -1,12 +1,8 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
+use Test2::V0;
+use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto qw(btc_extprv);
 use Bitcoin::Crypto::Util qw(generate_mnemonic get_path_info to_format);
-
-BEGIN { use_ok('Bitcoin::Crypto::BIP44') }
 
 subtest 'coin_type is an integer' => sub {
 	my $bip44 = Bitcoin::Crypto::BIP44->new(
@@ -52,7 +48,7 @@ subtest 'get_path_info understands bip44' => sub {
 		index => 100000,
 	);
 
-	is_deeply get_path_info($bip44), {
+	is get_path_info($bip44), {
 		private => !!1,
 		path => [
 			44 + (2 << 30),

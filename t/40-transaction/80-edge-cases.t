@@ -1,15 +1,10 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
-use lib 't/lib';
-
+use Test2::V0;
+use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Constants;
-use Crypt::Digest::SHA256 qw(sha256);
+
+use lib 't/lib';
 use TransactionStore;
 
 my $tx;
@@ -55,7 +50,7 @@ subtest 'should checksig a non-standard transaction' => sub {
 		->push($signature)
 		->push($prv->get_public_key->to_serialized);
 
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should not allow input value smaller than output' => sub {
@@ -69,11 +64,9 @@ subtest 'should not allow input value smaller than output' => sub {
 		],
 	);
 
-	throws_ok {
-		$tx->verify
-	} 'Bitcoin::Crypto::Exception::Transaction';
-
-	like $@, qr/value exceeds input/, 'error message ok';
+	my $ex = dies { $tx->verify };
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
+	like $ex, qr/value exceeds input/, 'error message ok';
 };
 
 subtest 'should serialize and deserialize mixed segwit txs' => sub {
@@ -85,17 +78,17 @@ subtest 'should serialize and deserialize mixed segwit txs' => sub {
 	$tx = btc_transaction->from_serialized([hex => $serialized]);
 	is to_format [hex => $tx->get_hash], $txid, 'txid ok';
 
-	is_deeply
+	is
 		to_format [hex => $tx->inputs->[0]->witness->[0]],
 		'304502210093048418636fb435513456481edffd171df2d8feadf3a1674cb805089a5905bc02206cc2481342b4daac8bf0441c85d94c382208d650c5e9316586f5d260be3dbe5b01',
 		'input 0 witness 0 ok';
 
-	is_deeply
+	is
 		to_format [hex => $tx->inputs->[0]->witness->[1]],
 		'030a3e29d736f681922e0b21f55f1370cc45a5d9a8c0d7e06cf95110d0b02bf643',
 		'input 0 witness 1 ok';
 
-	is_deeply $tx->inputs->[1]->witness, [], 'input 1 witness ok';
+	is $tx->inputs->[1]->witness, [], 'input 1 witness ok';
 
 	is to_format [hex => $tx->to_serialized], $serialized, 'serialization ok';
 };
@@ -111,15 +104,15 @@ subtest 'should handle NULLDATA outputs' => sub {
 		},
 	)->register;
 
-	throws_ok {
+	isa_ok dies {
 		btc_utxo->get(
 			[hex => $txid], 0
 		);
-	} 'Bitcoin::Crypto::Exception::UTXO';
+	}, 'Bitcoin::Crypto::Exception::UTXO';
 };
 
 subtest 'should correctly handle extra SIGHASH_SINGLE inputs' => sub {
-	local $TODO = 'unable to implement yet';
+	skip_all 'unable to implement yet';
 
 	# from https://bitcointalk.org/index.php?topic=260595.0
 	# (verify previous transaction as well just for completeness)
@@ -138,9 +131,9 @@ subtest 'should correctly handle extra SIGHASH_SINGLE inputs' => sub {
 		]
 	);
 
-	lives_ok {
+	ok lives {
 		$tx->verify;
-	} 'previous transaction verified ok';
+	}, 'previous transaction verified ok';
 
 	$tx->update_utxos;
 	$tx = btc_transaction->from_serialized(
@@ -150,9 +143,9 @@ subtest 'should correctly handle extra SIGHASH_SINGLE inputs' => sub {
 		]
 	);
 
-	lives_ok {
+	ok lives {
 		$tx->verify;
-	} 'this transaction verified ok';
+	}, 'this transaction verified ok';
 };
 
 subtest 'should not verify segwit transactions with uncompressed public keys (P2WPKH)' => sub {
@@ -181,11 +174,9 @@ subtest 'should not verify segwit transactions with uncompressed public keys (P2
 
 	$prv->sign_transaction($tx, signing_index => 0);
 
-	throws_ok {
-		$tx->verify
-	} 'Bitcoin::Crypto::Exception::TransactionScript';
-
-	like $@, qr/compressed/, 'error string ok';
+	my $ex = dies { $tx->verify };
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::TransactionScript';
+	like $ex, qr/compressed/, 'error string ok';
 };
 
 subtest 'should not verify segwit transactions with uncompressed public keys (P2WSH)' => sub {
@@ -223,17 +214,15 @@ subtest 'should not verify segwit transactions with uncompressed public keys (P2
 
 	$other_prv->sign_transaction($tx, redeem_script => $redeem_script, signing_index => 0, multisig => [1, 1]);
 
-	throws_ok {
-		$tx->verify
-	} 'Bitcoin::Crypto::Exception::TransactionScript';
-
-	like $@, qr/compressed/, 'error string ok';
+	my $ex = dies { $tx->verify };
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::TransactionScript';
+	like $ex, qr/compressed/, 'error string ok';
 };
 
 subtest 'should not allow to create transactions using incorrect network addresses' => sub {
-	throws_ok {
+	isa_ok dies {
 		btc_script->from_standard(P2WPKH => 'tb1q4grq3j35ggjcsr9psf3hx86ydfczdn77r7e63s');
-	} 'Bitcoin::Crypto::Exception::NetworkCheck';
+	}, 'Bitcoin::Crypto::Exception::NetworkCheck';
 };
 
 subtest 'should be able to create transactions without registered UTXOs' => sub {
@@ -246,9 +235,9 @@ subtest 'should be able to create transactions without registered UTXOs' => sub 
 
 	ok !defined $tx->fee, 'fee is not defined without the UTXOs';
 
-	throws_ok {
+	isa_ok dies {
 		$tx->verify;
-	} 'Bitcoin::Crypto::Exception::UTXO';
+	}, 'Bitcoin::Crypto::Exception::UTXO';
 };
 
 done_testing;

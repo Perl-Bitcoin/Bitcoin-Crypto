@@ -1,9 +1,4 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_extprv btc_extpub);
 use Bitcoin::Crypto::Util qw(to_format);
 
@@ -59,24 +54,24 @@ for my $purpose (qw(44 49 84)) {
 		my $first = $derived->derive_key_bip44(get_from_account => 1)->get_basic_key->get_public_key;
 
 		if ($purpose eq 44) {
-			lives_ok { $first->get_legacy_address };
+			ok lives { $first->get_legacy_address };
 		}
 		else {
-			dies_ok { $first->get_legacy_address };
+			ok dies { $first->get_legacy_address };
 		}
 
 		if ($purpose eq 49) {
-			lives_ok { $first->get_compat_address };
+			ok lives { $first->get_compat_address };
 		}
 		else {
-			dies_ok { $first->get_compat_address };
+			ok dies { $first->get_compat_address };
 		}
 
 		if ($purpose eq 84) {
-			lives_ok { $first->get_segwit_address };
+			ok lives { $first->get_segwit_address };
 		}
 		else {
-			dies_ok { $first->get_segwit_address };
+			ok dies { $first->get_segwit_address };
 		}
 	};
 
@@ -84,9 +79,9 @@ for my $purpose (qw(44 49 84)) {
 		my $first = $derived->derive_key_bip44(get_from_account => 1)->get_basic_key->get_public_key;
 
 		$first->clear_purpose;
-		lives_ok { $first->get_legacy_address };
-		lives_ok { $first->get_compat_address };
-		lives_ok { $first->get_segwit_address };
+		ok lives { $first->get_legacy_address };
+		ok lives { $first->get_compat_address };
+		ok lives { $first->get_segwit_address };
 	};
 }
 

@@ -1,13 +1,8 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
-use lib 't/lib';
-
+use Test2::V0;
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo btc_block);
 use Bitcoin::Crypto::Util qw(to_format);
+
+use lib 't/lib';
 use TransactionStore;
 
 my $tx;
@@ -49,7 +44,7 @@ subtest 'should verify transactions (P2PK)' => sub {
 	);
 
 	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should verify transactions (P2PKH)' => sub {
@@ -75,7 +70,7 @@ subtest 'should verify transactions (P2PKH)' => sub {
 	);
 
 	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should verify transactions (P2PKH, two inputs)' => sub {
@@ -89,7 +84,7 @@ subtest 'should verify transactions (P2PKH, two inputs)' => sub {
 	my $expected_txid = '03b26c89e180fd51ee12cb232559214bbb80d9db230ab65761b4d59018d076cc';
 
 	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should verify transactions (P2SH)' => sub {
@@ -132,7 +127,7 @@ subtest 'should verify transactions (P2SH)' => sub {
 	);
 
 	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
-	lives_ok { $tx->verify } 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should verify transactions (P2WPKH)' => sub {
@@ -150,14 +145,15 @@ subtest 'should verify transactions (P2WPKH)' => sub {
 		height => 807567,
 	);
 
-	lives_ok { $tx->verify(block => $block) } 'input verification ok';
-	lives_ok { $tx->verify(block => $block) } 'input verification ok (second time)';
+	ok lives { $tx->verify(block => $block) }, 'input verification ok';
+	ok lives { $tx->verify(block => $block) }, 'input verification ok (second time)';
 
 	# NOTE: try modifying witness signature, see if it still verifies
 	# (segwit transactions are backward compatible, so it would pass without support for segwit)
 	$tx->inputs->[1]->witness->[0] .= "\x01";
-	throws_ok { $tx->verify(block => $block) } 'Bitcoin::Crypto::Exception::Transaction',
-		'input verification ok after modifying witness';
+	my $ex = dies { $tx->verify(block => $block) };
+	ok $ex, 'input verification ok after modifying witness';
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
 };
 
 subtest 'should verify transactions (nested P2WPKH)' => sub {
@@ -173,14 +169,15 @@ subtest 'should verify transactions (nested P2WPKH)' => sub {
 		height => 807567,
 	);
 
-	lives_ok { $tx->verify(block => $block) } 'input verification ok';
-	lives_ok { $tx->verify(block => $block) } 'input verification ok (second time)';
+	ok lives { $tx->verify(block => $block) }, 'input verification ok';
+	ok lives { $tx->verify(block => $block) }, 'input verification ok (second time)';
 
 	# NOTE: try modifying witness signature, see if it still verifies
 	# (segwit transactions are backward compatible, so it would pass without support for segwit)
 	$tx->inputs->[0]->witness->[1] .= "\x01";
-	throws_ok { $tx->verify(block => $block) } 'Bitcoin::Crypto::Exception::Transaction',
-		'input verification ok after modifying witness';
+	my $ex = dies { $tx->verify(block => $block) };
+	ok $ex, 'input verification ok after modifying witness';
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
 };
 
 done_testing;

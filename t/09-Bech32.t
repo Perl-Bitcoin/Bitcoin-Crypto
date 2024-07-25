@@ -1,10 +1,5 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Test::Exception;
-
-BEGIN { use_ok('Bitcoin::Crypto::Bech32', qw(:all)) }
+use Test2::V0;
+use Bitcoin::Crypto::Bech32 qw(:all);
 
 # BECH32 / BECH32M
 my @tests_bech32 = (
@@ -401,14 +396,14 @@ for my $test (@tests_bech32) {
 		if (defined $test->{data}) {
 			my @result = decode_bech32($test->{case});
 
-			is_deeply $result[1], $test->{data}, 'decode result ok';
+			is $result[1], $test->{data}, 'decode result ok';
 			is $result[2], $test->{type}, 'result type ok';
 			is encode_bech32(@result), lc $test->{case}, 'encode result ok';
 		}
 		elsif (defined $test->{exception}) {
-			throws_ok {
+			isa_ok dies {
 				decode_bech32($test->{case});
-			} 'Bitcoin::Crypto::Exception::' . $test->{exception}, 'decoding fails ok';
+			}, 'Bitcoin::Crypto::Exception::' . $test->{exception};
 		}
 	};
 }
@@ -426,9 +421,9 @@ for my $test (@tests_segwit) {
 			is encode_segwit($hrp, pack 'H*', $test->{data}), lc $test->{case}, 'encode result ok';
 		}
 		elsif (defined $test->{exception}) {
-			throws_ok {
+			isa_ok dies {
 				decode_segwit($test->{case});
-			} 'Bitcoin::Crypto::Exception::' . $test->{exception}, 'decoding fails ok';
+			}, 'Bitcoin::Crypto::Exception::' . $test->{exception};
 		}
 	};
 }

@@ -1,13 +1,8 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-use Try::Tiny;
+use Test2::V0;
+use Bitcoin::Crypto::Script;
 
 use lib 't/lib';
 use ScriptTest;
-
-use Bitcoin::Crypto::Script;
 
 my @cases = (
 	{
@@ -174,17 +169,16 @@ foreach my $case (@cases) {
 
 		ops_are($script, \@ops, "ops ok");
 
-		try {
+		my $err = dies {
 			stack_is($script, $case->{stack}, "stack ok");
-		}
-		catch {
-			if ($case->{exception}) {
-				isa_ok $_, 'Bitcoin::Crypto::Exception::ScriptRuntime';
-			}
-			else {
-				fail "got exception: $_";
-			}
 		};
+
+		if ($case->{exception}) {
+			isa_ok $err, 'Bitcoin::Crypto::Exception::ScriptRuntime';
+		}
+		elsif ($err) {
+			fail "got exception: $err";
+		}
 	};
 
 	++$case_num;

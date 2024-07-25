@@ -1,9 +1,5 @@
-use v5.10;
-use strict;
-use warnings;
-use Test::More;
-
-BEGIN { use_ok('Bitcoin::Crypto::Script') }
+use Test2::V0;
+use Bitcoin::Crypto::Script;
 
 my @data = (
 	{
