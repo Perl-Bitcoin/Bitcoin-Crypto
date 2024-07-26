@@ -6,15 +6,15 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 use List::Util qw(any);
 
 use Bitcoin::Crypto::PSBT::Map;
 use Bitcoin::Crypto::PSBT::Field;
 use Bitcoin::Crypto::PSBT::FieldType;
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Object Str InstanceOf ByteStr ArrayRef PositiveOrZeroInt Maybe PSBTFieldType);
 
 use namespace::clean;
 
@@ -37,7 +37,7 @@ sub _get_map
 	}
 
 	if (!$found_map && $args{set}) {
-		$found_map = Bitcoin::Crypto::PSBT::Map->new(
+		$found_map = Bitcoin::Crypto::PSBT::Map::->new(
 			type => $maptype,
 			index => $args{index},
 		);
@@ -179,14 +179,14 @@ sub from_serialized
 		'serialized string does not contain the PSBT header'
 	) unless $magic eq Bitcoin::Crypto::Constants::psbt_magic;
 
-	push @{$self->maps}, Bitcoin::Crypto::PSBT::Map->from_serialized(
+	push @{$self->maps}, Bitcoin::Crypto::PSBT::Map::->from_serialized(
 		$serialized,
 		map_type => Bitcoin::Crypto::Constants::psbt_global_map,
 		pos => \$pos,
 	);
 
 	foreach my $index (0 .. $self->input_count - 1) {
-		push @{$self->maps}, Bitcoin::Crypto::PSBT::Map->from_serialized(
+		push @{$self->maps}, Bitcoin::Crypto::PSBT::Map::->from_serialized(
 			$serialized,
 			map_type => Bitcoin::Crypto::Constants::psbt_input_map,
 			pos => \$pos,
@@ -195,7 +195,7 @@ sub from_serialized
 	}
 
 	foreach my $index (0 .. $self->output_count - 1) {
-		push @{$self->maps}, Bitcoin::Crypto::PSBT::Map->from_serialized(
+		push @{$self->maps}, Bitcoin::Crypto::PSBT::Map::->from_serialized(
 			$serialized,
 			map_type => Bitcoin::Crypto::Constants::psbt_output_map,
 			pos => \$pos,

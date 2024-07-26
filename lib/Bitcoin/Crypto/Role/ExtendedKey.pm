@@ -5,14 +5,14 @@ use strict;
 use warnings;
 use Scalar::Util qw(blessed);
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 use Carp qw(carp);
 use List::Util qw(none);
 
 use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Types qw(IntMaxBits StrLength Str Object Maybe ByteStr PositiveInt InstanceOf);
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(get_path_info hash160 to_format);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Network;

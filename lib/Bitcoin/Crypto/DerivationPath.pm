@@ -6,9 +6,8 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
-use Bitcoin::Crypto::Types qw(Object Str Bool ArrayRef PositiveOrZeroInt);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 

@@ -6,11 +6,11 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Transaction;
 use Bitcoin::Crypto::Transaction::Output;
-use Bitcoin::Crypto::Types qw(IntMaxBits Int PositiveOrZeroInt ByteStr InstanceOf HashRef Str Object Maybe CodeRef);
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Exception;
 

@@ -4,9 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
-use Bitcoin::Crypto::Types qw(Object Bool);
 use Moo::Role;
 
 has param 'compressed' => (

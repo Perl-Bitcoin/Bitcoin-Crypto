@@ -1,4 +1,4 @@
 [test]
--PBitcoin::Crypto::Types
+-PTypes::Common
 --jobs 4
 

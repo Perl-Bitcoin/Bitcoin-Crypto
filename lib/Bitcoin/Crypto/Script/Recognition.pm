@@ -6,7 +6,7 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Bitcoin::Crypto::Types qw(InstanceOf);
+use Types::Common -types;
 use List::Util qw(any);
 use Try::Tiny;
 

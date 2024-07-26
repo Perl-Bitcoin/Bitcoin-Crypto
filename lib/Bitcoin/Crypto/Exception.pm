@@ -6,10 +6,9 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
+use Types::Standard -types;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
-
-use Bitcoin::Crypto::Types qw(Str Maybe ArrayRef);
 
 use namespace::clean;
 
@@ -241,7 +240,7 @@ sub as_string
 
 	use Moo;
 	use Mooish::AttributeBuilder -standard;
-	use Bitcoin::Crypto::Types qw(PositiveOrZeroInt ArrayRef);
+	use Types::Common -types;
 
 	extends 'Bitcoin::Crypto::Exception';
 

@@ -5,11 +5,11 @@ use strict;
 use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
 use Scalar::Util qw(blessed);
 
-use Bitcoin::Crypto::Types qw(ArrayRef Str ByteStr Object InstanceOf PositiveOrZeroInt);
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Script::Transaction;

@@ -4,13 +4,12 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 use Carp qw(carp);
 
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
-use Bitcoin::Crypto::Types qw(Object);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed);
 

@@ -6,7 +6,7 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 use List::Util qw(any notall);
 
 use Bitcoin::Crypto qw(btc_extpub btc_pub btc_transaction btc_script);
@@ -15,8 +15,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Helpers qw(ensure_length);    # loads Math::BigInt
-use Bitcoin::Crypto::Types
-	qw(Object Str Maybe HashRef ByteStr ArrayRef PositiveOrZeroInt Enum CodeRef PSBTMapType BitcoinScript InstanceOf SatoshiAmount Tuple IntMaxBits);
+use Bitcoin::Crypto::Types -types;
 
 use namespace::clean;
 

@@ -5,12 +5,12 @@ use strict;
 use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
 use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::DerivationPath;
-use Bitcoin::Crypto::Types qw(Object BIP44Purpose PositiveOrZeroInt Bool Enum);
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
 

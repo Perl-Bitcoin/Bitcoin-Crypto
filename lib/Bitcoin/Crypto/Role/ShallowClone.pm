@@ -4,8 +4,7 @@ use v5.10;
 use strict;
 use warnings;
 
-use Type::Params -sigs;
-use Bitcoin::Crypto::Types qw(Object);
+use Types::Common -sigs, -types;
 use Moo::Role;
 
 signature_for clone => (

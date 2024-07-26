@@ -4,11 +4,11 @@ use v5.10;
 use strict;
 use warnings;
 use Exporter qw(import);
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(validate_segwit);
-use Bitcoin::Crypto::Types qw(ByteStr Str Enum ArrayRef Int);
+use Bitcoin::Crypto::Types -types;
 
 our @EXPORT_OK = qw(
 	translate_5to8

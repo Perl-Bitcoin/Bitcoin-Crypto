@@ -9,7 +9,7 @@ use Mooish::AttributeBuilder -standard;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 use List::Util qw(any);
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 use Carp qw(carp);
 
 use Bitcoin::Crypto::Constants;
@@ -18,7 +18,7 @@ use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit get_hrp);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(hash160 hash256 get_address_type);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Maybe ArrayRef HashRef Str Object ByteStr Any ScriptType ScriptDesc);
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
 use Bitcoin::Crypto::Script::Common;

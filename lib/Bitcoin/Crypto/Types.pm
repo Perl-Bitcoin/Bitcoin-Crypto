@@ -4,14 +4,9 @@ use v5.10;
 use strict;
 use warnings;
 
-use Type::Library -extends => [
-	qw(
-		Types::Standard
-		Types::Common::Numeric
-		Types::Common::String
-	)
-];
+use Type::Library -base;
 use Type::Coercion;
+use Types::Common -types;
 
 # make sure Math::BigInt is properly loaded - this module loads it
 use Bitcoin::Crypto::Helpers;
@@ -115,7 +110,7 @@ __PACKAGE__->add_type(
 	parent => PositiveOrZeroInt,
 
 	constraint_generator => sub {
-		my $bits = assert_PositiveInt(shift);
+		my $bits = PositiveInt->assert_valid(shift);
 
 		# for same bits as system, no need for special constraint
 		return sub { 1 }

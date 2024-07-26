@@ -6,10 +6,9 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Object HashRef CodeRef Str StrLength Int Maybe);
 
 use namespace::clean;
 

@@ -6,12 +6,11 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
-use Bitcoin::Crypto::Types
-	qw(Object Maybe Defined ByteStr Str InstanceOf PSBTFieldType PSBTMapType ScalarRef PositiveOrZeroInt);
-use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::PSBT::FieldType;
+use Bitcoin::Crypto::Types -types;
+use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
 
 use namespace::clean;

@@ -5,11 +5,11 @@ use strict;
 use warnings;
 use Exporter qw(import);
 use Crypt::Misc qw(encode_b58b decode_b58b);
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Util qw(hash256);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Types qw(Str ByteStr);
+use Bitcoin::Crypto::Types -types;
 
 our @EXPORT_OK = qw(
 	encode_base58

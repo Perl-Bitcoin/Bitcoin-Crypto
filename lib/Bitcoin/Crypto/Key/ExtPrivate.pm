@@ -6,7 +6,7 @@ use warnings;
 use Moo;
 use Crypt::Mac::HMAC qw(hmac);
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy);
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 use Carp qw(carp);
 
 use Bitcoin::Crypto::BIP44;
@@ -14,7 +14,7 @@ use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
-use Bitcoin::Crypto::Types qw(Object Str ByteStr HashRef Maybe);
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 
 use namespace::clean;

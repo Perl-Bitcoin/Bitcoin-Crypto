@@ -6,9 +6,7 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
-
-use Bitcoin::Crypto::Types qw(Object PositiveInt PositiveOrZeroInt InstanceOf);
+use Types::Common -sigs, -types;
 
 has param 'timestamp' => (
 	isa => PositiveInt,

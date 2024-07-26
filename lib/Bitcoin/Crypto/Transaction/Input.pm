@@ -6,15 +6,14 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 use Scalar::Util qw(blessed);
 use Try::Tiny;
 
 use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
-use Bitcoin::Crypto::Types
-	qw(ByteStr Str IntMaxBits ArrayRef InstanceOf Object BitcoinScript Bool Defined ScalarRef PositiveOrZeroInt Tuple Maybe);
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Script::Common;
 

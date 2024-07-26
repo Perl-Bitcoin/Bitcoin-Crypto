@@ -12,11 +12,11 @@ use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::BIP39 qw(gen_bip39_mnemonic entropy_to_bip39_mnemonic);
 use Try::Tiny;
 use Scalar::Util qw(blessed);
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Helpers qw(parse_formatdesc);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Types qw(Str ByteStr FormatStr ConsumerOf Maybe PositiveInt Tuple ScalarRef PositiveOrZeroInt);
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::DerivationPath;
 use Bitcoin::Crypto::Exception;
 

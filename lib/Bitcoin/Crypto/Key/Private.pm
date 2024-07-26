@@ -6,12 +6,11 @@ use warnings;
 use Moo;
 use Crypt::PK::ECC;
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 use List::Util qw(none);
 
 use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
-use Bitcoin::Crypto::Types qw(Object Str Maybe);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Util qw(validate_wif);

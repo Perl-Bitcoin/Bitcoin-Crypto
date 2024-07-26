@@ -6,11 +6,12 @@ use warnings;
 
 use Moo;
 use Mooish::AttributeBuilder -standard;
+use Types::Common -types;
 
 use Bitcoin::Crypto qw(btc_script);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Types qw(InstanceOf ByteStr PositiveInt PositiveOrZeroInt BitcoinScript Tuple Bool);
+use Bitcoin::Crypto::Types -types;
 
 has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],

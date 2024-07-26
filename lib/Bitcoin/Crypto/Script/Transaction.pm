@@ -5,9 +5,9 @@ use strict;
 use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
-use Bitcoin::Crypto::Types qw(Object InstanceOf PositiveOrZeroInt ByteStr);
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 
 use namespace::clean;

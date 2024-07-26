@@ -4,10 +4,10 @@ use v5.10;
 use strict;
 use warnings;
 
-use Type::Params -sigs;
+use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto qw(btc_script);
-use Bitcoin::Crypto::Types qw(Str ByteStr InstanceOf);
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 
 sub _make_PKH
