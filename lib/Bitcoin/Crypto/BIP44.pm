@@ -134,7 +134,7 @@ sub get_derivation_path
 __END__
 =head1 NAME
 
-Bitcoin::Crypto::BIP44 - BIP44 implementation
+Bitcoin::Crypto::BIP44 - BIP44 (multi-account hierarchy) implementation
 
 =head1 SYNOPSIS
 

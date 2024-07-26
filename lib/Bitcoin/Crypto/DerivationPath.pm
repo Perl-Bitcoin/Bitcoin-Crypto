@@ -33,6 +33,23 @@ sub get_derivation_path
 	return $self;
 }
 
+signature_for get_hardened => (
+	method => Object,
+	positional => [],
+);
+
+sub get_hardened
+{
+	my ($self) = @_;
+
+	my $path = $self->path;
+	return [
+		map {
+			$_ >= Bitcoin::Crypto::Constants::max_child_keys
+		} @$path
+	];
+}
+
 signature_for from_string => (
 	method => Str,
 	positional => [Str],
@@ -57,7 +74,9 @@ sub from_string
 		for my $part (split '/', $rest) {
 			my $is_hardened = $part =~ tr/'//d;
 
-			return undef if $part >= Bitcoin::Crypto::Constants::max_child_keys;
+			Bitcoin::Crypto::Exception->raise(
+				"Derivation path part too large: $part"
+			) if $part >= Bitcoin::Crypto::Constants::max_child_keys;
 
 			$part += Bitcoin::Crypto::Constants::max_child_keys if $is_hardened;
 			push @path, $part;
@@ -119,4 +138,11 @@ Constructs a new derivation path based on the string.
 	$path = $path->get_derivation_path()
 
 A helper which returns self.
+
+=head3 get_hardened
+
+	$hardened = $path->get_hardened()
+
+Returns an array reference with boolean values. Each value can be used to
+determine if L</path> element under the same array index is hardened or not.
 
