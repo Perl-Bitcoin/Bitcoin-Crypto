@@ -30,5 +30,30 @@ subtest 'should derive_entropy' => sub {
 		'entropy index 1 derived ok';
 };
 
+subtest 'should derive a mnemonic according to BIP39 application of BIP85' => sub {
+	my $bip85 = Bitcoin::Crypto::BIP85->new(
+		key => btc_extprv->from_serialized(
+			[
+				base58 =>
+					'xprv9s21ZrQH143K2LBWUUQRFXhucrQqBpKdRRxNVq2zBqsx8HVqFk2uYo8kmbaLLHRdqtQpUm98uKfu3vca1LqdGhUtyoFnCNkfmXRyPXLjbKb'
+			]
+		),
+	);
+
+	# check words
+	is $bip85->derive_mnemonic(words => 12),
+		'girl mad pet galaxy egg matter matrix prison refuse sense ordinary nose', '12 words ok';
+	is $bip85->derive_mnemonic(words => 18),
+		'near account window bike charge season chef number sketch tomorrow excuse sniff circle vital hockey outdoor supply token',
+		'18 words ok';
+	is $bip85->derive_mnemonic(words => 24),
+		'puppy ocean match cereal symbol another shed magic wrap hammer bulb intact gadget divorce twin tonight reason outdoor destroy simple truth cigar social volcano',
+		'24 words ok';
+
+	# check index
+	is $bip85->derive_mnemonic(words => 12, index => 1),
+		'mystery car occur shallow stable order number feature else best trigger curious', '12 words index 1 ok';
+};
+
 done_testing;
 

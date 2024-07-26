@@ -10,7 +10,7 @@ use List::Util qw(all);
 use Crypt::Mac::HMAC qw(hmac);
 use Crypt::Digest::SHAKE;
 
-use Bitcoin::Crypto::Util qw(get_path_info);
+use Bitcoin::Crypto::Util qw(get_path_info mnemonic_from_entropy);
 use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
@@ -60,6 +60,49 @@ sub derive_entropy
 	return $seed;
 }
 
+signature_for derive_mnemonic => (
+	method => Object,
+	named => [
+		words => Enum [12, 18, 24],
+		{default => 24},
+		language => Str,
+		{default => 'en'},
+		index => PositiveOrZeroInt,
+		{default => 0},
+	],
+	bless => !!0,
+);
+
+sub derive_mnemonic
+{
+	my ($self, $args) = @_;
+
+	my %language_map = (
+		'en' => 0,
+		'ja' => 1,
+		'ko' => 2,
+		'es' => 3,
+		'zh-simplified' => 4,
+		'zh-traditional' => 5,
+		'fr' => 6,
+		'it' => 7,
+
+		# NOTE: czech has no BIP39 wordlist module, but add it for sake of completeness
+		'cz' => 8,
+	);
+
+	my $language_index = $language_map{$args->{language}};
+	Bitcoin::Crypto::Exception::MnemonicGenerate->raise(
+		"unknown mnemonic language code $args->{language}"
+	) unless defined $language_index;
+
+	my $spec_path = "m/83696968'/39'/$language_index'/$args->{words}'/$args->{index}'";
+	my $length = $args->{words} / 3 * 4;
+
+	my $entropy = $self->derive_entropy($spec_path, $length);
+	return mnemonic_from_entropy($entropy, $args->{language});
+}
+
 1;
 
 __END__
@@ -78,11 +121,22 @@ Bitcoin::Crypto::BIP85 - BIP85 (deterministic entropy) implementation
 	# get raw bytestring seed
 	my $seed = $bip85->derive_entropy("m/0'/0'");
 
+	# get a mnemonic
+	my $mnemonic = $bip85->derive_mnemonic(index => 0);
+
 =head1 DESCRIPTION
 
 This module implements
 L<BIP85|https://github.com/bitcoin/bips/blob/master/bip-0085.mediawiki>,
-enabling deterministic seed generation from a master key.
+enabling deterministic entropy generation from a master key.
+
+It currently implements the following applications from the BIP85 spec:
+
+=over
+
+=item * C<BIP39>: L</derive_mnemonic>
+
+=back
 
 =head1 INTERFACE
 
@@ -116,4 +170,26 @@ provided, full C<64> bytes of entropy will be returned. If provided and less
 than C<64>, the entropy will be truncated to the derired length. If greater
 than C<64>, the C<DRNG> algorithm defined in BIP85 will be used to stretch the
 entropy to this size.
+
+=head3 derive_mnemonic
+
+	$mnemonic = $object->derive_mnemonic(%args)
+
+Derives mnemonic from the master key. C<%args> can be any combination of:
+
+=over
+
+=item * C<words>
+
+The number of words to generate. Can be either C<12>, C<18> or C<24>. Default: C<24>.
+
+=item * C<language>
+
+The language to use. See L<Bitcoin::BIP39> for more info about this argument. Default: C<en>.
+
+=item * C<index>
+
+The generation index. Must be a non-negative integer. Default: C<0>
+
+=back
 
