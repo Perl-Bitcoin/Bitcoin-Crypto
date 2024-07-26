@@ -8,6 +8,7 @@ use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
 use List::Util qw(all);
 use Crypt::Mac::HMAC qw(hmac);
+use Crypt::Digest::SHAKE;
 
 use Bitcoin::Crypto::Util qw(get_path_info);
 use Bitcoin::Crypto::Exception;
@@ -18,14 +19,28 @@ has param 'key' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Key::ExtPrivate'],
 );
 
+sub _adjust_length
+{
+	my ($self, $bytes, $bytelength) = @_;
+
+	if ($bytelength <= length $bytes) {
+		return substr $bytes, 0, $bytelength;
+	}
+	else {
+		my $shake = Crypt::Digest::SHAKE->new(256);
+		$shake->add($bytes);
+		return $shake->done($bytelength);
+	}
+}
+
 signature_for derive_entropy => (
 	method => Object,
-	positional => [Str | Object],
+	positional => [Str | Object, Maybe [PositiveInt], {default => undef}],
 );
 
 sub derive_entropy
 {
-	my ($self, $path) = @_;
+	my ($self, $path, $bytelength) = @_;
 	my $path_info = get_path_info $path;
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
@@ -38,7 +53,10 @@ sub derive_entropy
 
 	my $key = $self->key->derive_key($path_info);
 
-	my $seed = hmac('SHA512', "bip-entropy-from-k", $key->raw_key('private'));
+	my $seed = hmac('SHA512', 'bip-entropy-from-k', $key->raw_key('private'));
+	$seed = $self->_adjust_length($seed, $bytelength)
+		if $bytelength;
+
 	return $seed;
 }
 
@@ -86,10 +104,16 @@ takes arguments specified in L</Attributes>.
 
 =head3 derive_entropy
 
-	$bytestr = $object->derive_entropy($path)
+	$bytestr = $object->derive_entropy($path, $length = undef)
 
-Returns full C<512> bytes of entropy derived from the master key using
+Returns entropy derived from the master key using
 C<$path>, which can be a standard string derivation path like
 C<m/83696968'/0'/0'> or an instance of L<Bitcoin::Crypto::DerivationPath>. The
 derivation path must be fully hardened, as specified in the BIP.
+
+Optional C<$length> is the desired length of the entropy in bytes. If not
+provided, full C<64> bytes of entropy will be returned. If provided and less
+than C<64>, the entropy will be truncated to the derired length. If greater
+than C<64>, the C<DRNG> algorithm defined in BIP85 will be used to stretch the
+entropy to this size.
 
