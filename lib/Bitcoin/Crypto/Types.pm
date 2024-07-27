@@ -190,6 +190,7 @@ Bitcoin::Crypto::Types - Bitcoin-specific data types
 		PSBTFieldType
 		IntMaxBits
 		SatoshiAmount
+		DerivationPath
 	);
 
 =head1 DESCRIPTION
