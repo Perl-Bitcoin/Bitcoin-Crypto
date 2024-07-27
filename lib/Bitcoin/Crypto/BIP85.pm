@@ -10,7 +10,8 @@ use List::Util qw(all);
 use Crypt::Mac::HMAC qw(hmac);
 use Crypt::Digest::SHAKE;
 
-use Bitcoin::Crypto::Util qw(get_path_info mnemonic_from_entropy);
+use Bitcoin::Crypto::Types -types;
+use Bitcoin::Crypto::Util qw(mnemonic_from_entropy);
 use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
@@ -35,21 +36,16 @@ sub _adjust_length
 
 signature_for derive_entropy => (
 	method => Object,
-	positional => [Str | Object, Maybe [PositiveInt], {default => undef}],
+	positional => [DerivationPath, Maybe [PositiveInt], {default => undef}],
 );
 
 sub derive_entropy
 {
-	my ($self, $path, $bytelength) = @_;
-	my $path_info = get_path_info $path;
-
-	Bitcoin::Crypto::Exception::KeyDerive->raise(
-		'invalid seed derivation path supplied'
-	) unless defined $path_info;
+	my ($self, $path_info, $bytelength) = @_;
 
 	Bitcoin::Crypto::Exception::KeyDerive->raise(
 		'seed derivation path must be fully hardened'
-	) unless all { !!$_ } @{$path_info->get_hardened};
+	) unless all { !!$_->[1] } @{$path_info->get_path_hardened};
 
 	my $key = $self->key->derive_key($path_info);
 

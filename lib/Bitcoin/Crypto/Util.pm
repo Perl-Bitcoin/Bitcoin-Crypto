@@ -17,7 +17,6 @@ use Types::Common -sigs, -types;
 use Bitcoin::Crypto::Helpers qw(parse_formatdesc);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::DerivationPath;
 use Bitcoin::Crypto::Exception;
 
 our @EXPORT_OK = qw(
@@ -272,16 +271,16 @@ sub mnemonic_from_entropy
 }
 
 signature_for get_path_info => (
-	positional => [Str | ConsumerOf ['Bitcoin::Crypto::Role::WithDerivationPath']],
+	positional => [Defined],
 );
 
 sub get_path_info
 {
 	my ($path) = @_;
-	return $path->get_derivation_path if blessed $path;
 
+	# NOTE: ->coerce may still throw because of exceptions in from_string of DerivationPath
 	return scalar try {
-		Bitcoin::Crypto::DerivationPath->from_string($path);
+		DerivationPath->assert_coerce($path);
 	};
 }
 
@@ -564,6 +563,10 @@ L<Bitcoin::Crypto::DerivationPath>:
 			int, int, ..
 		],
 	}
+
+You may also use L<Bitcoin::Crypto::Types/DerivationPath> type and its
+coercions to achieve the same effect (but with an exception instead of undef on
+failure).
 
 =head2 to_format
 

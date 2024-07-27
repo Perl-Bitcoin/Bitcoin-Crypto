@@ -157,6 +157,16 @@ $satoshi_amount->coercion->add_type_coercions(
 	Int | Str, q{ Math::BigInt->new($_) },
 );
 
+my $derivation_path = __PACKAGE__->add_type(
+	name => 'DerivationPath',
+	parent => InstanceOf->of('Bitcoin::Crypto::DerivationPath'),
+);
+
+$derivation_path->coercion->add_type_coercions(
+	Str, q{ require Bitcoin::Crypto::DerivationPath; Bitcoin::Crypto::DerivationPath->from_string($_) },
+	ConsumerOf->of('Bitcoin::Crypto::Role::WithDerivationPath'), q{ $_->get_derivation_path },
+);
+
 __PACKAGE__->make_immutable;
 
 1;
@@ -242,6 +252,11 @@ specified number of bits (parametrizable).
 
 A non-negative integer, represented as L<Math::BigInt> object. Can be coerced
 from an integer or from a string.
+
+=head2 DerivationPath
+
+An instance of L<Bitcoin::Crypto::DerivationPath>. Can be coerced from a string
+or a class consuming C<Bitcoin::Crypto::Role::WithDerivationPath>.
 
 =head1 SEE ALSO
 
