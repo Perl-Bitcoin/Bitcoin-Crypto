@@ -141,6 +141,26 @@ sub derive_extprv
 	);
 }
 
+signature_for derive_bytes => (
+	method => Object,
+	named => [
+		bytes => Int->where(q{$_ >= 16 && $_ <= 64}),
+		{default => 64},
+		index => PositiveOrZeroInt,
+		{default => 0},
+	],
+	bless => !!0,
+);
+
+sub derive_bytes
+{
+	my ($self, $args) = @_;
+
+	my $spec_path = "m/83696968'/128169'/$args->{bytes}'/$args->{index}'";
+
+	return $self->derive_entropy($spec_path, $args->{bytes});
+}
+
 1;
 
 __END__
@@ -174,11 +194,30 @@ It currently implements the following applications from the BIP85 spec:
 
 =item * C<BIP39>: L</derive_mnemonic>
 
+This application requires extra CPAN wordlists for L<Bitcoin::BIP39> to handle
+other languages than C<en>.
+
 =item * C<HD-Seed WIF>: L</derive_prv>
+
+This application returns a private key instead of a WIF, but can be serialized
+using L<Bitcoin::Crypto::Key::Private/to_wif>.
 
 =item * C<XPRV>: L</derive_extprv>
 
+This application returns an extended private key instead of its serialized
+version, but can be serialized using
+L</Bitcoin::Crypto::Key::ExtPrivate/to_serialized>.
+
+=item * C<HEX>: L</derive_bytes>
+
+This application returns a bytestring instead of a hex string to be coherent
+with other similar Bitcoin::Crypto methods. It can be represented as hex using
+L<Bitcoin::Crypto::Util/to_format>.
+
 =back
+
+Missing BIP85 applications can be implemented using L</derive_entropy> with
+proper derivation path and entropy length.
 
 =head1 INTERFACE
 
@@ -237,7 +276,7 @@ The generation index. Must be a non-negative integer. Default: C<0>
 
 =head3 derive_prv
 
-	$mnemonic = $object->derive_prv(%args)
+	$prv = $object->derive_prv(%args)
 
 Derives private key from the master key. The key can immediately be
 serialized using C<< ->to_wif >> to match BIP85 spec for this
@@ -253,13 +292,33 @@ The generation index. Must be a non-negative integer. Default: C<0>
 
 =head3 derive_extprv
 
-	$mnemonic = $object->derive_extprv(%args)
+	$extprv = $object->derive_extprv(%args)
 
 Derives an extended private key from the master key. The key can immediately be
 serialized using C<< ->to_serialized >> to match BIP85 spec for this
 application. C<%args> can be any combination of:
 
 =over
+
+=item * C<index>
+
+The generation index. Must be a non-negative integer. Default: C<0>
+
+=back
+
+=head3 derive_bytes
+
+	$bytestr = $object->derive_bytes(%args)
+
+Derives a number of bytes from the master key. The key can immediately be
+serialized as hex using L<Bitcoin::Crypto::Util/to_format> to match BIP85 spec
+for this application. C<%args> can be any combination of:
+
+=over
+
+=item * C<bytes>
+
+The number of bytes to generate. Must be between C<16> and C<64>, inclusive.
 
 =item * C<index>
 

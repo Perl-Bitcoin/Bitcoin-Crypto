@@ -69,7 +69,8 @@ subtest 'should derive a wif according to HD-Seed WIF application of BIP85' => s
 	);
 
 	is $bip85->derive_prv->to_wif, 'Kzyv4uF39d4Jrw2W7UryTHwZr1zQVNk4dAFyqE6BuMrMh1Za7uhp', 'wif ok';
-	is $bip85->derive_prv(index => 1)->to_wif, 'L45nghBsnmqaGj9Vy64FCw9AyJNi6K4LUFP4r41tYHmQLEyXUkYP', 'wif index 1 ok';
+	is $bip85->derive_prv(index => 1)->to_wif, 'L45nghBsnmqaGj9Vy64FCw9AyJNi6K4LUFP4r41tYHmQLEyXUkYP',
+		'wif index 1 ok';
 };
 
 subtest 'should derive an extprv according to XPRV application of BIP85' => sub {
@@ -82,8 +83,32 @@ subtest 'should derive an extprv according to XPRV application of BIP85' => sub 
 		),
 	);
 
-	is to_format [base58 => $bip85->derive_extprv->to_serialized], 'xprv9s21ZrQH143K2srSbCSg4m4kLvPMzcWydgmKEnMmoZUurYuBuYG46c6P71UGXMzmriLzCCBvKQWBUv3vPB3m1SATMhp3uEjXHJ42jFg7myX', 'xprv ok';
-	is to_format [base58 => $bip85->derive_extprv(index => 1)->to_serialized], 'xprv9s21ZrQH143K38mDZkjswdWQv6DWyjWiejciPywBBZsCnZ9Vg3WCWnhkPW3rKsPT6u3MnhDn52huxjBjFES1xCzEtxTSAfQTapE7CXcbQ4b', 'xprv index 1 ok';
+	is to_format [base58 => $bip85->derive_extprv->to_serialized],
+		'xprv9s21ZrQH143K2srSbCSg4m4kLvPMzcWydgmKEnMmoZUurYuBuYG46c6P71UGXMzmriLzCCBvKQWBUv3vPB3m1SATMhp3uEjXHJ42jFg7myX',
+		'xprv ok';
+	is to_format [base58 => $bip85->derive_extprv(index => 1)->to_serialized],
+		'xprv9s21ZrQH143K38mDZkjswdWQv6DWyjWiejciPywBBZsCnZ9Vg3WCWnhkPW3rKsPT6u3MnhDn52huxjBjFES1xCzEtxTSAfQTapE7CXcbQ4b',
+		'xprv index 1 ok';
+};
+
+subtest 'should derive bytes according to HEX application of BIP85' => sub {
+	my $bip85 = Bitcoin::Crypto::BIP85->new(
+		key => btc_extprv->from_serialized(
+			[
+				base58 =>
+					'xprv9s21ZrQH143K2LBWUUQRFXhucrQqBpKdRRxNVq2zBqsx8HVqFk2uYo8kmbaLLHRdqtQpUm98uKfu3vca1LqdGhUtyoFnCNkfmXRyPXLjbKb'
+			]
+		),
+	);
+
+	is to_format [hex => $bip85->derive_bytes],
+		'492db4698cf3b73a5a24998aa3e9d7fa96275d85724a91e71aa2d645442f878555d078fd1f1f67e368976f04137b1f7a0d19232136ca50c44614af72b5582a5c',
+		'bytes ok';
+	is to_format [hex => $bip85->derive_bytes(index => 1)],
+		'3c7cd8fc51f7381c83c91e838f893405b9fdf14b36c847535173c9ef79723095d3ba70d28a8981129ef3937401e402cd8e7046f17fc9d65d0488107678f213ad',
+		'bytes index 1 ok';
+	is to_format [hex => $bip85->derive_bytes(bytes => 30)],
+		'a8196c02597687a879a029e70cb3926db8f987792b7a19be3c7d6d978c45', 'bytes count 30 ok';
 };
 
 done_testing;
