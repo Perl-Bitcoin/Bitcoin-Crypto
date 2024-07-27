@@ -55,6 +55,12 @@ __END__
 
 =head1 BIP44 implementation example
 
-This example implements a single perl function C<bip44_get_derived_key_from_mnemonic>. This function performs an extended key derivation with paths specified in bip44 document. Base key is taken from mnemonic code with optional password. A resulting scalar variable is a basic private key instance, which can be used for message signing, verification and address generation.
+This example implements a single perl function
+C<bip44_get_derived_key_from_mnemonic>. This function performs an extended key
+derivation with paths specified in bip44 document. Base key is taken from
+mnemonic code with optional password. A resulting scalar variable is a basic
+private key instance, which can be used for message signing, verification and
+address generation.
 
 See the example code for step-by-step explanations in comments.
+

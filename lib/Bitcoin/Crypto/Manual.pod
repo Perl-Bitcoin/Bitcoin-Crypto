@@ -49,6 +49,13 @@ topics include:
 
 =item * create a key pair for signature or address generation
 
+	use Bitcoin::Crypto qw(btc_prv);
+
+	# create a key pair from wif
+
+	my $private = btc_prv->from_wif($wif_string);
+	my $public = $private->get_public_key;
+
 Start with L<Bitcoin::Crypto::Key::Private> if you already have some data you
 want to use as a private key entropy (like Bitcoin's C<WIF> format or hex
 data). If you'd like to generate list of words (a mnemonic) instead, see
@@ -56,6 +63,24 @@ L<Bitcoin::Crypto::Util/generate_mnemonic> and
 L<Bitcoin::Crypto::Key::ExtPrivate/from_mnemonic>.
 
 =item * generate many keys at once
+
+	use Bitcoin::Crypto qw(btc_extprv);
+	use Bitcoin::Crypto::Util qw(generate_mnemonic);
+	use Bitcoin::Crypto::BIP85;
+
+	# generate a mnemonic and derive more mnemonics from it deterministically
+
+	my $mnemonic = generate_mnemonic;
+	my $generator = Bitcoin::Crypto::BIP85->new(
+		key => btc_extprv->from_mnemonic($mnemonic),
+	);
+
+	for my $i (0 .. 9) {
+		my $new_mnemonic = $generator->derive_mnemonic(index => $i);
+	}
+
+L<Bitcoin::Crypto::BIP85> lets you derive mnemonics, private keys or just
+entropy from a single extended private key.
 
 L<Bitcoin::Crypto::Key::ExtPrivate> allows you to derive multiple keys from a
 master key, so you don't have to store multiple private keys.
@@ -65,9 +90,38 @@ hot storage will put your extended private key at risk!)>
 
 =item * create a transaction object from scratch or from serialized transaction data
 
+	use Bitcoin::Crypto qw(btc_transaction);
+
+	# create and dump a transaction
+
+	my $tx = btc_transaction->new;
+
+	$tx->add_input(
+		utxo => [[hex => '9dd8d1ebba95d4ddc2b9fa21b9bc893385e9d5928d0d4835433f34b0ad4b9527'], 0],
+	);
+
+	$tx->add_output(
+		locking_script => [address => 'bc1p857ug9whvzapyhkxtjsha0376y2w2yc2dnegx4jlaqcftrfmnt0shkqj6h'],
+		value => 1337,
+	);
+
+	print $tx->dump;
+
 See L<Bitcoin::Crypto::Manual::Transactions>.
 
 =item * utilize Bitcoin Script
+
+	use Bitcoin::Crypto qw(btc_script);
+
+	# create a script by hand and run it
+
+	btc_script
+		->new
+		->push($bytestring)
+		->add('OP_SIZE')
+		->add('OP_10')
+		->add('OP_EQUALVERIFY')
+		->run;
 
 L<Bitcoin::Crypto::Script> will help you build, de/serialize and run a script.
 L<Bitcoin::Crypto::Script::Runner> gives you more control over script execution,
@@ -75,11 +129,23 @@ including running the script step by step, stopping after each opcode.
 
 =item * work with Bitcoin-related encodings
 
+	use Bitcoin::Crypto::Bech32 qw(encode_bech32);
+
+	# encode some data as bech32
+
+	my $encoded_str = encode_bech32('customdata', [25, 13, 31, 8, 0, 5]);
+
 There are L<Bitcoin::Crypto::Base58> and L<Bitcoin::Crypto::Bech32>. PSBT
 format is supported in L<Bitcoin::Crypto::PSBT>. You can validate an address
 and get its type using L<Bitcoin::Crypto::Util/get_address_type>.
 
 =item * work with other cryptocurrencies
+
+	use Bitcoin::Crypto::Network;
+
+	# put module into single-network mode and choose testnet
+
+	Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_single;
 
 You can work with any cryptocurrency as long as it is based on the same
 fundamentals as Bitcoin. You have to register a network in

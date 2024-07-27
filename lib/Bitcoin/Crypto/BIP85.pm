@@ -210,9 +210,9 @@ L</Bitcoin::Crypto::Key::ExtPrivate/to_serialized>.
 
 =item * C<HEX>: L</derive_bytes>
 
-This application returns a bytestring instead of a hex string to be coherent
-with other similar Bitcoin::Crypto methods. It can be represented as hex using
-L<Bitcoin::Crypto::Util/to_format>.
+This application returns a bytestring instead of a hex string in order to be
+coherent with other similar Bitcoin::Crypto methods. It can be represented as
+hex using L<Bitcoin::Crypto::Util/to_format>.
 
 =back
 
