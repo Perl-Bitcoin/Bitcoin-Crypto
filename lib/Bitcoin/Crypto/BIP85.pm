@@ -10,7 +10,7 @@ use List::Util qw(all);
 use Crypt::Mac::HMAC qw(hmac);
 use Crypt::Digest::SHAKE;
 
-use Bitcoin::Crypto qw(btc_prv);
+use Bitcoin::Crypto qw(btc_prv btc_extprv);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(mnemonic_from_entropy);
 use Bitcoin::Crypto::Exception;
@@ -100,7 +100,7 @@ sub derive_mnemonic
 	return mnemonic_from_entropy($entropy, $args->{language});
 }
 
-signature_for derive_wif => (
+signature_for derive_prv => (
 	method => Object,
 	named => [
 		index => PositiveOrZeroInt,
@@ -109,14 +109,36 @@ signature_for derive_wif => (
 	bless => !!0,
 );
 
-sub derive_wif
+sub derive_prv
 {
 	my ($self, $args) = @_;
 
 	my $spec_path = "m/83696968'/2'/$args->{index}'";
 
 	my $entropy = $self->derive_entropy($spec_path, 32);
-	return btc_prv->from_serialized($entropy)->to_wif;
+	return btc_prv->from_serialized($entropy);
+}
+
+signature_for derive_extprv => (
+	method => Object,
+	named => [
+		index => PositiveOrZeroInt,
+		{default => 0},
+	],
+	bless => !!0,
+);
+
+sub derive_extprv
+{
+	my ($self, $args) = @_;
+
+	my $spec_path = "m/83696968'/32'/$args->{index}'";
+
+	my $entropy = $self->derive_entropy($spec_path);
+	return btc_extprv->new(
+		key_instance => substr($entropy, 32, 32),
+		chain_code => substr($entropy, 0, 32),
+	);
 }
 
 1;
@@ -152,7 +174,9 @@ It currently implements the following applications from the BIP85 spec:
 
 =item * C<BIP39>: L</derive_mnemonic>
 
-=item * C<HD-Seed WIF>: L</derive_wif>
+=item * C<HD-Seed WIF>: L</derive_prv>
+
+=item * C<XPRV>: L</derive_extprv>
 
 =back
 
@@ -211,11 +235,29 @@ The generation index. Must be a non-negative integer. Default: C<0>
 
 =back
 
-=head3 derive_wif
+=head3 derive_prv
 
-	$mnemonic = $object->derive_mnemonic(%args)
+	$mnemonic = $object->derive_prv(%args)
 
-Derives wif from the master key. C<%args> can be any combination of:
+Derives private key from the master key. The key can immediately be
+serialized using C<< ->to_wif >> to match BIP85 spec for this
+application. C<%args> can be any combination of:
+
+=over
+
+=item * C<index>
+
+The generation index. Must be a non-negative integer. Default: C<0>
+
+=back
+
+=head3 derive_extprv
+
+	$mnemonic = $object->derive_extprv(%args)
+
+Derives an extended private key from the master key. The key can immediately be
+serialized using C<< ->to_serialized >> to match BIP85 spec for this
+application. C<%args> can be any combination of:
 
 =over
 
