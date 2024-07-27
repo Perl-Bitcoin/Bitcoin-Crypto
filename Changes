@@ -1,16 +1,17 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
-2.006 NOT RELEASED
+2.006 Sat Jul 27, 2024
 	[Added interface]
-	- Bitcoin::Crypto::BIP85 module (support for deterministic entropy)
+	- Bitcoin::Crypto::BIP85 module (deterministic entropy)
 	- Bitcoin::Crypto::DerivationPath::get_path_hardened
 	- Bitcoin::Crypto::DerivationPath::as_string
 
 	[Improvements]
 	- deterministic derivation of entropy as defined in BIP85 is now implemented in Bitcoin::Crypto::BIP85
 	- Bitcoin::Crypto::DerivationPath is now automatically stringified back to "m" notation
-	- test suite now uses Test2
 	- Bitcoin::Crypto::Types is now documented
+	- Bitcoin::Crypto::Manual now has some additional examples
+	- test suite has been improved and now uses Test2
 
 2.005 Wed Jul 24 2024
 	[Added interface]
