@@ -10,6 +10,7 @@ use List::Util qw(all);
 use Crypt::Mac::HMAC qw(hmac);
 use Crypt::Digest::SHAKE;
 
+use Bitcoin::Crypto qw(btc_prv);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(mnemonic_from_entropy);
 use Bitcoin::Crypto::Exception;
@@ -99,6 +100,25 @@ sub derive_mnemonic
 	return mnemonic_from_entropy($entropy, $args->{language});
 }
 
+signature_for derive_wif => (
+	method => Object,
+	named => [
+		index => PositiveOrZeroInt,
+		{default => 0},
+	],
+	bless => !!0,
+);
+
+sub derive_wif
+{
+	my ($self, $args) = @_;
+
+	my $spec_path = "m/83696968'/2'/$args->{index}'";
+
+	my $entropy = $self->derive_entropy($spec_path, 32);
+	return btc_prv->from_serialized($entropy)->to_wif;
+}
+
 1;
 
 __END__
@@ -132,6 +152,8 @@ It currently implements the following applications from the BIP85 spec:
 
 =item * C<BIP39>: L</derive_mnemonic>
 
+=item * C<HD-Seed WIF>: L</derive_wif>
+
 =back
 
 =head1 INTERFACE
@@ -161,7 +183,7 @@ C<$path>, which can be a standard string derivation path like
 C<m/83696968'/0'/0'> or an instance of L<Bitcoin::Crypto::DerivationPath>. The
 derivation path must be fully hardened, as specified in the BIP.
 
-Optional C<$length> is the desired length of the entropy in bytes. If not
+Optional C<$length> is the desired length of the entropy B<in bytes>. If not
 provided, full C<64> bytes of entropy will be returned. If provided and less
 than C<64>, the entropy will be truncated to the derired length. If greater
 than C<64>, the C<DRNG> algorithm defined in BIP85 will be used to stretch the
@@ -182,6 +204,20 @@ The number of words to generate. Can be either C<12>, C<18> or C<24>. Default: C
 =item * C<language>
 
 The language to use. See L<Bitcoin::BIP39> for more info about this argument. Default: C<en>.
+
+=item * C<index>
+
+The generation index. Must be a non-negative integer. Default: C<0>
+
+=back
+
+=head3 derive_wif
+
+	$mnemonic = $object->derive_mnemonic(%args)
+
+Derives wif from the master key. C<%args> can be any combination of:
+
+=over
 
 =item * C<index>
 

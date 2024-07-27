@@ -55,5 +55,19 @@ subtest 'should derive a mnemonic according to BIP39 application of BIP85' => su
 		'mystery car occur shallow stable order number feature else best trigger curious', '12 words index 1 ok';
 };
 
+subtest 'should derive a wif according to HD-Seed WIF application of BIP85' => sub {
+	my $bip85 = Bitcoin::Crypto::BIP85->new(
+		key => btc_extprv->from_serialized(
+			[
+				base58 =>
+					'xprv9s21ZrQH143K2LBWUUQRFXhucrQqBpKdRRxNVq2zBqsx8HVqFk2uYo8kmbaLLHRdqtQpUm98uKfu3vca1LqdGhUtyoFnCNkfmXRyPXLjbKb'
+			]
+		),
+	);
+
+	is $bip85->derive_wif, 'Kzyv4uF39d4Jrw2W7UryTHwZr1zQVNk4dAFyqE6BuMrMh1Za7uhp', 'wif ok';
+	is $bip85->derive_wif(index => 1), 'L45nghBsnmqaGj9Vy64FCw9AyJNi6K4LUFP4r41tYHmQLEyXUkYP', 'wif index 1 ok';
+};
+
 done_testing;
 
