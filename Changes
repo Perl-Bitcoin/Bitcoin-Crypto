@@ -1,5 +1,9 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+2.007 Sun Aug 25, 2024
+	[Improvements]
+	- add predefined 'pepecoin' and 'pepecoin_testnet' networks (thanks @chromatic)
+
 2.006 Sat Jul 27, 2024
 	[Added interface]
 	- Bitcoin::Crypto::BIP85 module (deterministic entropy)

@@ -171,6 +171,16 @@ Bartosz Jarzyna E<lt>bbrtj.pro@gmail.comE<gt>
 
 Consider supporting my effort: L<https://bbrtj.eu/support>
 
+=head2 Contributors
+
+In no particular order:
+
+=over
+
+=item * chromatic
+
+=back
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (C) 2018 - 2024 by Bartosz Jarzyna
