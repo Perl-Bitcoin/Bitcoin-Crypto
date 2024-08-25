@@ -53,6 +53,26 @@ my @predefined_networks = (
 		wif => 'cjtn5eFTBAPzwZehT3VaSqdTdXFUctkdzroaWo7SScapaYA6iysa',
 		address => 'nio8BJ7epGHSteXUisJyCxgbxDQDX41Zw5',
 	},
+
+	{
+		id => 'pepecoin',
+		account_prv =>
+			'dgpv57XkTszWUiM7L8xUAvXaj7evMpYFKcdYCQihFKwM1vyvEyGBSEJ8NuPU8aSgoNkfzPJ92KvUyrwAvJPfDzE17cF1FkSaVEhmkXkqrg7qwN6',
+		account_pub =>
+			'dgub8rQmoZvQ2s1SczcdDA9YqyCWpNut9jfFV1VuQSLKp42vo2Nsqzqu2Co7ho4pGi9QFs49a6595R5zmfdmgDR95TK6msW2oQi7KSCaqURZYwi',
+		wif => 'QVvidFn85YHvjxzJj1M4y1tyF1k71jyabE7zBT6rcwgk3mqzUvQ4',
+		address => 'PbMTSd5ko3YtgF8Y4F95VoYEM5tNaYeWQk',
+	},
+
+	{
+		id => 'pepecoin_testnet',
+		account_prv =>
+			'tprv8fTqCYXFU7MCArvB8n529P5qBqb4kBjkB3DtfN86WazW6wxhmnAHqcbm3FuLeuTmdTqXm6MqfxeyzCyh4BRUNbsFc6CzzibrfvfUu3EKddZ',
+		account_pub =>
+			'tpubDC9sLxZVcV2s4Kwy2RjcYnjwks6zuWvekLpfwtAPvrntwSDUQAyt27DdDRHwDL63NxX7RuXD7Bgw7Qaf4vvssYdcVuv5MfvkFjZiDiRsfC7',
+		wif => 'cn445egncJLLcv64dJ7C3TkPu5RFJUUv6tpod9riNfEpRFS6TDoq',
+		address => 'nXcqZp5BGKxqHx5UTA8F8x45Dqa93Jb3kK',
+	},
 );
 
 my %default_mapped = map { $_ => 1 } Bitcoin::Crypto::Network->find;
@@ -62,6 +82,9 @@ for my $case (@predefined_networks) {
 		ok defined $default_mapped{$case->{id}}, 'network available ok';
 
 		$master_key->set_network($case->{id});
+
+		# Dogecoin and Pepecoin share the same WIF bit, so we need to set the default network explicitly
+		Bitcoin::Crypto::Network->get($case->{id})->set_default;
 
 		if ($case->{account_prv}) {
 			my $derived = $master_key->derive_key_bip44(get_account => 1);

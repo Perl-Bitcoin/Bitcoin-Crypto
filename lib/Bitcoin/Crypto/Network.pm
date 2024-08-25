@@ -277,6 +277,36 @@ __PACKAGE__->register(
 	bip44_coin => 1,
 );
 
+### PEPECOIN
+# unfortunately Pepecoin mainnet shares a WIF byte with Dogecoin mainnet
+
+__PACKAGE__->register(
+	id => 'pepecoin',
+	name => 'Pepecoin Mainnet',
+	p2pkh_byte => "\x38",
+	p2sh_byte => "\x16",
+	wif_byte => "\x9e",
+
+	extprv_version => 0x02fac398,
+	extpub_version => 0x02facafd,
+
+	bip44_coin => 3434,
+);
+
+# almost all the same as Dogecoin Testnet
+__PACKAGE__->register(
+	id => 'pepecoin_testnet',
+	name => 'Pepecoin Testnet',
+	p2pkh_byte => "\x71",
+	p2sh_byte => "\xc4",
+	wif_byte => "\xf1",
+
+	extprv_version => 0x04358394,
+	extpub_version => 0x043587cf,
+
+	bip44_coin => 1,
+);
+
 1;
 
 __END__
@@ -362,6 +392,14 @@ defined with id: C<dogecoin>
 =head2 Dogecoin Testnet
 
 defined with id: C<dogecoin_testnet>
+
+=head2 Pepecoin Mainnet
+
+defined with id: C<pepecoin>
+
+=head2 Pepecoin Testnet
+
+defined with id: C<pepecoin_testnet>
 
 =head1 CONFIGURATION
 
