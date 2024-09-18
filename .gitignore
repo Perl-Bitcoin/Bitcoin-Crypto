@@ -1,8 +1,5 @@
-Makefile*
-!Makefile.PL
-MYMETA*
-blib/*
-MANIFEST*
-pm_to_blib
+/.build/*
+/.tidyall.d
+/Bitcoin-Crypto*
 *.tar.gz
-.tidyall.d
+

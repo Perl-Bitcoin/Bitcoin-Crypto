@@ -1,5 +1,7 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
+{{$NEXT}}
+
 2.007 Sun Aug 25, 2024
 	[Improvements]
 	- add predefined 'pepecoin' and 'pepecoin_testnet' networks (thanks @chromatic)

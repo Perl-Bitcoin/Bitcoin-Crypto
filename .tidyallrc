@@ -1,4 +1,5 @@
 [PerlTidy]
 select = **/*.{pl,pm,t}
-ignore = blib/**/*.{pl,pm,t}
+ignore = Bitcoin-Crypto*/**/*.{pl,pm,t}
 argv = -pro=./.perltidyrc --character-encoding=none
+
