@@ -6,12 +6,6 @@ use Bitcoin::Crypto::Key::Private;
 use lib 't/lib';
 use TransactionStore;
 
-BEGIN {
-	unless (Bitcoin::Crypto::Key::Private->HAS_DETERMINISTIC_SIGNATURES) {
-		plan skip_all => 'These tests require Crypt::Perl 0.34';
-	}
-}
-
 # this test case comes from https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#user-content-Native_P2WPKH
 my $tx = btc_transaction->from_serialized(
 	[

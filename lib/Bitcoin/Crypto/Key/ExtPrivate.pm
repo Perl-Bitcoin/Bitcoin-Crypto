@@ -12,7 +12,7 @@ use Carp qw(carp);
 use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(ensure_length);
+use Bitcoin::Crypto::Helpers qw(ensure_length ecc);
 use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
@@ -131,44 +131,37 @@ sub derive_key_bip44
 sub _derive_key_partial
 {
 	my ($self, $child_num, $hardened) = @_;
+	my $key = $self->raw_key;
 
 	my $hmac_data;
 	if ($hardened) {
 
-		# zero byte
-		$hmac_data .= "\x00";
-
-		# key data - 32 bytes
-		$hmac_data .= ensure_length $self->raw_key, Bitcoin::Crypto::Constants::key_max_length;
+		# zero byte + key data - 32 bytes
+		$hmac_data = "\x00" . $key;
 	}
 	else {
+
 		# public key data - SEC compressed form
-		$hmac_data .= $self->raw_key('public_compressed');
+		$hmac_data = $self->raw_key('public_compressed');
 	}
 
 	# child number - 4 bytes
 	$hmac_data .= ensure_length pack('N', $child_num), 4;
 
 	my $data = hmac('SHA512', $self->chain_code, $hmac_data);
+	my $tweak = substr $data, 0, 32;
 	my $chain_code = substr $data, 32, 32;
 
-	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
-	my $key_num = Math::BigInt->from_bytes($self->raw_key);
-	my $n_order = $self->curve_order;
-
-	Bitcoin::Crypto::Exception::KeyDerive->raise(
+	Bitcoin::Crypto::Exception::KeyDerive->trap_into(
+		sub {
+			$key = ecc->add_private_key($key, $tweak);
+			die 'verification failed' unless ecc->verify_private_key($key);
+		},
 		"key $child_num in sequence was found invalid"
-	) if $number->bge($n_order);
-
-	$number->badd($key_num);
-	$number->bmod($n_order);
-
-	Bitcoin::Crypto::Exception::KeyDerive->raise(
-		"key $child_num in sequence was found invalid"
-	) if $number->beq(0);
+	);
 
 	return $self->new(
-		key_instance => $number->as_bytes,
+		key_instance => $key,
 		chain_code => $chain_code,
 		child_number => $child_num,
 		parent_fingerprint => $self->get_fingerprint,

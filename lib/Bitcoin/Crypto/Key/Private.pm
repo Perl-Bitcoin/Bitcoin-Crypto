@@ -4,7 +4,6 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
-use Crypt::PK::ECC;
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
 use Types::Common -sigs, -types;
 use List::Util qw(none);
@@ -268,13 +267,6 @@ function to fail. You can encode like this (for UTF-8):
 
 	use Encode qw(encode);
 	$message = encode('UTF-8', $message);
-
-Caution: libtomcrypt cryptographic package that is generating signatures does
-not currently offer a deterministic mechanism. For this reason the sign_message
-method will complain with a warning. You should install an optional
-L<Crypt::Perl> package, which supports deterministic signatures, which will
-disable the warning. Non-deterministic signatures can lead to leaking private
-keys if the random number generator's entropy is insufficient.
 
 =head2 sign_transaction
 

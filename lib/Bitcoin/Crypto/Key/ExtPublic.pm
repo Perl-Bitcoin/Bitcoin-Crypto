@@ -8,7 +8,7 @@ use Crypt::Mac::HMAC qw(hmac);
 use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(ensure_length add_ec_points);
+use Bitcoin::Crypto::Helpers qw(ensure_length ecc);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::BIP44;
 
@@ -44,31 +44,24 @@ sub _derive_key_partial
 	) if $hardened;
 
 	# public key data - SEC compressed form
-	my $hmac_data = $self->raw_key('public_compressed');
+	my $key = $self->raw_key('public_compressed');
 
-	# child number - 4 bytes
-	$hmac_data .= ensure_length pack('N', $child_num), 4;
+	# key + child number - 4 bytes
+	my $hmac_data = $key . ensure_length pack('N', $child_num), 4;
 
 	my $data = hmac('SHA512', $self->chain_code, $hmac_data);
+	my $tweak = substr $data, 0, 32;
 	my $chain_code = substr $data, 32, 32;
 
-	my $n_order = Math::BigInt->from_hex($self->key_instance->curve2hash->{order});
-	my $number = Math::BigInt->from_bytes(substr $data, 0, 32);
-	Bitcoin::Crypto::Exception::KeyDerive->raise(
+	Bitcoin::Crypto::Exception::KeyDerive->trap_into(
+		sub {
+			$key = ecc->add_public_key($key, $tweak);
+		},
 		"key $child_num in sequence was found invalid"
-	) if $number->bge($n_order);
-
-	my $key = $self->_create_key(substr $data, 0, 32);
-	my $point = $key->export_key_raw('public');
-	my $parent_point = $self->raw_key('public');
-	$point = add_ec_points($point, $parent_point);
-
-	Bitcoin::Crypto::Exception::KeyDerive->raise(
-		"key $child_num in sequence was found invalid"
-	) unless defined $point;
+	);
 
 	return $self->new(
-		key_instance => $point,
+		key_instance => $key,
 		chain_code => $chain_code,
 		child_number => $child_num,
 		parent_fingerprint => $self->get_fingerprint,

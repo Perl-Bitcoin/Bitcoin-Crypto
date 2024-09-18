@@ -133,10 +133,8 @@ Contributions sorting out any of those are welcome!
 
 =item * Transaction malleability is not fully solved
 
-Strict DER signatures (BIP66) are not checked explicitly (CryptX may check them
-while verifying the signature though). Low S signatures mentioned in BIP62 are
-generated, but not verified. Some others like minimal push opcodes and
-OP_PUSHDATA 520 byte push limit are not implemented.
+Some details like minimal push opcodes and OP_PUSHDATA 520 byte push limit are
+not implemented.
 
 =item * legacy SIGHASH_SINGLE with more inputs than outputs
 
