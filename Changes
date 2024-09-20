@@ -2,6 +2,14 @@ Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
 
+3.000 Fri Sep 20, 2024
+	[Improvements]
+	- the module will now reject unnormalized (high S) signatures while verifying
+	- module now internally uses libsecp256k1
+		- all ECDSA operations are now faster and more secure
+		- no longer needs Crypt::Perl to produce deterministic signatures
+		- requires installation of libsecp256k1 (will try to install with Alien)
+
 2.007 Sun Aug 25, 2024
 	[Improvements]
 	- add predefined 'pepecoin' and 'pepecoin_testnet' networks (thanks @chromatic)
