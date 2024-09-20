@@ -156,6 +156,13 @@ cryptocurrency. Also see L</Support for other cryptocurrencies>
 
 =head1 GENERAL INFORMATION
 
+=head2 Installation
+
+This module requires you to have access to a compiler to install some of its
+dependencies. You are also required to have C<libsecp256k1> installed. If it
+isn't, it will be attempted to download and install it automatically through
+L<Alien::libsecp256k1>.
+
 =head2 How to read the documentation?
 
 Most functions in this documentation have a code line showcasing the arguments
