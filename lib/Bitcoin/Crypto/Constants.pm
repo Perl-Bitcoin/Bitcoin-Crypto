@@ -20,6 +20,7 @@ use constant {
 	bip44_purpose => 44,
 	bip44_compat_purpose => 49,
 	bip44_segwit_purpose => 84,
+	bip44_taproot_purpose => 86,
 
 	units_per_coin => 100_000_000,
 

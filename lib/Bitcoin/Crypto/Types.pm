@@ -18,7 +18,8 @@ __PACKAGE__->add_type(
 		Enum->of(
 			Bitcoin::Crypto::Constants::bip44_purpose,
 			Bitcoin::Crypto::Constants::bip44_compat_purpose,
-			Bitcoin::Crypto::Constants::bip44_segwit_purpose
+			Bitcoin::Crypto::Constants::bip44_segwit_purpose,
+			Bitcoin::Crypto::Constants::bip44_taproot_purpose,
 		)
 	],
 );
