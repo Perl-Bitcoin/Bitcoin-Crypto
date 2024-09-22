@@ -1,6 +1,8 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
+	[Added interface]
+	- Bitcoin::Crypto::Util::merkle_root function
 
 3.001 Tue Sep 24, 2024
 	[Changes and fixes]
