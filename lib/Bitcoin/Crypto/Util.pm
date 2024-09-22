@@ -35,6 +35,7 @@ our @EXPORT_OK = qw(
 	unpack_compactsize
 	hash160
 	hash256
+	merkle_root
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -398,6 +399,31 @@ sub hash256
 	return sha256(sha256($data));
 }
 
+signature_for merkle_root => (
+	positional => [ArrayRef [ByteStr]],
+);
+
+sub merkle_root
+{
+	my ($leaves) = @_;
+
+	my @parts = map { hash256($_) } @$leaves;
+
+	Bitcoin::Crypto::Exception->raise(
+		'need at least one element to calculate a merkle root'
+	) unless @parts;
+
+	while (@parts > 1) {
+		@parts = map {
+			hash256($parts[$_] . ($parts[$_ + 1] // $parts[$_]))
+		} grep {
+			$_ % 2 == 0
+		} 0 .. $#parts;
+	}
+
+	return $parts[0];
+}
+
 1;
 
 __END__
@@ -423,6 +449,7 @@ Bitcoin::Crypto::Util - General Bitcoin utilities
 		unpack_compactsize
 		hash160
 		hash256
+		merkle_root
 	);
 
 =head1 DESCRIPTION
@@ -627,6 +654,13 @@ This is hash160 used by Bitcoin (C<RIPEMD160> of C<SHA256>)
 	$hash = hash256($data);
 
 This is hash256 used by Bitcoin (C<SHA256> of C<SHA256>)
+
+=head2 merkle_root
+
+	$hash = merkle_root([$leaf1, $leaf2, ...]);
+
+Calculates a merkle root of input array reference. Leaves will be run through a
+double SHA256 before calculating the root.
 
 =head1 SEE ALSO
 
