@@ -10,6 +10,10 @@ use Config;
 # need them
 use constant {
 	curve_name => 'secp256k1',
+	curve_order => 'fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141',
+	curve_generator_x => '79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+	curve_generator_y => '483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+
 	max_child_keys => (2 << 30),
 	key_max_length => 32,
 	wif_compressed_byte => "\x01",
