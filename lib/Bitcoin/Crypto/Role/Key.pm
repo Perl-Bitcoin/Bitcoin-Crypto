@@ -70,30 +70,48 @@ signature_for raw_key => (
 	positional => [Maybe [Enum [qw(private public public_compressed)]], {default => undef}],
 );
 
+# helpers for raw_key
+sub __full_private
+{
+	my ($self, $key) = @_;
+	return ensure_length $key, Bitcoin::Crypto::Constants::key_max_length;
+}
+
+sub __private_to_public
+{
+	my ($self, $key) = @_;
+	return ecc->create_public_key($self->__full_private($key));
+}
+
+sub __public_compressed
+{
+	my ($self, $key, $compressed) = @_;
+	return ecc->compress_public_key($key, $compressed);
+}
+
 sub raw_key
 {
 	my ($self, $type) = @_;
 	my $is_private = $self->_is_private;
 
-	$type = $is_private ? 'private' : 'public'
-		unless defined $type;
+	$type //= $is_private ? 'private' : 'public';
+	if ($type eq 'public' && (!$self->does('Bitcoin::Crypto::Role::Compressed') || $self->compressed)) {
+		$type = 'public_compressed';
+	}
 
 	if ($type eq 'private') {
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
 			'cannot create private key from a public key'
 		) unless $is_private;
 
-		return ensure_length $self->key_instance, Bitcoin::Crypto::Constants::key_max_length;
+		return $self->__full_private($self->key_instance);
 	}
 	else {
-		my $compressed = $self->does('Bitcoin::Crypto::Role::Compressed') ? $self->compressed : !!1;
-		$compressed = !!1 if $type eq 'public_compressed';
-
 		my $key = $self->key_instance;
-		$key = ecc->create_public_key($key)
+		$key = $self->__private_to_public($key)
 			if $is_private;
 
-		return ecc->compress_public_key($key, $compressed);
+		return $self->__public_compressed($key, $type eq 'public_compressed');
 	}
 
 	# no need to check for invalid input, since we have a signature with enum
