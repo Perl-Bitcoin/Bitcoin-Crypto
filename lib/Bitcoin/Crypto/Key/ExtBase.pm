@@ -1,8 +1,9 @@
-package Bitcoin::Crypto::Role::ExtendedKey;
+package Bitcoin::Crypto::Key::ExtBase;
 
 use v5.10;
 use strict;
 use warnings;
+use Moo;
 use Scalar::Util qw(blessed);
 use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
@@ -17,7 +18,8 @@ use Bitcoin::Crypto::Util qw(hash160 to_format);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
-use Moo::Role;
+
+use namespace::clean;
 
 has param 'depth' => (
 	isa => IntMaxBits [8],
@@ -40,7 +42,15 @@ has param 'chain_code' => (
 
 with qw(Bitcoin::Crypto::Role::Key);
 
-requires '_derive_key_partial';
+sub _is_private
+{
+	die __PACKAGE__ . '::_is_private is unimplemented';
+}
+
+sub _derive_key_partial
+{
+	die __PACKAGE__ . '::_derive_key_partial is unimplemented';
+}
 
 sub _get_network_extkey_version
 {
@@ -286,4 +296,6 @@ sub from_serialized_base58
 }
 
 1;
+
+# Internal use only
 

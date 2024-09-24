@@ -1,21 +1,28 @@
-package Bitcoin::Crypto::Role::BasicKey;
+package Bitcoin::Crypto::Key::Base;
 
 use v5.10;
 use strict;
 use warnings;
+use Moo;
 use Types::Common -sigs, -types;
 use Carp qw(carp);
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(to_format);
-use Moo::Role;
+
+use namespace::clean;
 
 with qw(
 	Bitcoin::Crypto::Role::Key
 	Bitcoin::Crypto::Role::Compressed
 	Bitcoin::Crypto::Role::SignVerify
 );
+
+sub _is_private
+{
+	die __PACKAGE__ . '::_is_private is unimplemented';
+}
 
 around BUILDARGS => sub {
 	my ($orig, $class, @params) = @_;
@@ -90,4 +97,6 @@ sub to_bytes
 }
 
 1;
+
+# Internal use only
 

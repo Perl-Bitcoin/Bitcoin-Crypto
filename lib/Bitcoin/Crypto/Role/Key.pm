@@ -31,7 +31,7 @@ requires qw(
 	_is_private
 );
 
-sub BUILD
+sub _validate_key
 {
 	my ($self) = @_;
 	my $entropy = $self->key_instance;
@@ -51,6 +51,12 @@ sub BUILD
 			'private key is not valid'
 		) unless ecc->verify_private_key(ensure_length $entropy, Bitcoin::Crypto::Constants::key_max_length);
 	}
+}
+
+sub BUILD
+{
+	my ($self) = @_;
+	$self->_validate_key;
 }
 
 signature_for has_purpose => (

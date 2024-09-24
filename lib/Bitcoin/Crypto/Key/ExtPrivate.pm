@@ -19,7 +19,7 @@ use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
 
-with qw(Bitcoin::Crypto::Role::ExtendedKey);
+extends qw(Bitcoin::Crypto::Key::ExtBase);
 
 sub _is_private { 1 }
 
