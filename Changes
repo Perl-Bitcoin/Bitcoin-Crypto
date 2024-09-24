@@ -2,6 +2,10 @@ Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
 
+3.001 Tue Sep 24, 2024
+	[Changes and fixes]
+	- fixed building ecc context on some older perls on Windows
+
 3.000 Fri Sep 20, 2024
 	[Improvements]
 	- the module will now reject unnormalized (high S) signatures while verifying
