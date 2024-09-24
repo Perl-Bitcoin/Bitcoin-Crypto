@@ -4,20 +4,70 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
+use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
 use Carp qw(carp);
 
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
+use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed);
 
 use namespace::clean;
 
-with qw(Bitcoin::Crypto::Role::BasicKey);
+extends qw(Bitcoin::Crypto::Key::Base);
+
+has extended 'key_instance' => (
+	required => 0,
+	predicate => 1,
+);
+
+has field 'taproot_key_instance' => (
+	isa => ByteStr,
+	lazy => 1,
+	writer => -hidden,
+	predicate => 1,
+);
 
 sub _is_private { 0 }
+
+sub _validate_key
+{
+	my ($self) = @_;
+	if ($self->has_key_instance) {
+		$self->SUPER::_validate_key;
+	}
+	elsif (!$self->has_taproot_key_instance) {
+		Bitcoin::Crypto::Exception::KeyCreate->raise(
+			'public key must have either regular or taproot key data'
+		);
+	}
+}
+
+sub _build_taproot_key_instance
+{
+	my ($self) = @_;
+
+	return substr $self->raw_key('public_compressed'), 1;
+}
+
+signature_for raw_key => (
+	method => Object,
+	positional => [Maybe [Enum [qw(public public_compressed public_taproot)]], {default => undef}],
+);
+
+sub raw_key
+{
+	my ($self, $type) = @_;
+
+	if ($type && $type eq 'public_taproot') {
+		return $self->taproot_key_instance;
+	}
+
+	return $self->SUPER::raw_key($type);
+}
 
 signature_for get_hash => (
 	method => Object,
@@ -40,28 +90,47 @@ sub key_hash
 	return $self->get_hash(@_);
 }
 
-around from_serialized => sub {
-	my ($orig, $class, $key) = @_;
+signature_for from_serialized => (
+	method => Str,
+	positional => [ByteStr],
+);
 
-	my $self = $class->$orig($key);
+sub from_serialized
+{
+	my ($class, $key) = @_;
+
+	my $self = $class->SUPER::from_serialized($key);
 	$self->set_compressed(get_public_key_compressed($key));
 
 	return $self;
-};
+}
 
 signature_for witness_program => (
 	method => Object,
-	positional => [],
+	positional => [PositiveOrZeroInt, {default => 0}],
 );
 
 sub witness_program
 {
-	my ($self) = @_;
+	state $data_sources = {
+		+Bitcoin::Crypto::Constants::segwit_witness_version => sub {
+			shift->get_hash;
+		},
+		+Bitcoin::Crypto::Constants::taproot_witness_version => sub {
+			shift->raw_key('public_taproot');
+		},
+	};
+
+	my ($self, $version) = @_;
+
+	Bitcoin::Crypto::Exception::SegwitProgram->raise(
+		"can't get witness program data for version $version"
+	) unless exists $data_sources->{$version};
 
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
 	$program
-		->add_operation('OP_' . Bitcoin::Crypto::Constants::segwit_witness_version)
-		->push_bytes($self->get_hash);
+		->add_operation("OP_$version")
+		->push_bytes($data_sources->{$version}->($self));
 
 	return $program;
 }
@@ -125,6 +194,28 @@ sub get_segwit_address
 	return encode_segwit($self->network->segwit_hrp, $self->witness_program->run->stack_serialized);
 }
 
+signature_for get_taproot_address => (
+	method => Object,
+	positional => [],
+);
+
+sub get_taproot_address
+{
+	my ($self) = @_;
+
+	# network field is not required, lazy check for completeness
+	Bitcoin::Crypto::Exception::NetworkConfig->raise(
+		'this network does not support segregated witness'
+	) unless $self->network->supports_segwit;
+
+	Bitcoin::Crypto::Exception::AddressGenerate->raise(
+		'taproot addresses can only be created with BIP44 in taproot (BIP86) mode'
+	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_taproot_purpose);
+
+	my $taproot_program = $self->witness_program(Bitcoin::Crypto::Constants::taproot_witness_version);
+	return encode_segwit($self->network->segwit_hrp, $taproot_program->run->stack_serialized);
+}
+
 signature_for get_address => (
 	method => Object,
 	positional => [],
@@ -133,6 +224,9 @@ signature_for get_address => (
 sub get_address
 {
 	my ($self) = @_;
+
+	return $self->get_taproot_address
+		if $self->has_purpose(Bitcoin::Crypto::Constants::bip44_taproot_purpose);
 
 	return $self->get_segwit_address
 		if $self->has_purpose(Bitcoin::Crypto::Constants::bip44_segwit_purpose);
@@ -143,7 +237,7 @@ sub get_address
 	return $self->get_legacy_address
 		if $self->has_purpose(Bitcoin::Crypto::Constants::bip44_purpose);
 
-	return $self->get_segwit_address
+	return $self->get_taproot_address
 		if $self->network->supports_segwit;
 
 	return $self->get_legacy_address;

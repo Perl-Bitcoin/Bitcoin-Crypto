@@ -191,7 +191,14 @@ my %public_key_serializers = (
 		my $value = ($sig->(@_))[0];
 		return $value->to_serialized;
 	},
-	key_deserializer => sub { btc_pub->from_serialized(shift) },
+	key_deserializer => sub {
+		my $key = btc_pub->from_serialized(shift);
+		if (!$key->has_key_instance) {
+			die 'not a plain EC public key';
+		}
+
+		return $key;
+	},
 );
 
 # TYPES
