@@ -3,6 +3,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 {{$NEXT}}
 	[Added interface]
 	- Bitcoin::Crypto::Util::merkle_root function
+	- Bitcoin::Crypto::Util::tagged_hash function
 
 3.002 Fri Oct 24, 2025
 	[Added interface]
