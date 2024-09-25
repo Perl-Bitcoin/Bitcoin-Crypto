@@ -36,6 +36,7 @@ our @EXPORT_OK = qw(
 	hash160
 	hash256
 	merkle_root
+	tagged_hash
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -424,6 +425,18 @@ sub merkle_root
 	return $parts[0];
 }
 
+signature_for tagged_hash => (
+	positional => [ByteStr, Str],
+);
+
+sub tagged_hash
+{
+	my ($message, $tag) = @_;
+
+	my $partial = sha256(encode 'UTF-8', $tag);
+	return sha256($partial . $partial . $message);
+}
+
 1;
 
 __END__
@@ -450,6 +463,7 @@ Bitcoin::Crypto::Util - General Bitcoin utilities
 		hash160
 		hash256
 		merkle_root
+		tagged_hash
 	);
 
 =head1 DESCRIPTION
@@ -618,7 +632,7 @@ Supported C<$format> values are:
 
 =head2 from_format
 
-	$decoded = from_format [$format => $string];
+	$decoded = from_format [$format => $string]
 
 Reverse of L</to_format> - decodes C<$string> into bytestring, treating it as
 C<$format>.
@@ -628,13 +642,13 @@ parameter of the module will do this conversion implicitly.>
 
 =head2 pack_compactsize
 
-	$bytestr = pack_compactsize($integer);
+	$bytestr = pack_compactsize($integer)
 
 Serializes C<$integer> as Bitcoin's CompactSize format and returns it as a byte string.
 
 =head2 unpack_compactsize
 
-	$integer = unpack_compactsize($bytestr, $pos = undef);
+	$integer = unpack_compactsize($bytestr, $pos = undef)
 
 Deserializes CompactSize from C<$bytestr>, returning an integer.
 
@@ -645,22 +659,35 @@ an exception if C<$bytestr> contains anything other than CompactSize.
 
 =head2 hash160
 
-	$hash = hash160($data);
+	$hash = hash160($data)
 
 This is hash160 used by Bitcoin (C<RIPEMD160> of C<SHA256>)
 
 =head2 hash256
 
-	$hash = hash256($data);
+	$hash = hash256($data)
 
 This is hash256 used by Bitcoin (C<SHA256> of C<SHA256>)
 
 =head2 merkle_root
 
-	$hash = merkle_root([$leaf1, $leaf2, ...]);
+	$hash = merkle_root([$leaf1, $leaf2, ...])
 
 Calculates a merkle root of input array reference. Leaves will be run through a
 double SHA256 before calculating the root.
+
+=head2 tagged_hash
+
+	$hash = tagged_hash($message, $tag)
+
+Calculates a tagged hash of C<$message> using C<$tag> as a tag. These hashes
+are described in BIP340.
+
+B<Important note about unicode:> this function only accepts UTF8-decoded
+strings for C<$tag>, but can't detect whether it got it or not. This will only
+become a problem if you use non-ascii tag. If there's a possibility of
+non-ascii, always use utf8 and set binmodes to get decoded (wide) characters.
+
 
 =head1 SEE ALSO
 

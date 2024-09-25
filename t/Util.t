@@ -1,6 +1,7 @@
 use Test2::V0;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
+use Encode qw(encode);
 
 use Bitcoin::Crypto::Util qw(:all);
 use Bitcoin::Crypto::Helpers;    # loads Math::BigInt
@@ -288,6 +289,14 @@ subtest 'testing merkle_root' => sub {
 
 	is to_format [hex => scalar reverse merkle_root($block_100022)],
 		'e05048a9b8e622bda048691a47fd9de332dc1d4b6b9d289d4e12c6722076c4e7', 'block 100022 root ok';
+};
+
+subtest 'testing tagged_hash' => sub {
+	my $data = pack 'u', 'packed data...';
+	my $tag = 'ąść';
+
+	#is(tagged_hash($data, $tag), sha256(sha256(encode 'UTF-8', $tag) . sha256(encode 'UTF-8', $tag) . $data), 'tagged_hash ok');
+	is(tagged_hash($data, $tag), sha256(sha256(encode 'UTF-8', $tag) . sha256(encode 'UTF-8', $tag) . $data), 'tagged_hash ok');
 };
 
 done_testing;
