@@ -13,7 +13,8 @@ use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed);
+use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed tagged_hash);
+use Bitcoin::Crypto::Helpers qw(ecc);
 
 use namespace::clean;
 
@@ -117,7 +118,11 @@ sub witness_program
 			shift->get_hash;
 		},
 		+Bitcoin::Crypto::Constants::taproot_witness_version => sub {
-			shift->raw_key('public_taproot');
+			my $self = shift;
+			my $internal = $self->raw_key('public_taproot');
+			my $tweaked = tagged_hash($internal, 'TapTweak');
+			my $combined = ecc->combine_public_keys(ecc->create_public_key($tweaked), "\02" . $internal);
+			return substr $combined, 1;
 		},
 	};
 
