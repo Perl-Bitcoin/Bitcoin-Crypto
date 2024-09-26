@@ -9,6 +9,19 @@ my @cases = (
 	{
 		bip44 => {
 			purpose => Bitcoin::Crypto::Constants::bip44_taproot_purpose,
+		},
+		xprv =>
+			'xprvA449goEeU9okwCzzZaxiy475EQGQzBkc65su82nXEvcwzfSskb2hAt2WymrjyRL6kpbVTGL3cKtp9herYXSjjQ1j4stsXXiRF7kXkCacK3T',
+		xpub =>
+			'xpub6H3W6JmYJXN49h5TfcVjLC3onS6uPeUTTJoVvRC8oG9vsTn2J8LwigLzq5tHbrwAzH9DGo6ThGUdWsqce8dGfwHVBxSbixjDADGGdzF7t2B',
+		internal_key => 'cc8a4bc64d897bddc5fbc2f670f7a8ba0b386779106cf1223c6fc5d7cd6fc115',
+		output_key => 'a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c',
+		scriptPubKey => '5120a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c',
+		address => 'bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr',
+	},
+	{
+		bip44 => {
+			purpose => Bitcoin::Crypto::Constants::bip44_taproot_purpose,
 			index => 1,
 		},
 		xprv =>
@@ -49,6 +62,7 @@ foreach my $case_ind (0 .. $#cases) {
 		is to_format [base58 => $key->get_public_key->to_serialized], $case->{xpub}, 'extended public key ok';
 
 		$key = $key->get_basic_key;
+
 		#is to_format [hex => $key->get_public_key->to_serialized], $case->{internal_key}, 'private key ok';
 		is $key->get_public_key->get_address, $case->{address}, 'address ok';
 	};
