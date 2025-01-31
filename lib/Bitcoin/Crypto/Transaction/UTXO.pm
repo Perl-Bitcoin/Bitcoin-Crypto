@@ -163,6 +163,10 @@ inputs must be UTXOs. You need to register UTXOs before you can fully utilize a
 transaction. If a transaction has its UTXOs unregistered, its methods may raise
 an exception if they require full UTXO data.
 
+This module keeps an internal register of all valid UTXOs. You can add or
+remove UTXOs from this register, and they are accessed using two
+characteristics: transaction ID and output number (counted from 0).
+
 =head1 INTERFACE
 
 =head2 Attributes
@@ -244,7 +248,8 @@ Returns nothing. Passing undef disables the custom loader.
 Extracts all outputs from the C<$serialized_tx> (a bytestring). Same can be
 achieved by calling C<update_utxos> on a transaction object.
 
-Returns nothing.
+Returns nothing. All C<$serialized_tx> outputs will be added to the register as
+new UTXO instances.
 
 =head1 EXCEPTIONS
 

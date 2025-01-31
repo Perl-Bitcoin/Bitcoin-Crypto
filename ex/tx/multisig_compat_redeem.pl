@@ -10,6 +10,7 @@ Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 my $tx = btc_transaction->new;
 
+# this is the data of the transaction which created the first output we want to spend
 btc_utxo->extract(
 	[
 		hex =>
@@ -17,10 +18,12 @@ btc_utxo->extract(
 	]
 );
 
+# input must point to the transaction output above - transaction ID and output number
 $tx->add_input(
 	utxo => [[hex => '4cb7af0ac5c964ebe2bc6aa0bcf2b96193d8cfa2fd6a77c0a5f0f3276f3c3f69'], 0],
 );
 
+# this is the data of the transaction which created the second output we want to spend
 btc_utxo->extract(
 	[
 		hex =>
@@ -28,16 +31,23 @@ btc_utxo->extract(
 	]
 );
 
+# input must point to the transaction output above - transaction ID and output number
 $tx->add_input(
 	utxo => [[hex => '8077dbb8ee049a5a754ad5e681310c1ee192e9be44a3b76d1182b41f1d39c2f5'], 0],
 );
 
+# send all the coins to this address. The value will be adjusted to total minus fee
 $tx->add_output(
 	locking_script => [P2WPKH => 'tb1qyzsk50r2uxtcnclclkp3s6ujtg85af0x2vz7lr'],
 	value => 0,
 );
 
+# RBF stands for replace by fee - allows increasing the fee after broadcasting
+# the transaction. It's recommended to include this to avoid transaction being
+# stuck.
 $tx->set_rbf;
+
+# set a flat 300 satoshi fee, the rest goes to the first output
 $tx->outputs->[0]->set_value($tx->fee - 300);
 
 # $redeem_script is required for P2WSH (this was not yet published on
@@ -61,10 +71,11 @@ btc_prv->from_wif('cQsSKWrBLXNY1oSZbLcJf4HF5vnKGgKko533LnkTmqRdS9Fx4SGH')
 
 # since the multisig requirements were exhausted (2 out of 2 required
 # signatures), the only thing left is to sign the second output
-
 btc_prv->from_wif('cMzqhSf7jrfvZhG8VNSTvGsJjGq6LXgSuuKGMBMnuRUvpgVGz3Wk')->sign_transaction($tx, signing_index => 1);
 
+# verify the correctness of the transaction. Throws an exception on failure
 $tx->verify;
+
 say $tx->dump;
 say to_format [hex => $tx->to_serialized];
 

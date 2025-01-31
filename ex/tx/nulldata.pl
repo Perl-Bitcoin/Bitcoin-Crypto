@@ -10,6 +10,7 @@ Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 my $tx = btc_transaction->new;
 
+# this is the data of the transaction which created the output we want to spend
 btc_utxo->extract(
 	[
 		hex =>
@@ -17,13 +18,14 @@ btc_utxo->extract(
 	]
 );
 
+# input must point to the transaction output above - transaction ID and output number
 $tx->add_input(
 	utxo => [[hex => 'f8990964483b62a86ad1a5ae445b2d5b3ccd74c3611a857dc794a37eb5c62e3f'], 0],
 );
 
 # send all the coins to this address. The value will be adjusted to total minus fee
 $tx->add_output(
-	locking_script => [P2WPKH => 'tb1qprasdghq2svf5hmta98zf93aj6z36ep7cpkj68'],
+	locking_script => [address => 'tb1qprasdghq2svf5hmta98zf93aj6z36ep7cpkj68'],
 	value => 0,
 );
 
@@ -33,15 +35,22 @@ $tx->add_output(
 	value => 0,
 );
 
+# RBF stands for replace by fee - allows increasing the fee after broadcasting
+# the transaction. It's recommended to include this to avoid transaction being
+# stuck.
 $tx->set_rbf;
 
-# unsigned tx virtual size is used, so the real fee rate will be approx two times smaller
+# calculate fee and set the value of first output. Unsigned tx virtual size is
+# used, so the real fee rate will be approx two times smaller
 my $wanted_fee_rate = 2;
 $tx->outputs->[0]->set_value($tx->fee - int($tx->virtual_size * $wanted_fee_rate));
 
+# sign the first (and only) input with our private key
 btc_prv->from_wif('cVKqti7zi1P5zZ6yXhBxg6hRHtMAchdYPFfSmr5nMskiwUgzmfa8')->sign_transaction($tx, signing_index => 0);
 
+# verify the correctness of the transaction. Throws an exception on failure
 $tx->verify;
+
 say $tx->dump;
 say to_format [hex => $tx->to_serialized];
 
@@ -52,6 +61,10 @@ __END__
 This transaction uses NULLDATA outputs (with C<OP_RETURN>) to create provably
 unspendable outputs on the blockchain. These outputs are allowed to contain up
 to 80 bytes of custom data. The coins are sent back to (a new) P2WPKH address.
+
+Fee rate is (inaccurately) approximated. To set exact fee rate sign the
+transaction, calculate fee based on its virtual size and then sign again
+- changing the value of the output invalidates previous signatures.
 
 This code was used to produce testnet transaction:
 L<https://mempool.space/testnet/tx/11cca738065ca9172394f800bab3f997698851fd0245848ec491b2744d1807e8>

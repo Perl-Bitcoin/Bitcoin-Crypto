@@ -40,7 +40,8 @@ Core) the blockchain history can be accessed without any extra steps.
 Bitcoin::Crypto does not do that and depend on you to provide valid Unspent
 Transaction Outputs (UTXOs) before adding inputs to the transaction (or
 deserializing a transaction). You can get transaction data from your own
-Bitcoin full node or from external sources such as L<mempool.space>.
+Bitcoin full node or from external sources such as L<mempool.space>. UTXO data
+is necessary for correct creation of a transaction.
 
 You can register UTXOs manually using C<< btc_utxo->new(...)->register >> or
 automatically from a serialized transaction using C<< btc_utxo->extract >>. See

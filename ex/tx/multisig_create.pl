@@ -10,6 +10,7 @@ Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 my $tx = btc_transaction->new;
 
+# this is the data of the transaction which created the P2MS output we want to spend
 btc_utxo->extract(
 	[
 		hex =>
@@ -17,12 +18,13 @@ btc_utxo->extract(
 	]
 );
 
+# input must point to the transaction output above - transaction ID and output number
 $tx->add_input(
 	utxo => [[hex => '11cca738065ca9172394f800bab3f997698851fd0245848ec491b2744d1807e8'], 0],
 );
 
-# this is the actual multisig script which will lock the coins.
-# Note: this will be required to redeem the coins. Don't lose it!
+# this is the actual multisig script which will lock the coins. It is 2-out-of-3 lock type.
+# Note: all this data will be required to redeem the coins. Don't lose it!
 my $nested_script = btc_script->from_standard(
 	P2MS => [
 		2,
@@ -38,12 +40,20 @@ $tx->add_output(
 	value => 0,
 );
 
+# RBF stands for replace by fee - allows increasing the fee after broadcasting
+# the transaction. It's recommended to include this to avoid transaction being
+# stuck.
 $tx->set_rbf;
+
+# set a flat 200 satoshi fee, the rest goes to the first output
 $tx->outputs->[0]->set_value($tx->fee - 200);
 
+# sign the first (and only) input with our private key
 btc_prv->from_wif('cTTuo7it8LTWHhnGmodkK7ZA75NTcx5Mu87pGgPi7x1N9Gg4a9m3')->sign_transaction($tx, signing_index => 0);
 
+# verify the correctness of the transaction. Throws an exception on failure
 $tx->verify;
+
 say $tx->dump;
 say to_format [hex => $tx->to_serialized];
 

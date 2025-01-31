@@ -10,6 +10,7 @@ Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 my $tx = btc_transaction->new;
 
+# this is the data of the transaction which created the first output we want to spend
 btc_utxo->extract(
 	[
 		hex =>
@@ -17,10 +18,12 @@ btc_utxo->extract(
 	]
 );
 
+# input must point to the transaction output above - transaction ID and output number
 $tx->add_input(
 	utxo => [[hex => 'a40c8709df98bcdc33619c937730bb15bace2133cff233730601bae352751f38'], 0],
 );
 
+# this is the data of the transaction which created the second output we want to spend
 btc_utxo->extract(
 	[
 		hex =>
@@ -28,10 +31,12 @@ btc_utxo->extract(
 	]
 );
 
+# input must point to the transaction output above - transaction ID and output number
 $tx->add_input(
 	utxo => [[hex => '676ceaef5b704a77f42d7c8db41df5d14026002e658f66246fd380319c3ba15b'], 0],
 );
 
+# this is the data of the transaction which created the third output we want to spend
 btc_utxo->extract(
 	[
 		hex =>
@@ -39,10 +44,12 @@ btc_utxo->extract(
 	]
 );
 
+# input must point to the transaction output above - transaction ID and output number
 $tx->add_input(
 	utxo => [[hex => '9dd8d1ebba95d4ddc2b9fa21b9bc893385e9d5928d0d4835433f34b0ad4b9527'], 0],
 );
 
+# this is the data of the transaction which created the fourth output we want to spend
 btc_utxo->extract(
 	[
 		hex =>
@@ -50,25 +57,31 @@ btc_utxo->extract(
 	]
 );
 
+# input must point to the transaction output above - transaction ID and output number
 $tx->add_input(
 	utxo => [[hex => 'a0dbe21f37c4b45be22633fcf8a365b3aa67581b7447670ca55fb508c46a3d59'], 1],
 );
 
+# send all the coins to this address. The value will be adjusted to total minus fee
 $tx->add_output(
-	locking_script => [P2WPKH => 'tb1qy9ha60ls64qh3qzc65ndttrac0y575w0m0lysn'],
+	locking_script => [address => 'tb1qy9ha60ls64qh3qzc65ndttrac0y575w0m0lysn'],
 	value => 0,
 );
 
-# unsigned tx virtual size is used, so the real fee rate will be approx two times smaller
+# calculate fee and set the value of first output. Unsigned tx virtual size is
+# used, so the real fee rate will be approx two times smaller
 my $wanted_fee_rate = 2;
 $tx->outputs->[0]->set_value($tx->fee - int($tx->virtual_size * $wanted_fee_rate));
 
+# sign all inputs with the corresponding private keys
 btc_prv->from_wif('cRdrKz5KKznsXDP33JiC187aRAvHvDkJPk4StLcQhfTSzgK6sciY')->sign_transaction($tx, signing_index => 0);
 btc_prv->from_wif('cVHF9anUyf8mgVMH8CY4AdPB4AmictADwpLby1WMnS7SnKvzCaat')->sign_transaction($tx, signing_index => 1);
 btc_prv->from_wif('cR3JQywaVoz1YtXhpSsgpaGq3juaQyrdv6C7xXjR91f3JRKKaG8T')->sign_transaction($tx, signing_index => 2);
 btc_prv->from_wif('cPswC8N3dkykncfVQezhQbrbSWMwttuq7Zk9f5eH8Po5CCiHFQMd')->sign_transaction($tx, signing_index => 3);
 
+# verify the correctness of the transaction. Throws an exception on failure
 $tx->verify;
+
 say $tx->dump;
 say to_format [hex => $tx->to_serialized];
 

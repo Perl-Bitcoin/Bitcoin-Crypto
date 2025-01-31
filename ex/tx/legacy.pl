@@ -10,6 +10,7 @@ Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 my $tx = btc_transaction->new;
 
+# this is the data of the transaction which created the output we want to spend
 btc_utxo->extract(
 	[
 		hex =>
@@ -17,20 +18,26 @@ btc_utxo->extract(
 	]
 );
 
+# input must point to the transaction output above - transaction ID and output number
 $tx->add_input(
 	utxo => [[hex => '9fd09a5833ecc410eacc6a7e32af2313cbdbee16dd190029adb895b40e13852c'], 0],
 );
 
+# send all the coins to this address. The value will be adjusted to total minus fee
 $tx->add_output(
 	locking_script => [P2WPKH => 'tb1q26jy9d4vkfqezh6hm7qp7txvk8nggkwv2y72x0'],
 	value => 0,
 );
 
+# set a flat 300 satoshi fee, the rest goes to the first output
 $tx->outputs->[0]->set_value($tx->fee - 300);
 
+# sign the first (and only) input with our private key
 btc_prv->from_wif('cQfP4Xsei1Vx5w6SUvbZ6h9WS9Rxf858bg2jH9VSt4hiNYGjgsLu')->sign_transaction($tx, signing_index => 0);
 
+# verify the correctness of the transaction. Throws an exception on failure
 $tx->verify;
+
 say $tx->dump;
 say to_format [hex => $tx->to_serialized];
 

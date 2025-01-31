@@ -158,7 +158,7 @@ You can use a private key to:
 
 =item * generate public keys
 
-=item * sign and verify messages
+=item * sign and verify messages and transactions
 
 =back
 
