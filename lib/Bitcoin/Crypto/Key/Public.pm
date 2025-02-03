@@ -114,14 +114,14 @@ signature_for witness_program => (
 sub witness_program
 {
 	state $data_sources = {
-		+Bitcoin::Crypto::Constants::segwit_witness_version => sub {
-			shift->get_hash;
+		(Bitcoin::Crypto::Constants::segwit_witness_version) => sub {
+			return shift->get_hash;
 		},
-		+Bitcoin::Crypto::Constants::taproot_witness_version => sub {
+		(Bitcoin::Crypto::Constants::taproot_witness_version) => sub {
 			my $self = shift;
 			my $internal = $self->raw_key('public_taproot');
 			my $tweaked = tagged_hash($internal, 'TapTweak');
-			my $combined = ecc->combine_public_keys(ecc->create_public_key($tweaked), "\02" . $internal);
+			my $combined = ecc->combine_public_keys(ecc->create_public_key($tweaked), "\x02" . $internal);
 			return substr $combined, 1;
 		},
 	};
