@@ -51,7 +51,7 @@ sub _build_taproot_key_instance
 {
 	my ($self) = @_;
 
-	return substr $self->raw_key('public_compressed'), 1;
+	return ecc->xonly_public_key($self->raw_key('public_compressed'));
 }
 
 signature_for raw_key => (
@@ -122,7 +122,7 @@ sub witness_program
 			my $internal = $self->raw_key('public_taproot');
 			my $tweaked = tagged_hash($internal, 'TapTweak');
 			my $combined = ecc->combine_public_keys(ecc->create_public_key($tweaked), "\x02" . $internal);
-			return substr $combined, 1;
+			return ecc->xonly_public_key($combined);
 		},
 	};
 
