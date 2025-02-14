@@ -33,9 +33,13 @@ has option 'multisig' => (
 	coerce => Tuple [PositiveInt, PositiveInt],
 );
 
-has param 'sighash' => (
-	isa => PositiveInt,
-	default => Bitcoin::Crypto::Constants::sighash_all,
+has option 'sighash' => (
+	isa => PositiveOrZeroInt,
+	writer => -hidden,
+);
+
+has option 'taproot_merkle_root' => (
+	coerce => ByteStr,
 );
 
 has field 'input' => (
@@ -56,15 +60,23 @@ has field 'segwit' => (
 
 sub _get_signature
 {
-	my ($self, $subscript) = @_;
+	my ($self, %args) = @_;
 
-	my $digest = $self->transaction->get_digest(
+	my $digest = $self->transaction->get_digest_object(
 		signing_index => $self->signing_index,
-		sighash => $self->sighash,
-		($subscript ? (signing_subscript => $subscript) : ()),
+		($self->has_sighash ? (sighash => $self->sighash) : ()),
+		($args{signing_subscript} ? (signing_subscript => $args{signing_subscript}) : ()),
 	);
 
-	my $signature = $self->key->sign_message($digest);
+	my $taproot_merkle_root = $self->taproot_merkle_root;
+
+	my $signature = $self->key->sign_message(
+		$digest->get_digest,
+		($args{algorithm} ? (algorithm => $args{algorithm}) : ()),
+		(defined $taproot_merkle_root ? (taproot_tweak_suffix => $taproot_merkle_root) : ()),
+	);
+
+	$self->_set_sighash($digest->sighash);
 	$signature .= pack 'C', $self->sighash;
 
 	return $signature;
@@ -223,7 +235,10 @@ sub _sign_P2SH
 		$self->input->set_signature_script(
 			btc_script->new->push($segwit_nested->to_serialized)
 		);
-		$self->_sign_type($segwit_nested->type, $self->_get_signature($segwit_nested->to_serialized));
+		$self->_sign_type(
+			$segwit_nested->type,
+			$self->_get_signature(signing_subscript => $segwit_nested->to_serialized)
+		);
 	}
 	else {
 		die 'trying to sign payout from P2SH but no redeem_script was specified'
@@ -235,7 +250,10 @@ sub _sign_P2SH
 		die 'P2SH nested inside P2SH'
 			if $redeem_script->type eq 'P2SH';
 
-		$self->_sign_type($redeem_script->type, $self->_get_signature($redeem_script->to_serialized));
+		$self->_sign_type(
+			$redeem_script->type,
+			$self->_get_signature(signing_subscript => $redeem_script->to_serialized)
+		);
 		$self->input->signature_script->push($redeem_script->to_serialized);
 	}
 }
@@ -267,8 +285,28 @@ sub _sign_P2WSH
 	die 'P2WSH nested inside P2WSH'
 		if $redeem_script->type eq 'P2WSH';
 
-	$self->_sign_type($redeem_script->type, $self->_get_signature($redeem_script->to_serialized));
+	$self->_sign_type($redeem_script->type, $self->_get_signature(signing_subscript => $redeem_script->to_serialized));
 	$self->_set_signature([$redeem_script->to_serialized], !!1);
+}
+
+sub _sign_P2TR
+{
+	my ($self) = @_;
+
+	# TODO: currently a happy path of signing for public key based P2TR
+
+	my $signature = $self->_get_signature(algorithm => Bitcoin::Crypto::Constants::signing_algorithm_schnorr);
+
+	# truncate sighash from signature to save 1 byte
+	if ($self->sighash == Bitcoin::Crypto::Constants::sighash_default) {
+		$signature = substr $signature, 0, -1;
+	}
+
+	$self->_set_signature(
+		[
+			$signature
+		]
+	);
 }
 
 sub _sign_type

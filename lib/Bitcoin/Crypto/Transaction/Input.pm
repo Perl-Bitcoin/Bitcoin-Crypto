@@ -72,6 +72,12 @@ sub _script_code
 	my $locking_script = $utxo->output->locking_script;
 	my $program;
 	my %types = (
+		P2TR => sub {
+
+			# get taproot key from P2TR (ignore the first two OPs - version and push)
+			my $pubkey = substr $locking_script->to_serialized, 2;
+			$program = Bitcoin::Crypto::Script::Common->new(P2TR => $pubkey);
+		},
 		P2WPKH => sub {
 
 			# get script hash from P2WPKH (ignore the first two OPs - version and push)
@@ -243,6 +249,18 @@ sub is_segwit
 	return !!1 if $nested->is_native_segwit;
 
 	return !!0;
+}
+
+signature_for is_taproot => (
+	method => Object,
+	positional => [],
+);
+
+sub is_taproot
+{
+	my ($self) = @_;
+
+	return $self->utxo->output->locking_script->is_taproot;
 }
 
 signature_for prevout => (

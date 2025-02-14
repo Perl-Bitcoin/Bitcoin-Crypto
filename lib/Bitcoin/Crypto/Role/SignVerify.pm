@@ -8,8 +8,10 @@ use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Helpers qw(carp_once ecc);
-use Bitcoin::Crypto::Util qw(hash256);
+use Bitcoin::Crypto::Util qw(hash256 tagged_hash);
+use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::Crypto::Transaction::Sign;
+use Bitcoin::Crypto::Constants;
 use Moo::Role;
 
 requires qw(
@@ -19,22 +21,48 @@ requires qw(
 
 signature_for sign_message => (
 	method => Object,
-	positional => [ByteStr],
+	head => [ByteStr],
+	named => [
+		algorithm => SignatureAlgorithm,
+		{default => Bitcoin::Crypto::Constants::signing_algorithm_ecdsa},
+		taproot_tweak_suffix => Maybe [ByteStr],
+		{default => undef},
+	],
+	bless => !!0,
 );
 
 sub sign_message
 {
-	my ($self, $preimage) = @_;
+	my ($self, $preimage, $args) = @_;
 
 	Bitcoin::Crypto::Exception::Sign->raise(
 		'cannot sign a message with a public key'
 	) unless $self->_is_private;
 
-	my $digest = hash256($preimage);
+	my %algorithms = (
+		(Bitcoin::Crypto::Constants::signing_algorithm_ecdsa) => {
+			digest => \&hash256,
+			signing_method => sub { ecc->sign_digest(@_) },
+			raw_key => sub { $self->raw_key },
+		},
+		(Bitcoin::Crypto::Constants::signing_algorithm_schnorr) => {
+			digest => sub { tagged_hash(shift, 'TapSighash') },
+			signing_method => sub { ecc->sign_digest_schnorr(@_) },
+			raw_key => sub {
+				$self->taproot_tweaked_key(
+					'private',
+					tweak_suffix => $args->{taproot_tweak_suffix}
+				);
+			},
+		},
+	);
+
+	my $key = $algorithms{$args->{algorithm}}{raw_key}->();
+	my $digest = $algorithms{$args->{algorithm}}{digest}->($preimage);
 
 	return Bitcoin::Crypto::Exception::Sign->trap_into(
 		sub {
-			return ecc->sign_digest($self->raw_key, $digest);
+			return $algorithms{$args->{algorithm}}{signing_method}->($key, $digest);
 		}
 	);
 }

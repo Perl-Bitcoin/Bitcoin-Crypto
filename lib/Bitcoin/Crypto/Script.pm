@@ -465,11 +465,23 @@ signature_for is_native_segwit => (
 sub is_native_segwit
 {
 	my ($self) = @_;
-	my @segwit_types = qw(P2WPKH P2WSH);
+	my @segwit_types = qw(P2WPKH P2WSH P2TR);
 
 	my $script_type = $self->type // '';
 
 	return any { $script_type eq $_ } @segwit_types;
+}
+
+signature_for is_taproot => (
+	method => Object,
+	positional => [],
+);
+
+sub is_taproot
+{
+	my ($self) = @_;
+
+	return ($self->type // '') eq 'P2TR';
 }
 
 sub get_script
@@ -641,12 +653,12 @@ sub get_address
 		return encode_segwit($self->network->segwit_hrp, $version . $address);
 	};
 
-	if ($self->is_native_segwit) {
-		my $version = pack 'C', Bitcoin::Crypto::Constants::segwit_witness_version;
+	if ($self->type eq 'P2TR') {
+		my $version = pack 'C', Bitcoin::Crypto::Constants::taproot_witness_version;
 		return $segwit->($version, $address);
 	}
-	elsif ($self->type eq 'P2TR') {
-		my $version = pack 'C', Bitcoin::Crypto::Constants::taproot_witness_version;
+	elsif ($self->is_native_segwit) {
+		my $version = pack 'C', Bitcoin::Crypto::Constants::segwit_witness_version;
 		return $segwit->($version, $address);
 	}
 	elsif ($self->type eq 'P2PKH') {

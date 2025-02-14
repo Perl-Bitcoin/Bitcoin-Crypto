@@ -31,6 +31,7 @@ use constant {
 	locktime_height_threshold => 500_000_000,
 	max_sequence_no => 0xffffffff,
 
+	sighash_default => 0x00,
 	sighash_all => 0x01,
 	sighash_none => 0x02,
 	sighash_single => 0x03,
@@ -44,6 +45,9 @@ use constant {
 	psbt_global_map => 'global',
 	psbt_input_map => 'in',
 	psbt_output_map => 'out',
+
+	signing_algorithm_ecdsa => 'ecdsa',
+	signing_algorithm_schnorr => 'schnorr',
 };
 
 # These constants are environment-specific and internal only

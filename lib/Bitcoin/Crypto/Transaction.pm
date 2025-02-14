@@ -253,9 +253,21 @@ sub get_digest
 {
 	my ($self, $params) = @_;
 
+	return $self->get_digest_object($params)->get_digest;
+}
+
+signature_for get_digest_object => (
+	method => Object,
+	positional => [HashRef, {slurpy => !!1}],
+);
+
+sub get_digest_object
+{
+	my ($self, $params) = @_;
+
 	$params->{transaction} = $self;
 	my $digest = Bitcoin::Crypto::Transaction::Digest->new($params);
-	return $digest->get_digest;
+	return $digest;
 }
 
 signature_for fee => (
@@ -772,6 +784,14 @@ custom scripts.
 The sighash which should be used for the digest. By default C<SIGHASH_ALL>.
 
 =back
+
+=head3 get_digest_object
+
+	$digest_object = $object->get_digest_object(%params)
+
+Same as L</get_digest>, but returns an object of
+L<Bitcoin::Crypto::Transaction::Digest> instead of a bytestring. Advanced use
+only.
 
 =head3 fee
 

@@ -8,7 +8,7 @@ use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(get_key_type);
+use Bitcoin::Crypto::Util qw(get_key_type tagged_hash);
 use Bitcoin::Crypto::Helpers qw(ensure_length ecc);
 use Bitcoin::Crypto::Exception;
 
@@ -73,7 +73,7 @@ sub has_purpose
 
 signature_for raw_key => (
 	method => Object,
-	positional => [Maybe [Enum [qw(private public public_compressed)]], {default => undef}],
+	positional => [Maybe [Enum [qw(private public public_compressed public_xonly)]], {default => undef}],
 );
 
 # helpers for raw_key
@@ -99,6 +99,7 @@ sub raw_key
 {
 	my ($self, $type) = @_;
 	my $is_private = $self->_is_private;
+	my $key = $self->key_instance;
 
 	$type //= $is_private ? 'private' : 'public';
 	if ($type eq 'public' && (!$self->does('Bitcoin::Crypto::Role::Compressed') || $self->compressed)) {
@@ -110,17 +111,52 @@ sub raw_key
 			'cannot create private key from a public key'
 		) unless $is_private;
 
-		return $self->__full_private($self->key_instance);
+		return $self->__full_private($key);
+	}
+	elsif ($type eq 'public_xonly') {
+		$key = $self->__private_to_public($key)
+			if $is_private;
+
+		return ecc->xonly_public_key($self->__public_compressed($key, 1));
 	}
 	else {
-		my $key = $self->key_instance;
 		$key = $self->__private_to_public($key)
 			if $is_private;
 
 		return $self->__public_compressed($key, $type eq 'public_compressed');
 	}
+}
 
-	# no need to check for invalid input, since we have a signature with enum
+signature_for taproot_tweaked_key => (
+	method => Object,
+	head => [Maybe [Enum [qw(private public)]], {default => undef}],
+	named => [
+		tweak_suffix => Maybe [ByteStr],
+		{default => undef},
+	],
+	bless => !!0,
+);
+
+sub taproot_tweaked_key
+{
+	my ($self, $type, $args) = @_;
+	$type //= $self->_is_private ? 'private' : 'public';
+
+	if ($type eq 'private') {
+		my $internal = $self->raw_key('private');
+		my $internal_public = ecc->create_public_key($internal);
+		$internal = ecc->negate_private_key($internal)
+			if substr($internal_public, 0, 1) eq "\x03";
+
+		my $tweak = tagged_hash(ecc->xonly_public_key($internal_public) . ($args->{tweak_suffix} // ''), 'TapTweak');
+		return ecc->add_private_key($internal, $tweak);
+	}
+	else {
+		my $internal = $self->raw_key('public_xonly');
+		my $tweak = tagged_hash($internal . ($args->{tweak_suffix} // ''), 'TapTweak');
+		my $combined = ecc->combine_public_keys(ecc->create_public_key($tweak), "\x02" . $internal);
+		return ecc->xonly_public_key($combined);
+	}
 }
 
 1;

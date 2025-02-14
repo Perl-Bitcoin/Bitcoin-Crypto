@@ -168,6 +168,14 @@ $derivation_path->coercion->add_type_coercions(
 	ConsumerOf->of('Bitcoin::Crypto::Role::WithDerivationPath'), q{ $_->get_derivation_path },
 );
 
+my $signing_algorithm = __PACKAGE__->add_type(
+	name => 'SignatureAlgorithm',
+	parent => Enum->of(
+		Bitcoin::Crypto::Constants::signing_algorithm_ecdsa,
+		Bitcoin::Crypto::Constants::signing_algorithm_schnorr,
+	),
+);
+
 __PACKAGE__->make_immutable;
 
 1;
@@ -192,6 +200,7 @@ Bitcoin::Crypto::Types - Bitcoin-specific data types
 		IntMaxBits
 		SatoshiAmount
 		DerivationPath
+		SignatureAlgorithm
 	);
 
 =head1 DESCRIPTION
@@ -259,6 +268,10 @@ from an integer or from a string.
 
 An instance of L<Bitcoin::Crypto::DerivationPath>. Can be coerced from a string
 or a class consuming C<Bitcoin::Crypto::Role::WithDerivationPath>.
+
+=head2 SignatureAlgorithm
+
+A string with one of the signing algorithms, like C<'schnorr'>.
 
 =head1 SEE ALSO
 

@@ -13,7 +13,7 @@ use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed tagged_hash);
+use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed);
 use Bitcoin::Crypto::Helpers qw(ecc);
 
 use namespace::clean;
@@ -25,50 +25,7 @@ has extended 'key_instance' => (
 	predicate => 1,
 );
 
-has field 'taproot_key_instance' => (
-	isa => ByteStr,
-	lazy => 1,
-	writer => -hidden,
-	predicate => 1,
-);
-
 sub _is_private { 0 }
-
-sub _validate_key
-{
-	my ($self) = @_;
-	if ($self->has_key_instance) {
-		$self->SUPER::_validate_key;
-	}
-	elsif (!$self->has_taproot_key_instance) {
-		Bitcoin::Crypto::Exception::KeyCreate->raise(
-			'public key must have either regular or taproot key data'
-		);
-	}
-}
-
-sub _build_taproot_key_instance
-{
-	my ($self) = @_;
-
-	return ecc->xonly_public_key($self->raw_key('public_compressed'));
-}
-
-signature_for raw_key => (
-	method => Object,
-	positional => [Maybe [Enum [qw(public public_compressed public_taproot)]], {default => undef}],
-);
-
-sub raw_key
-{
-	my ($self, $type) = @_;
-
-	if ($type && $type eq 'public_taproot') {
-		return $self->taproot_key_instance;
-	}
-
-	return $self->SUPER::raw_key($type);
-}
 
 signature_for get_hash => (
 	method => Object,
@@ -118,11 +75,7 @@ sub witness_program
 			return shift->get_hash;
 		},
 		(Bitcoin::Crypto::Constants::taproot_witness_version) => sub {
-			my $self = shift;
-			my $internal = $self->raw_key('public_taproot');
-			my $tweaked = tagged_hash($internal, 'TapTweak');
-			my $combined = ecc->combine_public_keys(ecc->create_public_key($tweaked), "\x02" . $internal);
-			return ecc->xonly_public_key($combined);
+			return shift->taproot_tweaked_key('public');
 		},
 	};
 
@@ -440,6 +393,8 @@ L<Bitcoin::Crypto::Exception> namespace:
 =over
 
 =item * KeyCreate - key couldn't be created correctly
+
+=item * KeyConvert - taproot key couldn't be converted to ecc key
 
 =item * Verify - couldn't verify the message correctly
 
