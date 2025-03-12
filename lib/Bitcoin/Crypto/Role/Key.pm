@@ -129,7 +129,6 @@ sub raw_key
 
 signature_for taproot_tweaked_key => (
 	method => Object,
-	head => [Maybe [Enum [qw(private public)]], {default => undef}],
 	named => [
 		tweak_suffix => Maybe [ByteStr],
 		{default => undef},
@@ -139,10 +138,9 @@ signature_for taproot_tweaked_key => (
 
 sub taproot_tweaked_key
 {
-	my ($self, $type, $args) = @_;
-	$type //= $self->_is_private ? 'private' : 'public';
+	my ($self, $args) = @_;
 
-	if ($type eq 'private') {
+	if ($self->_is_private) {
 		my $internal = $self->raw_key('private');
 		my $internal_public = ecc->create_public_key($internal);
 		$internal = ecc->negate_private_key($internal)

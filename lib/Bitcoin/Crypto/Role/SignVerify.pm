@@ -50,7 +50,6 @@ sub sign_message
 			signing_method => sub { ecc->sign_digest_schnorr(@_) },
 			raw_key => sub {
 				$self->taproot_tweaked_key(
-					'private',
 					tweak_suffix => $args->{taproot_tweak_suffix}
 				);
 			},

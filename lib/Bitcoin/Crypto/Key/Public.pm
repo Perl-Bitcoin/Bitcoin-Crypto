@@ -75,7 +75,7 @@ sub witness_program
 			return shift->get_hash;
 		},
 		(Bitcoin::Crypto::Constants::taproot_witness_version) => sub {
-			return shift->taproot_tweaked_key('public');
+			return shift->taproot_tweaked_key;
 		},
 	};
 
