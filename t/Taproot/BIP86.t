@@ -9,6 +9,16 @@ my @cases = (
 	{
 		bip44 => {
 			purpose => Bitcoin::Crypto::Constants::bip44_taproot_purpose,
+			get_account => 1,
+		},
+		xprv =>
+			'xprv9xgqHN7yz9MwCkxsBPN5qetuNdQSUttZNKw1dcYTV4mkaAFiBVGQziHs3NRSWMkCzvgjEe3n9xV8oYywvM8at9yRqyaZVz6TYYhX98VjsUk',
+		xpub =>
+			'xpub6BgBgsespWvERF3LHQu6CnqdvfEvtMcQjYrcRzx53QJjSxarj2afYWcLteoGVky7D3UKDP9QyrLprQ3VCECoY49yfdDEHGCtMMj92pReUsQ',
+	},
+	{
+		bip44 => {
+			purpose => Bitcoin::Crypto::Constants::bip44_taproot_purpose,
 		},
 		xprv =>
 			'xprvA449goEeU9okwCzzZaxiy475EQGQzBkc65su82nXEvcwzfSskb2hAt2WymrjyRL6kpbVTGL3cKtp9herYXSjjQ1j4stsXXiRF7kXkCacK3T',
@@ -16,7 +26,7 @@ my @cases = (
 			'xpub6H3W6JmYJXN49h5TfcVjLC3onS6uPeUTTJoVvRC8oG9vsTn2J8LwigLzq5tHbrwAzH9DGo6ThGUdWsqce8dGfwHVBxSbixjDADGGdzF7t2B',
 		internal_key => 'cc8a4bc64d897bddc5fbc2f670f7a8ba0b386779106cf1223c6fc5d7cd6fc115',
 		output_key => 'a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c',
-		scriptPubKey => '5120a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c',
+		script_pub_key => '5120a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c',
 		address => 'bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr',
 	},
 	{
@@ -30,7 +40,7 @@ my @cases = (
 			'xpub6H3W6JmYJXN4CCKUSnriaiQRCZmG6aq4sCMDqTu1ACyngw7HShf59hAxYjXgKDuuHThVEUzdHrc3aXCr9kfvQvZPit5dnD3K9xVRBzjK3rX',
 		internal_key => '83dfe85a3151d2517290da461fe2815591ef69f2b18a2ce63f01697a8b313145',
 		output_key => 'a82f29944d65b86ae6b5e5cc75e294ead6c59391a1edc5e016e3498c67fc7bbb',
-		scriptPubKey => '5120a82f29944d65b86ae6b5e5cc75e294ead6c59391a1edc5e016e3498c67fc7bbb',
+		script_pub_key => '5120a82f29944d65b86ae6b5e5cc75e294ead6c59391a1edc5e016e3498c67fc7bbb',
 		address => 'bc1p4qhjn9zdvkux4e44uhx8tc55attvtyu358kutcqkudyccelu0was9fqzwh',
 	},
 	{
@@ -44,7 +54,7 @@ my @cases = (
 			'xpub6GL8SnQwRCGDhB59LEz9HMyM6sRYoByXBzXK3iEKWgCz8XrZNHUzd9L3AUBELW5NzA7dEFvMas1F84TuPH3xqdUA5tumaGWFgihJzWytXe3',
 		internal_key => '399f1b2f4393f29a18c937859c5dd8a77350103157eb880f02e8c08214277cef',
 		output_key => '882d74e5d0572d5a816cef0041a96b6c1de832f6f9676d9605c44d5e9a97d3dc',
-		scriptPubKey => '5120882d74e5d0572d5a816cef0041a96b6c1de832f6f9676d9605c44d5e9a97d3dc',
+		script_pub_key => '5120882d74e5d0572d5a816cef0041a96b6c1de832f6f9676d9605c44d5e9a97d3dc',
 		address => 'bc1p3qkhfews2uk44qtvauqyr2ttdsw7svhkl9nkm9s9c3x4ax5h60wqwruhk7',
 	},
 );
@@ -61,10 +71,12 @@ foreach my $case_ind (0 .. $#cases) {
 		is to_format [base58 => $key->to_serialized], $case->{xprv}, 'extended private key ok';
 		is to_format [base58 => $key->get_public_key->to_serialized], $case->{xpub}, 'extended public key ok';
 
-		$key = $key->get_basic_key;
+		if ($case->{address}) {
+			$key = $key->get_basic_key;
 
-		#is to_format [hex => $key->get_public_key->to_serialized], $case->{internal_key}, 'private key ok';
-		is $key->get_public_key->get_address, $case->{address}, 'address ok';
+			is to_format [hex => $key->get_public_key->taproot_tweaked_key], $case->{output_key}, 'tweaked key ok';
+			is $key->get_public_key->get_address, $case->{address}, 'address ok';
+		}
 	};
 }
 

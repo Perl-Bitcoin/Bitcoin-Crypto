@@ -255,8 +255,6 @@ foreach my $input_index (0 .. $#{$base_data{given}{utxos_spent}}) {
 	)->register;
 }
 
-#diag $tx->dump;
-
 foreach my $case_ind (0 .. $#cases) {
 	subtest "should pass case #$case_ind" => sub {
 		my $case = $cases[$case_ind];
