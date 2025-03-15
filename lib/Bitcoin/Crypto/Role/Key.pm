@@ -146,12 +146,12 @@ sub taproot_tweaked_key
 		$internal = ecc->negate_private_key($internal)
 			if substr($internal_public, 0, 1) eq "\x03";
 
-		my $tweak = tagged_hash(ecc->xonly_public_key($internal_public) . ($args->{tweak_suffix} // ''), 'TapTweak');
+		my $tweak = tagged_hash('TapTweak', ecc->xonly_public_key($internal_public) . ($args->{tweak_suffix} // ''));
 		return ecc->add_private_key($internal, $tweak);
 	}
 	else {
 		my $internal = $self->raw_key('public_xonly');
-		my $tweak = tagged_hash($internal . ($args->{tweak_suffix} // ''), 'TapTweak');
+		my $tweak = tagged_hash('TapTweak', $internal . ($args->{tweak_suffix} // ''));
 		my $combined = ecc->combine_public_keys(ecc->create_public_key($tweak), "\x02" . $internal);
 		return ecc->xonly_public_key($combined);
 	}

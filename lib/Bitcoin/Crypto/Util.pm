@@ -426,12 +426,12 @@ sub merkle_root
 }
 
 signature_for tagged_hash => (
-	positional => [ByteStr, Str],
+	positional => [Str, ByteStr],
 );
 
 sub tagged_hash
 {
-	my ($message, $tag) = @_;
+	my ($tag, $message) = @_;
 
 	my $partial = sha256(encode 'UTF-8', $tag);
 	return sha256($partial . $partial . $message);
@@ -678,7 +678,7 @@ double SHA256 before calculating the root.
 
 =head2 tagged_hash
 
-	$hash = tagged_hash($message, $tag)
+	$hash = tagged_hash($tag, $message)
 
 Calculates a tagged hash of C<$message> using C<$tag> as a tag. These hashes
 are described in BIP340.

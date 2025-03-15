@@ -295,9 +295,8 @@ subtest 'testing tagged_hash' => sub {
 	my $data = pack 'u', 'packed data...';
 	my $tag = 'ąść';
 
-	#is(tagged_hash($data, $tag), sha256(sha256(encode 'UTF-8', $tag) . sha256(encode 'UTF-8', $tag) . $data), 'tagged_hash ok');
 	is(
-		tagged_hash($data, $tag),
+		tagged_hash($tag, $data),
 		sha256(sha256(encode 'UTF-8', $tag) . sha256(encode 'UTF-8', $tag) . $data),
 		'tagged_hash ok'
 	);

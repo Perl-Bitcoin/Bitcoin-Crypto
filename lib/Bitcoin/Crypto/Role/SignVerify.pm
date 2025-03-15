@@ -46,7 +46,7 @@ sub sign_message
 			raw_key => sub { $self->raw_key },
 		},
 		(Bitcoin::Crypto::Constants::signing_algorithm_schnorr) => {
-			digest => sub { tagged_hash(shift, 'TapSighash') },
+			digest => sub { tagged_hash('TapSighash', shift) },
 			signing_method => sub { ecc->sign_digest_schnorr(@_) },
 			raw_key => sub {
 				$self->taproot_tweaked_key(
