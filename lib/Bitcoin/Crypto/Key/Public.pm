@@ -13,7 +13,7 @@ use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed);
+use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed taproot_merkle_root);
 use Bitcoin::Crypto::Helpers qw(ecc);
 
 use namespace::clean;
@@ -65,7 +65,7 @@ sub from_serialized
 
 signature_for witness_program => (
 	method => Object,
-	positional => [PositiveOrZeroInt, {default => 0}],
+	positional => [PositiveOrZeroInt, {default => 0}, HashRef, {default => sub { {} }}],
 );
 
 sub witness_program
@@ -75,11 +75,12 @@ sub witness_program
 			return shift->get_hash;
 		},
 		(Bitcoin::Crypto::Constants::taproot_witness_version) => sub {
-			return shift->taproot_tweaked_key;
+			my ($self, $params) = @_;
+			return shift->taproot_tweaked_key(%$params);
 		},
 	};
 
-	my ($self, $version) = @_;
+	my ($self, $version, $source_data) = @_;
 
 	Bitcoin::Crypto::Exception::SegwitProgram->raise(
 		"can't get witness program data for version $version"
@@ -88,7 +89,7 @@ sub witness_program
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
 	$program
 		->add_operation("OP_$version")
-		->push_bytes($data_sources->{$version}->($self));
+		->push_bytes($data_sources->{$version}->($self, $source_data));
 
 	return $program;
 }
@@ -154,12 +155,12 @@ sub get_segwit_address
 
 signature_for get_taproot_address => (
 	method => Object,
-	positional => [],
+	positional => [Maybe [ArrayRef], {default => undef}],
 );
 
 sub get_taproot_address
 {
-	my ($self) = @_;
+	my ($self, $script_tree) = @_;
 
 	# network field is not required, lazy check for completeness
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(
@@ -170,7 +171,11 @@ sub get_taproot_address
 		'taproot addresses can only be created with BIP44 in taproot (BIP86) mode'
 	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_taproot_purpose);
 
-	my $taproot_program = $self->witness_program(Bitcoin::Crypto::Constants::taproot_witness_version);
+	my $taproot_program = $self->witness_program(
+		Bitcoin::Crypto::Constants::taproot_witness_version,
+		defined $script_tree ? {tweak_suffix => taproot_merkle_root($script_tree)} : {}
+	);
+
 	return encode_segwit($self->network->segwit_hrp, $taproot_program->run->stack_serialized);
 }
 

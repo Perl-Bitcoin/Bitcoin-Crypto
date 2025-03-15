@@ -291,13 +291,34 @@ subtest 'testing merkle_root' => sub {
 		'e05048a9b8e622bda048691a47fd9de332dc1d4b6b9d289d4e12c6722076c4e7', 'block 100022 root ok';
 };
 
+subtest 'testing taproot_merkle_root' => sub {
+	my $tree = [
+		{hash => [hex => 'f154e8e8e17c31d3462d7132589ed29353c6fafdb884c5a6e04ea938834f0d9d']},
+		[
+			{
+				leaf_version => 192,
+				script => [hex => '20d5094d2dbe9b76e2c245a2b89b6006888952e2faa6a149ae318d69e520617748ac']
+			},
+			{hash => [hex => 'd7485025fceb78b9ed667db36ed8b8dc7b1f0b307ac167fa516fe4352b9f4ef7']},
+		]
+	];
+
+	# this example is a modified test case from BIP341
+	is(
+		to_format [hex => taproot_merkle_root($tree)],
+		'2f6b2c5397b6d68ca18e09a3f05161668ffe93a988582d55c6f07bd5b3329def',
+		'merkle root ok'
+	);
+
+};
+
 subtest 'testing tagged_hash' => sub {
 	my $data = pack 'u', 'packed data...';
 	my $tag = 'ąść';
 
 	is(
-		tagged_hash($tag, $data),
-		sha256(sha256(encode 'UTF-8', $tag) . sha256(encode 'UTF-8', $tag) . $data),
+		to_format [hex => tagged_hash($tag, $data)],
+		to_format [hex => sha256(sha256(encode 'UTF-8', $tag) . sha256(encode 'UTF-8', $tag) . $data)],
 		'tagged_hash ok'
 	);
 };
