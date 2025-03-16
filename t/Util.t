@@ -4,7 +4,7 @@ use Crypt::Digest::SHA256 qw(sha256);
 use Encode qw(encode);
 
 use Bitcoin::Crypto::Util qw(:all);
-use Bitcoin::Crypto::Helpers;    # loads Math::BigInt
+use Bitcoin::Crypto::Helpers qw(ecc);    # loads Math::BigInt
 use Bitcoin::Crypto::Key::ExtPrivate;
 
 subtest 'testing mnemonic_to_seed' => sub {
@@ -321,6 +321,20 @@ subtest 'testing tagged_hash' => sub {
 		to_format [hex => sha256(sha256(encode 'UTF-8', $tag) . sha256(encode 'UTF-8', $tag) . $data)],
 		'tagged_hash ok'
 	);
+};
+
+subtest 'testing lift_x' => sub {
+	my $key = '151bb80b24b79955e9e7b50614f354b52bb5362f1147e68870a0e992cdb9eaa4';
+	my $negated = ecc->negate_public_key(from_format [hex => '03' . $key]);
+
+	is lift_x([hex => $key]), $negated, 'result ok';
+};
+
+subtest 'has_even_y' => sub {
+	my $key = '151bb80b24b79955e9e7b50614f354b52bb5362f1147e68870a0e992cdb9eaa4';
+
+	ok has_even_y([hex => '02' . $key]), 'even key ok';
+	ok !has_even_y([hex => '03' . $key]), 'odd key ok';
 };
 
 done_testing;

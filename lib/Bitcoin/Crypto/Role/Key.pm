@@ -8,7 +8,7 @@ use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(get_key_type tagged_hash);
+use Bitcoin::Crypto::Util qw(get_key_type tagged_hash lift_x has_even_y);
 use Bitcoin::Crypto::Helpers qw(ensure_length ecc);
 use Bitcoin::Crypto::Exception;
 
@@ -144,7 +144,7 @@ sub taproot_tweaked_key
 		my $internal = $self->raw_key('private');
 		my $internal_public = ecc->create_public_key($internal);
 		$internal = ecc->negate_private_key($internal)
-			if substr($internal_public, 0, 1) eq "\x03";
+			unless has_even_y($internal_public);
 
 		my $tweak = tagged_hash('TapTweak', ecc->xonly_public_key($internal_public) . ($args->{tweak_suffix} // ''));
 		return ecc->add_private_key($internal, $tweak);
@@ -152,7 +152,7 @@ sub taproot_tweaked_key
 	else {
 		my $internal = $self->raw_key('public_xonly');
 		my $tweak = tagged_hash('TapTweak', $internal . ($args->{tweak_suffix} // ''));
-		my $combined = ecc->combine_public_keys(ecc->create_public_key($tweak), "\x02" . $internal);
+		my $combined = ecc->combine_public_keys(ecc->create_public_key($tweak), lift_x $internal);
 		return ecc->xonly_public_key($combined);
 	}
 }

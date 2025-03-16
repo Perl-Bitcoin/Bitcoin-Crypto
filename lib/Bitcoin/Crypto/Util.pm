@@ -14,7 +14,7 @@ use Try::Tiny;
 use Scalar::Util qw(blessed);
 use Types::Common -sigs, -types;
 
-use Bitcoin::Crypto::Helpers qw(parse_formatdesc);
+use Bitcoin::Crypto::Helpers qw(parse_formatdesc ecc);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
@@ -38,6 +38,8 @@ our @EXPORT_OK = qw(
 	merkle_root
 	taproot_merkle_root
 	tagged_hash
+	lift_x
+	has_even_y
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -490,6 +492,38 @@ sub tagged_hash
 	return sha256($partial . $partial . $message);
 }
 
+signature_for lift_x => (
+	positional => [ByteStr],
+);
+
+sub lift_x
+{
+	my ($x) = @_;
+
+	my $key = "\x02" . $x;
+	Bitcoin::Crypto::Exception::KeyCreate->raise(
+		'invalid xonly public key'
+	) unless ecc->verify_public_key($key);
+
+	return $key;
+}
+
+signature_for has_even_y => (
+	positional => [ByteStr],
+);
+
+sub has_even_y
+{
+	my ($key) = @_;
+
+	return Bitcoin::Crypto::Exception->trap_into(
+		sub {
+			$key = ecc->compress_public_key($key);
+			return substr($key, 0, 1) eq "\x02";
+		}
+	);
+}
+
 1;
 
 __END__
@@ -518,6 +552,8 @@ Bitcoin::Crypto::Util - General Bitcoin utilities
 		merkle_root
 		taproot_merkle_root
 		tagged_hash
+		lift_x
+		has_even_y
 	);
 
 =head1 DESCRIPTION
@@ -778,6 +814,23 @@ B<Important note about unicode:> this function only accepts UTF8-decoded
 strings for C<$tag>, but can't detect whether it got it or not. This will only
 become a problem if you use non-ascii tag. If there's a possibility of
 non-ascii, always use utf8 and set binmodes to get decoded (wide) characters.
+
+=head2 lift_x
+
+	$public_key = lift_x $xonly_public_key;
+
+This implements C<lift_x> function defined in BIP340. Returns a compressed ECC
+public key with even Y coordinate as a bytestring for a given 32-byte bytestring
+C<$xonly_public_key>. Throws an exception if the result is not a valid public
+key.
+
+=head2 has_even_y
+
+	$even_y = has_even_y $public_key;
+
+This implements C<has_even_y> function defined in BIP340. Returns a boolean for
+a given serialized C<$public_key> - a bytestring. Throws an exception if the
+argument is not a valid public key.
 
 =head1 SEE ALSO
 

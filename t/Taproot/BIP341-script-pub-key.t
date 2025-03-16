@@ -1,6 +1,6 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_pub);
-use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Util qw(to_format lift_x);
 
 # Data from:
 # https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#test-vectors
@@ -164,8 +164,7 @@ foreach my $case_ind (0 .. $#cases) {
 	subtest "should pass case index $case_ind" => sub {
 		my $case = $cases[$case_ind];
 
-		# TODO: not possible to import xonly pubkey at the moment
-		my $key = btc_pub->from_serialized([hex => "02" . $case->{given}{internal_pubkey}]);
+		my $key = btc_pub->from_serialized(lift_x [hex => $case->{given}{internal_pubkey}]);
 		is $key->get_taproot_address($case->{given}{script_tree}), $case->{expected}{bip350_address}, 'address ok';
 
 		# TODO: control blocks
