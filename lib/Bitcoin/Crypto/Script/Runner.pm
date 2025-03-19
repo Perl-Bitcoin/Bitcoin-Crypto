@@ -113,11 +113,19 @@ sub to_bool
 		&& $bytes ne $substr . "\x80";
 }
 
+sub to_minimal_bool
+{
+	my ($self, $bytes) = @_;
+
+	return undef unless $bytes eq "\x01" or $bytes eq '';
+	return length $bytes == 1;
+}
+
 sub from_bool
 {
 	my ($self, $value) = @_;
 
-	return !!$value ? "\x01" : "\x00";
+	return !!$value ? "\x01" : '';
 }
 
 sub _advance

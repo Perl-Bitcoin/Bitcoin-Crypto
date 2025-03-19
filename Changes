@@ -7,8 +7,11 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Util::lift_x function
 	- Bitcoin::Crypto::Util::has_even_y function
 
-	[Changes and deprecations]
+	[Fixes]
 	- verify_message from public and private keys can no longer throw an exception, always returns false on failure
+	- scripts now correctly place empty vector on execution stack for false values
+
+	[Changes and deprecations]
 	- removed Bitcoin::Crypto::Exception::Verify
 
 3.002 Fri Oct 24, 2025
