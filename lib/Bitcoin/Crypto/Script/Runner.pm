@@ -53,7 +53,8 @@ has field '_codeseparator' => (
 
 sub to_int
 {
-	my ($self, $bytes) = @_;
+	my ($self, $bytes, $max_bytes) = @_;
+	$max_bytes //= 4;
 
 	return 0 if !length $bytes;
 
@@ -67,6 +68,10 @@ sub to_int
 
 	my $value = Math::BigInt->from_bytes(scalar reverse $bytes);
 	$value->bneg if $negative;
+
+	# too big vector cannot be interpreted as a number - see CScriptNum
+	die "script numeric value $value out of range"
+		if abs($value) > 2**($max_bytes * 8 - 1) - 1;
 
 	return $value;
 }

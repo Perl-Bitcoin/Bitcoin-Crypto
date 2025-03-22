@@ -10,6 +10,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	[Fixes]
 	- verify_message from public and private keys can no longer throw an exception, always returns false on failure
 	- scripts now correctly place empty vector on execution stack for false values
+	- scripts now correctly check integer value for 4 byte limit
 
 	[Changes and deprecations]
 	- removed Bitcoin::Crypto::Exception::Verify

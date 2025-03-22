@@ -836,7 +836,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 			stack_error unless @$stack >= 1;
 
-			my $c1 = $runner->to_int($stack->[-1]);
+			my $c1 = $runner->to_int($stack->[-1], 5);
 			my $c2 = $runner->transaction->locktime;
 
 			invalid_script
@@ -846,14 +846,13 @@ my %opcodes = (
 			my $c2_is_height = $c2 < Bitcoin::Crypto::Constants::locktime_height_threshold;
 
 			invalid_script
-				if !!$c1_is_height ne !!$c2_is_height;
+				unless !!$c1_is_height == !!$c2_is_height;
 
 			invalid_script
 				if $c1 > $c2;
 
-			my $input = $transaction->inputs->[$transaction->input_index];
 			invalid_script
-				if $input->sequence_no == Bitcoin::Crypto::Constants::max_sequence_no;
+				if $transaction->this_input->sequence_no == Bitcoin::Crypto::Constants::max_sequence_no;
 
 			pop @$stack;
 		},
@@ -869,7 +868,7 @@ my %opcodes = (
 			my $stack = $runner->stack;
 			stack_error unless @$stack >= 1;
 
-			my $c1 = $runner->to_int($stack->[-1]);
+			my $c1 = $runner->to_int($stack->[-1], 5);
 
 			invalid_script
 				if $c1 < 0;
