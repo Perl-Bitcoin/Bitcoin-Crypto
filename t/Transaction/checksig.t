@@ -180,5 +180,24 @@ subtest 'should verify transactions (nested P2WPKH)' => sub {
 	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
 };
 
+subtest 'should verify transactions (P2TR key spend)' => sub {
+	$tx = btc_transaction->from_serialized(
+		[
+			hex =>
+				'02000000000101fe25d27b7961564ab3d270f372a887ee4f0901bd093f6c056d7d852db40cd2f40200000000fdffffff02ac11000000000000225120090caba117b6bc0263b412c862e57e964850dc092c6e565a3d75f3b68f33fdf4e2d00a00000000002251201f867b05c595cc42a76b4b7b5fe6a8f6c7b8243bb6d81667d59dcc5f9ad42af50140408167ab4b141036d5b19fb237484b4cf4f335255e536a1b1229bf83269ead66a3d38367362586f613e5bf074306750d72d4576f288e3aab6017d9ca0f7b6e2700000000'
+		]
+	);
+
+	ok lives { $tx->verify() }, 'input verification ok';
+	ok lives { $tx->verify() }, 'input verification ok (second time)';
+
+	# NOTE: try modifying witness signature, see if it still verifies
+	# (segwit transactions are backward compatible, so it would pass without support for segwit)
+	$tx->inputs->[0]->witness->[0] .= "\x01";
+	my $ex = dies { $tx->verify() };
+	ok $ex, 'input verification ok after modifying witness';
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
+};
+
 done_testing;
 
