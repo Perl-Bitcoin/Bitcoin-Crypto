@@ -26,6 +26,13 @@ has option 'transaction' => (
 	clearer => 1,
 );
 
+# used to force tapscript without transaction
+has param '_tapscript' => (
+	isa => Bool,
+	init_arg => 'tapscript',
+	default => !!0,
+);
+
 has field 'stack' => (
 	isa => ArrayRef [Str],
 	writer => -hidden,
@@ -269,6 +276,13 @@ sub success
 	return !!0 if !$stack->[-1];
 	return !!0 if !$self->to_bool($stack->[-1]);
 	return !!1;
+}
+
+sub tapscript
+{
+	my ($self) = @_;
+
+	return $self->has_transaction ? $self->transaction->is_taproot : $self->_tapscript;
 }
 
 1;

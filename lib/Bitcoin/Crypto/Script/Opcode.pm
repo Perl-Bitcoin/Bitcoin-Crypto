@@ -77,7 +77,8 @@ sub execute
 	return $self->runner->(@args);
 }
 
-my %opcodes = (
+my %opcodes;
+%opcodes = (
 	OP_0 => {
 		code => 0x00,
 		pushes => !!1,
@@ -99,14 +100,20 @@ my %opcodes = (
 	OP_PUSHDATA2 => {
 		code => 0x4d,
 		pushes => !!1,
+		runner => sub {
 
-		# see runner below
+			# runners for these are the same, since the script is complied
+			$opcodes{OP_PUSHDATA1}{runner}->(@_);
+		},
 	},
 	OP_PUSHDATA4 => {
 		code => 0x4e,
 		pushes => !!1,
+		runner => sub {
 
-		# see runner below
+			# runners for these are the same, since the script is complied
+			$opcodes{OP_PUSHDATA1}{runner}->(@_);
+		},
 	},
 	OP_1NEGATE => {
 		code => 0x4f,
@@ -134,11 +141,16 @@ my %opcodes = (
 	OP_IF => {
 		code => 0x63,
 		runner => sub {
-			my ($runner, $else_pos, $endif_pos) = @_;
+			my ($runner, $else_pos, $endif_pos, $inverted) = @_;
 			my $stack = $runner->stack;
 
 			stack_error unless @$stack >= 1;
-			if ($runner->to_bool(pop @$stack)) {
+			my $value = pop @$stack;
+			$value = $runner->tapscript ? $runner->to_minimal_bool($value) : $runner->to_bool($value);
+			invalid_script unless defined $value;
+			$value = !$value if $inverted;
+
+			if ($value) {
 
 				# continue execution
 			}
@@ -155,7 +167,9 @@ my %opcodes = (
 	OP_NOTIF => {
 		code => 0x64,
 
-		# see runner below
+		runner => sub {
+			$opcodes{OP_IF}{runner}->(@_, !!1);
+		}
 	},
 	OP_VERIF => {
 		code => 0x65,
@@ -426,7 +440,10 @@ my %opcodes = (
 	OP_EQUALVERIFY => {
 		code => 0x88,
 
-		# see runner below
+		runner => sub {
+			$opcodes{OP_EQUAL}{runner}->(@_);
+			$opcodes{OP_VERIFY}{runner}->(@_);
+		}
 	},
 	OP_RESERVED1 => {
 		code => 0x89,
@@ -568,7 +585,10 @@ my %opcodes = (
 	OP_NUMEQUALVERIFY => {
 		code => 0x9d,
 
-		# see runner below
+		runner => sub {
+			$opcodes{OP_NUMEQUAL}{runner}->(@_);
+			$opcodes{OP_VERIFY}{runner}->(@_);
+		},
 	},
 	OP_NUMNOTEQUAL => {
 		code => 0x9e,
@@ -745,10 +765,22 @@ my %opcodes = (
 			my $pubkey;
 			my $hashtype;
 
-			if ($runner->transaction->is_taproot) {
+			if ($runner->tapscript) {
 				$hashtype = length $sig == 65 ? unpack('C', substr $sig, -1, 1, '') : undef;
-				$pubkey = btc_pub->from_serialized(lift_x $raw_pubkey);
-				$pubkey->set_taproot(!!1);
+
+				# rules according to https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#rules-for-signature-opcodes
+				if (length $raw_pubkey == 32) {
+					$pubkey = btc_pub->from_serialized(lift_x $raw_pubkey);
+					$pubkey->set_taproot(!!1);
+				}
+				elsif (length $raw_pubkey == 0) {
+					invalid_script;
+				}
+				else {
+					# unknown key type
+					push @$stack, $runner->from_bool(!!1);
+					return;
+				}
 			}
 			else {
 				$hashtype = unpack 'C', substr $sig, -1, 1, '';
@@ -767,7 +799,10 @@ my %opcodes = (
 		code => 0xad,
 		needs_transaction => !!1,
 
-		# see runner below
+		runner => sub {
+			$opcodes{OP_CHECKSIG}{runner}->(@_);
+			$opcodes{OP_VERIFY}{runner}->(@_);
+		}
 	},
 	OP_CHECKMULTISIG => {
 		code => 0xae,
@@ -775,6 +810,9 @@ my %opcodes = (
 
 		runner => sub {
 			my $runner = shift;
+
+			invalid_script
+				if $runner->tapscript;
 
 			my $stack = $runner->stack;
 			stack_error unless @$stack >= 1;
@@ -819,7 +857,10 @@ my %opcodes = (
 		code => 0xaf,
 		needs_transaction => !!1,
 
-		# see runner below
+		runner => sub {
+			$opcodes{OP_CHECKMULTISIG}{runner}->(@_);
+			$opcodes{OP_VERIFY}{runner}->(@_);
+		}
 	},
 	OP_NOP1 => {
 		code => 0xb0,
@@ -935,39 +976,6 @@ for my $num (1 .. 16) {
 		}
 	};
 }
-
-# runners for these are the same, since the script is complied
-$opcodes{OP_PUSHDATA4}{runner} =
-	$opcodes{OP_PUSHDATA1}{runner};
-
-# runners for these are the same, since the script is complied
-$opcodes{OP_PUSHDATA2}{runner} =
-	$opcodes{OP_PUSHDATA1}{runner};
-
-$opcodes{OP_NOTIF}{runner} = sub {
-	$opcodes{OP_NOT}{runner}->(@_);
-	$opcodes{OP_IF}{runner}->(@_);
-};
-
-$opcodes{OP_EQUALVERIFY}{runner} = sub {
-	$opcodes{OP_EQUAL}{runner}->(@_);
-	$opcodes{OP_VERIFY}{runner}->(@_);
-};
-
-$opcodes{OP_NUMEQUALVERIFY}{runner} = sub {
-	$opcodes{OP_NUMEQUAL}{runner}->(@_);
-	$opcodes{OP_VERIFY}{runner}->(@_);
-};
-
-$opcodes{OP_CHECKSIGVERIFY}{runner} = sub {
-	$opcodes{OP_CHECKSIG}{runner}->(@_);
-	$opcodes{OP_VERIFY}{runner}->(@_);
-};
-
-$opcodes{OP_CHECKMULTISIGVERIFY}{runner} = sub {
-	$opcodes{OP_CHECKMULTISIG}{runner}->(@_);
-	$opcodes{OP_VERIFY}{runner}->(@_);
-};
 
 my %opcodes_reverse = map { $opcodes{$_}{code}, $_ } keys %opcodes;
 
