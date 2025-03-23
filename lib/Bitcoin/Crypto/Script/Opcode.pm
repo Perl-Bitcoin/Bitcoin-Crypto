@@ -964,6 +964,23 @@ my %opcodes;
 		code => 0xb9,
 		runner => sub { 'NOP' },
 	},
+	OP_CHECKSIGADD => {
+		code => 0xba,
+		needs_transaction => !!1,
+
+		runner => sub {
+			my $runner = shift;
+
+			invalid_script unless $runner->tapscript;
+
+			my $stack = $runner->stack;
+			stack_error unless @$stack >= 3;
+			my $n = $runner->to_int(splice @$stack, -2, 1);
+
+			$opcodes{OP_CHECKSIG}{runner}->($runner);
+			push @$stack, $runner->from_int($n + $runner->to_int(pop @$stack));
+		},
+	},
 );
 
 for my $num (1 .. 16) {
