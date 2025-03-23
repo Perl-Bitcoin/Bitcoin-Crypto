@@ -766,7 +766,6 @@ my %opcodes;
 			my $hashtype;
 
 			if ($runner->tapscript) {
-				$hashtype = length $sig == 65 ? unpack('C', substr $sig, -1, 1, '') : undef;
 
 				# rules according to https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#rules-for-signature-opcodes
 				if (length $raw_pubkey == 32) {
@@ -781,6 +780,16 @@ my %opcodes;
 					push @$stack, $runner->from_bool(!!1);
 					return;
 				}
+
+				if (length $sig == 0) {
+
+					# empty signature
+					push @$stack, $runner->from_bool(!!0);
+					return;
+				}
+				else {
+					$hashtype = length $sig == 65 ? unpack('C', substr $sig, -1, 1, '') : undef;
+				}
 			}
 			else {
 				$hashtype = unpack 'C', substr $sig, -1, 1, '';
@@ -792,6 +801,10 @@ my %opcodes;
 
 			my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype);
 			my $result = $pubkey->verify_message($preimage, $sig);
+
+			invalid_script
+				if !$result && $runner->tapscript;
+
 			push @$stack, $runner->from_bool($result);
 		},
 	},

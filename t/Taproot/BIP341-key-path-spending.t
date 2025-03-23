@@ -268,7 +268,7 @@ subtest 'should verify signed tx with key path' => sub {
 	substr $tx->inputs->[0]->witness->[0], 15, 1, "\x00";
 
 	my $err = dies { $tx->verify(block => $block_now) };
-	like $err, qr/execution yielded failure/, 'wrong signature ok';
+	like $err, qr/marked as invalid/, 'wrong signature ok';
 };
 
 foreach my $case_ind (0 .. $#cases) {
