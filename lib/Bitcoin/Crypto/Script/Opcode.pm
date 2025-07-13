@@ -1027,7 +1027,7 @@ sub get_opcode_by_code
 	my ($self, $code) = @_;
 
 	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
-		"unknown opcode code " . unpack 'H*', $code
+		"unknown opcode code $code"
 	) unless exists $opcodes_reverse{$code};
 
 	return $opcodes{$opcodes_reverse{$code}};
