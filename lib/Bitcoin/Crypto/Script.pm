@@ -6,7 +6,6 @@ use warnings;
 use Moo;
 use Crypt::Digest::SHA256 qw(sha256);
 use Mooish::AttributeBuilder -standard;
-use Try::Tiny;
 use Scalar::Util qw(blessed);
 use List::Util qw(any);
 use Types::Common -sigs, -types;
@@ -192,164 +191,6 @@ sub BUILD
 
 		$self->_build($args->{type}, $args->{address});
 	}
-}
-
-signature_for operations => (
-	method => Object,
-	positional => [],
-);
-
-sub operations
-{
-	my ($self) = @_;
-
-	my $serialized = $self->_serialized;
-	my @ops;
-
-	my $data_push = sub {
-		my ($size) = @_;
-
-		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-			'not enough bytes of data in the script'
-		) if length $serialized < $size;
-
-		return substr $serialized, 0, $size, '';
-	};
-
-	my %context = (
-		op_if => undef,
-		op_else => undef,
-		previous_context => undef,
-	);
-
-	my %special_ops = (
-		OP_PUSHDATA1 => sub {
-			my ($op) = @_;
-			my $raw_size = substr $serialized, 0, 1, '';
-			my $size = unpack 'C', $raw_size;
-
-			push @$op, $data_push->($size);
-			$op->[1] .= $raw_size . $op->[2];
-		},
-		OP_PUSHDATA2 => sub {
-			my ($op) = @_;
-			my $raw_size = substr $serialized, 0, 2, '';
-			my $size = unpack 'v', $raw_size;
-
-			push @$op, $data_push->($size);
-			$op->[1] .= $raw_size . $op->[2];
-		},
-		OP_PUSHDATA4 => sub {
-			my ($op) = @_;
-			my $raw_size = substr $serialized, 0, 4, '';
-			my $size = unpack 'V', $raw_size;
-
-			push @$op, $data_push->($size);
-			$op->[1] .= $raw_size . $op->[2];
-		},
-		OP_IF => sub {
-			my ($op) = @_;
-
-			if ($context{op_if}) {
-				%context = (
-					previous_context => {%context},
-				);
-			}
-			$context{op_if} = $op;
-		},
-		OP_ELSE => sub {
-			my ($op, $pos) = @_;
-
-			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-				'OP_ELSE found but no previous OP_IF or OP_NOTIF'
-			) if !$context{op_if};
-
-			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-				'multiple OP_ELSE for a single OP_IF'
-			) if @{$context{op_if}} > 2;
-
-			$context{op_else} = $op;
-
-			push @{$context{op_if}}, $pos;
-		},
-		OP_ENDIF => sub {
-			my ($op, $pos) = @_;
-
-			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-				'OP_ENDIF found but no previous OP_IF or OP_NOTIF'
-			) if !$context{op_if};
-
-			push @{$context{op_if}}, undef
-				if @{$context{op_if}} == 2;
-			push @{$context{op_if}}, $pos;
-
-			if ($context{op_else}) {
-				push @{$context{op_else}}, $pos;
-			}
-
-			if ($context{previous_context}) {
-				%context = %{$context{previous_context}};
-			}
-			else {
-				%context = ();
-			}
-		},
-	);
-
-	$special_ops{OP_NOTIF} = $special_ops{OP_IF};
-	my @debug_ops;
-	my $position = 0;
-
-	try {
-		while (length $serialized) {
-			my $this_byte = substr $serialized, 0, 1, '';
-
-			try {
-				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code(ord $this_byte);
-				push @debug_ops, $opcode->name;
-				my $to_push = [$opcode, $this_byte];
-
-				if (exists $special_ops{$opcode->name}) {
-					$special_ops{$opcode->name}->($to_push, $position);
-				}
-
-				push @ops, $to_push;
-			}
-			catch {
-				my $err = $_;
-
-				my $opcode_num = ord($this_byte);
-				unless ($opcode_num > 0 && $opcode_num <= 75) {
-					push @debug_ops, unpack 'H*', $this_byte;
-					die $err;
-				}
-
-				# NOTE: compiling standard data push into PUSHDATA1 for now
-				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name('OP_PUSHDATA1');
-				push @debug_ops, $opcode->name;
-
-				my $raw_data = $data_push->($opcode_num);
-				push @ops, [$opcode, $this_byte . $raw_data, $raw_data];
-			};
-
-			$position += 1;
-		}
-
-		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-			'some OP_IFs were not closed'
-		) if $context{op_if};
-	}
-	catch {
-		my $ex = $_;
-		if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::ScriptSyntax')) {
-			$ex->set_script(\@debug_ops);
-			$ex->set_error_position($position);
-		}
-
-		die $ex;
-	};
-
-	return \@ops;
 }
 
 signature_for is_pushes_only => (
@@ -552,6 +393,19 @@ sub from_standard
 		type => $desc->[0],
 		address => $desc->[1],
 	);
+}
+
+signature_for operations => (
+	method => Object,
+	positional => [],
+);
+
+sub operations
+{
+	my ($self) = @_;
+
+	my $runner = Bitcoin::Crypto::Script::Runner->new();
+	return $runner->compile($self);
 }
 
 signature_for run => (
@@ -760,22 +614,6 @@ A constructor. Returns a new empty script instance.
 
 See L</from_serialized> if you want to import a serialized script instead.
 
-=head2 operations
-
-	$ops_aref = $object->operations
-
-Returns an array reference of operations contained in a script:
-
-	[
-		[OP_XXX (Object), raw (String), ...],
-		...
-	]
-
-The first element of each subarray is the L<Bitcoin::Crypto::Script::Opcode>
-object. The second element is the raw opcode string, usually single byte. The
-rest of elements are metadata and is dependant on the op type. This metadata is
-used during script execution.
-
 =head2 add_operation, add
 
 	$script_object = $object->add_operation($opcode)
@@ -882,6 +720,14 @@ then the contained alegacy address will be returned. If the script is not of
 standard type or the type does not contain an address, returns C<undef>.
 
 Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>.
+
+=head2 operations
+
+	$ops_aref = $object->operations
+
+Returns an array reference of operations contained in a script. It is the same
+as calling L<Bitcoin::Crypto::Script::Runner/compile>. It always returns the
+operations for a normal (non-taproot) script.
 
 =head2 run
 
