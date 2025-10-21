@@ -236,6 +236,13 @@ sub as_string
 
 {
 
+	package Bitcoin::Crypto::Exception::Block;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
+}
+
+{
+
 	package Bitcoin::Crypto::Exception::ScriptSyntax;
 
 	use Moo;
