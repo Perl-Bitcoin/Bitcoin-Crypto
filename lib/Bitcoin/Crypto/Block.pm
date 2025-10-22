@@ -39,7 +39,7 @@ has param 'timestamp' => (
 
 has param 'bits' => (
 	isa => IntMaxBits [32],
-	default => 0x207fffff,  # Difficulty bits
+	default => 0x207fffff,    # Difficulty bits
 );
 
 has param 'nonce' => (
@@ -112,8 +112,8 @@ sub to_serialized
 
 	# Block header (80 bytes)
 	$serialized .= pack 'V', $self->version;
-	$serialized .= scalar reverse $self->prev_block_hash;  # Reversed for little-endian
-	$serialized .= scalar reverse $self->merkle_root;      # Reversed for little-endian
+	$serialized .= scalar reverse $self->prev_block_hash;    # Reversed for little-endian
+	$serialized .= scalar reverse $self->merkle_root;    # Reversed for little-endian
 	$serialized .= pack 'V', $self->timestamp;
 	$serialized .= pack 'V', $self->bits;
 	$serialized .= pack 'V', $self->nonce;
@@ -133,7 +133,7 @@ signature_for from_serialized => (
 	method => Str,
 	positional => [
 		ByteStr,
-		Maybe[PositiveOrZeroInt], {default => undef},
+		Maybe [PositiveOrZeroInt], {default => undef},
 	],
 );
 
@@ -177,37 +177,37 @@ sub from_serialized
 
 		my $tx_start = $pos;
 		my $tx_pos = $pos;
-		
+
 		# Version (4 bytes)
 		$tx_pos += 4;
-		
+
 		# Check for witness flag
 		my $witness_flag = 0;
 		if ($tx_pos + 2 <= length($serialized)) {
 			$witness_flag = (substr($serialized, $tx_pos, 2) eq "\x00\x01");
 			$tx_pos += 2 if $witness_flag;
 		}
-		
+
 		# Parse input count and inputs
 		my $input_count = unpack_compactsize $serialized, \$tx_pos;
 		for (1 .. $input_count) {
-			$tx_pos += 32; # Previous transaction hash
-			$tx_pos += 4;  # Previous transaction index
-			
+			$tx_pos += 32;    # Previous transaction hash
+			$tx_pos += 4;    # Previous transaction index
+
 			my $script_length = unpack_compactsize $serialized, \$tx_pos;
-			$tx_pos += $script_length; # Script
-			$tx_pos += 4;  # Sequence
+			$tx_pos += $script_length;    # Script
+			$tx_pos += 4;    # Sequence
 		}
-		
+
 		# Parse output count and outputs
 		my $output_count = unpack_compactsize $serialized, \$tx_pos;
 		for (1 .. $output_count) {
-			$tx_pos += 8;  # Value
-			
+			$tx_pos += 8;    # Value
+
 			my $script_length = unpack_compactsize $serialized, \$tx_pos;
-			$tx_pos += $script_length; # Script
+			$tx_pos += $script_length;    # Script
 		}
-		
+
 		# Parse witness data if present
 		if ($witness_flag) {
 			for (1 .. $input_count) {
@@ -218,15 +218,15 @@ sub from_serialized
 				}
 			}
 		}
-		
+
 		# Locktime (4 bytes)
 		$tx_pos += 4;
-		
+
 		# Extract and parse transaction
 		my $tx_length = $tx_pos - $tx_start;
 		my $tx_data = substr($serialized, $tx_start, $tx_length);
 		my $tx = Bitcoin::Crypto::Transaction->from_serialized($tx_data);
-		
+
 		$pos = $tx_pos;
 		push @transactions, $tx;
 	}
@@ -243,7 +243,7 @@ sub from_serialized
 		bits => $bits,
 		nonce => $nonce,
 	};
-	
+
 	# Add height if provided
 	$block_args->{height} = $height if defined $height;
 
@@ -304,7 +304,7 @@ sub calculate_merkle_root
 	while (@tx_hashes > 1) {
 		my @next_level;
 
-		for (my $i = 0; $i < @tx_hashes; $i += 2) {
+		for (my $i = 0 ; $i < @tx_hashes ; $i += 2) {
 			my $left = $tx_hashes[$i];
 			my $right = $i + 1 < @tx_hashes ? $tx_hashes[$i + 1] : $left;
 
@@ -315,7 +315,7 @@ sub calculate_merkle_root
 		@tx_hashes = @next_level;
 	}
 
-	$self->{merkle_root} = scalar reverse $tx_hashes[0];  # set merkle_root
+	$self->{merkle_root} = scalar reverse $tx_hashes[0];    # set merkle_root
 
 	return $self->merkle_root;
 }
