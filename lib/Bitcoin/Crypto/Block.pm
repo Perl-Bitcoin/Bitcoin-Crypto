@@ -22,14 +22,16 @@ has param 'version' => (
 	default => 1,
 );
 
-has param 'prev_block_hash' => (
+has option 'prev_block_hash' => (
 	isa => ByteStr,
-	default => sub { "\x00" x 32 },
 );
 
-has param 'merkle_root' => (
+has field 'merkle_root' => (
 	isa => ByteStr,
-	default => sub { "\x00" x 32 },
+	lazy => 1,
+	builder => '_build_merkle_root',
+	predicate => '_has_merkle_root',
+	clearer => '_clear_merkle_root',
 );
 
 has param 'timestamp' => (
@@ -81,6 +83,10 @@ sub add_transaction
 	}
 
 	push @{$self->transactions}, $data;
+
+	# Clear cached merkle root if set
+	$self->_clear_merkle_root if $self->_has_merkle_root;
+
 	return $self;
 }
 
@@ -285,12 +291,7 @@ sub get_header
 	return $header;
 }
 
-signature_for calculate_merkle_root => (
-	method => Object,
-	positional => [],
-);
-
-sub calculate_merkle_root
+sub _build_merkle_root
 {
 	my ($self) = @_;
 
@@ -315,9 +316,7 @@ sub calculate_merkle_root
 		@tx_hashes = @next_level;
 	}
 
-	$self->{merkle_root} = scalar reverse $tx_hashes[0];    # set merkle_root
-
-	return $self->merkle_root;
+	return scalar reverse $tx_hashes[0];
 }
 
 signature_for median_time_past => (
@@ -433,7 +432,7 @@ Bitcoin::Crypto::Block - Bitcoin block implementation
 	$block->add_transaction($tx2);
 
 	# Calculate merkle root
-	$block->calculate_merkle_root;
+	my $merkle_root = $block->merkle_root;
 
 	# Get block info
 	print "Block hash: " . to_format([hex => $block->get_hash]) . "\n";
@@ -463,7 +462,9 @@ including transaction management, merkle root calculation, and block validation.
 
 The class also provides the functionality required for locktime and sequence
 checks in transactions, as used in L<Bitcoin::Crypto::Transaction/verify> and
-L<Bitcoin::Crypto::Transaction::UTXO/block>.
+L<Bitcoin::Crypto::Transaction::UTXO/block>. For transaction verification purposes,
+only the L</timestamp>, L</height>, and optionally L</previous> attributes are
+required - other block header fields can be omitted.
 
 =head1 INTERFACE
 
@@ -584,11 +585,11 @@ Returns the hash as a binary string in display format (big-endian).
 
 Returns the 80-byte block header in Bitcoin's binary format.
 
-=head3 calculate_merkle_root
+=head3 merkle_root
 
-	$merkle_root = $object->calculate_merkle_root()
+	$merkle_root = $object->merkle_root()
 
-Calculates the merkle root from the block's transactions and sets it on the block.
+Calculates the merkle root from the block's transactions.
 Throws an exception if the block has no transactions.
 
 Returns the calculated merkle root.

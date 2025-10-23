@@ -37,7 +37,7 @@ subtest 'Error Handling' => sub {
 
 	$err = dies {
 		my $block = Bitcoin::Crypto::Block->new(height => 10);
-		$block->calculate_merkle_root;    # No transactions
+		$block->merkle_root;    # No transactions
 	};
 
 	is $err->message, 'cannot calculate merkle root for empty block', 'Correct error message for short block data';
@@ -121,14 +121,6 @@ subtest 'Mainnet Block Data Parsing' => sub {
 
 		is(to_format [hex => $block->merkle_root], $block_data->{merkle_root}, 'Correct merkle root');
 
-		# calculate and set merkle root
-		$block->calculate_merkle_root;
-		is(
-			to_format [hex => $block->merkle_root],
-			$block_data->{merkle_root},
-			'Calculated merkle root matches expected value'
-		);
-
 		is($block->timestamp, $block_data->{timestamp}, 'Correct timestamp');
 		is($block->bits, $block_data->{bits}, 'Correct bits');
 		is($block->nonce, $block_data->{nonce}, 'Correct nonce');
@@ -136,7 +128,7 @@ subtest 'Mainnet Block Data Parsing' => sub {
 		is($block->weight, $block_data->{weight}, 'Correct block weight');
 		is($block->size, $block_data->{size}, 'Correct block size');
 
-		my $reserialized = $block->to_serialized();
+		my $reserialized = $block->to_serialized;
 		my $hex_reserialized = to_format [hex => $reserialized];
 		is($hex_reserialized, $block_data->{hex}, 'Round-trip serialization matches original data');
 	}
