@@ -244,7 +244,6 @@ sub from_serialized
 	my $block_args = {
 		version => $version,
 		prev_block_hash => $prev_block_hash,
-		merkle_root => $merkle_root,
 		timestamp => $timestamp,
 		bits => $bits,
 		nonce => $nonce,
@@ -255,6 +254,7 @@ sub from_serialized
 
 	my $block = $class->new($block_args);
 	@{$block->transactions} = @transactions;
+	$block->{merkle_root} = $merkle_root;
 
 	return $block;
 }
