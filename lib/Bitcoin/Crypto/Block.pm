@@ -49,7 +49,7 @@ has param 'nonce' => (
 	default => 0,
 );
 
-has param 'height' => (
+has option 'height' => (
 	isa => PositiveOrZeroInt,
 );
 
@@ -252,7 +252,10 @@ sub from_serialized
 
 	my $block = $class->new($block_args);
 	@{$block->transactions} = @transactions;
-	$block->{merkle_root} = $merkle_root;
+
+	Bitcoin::Crypto::Exception::Block->raise(
+		'serialized block merkle root is incorrect'
+	) if $block->merkle_root ne $merkle_root;
 
 	return $block;
 }
@@ -379,7 +382,7 @@ sub dump
 {
 	my ($self) = @_;
 
-	my $height_str = defined $self->height ? $self->height : 'unknown';
+	my $height_str = $self->has_height ? $self->height : 'unknown';
 
 	my @result;
 	push @result, 'Block ' . to_format [hex => $self->get_hash];
@@ -507,7 +510,7 @@ I<Available in the constructor>.
 
 =head3 height
 
-Block height
+Optional block height.
 
 I<Available in the constructor>.
 
@@ -538,7 +541,7 @@ Returns class instance.
 	$block = $object->add_transaction($transaction)
 	$block = $object->add_transaction(@transaction_args)
 
-Adds a transaction to the block. Can accept either a 
+Adds a transaction to the block. Can accept either a
 L<Bitcoin::Crypto::Transaction> object or arguments to construct one.
 
 Returns the block object for method chaining.
@@ -561,11 +564,12 @@ Returns the serialized block as a binary string.
 
 =head3 from_serialized
 
-	$block = $class->from_serialized($bytes, $height)
+	$block = $class->from_serialized($bytes, %constructor_args)
 
 Creates a block object from serialized Bitcoin block data.
 
-Takes the serialized block data as binary string and the block height.
+Takes the serialized block data as binary string and optional extra constructor
+arguments (like C<height> or C<previous> block instance).
 
 Returns a new block instance.
 

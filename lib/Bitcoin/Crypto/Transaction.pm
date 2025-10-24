@@ -517,16 +517,15 @@ sub verify
 		} @inputs
 		)
 	{
-		if (defined $block) {
-			my $locktime = $self->locktime;
-			my $is_timestamp = $locktime >= Bitcoin::Crypto::Constants::locktime_height_threshold;
-
+		my $locktime = $self->locktime;
+		my $is_timestamp = $locktime >= Bitcoin::Crypto::Constants::locktime_height_threshold;
+		if (defined $block && ($is_timestamp || $block->has_height)) {
 			Bitcoin::Crypto::Exception::Transaction->raise(
 				'locktime was not satisfied'
 			) if $locktime > ($is_timestamp ? $block->median_time_past : $block->height);
 		}
 		else {
-			carp 'trying to verify locktime but no block parameter was passed';
+			carp 'trying to verify locktime but no fitting block parameter was passed';
 		}
 	}
 
@@ -553,8 +552,10 @@ sub verify
 			my $sequence = $input->sequence_no;
 			my $time_based = $sequence & (1 << 22);
 			my $relative_locktime = $sequence & 0x0000ffff;
+			my $has_block = defined $block && ($time_based || $block->has_height);
+			my $has_utxo_block = $utxo->has_block && ($time_based || $utxo->block->has_height);
 
-			if (defined $block && $utxo->has_block) {
+			if ($has_block && $has_utxo_block) {
 				my $utxo_block = $utxo->block;
 				my $now = $time_based ? $block->median_time_past : $block->height;
 				my $then = $time_based ? $utxo_block->median_time_past : $utxo_block->height;
@@ -565,7 +566,8 @@ sub verify
 				) if $now < $then + $relative_locktime;
 			}
 			else {
-				carp 'trying to verify relative locktime but no block parameter was passed or utxo block was set';
+				carp
+					'trying to verify relative locktime but no fitting block parameter was passed or utxo block was set';
 			}
 		}
 	}
