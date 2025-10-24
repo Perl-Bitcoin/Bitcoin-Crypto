@@ -2,6 +2,13 @@ Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
 
+3.002 Fri Oct 24, 2025
+	[Added interface]
+	- Bitcoin::Crypto::Block now supports full block serialization / deserialization (thanks @regcostajr)
+
+	[Changes and fixes]
+	- Bitcoin::Crypto::Block::height is now optional and can be undefined
+
 3.001 Tue Sep 24, 2024
 	[Changes and fixes]
 	- fixed building ecc context on some older perls on Windows
