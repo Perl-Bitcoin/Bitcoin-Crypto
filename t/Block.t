@@ -108,7 +108,8 @@ subtest 'Mainnet Block Data Parsing' => sub {
 	);
 
 	for my $block_data (@mainnet_blocks) {
-		my $block = Bitcoin::Crypto::Block->from_serialized([hex => $block_data->{hex}], $block_data->{height});
+		my $block =
+			Bitcoin::Crypto::Block->from_serialized([hex => $block_data->{hex}], height => $block_data->{height});
 
 		is($block->version, $block_data->{version}, 'Correct block version');
 		is($block->height, $block_data->{height}, 'Block height matches expected value');

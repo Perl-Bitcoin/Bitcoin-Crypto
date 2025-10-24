@@ -139,13 +139,13 @@ signature_for from_serialized => (
 	method => Str,
 	positional => [
 		ByteStr,
-		Maybe [PositiveOrZeroInt], {default => undef},
+		HashRef, {slurpy => !!1},
 	],
 );
 
 sub from_serialized
 {
-	my ($class, $serialized, $height) = @_;
+	my ($class, $serialized, $extra_args) = @_;
 	my $pos = 0;
 
 	Bitcoin::Crypto::Exception::Block->raise(
@@ -242,15 +242,13 @@ sub from_serialized
 	) if $pos != length $serialized;
 
 	my $block_args = {
+		%$extra_args,
 		version => $version,
 		prev_block_hash => $prev_block_hash,
 		timestamp => $timestamp,
 		bits => $bits,
 		nonce => $nonce,
 	};
-
-	# Add height if provided
-	$block_args->{height} = $height if defined $height;
 
 	my $block = $class->new($block_args);
 	@{$block->transactions} = @transactions;
