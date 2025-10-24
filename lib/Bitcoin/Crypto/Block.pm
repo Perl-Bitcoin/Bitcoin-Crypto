@@ -20,10 +20,12 @@ use namespace::clean;
 has param 'version' => (
 	isa => IntMaxBits [32],
 	default => 1,
+	writer => 1,
 );
 
 has option 'prev_block_hash' => (
-	isa => ByteStr,
+	coerce => ByteStr,
+	writer => 1,
 );
 
 has field 'merkle_root' => (
@@ -37,30 +39,48 @@ has field 'merkle_root' => (
 has param 'timestamp' => (
 	isa => PositiveInt,
 	default => sub { scalar time },
+	writer => 1,
 );
 
 has param 'bits' => (
 	isa => IntMaxBits [32],
 	default => 0x207fffff,    # Difficulty bits
+	writer => 1,
 );
 
 has param 'nonce' => (
 	isa => IntMaxBits [32],
 	default => 0,
+	writer => 1,
 );
 
 has option 'height' => (
 	isa => PositiveOrZeroInt,
+	writer => 1,
 );
 
 has option 'previous' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Block'],
+	writer => 1,
+	trigger => 1,
 );
 
 has field 'transactions' => (
 	isa => ArrayRef [InstanceOf ['Bitcoin::Crypto::Transaction']],
 	default => sub { [] },
 );
+
+signature_for has_transactions => (
+	method => Object,
+	positional => [],
+);
+
+sub has_transactions
+{
+	my ($self) = @_;
+
+	return @{$self->transactions} > 0;
+}
 
 signature_for add_transaction => (
 	method => Object,
@@ -292,6 +312,15 @@ sub get_header
 	return $header;
 }
 
+sub _trigger_previous
+{
+	my ($self) = @_;
+
+	return unless $self->previous->has_transactions;
+
+	$self->set_prev_block_hash($self->previous->get_hash);
+}
+
 sub _build_merkle_root
 {
 	my ($self) = @_;
@@ -475,20 +504,26 @@ required - other block header fields can be omitted.
 
 Block version number. Default: 1.
 
+I<writer:> B<set_version>
+
 I<Available in the constructor>.
 
 =head3 prev_block_hash
 
-Previous block hash as binary string (32 bytes). Default: 32 zero bytes.
+Optional previous block hash as binary string (32 bytes)
 
 I<Available in the constructor>.
+
+I<writer:> B<set_prev_block_hash>
+
+I<predicate:> B<has_prev_block_hash>
 
 =head3 merkle_root
 
-Merkle root hash as binary string (32 bytes). Default: 32 zero bytes.
-Can be calculated automatically using L</calculate_merkle_root>.
-
-I<Available in the constructor>.
+Merkle root hash as binary string (32 bytes). This field serves as a cache that
+be calculated automatically and cleared on change of transactions. Calling
+reader of this field repeatedly without adding new transactions via
+L</add_transaction> will not cause the recalculation of the merkle_root.
 
 =head3 timestamp
 
@@ -496,11 +531,15 @@ Block timestamp as Unix timestamp. Default: current time.
 
 I<Available in the constructor>.
 
+I<writer:> B<set_timestamp>
+
 =head3 bits
 
 Block difficulty target in compact notation. Default: 0x207fffff.
 
 I<Available in the constructor>.
+
+I<writer:> B<set_bits>
 
 =head3 nonce
 
@@ -508,17 +547,29 @@ Block nonce used in proof-of-work. Default: 0.
 
 I<Available in the constructor>.
 
+I<writer:> B<set_nonce>
+
 =head3 height
 
 Optional block height.
 
 I<Available in the constructor>.
 
+I<writer:> B<set_height>
+
+I<predicate:> B<has_height>
+
 =head3 previous
 
-An optional instance of the previous block.
+An optional instance of the previous block. Note that setting a previous block
+instance will automatically set L</prev_block_hash> if previous block has
+transactions. It may silently replace the existing C<prev_block_hash>.
 
 I<Available in the constructor>.
+
+I<writer:> B<set_previous>
+
+I<predicate:> B<has_previous>
 
 =head3 transactions
 
@@ -535,6 +586,14 @@ This is a standard Moo constructor, which can be used to create the object. It
 takes arguments specified in L</Attributes>.
 
 Returns class instance.
+
+=head3 has_transactions
+
+	$bool = $object->has_transactions()
+
+Returns a true value if the block object contains at least one transactions.
+Using some methods (like L</merkle_root>) on block with no transactions will
+raise an exception.
 
 =head3 add_transaction
 
@@ -586,15 +645,6 @@ Returns the hash as a binary string in display format (big-endian).
 	$header = $object->get_header()
 
 Returns the 80-byte block header in Bitcoin's binary format.
-
-=head3 merkle_root
-
-	$merkle_root = $object->merkle_root()
-
-Calculates the merkle root from the block's transactions.
-Throws an exception if the block has no transactions.
-
-Returns the calculated merkle root.
 
 =head3 size
 

@@ -1,4 +1,5 @@
 use Test2::V0;
+use Bitcoin::Crypto qw(btc_block btc_transaction);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Block;
 
@@ -133,6 +134,22 @@ subtest 'Mainnet Block Data Parsing' => sub {
 		my $hex_reserialized = to_format [hex => $reserialized];
 		is($hex_reserialized, $block_data->{hex}, 'Round-trip serialization matches original data');
 	}
+};
+
+subtest 'should allow building block step by step' => sub {
+	my $sole_block_tx =
+		'010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff4e0304230d115768697465506f6f6c64012902f1607f29fabe6d6dfc49c9371003be5de29f5b812b250189efdf351915896223eb1fc1e8710706e0100000000000000000008c770700000000000000ffffffff04205fa0120000000017a914fd3938eda8ef5c62bdda522d8321d6ee6456a2c1870000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000000000002f6a2d434f5245015b9b30813264eaab2b70817a36c94733812e591c0b5996b2e8a83bdb76300105f7d4c2a79799604500000000000000002b6a2952534b424c4f434b3a1455ba850d3f676e54ef3a5e2cb9ef3738f707e7eee4d22b467ce024006616490120000000000000000000000000000000000000000000000000000000000000000000000000';
+	my $block = btc_block->new;
+
+	$block->set_timestamp(1726101953);
+	$block->set_version(0x242ee000);
+	$block->set_bits(0x1703098c);
+	$block->set_nonce(0xb8ec7c27);
+	$block->set_prev_block_hash([hex => '0000000000000000000138b6987659c57c81e21b0bf5eed47d2192e3c5bcffe5']);
+	$block->add_transaction(btc_transaction->from_serialized([hex => $sole_block_tx]));
+
+	is to_format [hex => $block->get_hash], '0000000000000000000021cbca8d7e3c778648070da31e394929ba0fc65c001c',
+		'block hash ok';
 };
 
 done_testing();
