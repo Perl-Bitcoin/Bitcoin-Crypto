@@ -157,15 +157,12 @@ sub to_serialized
 
 signature_for from_serialized => (
 	method => Str,
-	positional => [
-		ByteStr,
-		HashRef, {slurpy => !!1},
-	],
+	positional => [ByteStr],
 );
 
 sub from_serialized
 {
-	my ($class, $serialized, $extra_args) = @_;
+	my ($class, $serialized) = @_;
 	my $pos = 0;
 
 	Bitcoin::Crypto::Exception::Block->raise(
@@ -262,7 +259,6 @@ sub from_serialized
 	) if $pos != length $serialized;
 
 	my $block_args = {
-		%$extra_args,
 		version => $version,
 		prev_block_hash => $prev_block_hash,
 		timestamp => $timestamp,
@@ -470,7 +466,7 @@ Bitcoin::Crypto::Block - Bitcoin block implementation
 	print "Block weight: " . $block->weight . " WU\n";
 
 	# Parse from serialized data
-	my $block = btc_block->from_serialized($block_hex, $height);
+	my $block = btc_block->from_serialized($block_hex);
 
 	# Serialize block
 	my $serialized = $block->to_serialized;
@@ -623,12 +619,11 @@ Returns the serialized block as a binary string.
 
 =head3 from_serialized
 
-	$block = $class->from_serialized($bytes, %constructor_args)
+	$block = $class->from_serialized($bytes)
 
 Creates a block object from serialized Bitcoin block data.
 
-Takes the serialized block data as binary string and optional extra constructor
-arguments (like C<height> or C<previous> block instance).
+Takes the serialized block data as binary string.
 
 Returns a new block instance.
 
