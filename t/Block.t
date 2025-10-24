@@ -114,7 +114,7 @@ subtest 'Mainnet Block Data Parsing' => sub {
 
 		is($block->version, $block_data->{version}, 'Correct block version');
 		is($block->height, $block_data->{height}, 'Block height matches expected value');
-		is(scalar $block->transactions->@*, $block_data->{tx_count}, 'Block contains transactions');
+		is(scalar @{$block->transactions}, $block_data->{tx_count}, 'Block contains transactions');
 		is(
 			to_format [hex => $block->prev_block_hash],
 			$block_data->{prev_block_hash},
