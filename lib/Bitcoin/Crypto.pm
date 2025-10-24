@@ -177,6 +177,8 @@ In no particular order:
 
 =over
 
+=item * Reginaldo Costa
+
 =item * chromatic
 
 =back
