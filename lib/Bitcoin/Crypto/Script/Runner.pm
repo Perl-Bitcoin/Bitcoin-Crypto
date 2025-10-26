@@ -19,7 +19,7 @@ use namespace::clean;
 
 has field 'script' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script'],
-	writer => -hidden,
+	writer => 1,
 );
 
 has option 'transaction' => (
@@ -219,7 +219,7 @@ sub start
 {
 	my ($self, $script, $initial_stack) = @_;
 
-	$self->_set_script($script);
+	$self->set_script($script);
 	$self->_set_stack($initial_stack);
 	$self->_set_alt_stack([]);
 	$self->_set_pos(0);
@@ -557,6 +557,7 @@ I<writer:> C<set_transaction>
 =head3 script
 
 The current script being executed. Will be set automatically in L</start>.
+C<set_script> can be used to set it manually.
 
 B<Not assignable in the constructor>
 
