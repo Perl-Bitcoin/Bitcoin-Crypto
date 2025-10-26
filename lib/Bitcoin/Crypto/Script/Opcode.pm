@@ -21,27 +21,6 @@ use Bitcoin::Crypto::Helpers qw(ecc);
 use Bitcoin::Crypto::Util qw(hash160 hash256 get_public_key_compressed lift_x);
 use Bitcoin::Crypto::Transaction::Input;
 
-# some private helpers for opcodes
-
-sub stack_error
-{
-	die 'stack error';
-}
-
-sub invalid_script
-{
-	Bitcoin::Crypto::Exception::TransactionScript->raise(
-		'transaction was marked as invalid'
-	);
-}
-
-sub script_error
-{
-	Bitcoin::Crypto::Exception::TransactionScript->raise(
-		shift
-	);
-}
-
 use namespace::clean;
 
 has param 'name' => (
@@ -62,6 +41,16 @@ has param 'pushes' => (
 	default => 0,
 );
 
+# args for coderef are:
+# - Bitcoin::Crypto::Script::Runner instance
+# - Bitcoin::Crypto::Script::Opcode instance
+has option 'on_compilation' => (
+	isa => CodeRef,
+);
+
+# args for coderef are:
+# - Bitcoin::Crypto::Script::Runner instance
+# (additional args are possible depending on opcode type)
 has option 'runner' => (
 	isa => CodeRef,
 	predicate => 'implemented',
@@ -125,7 +114,10 @@ my %opcodes;
 	},
 	OP_RESERVED => {
 		code => 0x50,
-		runner => sub { invalid_script },
+		runner => sub {
+			my $runner = shift;
+			$runner->_invalid_script;
+		},
 	},
 	OP_NOP => {
 		code => 0x61,
@@ -136,7 +128,10 @@ my %opcodes;
 	},
 	OP_VER => {
 		code => 0x62,
-		runner => sub { invalid_script },
+		runner => sub {
+			my $runner = shift;
+			$runner->_invalid_script;
+		},
 	},
 	OP_IF => {
 		code => 0x63,
@@ -144,10 +139,10 @@ my %opcodes;
 			my ($runner, $else_pos, $endif_pos, $inverted) = @_;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			my $value = pop @$stack;
 			$value = $runner->tapscript ? $runner->to_minimal_bool($value) : $runner->to_bool($value);
-			invalid_script unless defined $value;
+			$runner->_invalid_script unless defined $value;
 			$value = !$value if $inverted;
 
 			if ($value) {
@@ -174,14 +169,22 @@ my %opcodes;
 	OP_VERIF => {
 		code => 0x65,
 
-		# NOTE: should also be invalid if the op is not run
-		runner => sub { invalid_script },
+		on_compilation => sub {
+			my ($runner, $opcode) = @_;
+
+			$runner->_invalid_script;
+		},
+		runner => sub { },
 	},
 	OP_VERNOTIF => {
 		code => 0x66,
 
-		# NOTE: should also be invalid if the op is not run
-		runner => sub { invalid_script },
+		on_compilation => sub {
+			my ($runner, $opcode) = @_;
+
+			$runner->_invalid_script;
+		},
+		runner => sub { },
 	},
 	OP_ELSE => {
 		code => 0x67,
@@ -208,7 +211,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			invalid_script unless $runner->to_bool($stack->[-1]);
+			$runner->_invalid_script unless $runner->to_bool($stack->[-1]);
 
 			# pop later so that problematic value can be seen on the stack
 			pop @$stack;
@@ -216,7 +219,10 @@ my %opcodes;
 	},
 	OP_RETURN => {
 		code => 0x6a,
-		runner => sub { invalid_script },
+		runner => sub {
+			my $runner = shift;
+			$runner->_invalid_script;
+		},
 	},
 	OP_TOALTSTACK => {
 		code => 0x6b,
@@ -224,7 +230,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @{$runner->alt_stack}, pop @$stack;
 		},
 	},
@@ -234,7 +240,7 @@ my %opcodes;
 			my $runner = shift;
 			my $alt = $runner->alt_stack;
 
-			stack_error unless @$alt >= 1;
+			$runner->_stack_error unless @$alt >= 1;
 			push @{$runner->stack}, pop @$alt;
 		},
 	},
@@ -244,7 +250,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			splice @$stack, -2, 2;
 		},
 	},
@@ -254,7 +260,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, @$stack[-2, -1];
 		},
 	},
@@ -264,7 +270,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 3;
+			$runner->_stack_error unless @$stack >= 3;
 			push @$stack, @$stack[-3, -2, -1];
 		},
 	},
@@ -274,7 +280,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 4;
+			$runner->_stack_error unless @$stack >= 4;
 			push @$stack, @$stack[-4, -3];
 		},
 	},
@@ -284,7 +290,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 6;
+			$runner->_stack_error unless @$stack >= 6;
 			push @$stack, splice @$stack, -6, 2;
 		},
 	},
@@ -294,7 +300,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 4;
+			$runner->_stack_error unless @$stack >= 4;
 			push @$stack, splice @$stack, -4, 2;
 		},
 	},
@@ -304,7 +310,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			if ($runner->to_bool($stack->[-1])) {
 				push @$stack, $stack->[-1];
 			}
@@ -325,7 +331,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			pop @$stack;
 		},
 	},
@@ -335,7 +341,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, $stack->[-1];
 		},
 	},
@@ -345,7 +351,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			splice @$stack, -2, 1;
 		},
 	},
@@ -355,7 +361,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, $stack->[-2];
 		},
 	},
@@ -365,10 +371,10 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 
 			my $n = $runner->to_int(pop @$stack);
-			stack_error if $n < 0 || $n >= @$stack;
+			$runner->_stack_error if $n < 0 || $n >= @$stack;
 
 			push @$stack, $stack->[-1 * ($n + 1)];
 		},
@@ -379,10 +385,10 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 
 			my $n = $runner->to_int(pop @$stack);
-			stack_error if $n < 0 || $n >= @$stack;
+			$runner->_stack_error if $n < 0 || $n >= @$stack;
 
 			push @$stack, splice @$stack, -1 * ($n + 1), 1;
 		},
@@ -393,7 +399,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 3;
+			$runner->_stack_error unless @$stack >= 3;
 			push @$stack, splice @$stack, -3, 1;
 		},
 	},
@@ -403,7 +409,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, splice @$stack, -2, 1;
 		},
 	},
@@ -413,7 +419,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			splice @$stack, -2, 0, $stack->[-1];
 		},
 	},
@@ -423,7 +429,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, $runner->from_int(length $stack->[-1]);
 		},
 	},
@@ -433,7 +439,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, $runner->from_bool(pop(@$stack) eq pop(@$stack));
 		},
 	},
@@ -447,11 +453,17 @@ my %opcodes;
 	},
 	OP_RESERVED1 => {
 		code => 0x89,
-		runner => sub { invalid_script },
+		runner => sub {
+			my $runner = shift;
+			$runner->_invalid_script;
+		},
 	},
 	OP_RESERVED2 => {
 		code => 0x8a,
-		runner => sub { invalid_script },
+		runner => sub {
+			my $runner = shift;
+			$runner->_invalid_script;
+		},
 	},
 	OP_1ADD => {
 		code => 0x8b,
@@ -459,7 +471,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, $runner->from_int($runner->to_int(pop @$stack) + 1);
 		},
 	},
@@ -469,7 +481,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, $runner->from_int($runner->to_int(pop @$stack) - 1);
 		},
 	},
@@ -479,7 +491,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, $runner->from_int($runner->to_int(pop @$stack) * -1);
 		},
 	},
@@ -489,7 +501,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, $runner->from_int(abs $runner->to_int(pop @$stack));
 		},
 	},
@@ -499,7 +511,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, $runner->from_bool($runner->to_int(pop @$stack) == 0);
 		},
 	},
@@ -509,7 +521,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, $runner->from_bool($runner->to_int(pop @$stack) != 0);
 		},
 	},
@@ -519,7 +531,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, $runner->from_int(
 				$runner->to_int(pop @$stack)
 					+ $runner->to_int(pop @$stack)
@@ -532,7 +544,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, $runner->from_int(
 				-1 * $runner->to_int(pop @$stack)
 					+ $runner->to_int(pop @$stack)
@@ -545,7 +557,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 
 			my $second = $runner->to_int(pop @$stack) != 0;
 			push @$stack, $runner->from_bool(
@@ -560,7 +572,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 
 			my $second = $runner->to_int(pop @$stack) != 0;
 			push @$stack, $runner->from_bool(
@@ -575,7 +587,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
 					== $runner->to_int(pop @$stack)
@@ -596,7 +608,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
 					!= $runner->to_int(pop @$stack)
@@ -609,7 +621,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
 					> $runner->to_int(pop @$stack)
@@ -622,7 +634,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
 					< $runner->to_int(pop @$stack)
@@ -635,7 +647,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
 					>= $runner->to_int(pop @$stack)
@@ -648,7 +660,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			push @$stack, $runner->from_bool(
 				$runner->to_int(pop @$stack)
 					<= $runner->to_int(pop @$stack)
@@ -661,7 +673,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			my ($first, $second) = splice @$stack, -2, 2;
 			push @$stack, $runner->to_int($first) < $runner->to_int($second)
 				? $first : $second;
@@ -673,7 +685,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 			my ($first, $second) = splice @$stack, -2, 2;
 			push @$stack, $runner->to_int($first) > $runner->to_int($second)
 				? $first : $second;
@@ -685,7 +697,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 3;
+			$runner->_stack_error unless @$stack >= 3;
 			my ($first, $second, $third) = map { $runner->to_int($_) } splice @$stack, -3, 3;
 			push @$stack, $runner->from_bool($first >= $second && $first < $third);
 		},
@@ -696,7 +708,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, ripemd160(pop @$stack);
 		},
 	},
@@ -706,7 +718,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, sha1(pop @$stack);
 		},
 	},
@@ -716,7 +728,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, sha256(pop @$stack);
 		},
 	},
@@ -726,7 +738,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, hash160(pop @$stack);
 		},
 	},
@@ -736,7 +748,7 @@ my %opcodes;
 			my $runner = shift;
 			my $stack = $runner->stack;
 
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 			push @$stack, hash256(pop @$stack);
 		},
 	},
@@ -757,53 +769,19 @@ my %opcodes;
 			my $runner = shift;
 
 			my $stack = $runner->stack;
-			stack_error unless @$stack >= 2;
+			$runner->_stack_error unless @$stack >= 2;
 
 			my $raw_pubkey = pop @$stack;
 			my $sig = pop @$stack;
 
-			my $pubkey;
-			my $hashtype;
+			my $hashtype = unpack 'C', substr $sig, -1, 1, '';
+			my $pubkey = btc_pub->from_serialized($raw_pubkey);
 
-			if ($runner->tapscript) {
-
-				# rules according to https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#rules-for-signature-opcodes
-				if (length $raw_pubkey == 32) {
-					$pubkey = btc_pub->from_serialized(lift_x $raw_pubkey);
-					$pubkey->set_taproot(!!1);
-				}
-				elsif (length $raw_pubkey == 0) {
-					invalid_script;
-				}
-				else {
-					# unknown key type
-					push @$stack, $runner->from_bool(!!1);
-					return;
-				}
-
-				if (length $sig == 0) {
-
-					# empty signature
-					push @$stack, $runner->from_bool(!!0);
-					return;
-				}
-				else {
-					$hashtype = length $sig == 65 ? unpack('C', substr $sig, -1, 1, '') : undef;
-				}
-			}
-			else {
-				$hashtype = unpack 'C', substr $sig, -1, 1, '';
-				$pubkey = btc_pub->from_serialized($raw_pubkey);
-
-				script_error('SegWit validation requires compressed public key')
-					if !$pubkey->compressed && $runner->transaction->is_native_segwit;
-			}
+			$runner->_script_error('SegWit validation requires compressed public key')
+				if !$pubkey->compressed && $runner->transaction->is_native_segwit;
 
 			my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype);
 			my $result = $pubkey->verify_message($preimage, $sig);
-
-			invalid_script
-				if !$result && $runner->tapscript;
 
 			push @$stack, $runner->from_bool($result);
 		},
@@ -824,21 +802,18 @@ my %opcodes;
 		runner => sub {
 			my $runner = shift;
 
-			invalid_script
-				if $runner->tapscript;
-
 			my $stack = $runner->stack;
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 
 			my $pubkeys_num = $runner->to_int(pop @$stack);
-			stack_error unless $pubkeys_num > 0 && @$stack >= $pubkeys_num;
+			$runner->_stack_error unless $pubkeys_num > 0 && @$stack >= $pubkeys_num;
 			my @pubkeys = splice @$stack, -$pubkeys_num;
 
-			script_error('SegWit validation requires all public keys to be compressed')
+			$runner->_script_error('SegWit validation requires all public keys to be compressed')
 				if $runner->transaction->is_native_segwit && notall { get_public_key_compressed($_) } @pubkeys;
 
 			my $signatures_num = $runner->to_int(pop @$stack);
-			stack_error unless $signatures_num > 0 && @$stack >= $signatures_num;
+			$runner->_stack_error unless $signatures_num > 0 && @$stack >= $signatures_num;
 			my @signatures = splice @$stack, -$signatures_num;
 
 			my $subscript = $runner->subscript;
@@ -859,7 +834,7 @@ my %opcodes;
 
 			# Remove extra unused value from the stack
 			my $unused = pop @$stack;
-			script_error('OP_CHECKMULTISIG dummy argument must be empty')
+			$runner->_script_error('OP_CHECKMULTISIG dummy argument must be empty')
 				if length $unused;
 
 			my $result = $found && !@signatures;
@@ -888,24 +863,24 @@ my %opcodes;
 			my $transaction = $runner->transaction;
 
 			my $stack = $runner->stack;
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 
 			my $c1 = $runner->to_int($stack->[-1], 5);
 			my $c2 = $runner->transaction->locktime;
 
-			invalid_script
+			$runner->_invalid_script
 				if $c1 < 0;
 
 			my $c1_is_height = $c1 < Bitcoin::Crypto::Constants::locktime_height_threshold;
 			my $c2_is_height = $c2 < Bitcoin::Crypto::Constants::locktime_height_threshold;
 
-			invalid_script
+			$runner->_invalid_script
 				unless !!$c1_is_height == !!$c2_is_height;
 
-			invalid_script
+			$runner->_invalid_script
 				if $c1 > $c2;
 
-			invalid_script
+			$runner->_invalid_script
 				if $transaction->this_input->sequence_no == Bitcoin::Crypto::Constants::max_sequence_no;
 
 			pop @$stack;
@@ -920,29 +895,29 @@ my %opcodes;
 			my $transaction = $runner->transaction;
 
 			my $stack = $runner->stack;
-			stack_error unless @$stack >= 1;
+			$runner->_stack_error unless @$stack >= 1;
 
 			my $c1 = $runner->to_int($stack->[-1], 5);
 
-			invalid_script
+			$runner->_invalid_script
 				if $c1 < 0;
 
 			if (!($c1 & (1 << 31))) {
-				invalid_script
+				$runner->_invalid_script
 					if $transaction->version < 2;
 
 				my $c2 = $transaction->this_input->sequence_no;
 
-				invalid_script
+				$runner->_invalid_script
 					if $c2 & (1 << 31);
 
 				my $c1_is_time = $c1 & (1 << 22);
 				my $c2_is_time = $c2 & (1 << 22);
 
-				invalid_script
+				$runner->_invalid_script
 					if !!$c1_is_time ne !!$c2_is_time;
 
-				invalid_script
+				$runner->_invalid_script
 					if ($c1 & 0x0000ffff) > ($c2 & 0x0000ffff);
 			}
 
@@ -977,23 +952,6 @@ my %opcodes;
 		code => 0xb9,
 		runner => sub { 'NOP' },
 	},
-	OP_CHECKSIGADD => {
-		code => 0xba,
-		needs_transaction => !!1,
-
-		runner => sub {
-			my $runner = shift;
-
-			invalid_script unless $runner->tapscript;
-
-			my $stack = $runner->stack;
-			stack_error unless @$stack >= 3;
-			my $n = $runner->to_int(splice @$stack, -2, 1);
-
-			$opcodes{OP_CHECKSIG}{runner}->($runner);
-			push @$stack, $runner->from_int($n + $runner->to_int(pop @$stack));
-		},
-	},
 );
 
 for my $num (1 .. 16) {
@@ -1007,15 +965,31 @@ for my $num (1 .. 16) {
 	};
 }
 
-my %opcodes_reverse = map { $opcodes{$_}{code}, $_ } keys %opcodes;
+# aliases - prefixed with underscore
+$opcodes{_OP_FALSE} = $opcodes{OP_0};
+$opcodes{_OP_TRUE} = $opcodes{OP_1};
 
-# aliases are added after setting up reverse mapping to end up with
-# deterministic results of get_opcode_by_code. This means opcodes below will
-# never be returned by that method.
-$opcodes{OP_FALSE} = $opcodes{OP_0};
-$opcodes{OP_TRUE} = $opcodes{OP_1};
+sub OPCODES
+{
+	my ($self) = @_;
 
-%opcodes = map { $_, __PACKAGE__->new(name => $_, %{$opcodes{$_}}) } keys %opcodes;
+	state $codes = {map { $_, $self->new(name => $_, %{$opcodes{$_}}) } keys %opcodes};
+	return $codes;
+}
+
+sub OPCODES_REVERSE
+{
+	my ($self) = @_;
+	my $class = ref $self || $self;
+
+	state $maps = {};
+	$maps->{$class} //= do {
+		my %codes = %{$self->OPCODES};
+		+{map { $codes{$_}{code}, $codes{$_} } grep { $_ !~ /^_/ } keys %codes};
+	};
+
+	return $maps->{$class};
+}
 
 signature_for get_opcode_by_code => (
 	method => Str,
@@ -1024,13 +998,14 @@ signature_for get_opcode_by_code => (
 
 sub get_opcode_by_code
 {
-	my ($self, $code) = @_;
+	my ($self, $code, $script) = @_;
+	my $hash = $self->OPCODES_REVERSE;
 
 	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
 		"unknown opcode code $code"
-	) unless exists $opcodes_reverse{$code};
+	) unless exists $hash->{$code};
 
-	return $opcodes{$opcodes_reverse{$code}};
+	return $hash->{$code};
 }
 
 signature_for get_opcode_by_name => (
@@ -1041,12 +1016,15 @@ signature_for get_opcode_by_name => (
 sub get_opcode_by_name
 {
 	my ($self, $name) = @_;
+	my $hash = $self->OPCODES;
+
+	my $opcode = $hash->{$name} || $hash->{"_$name"};
 
 	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
 		"unknown opcode $name"
-	) unless exists $opcodes{$name};
+	) unless $opcode;
 
-	return $opcodes{$name};
+	return $opcode;
 }
 
 1;

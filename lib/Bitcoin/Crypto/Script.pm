@@ -180,6 +180,11 @@ sub _build
 	return;
 }
 
+sub opcode_class
+{
+	return 'Bitcoin::Crypto::Script::Opcode';
+}
+
 sub BUILD
 {
 	my ($self, $args) = @_;
@@ -231,7 +236,7 @@ sub add_operation
 {
 	my ($self, $name) = @_;
 
-	my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name($name);
+	my $opcode = $self->opcode_class->get_opcode_by_name($name);
 	$self->add_raw(chr $opcode->code);
 
 	return $self;
@@ -405,7 +410,8 @@ sub operations
 	my ($self) = @_;
 
 	my $runner = Bitcoin::Crypto::Script::Runner->new();
-	return $runner->compile($self);
+	$runner->start($self);
+	return $runner->operations;
 }
 
 signature_for run => (
@@ -613,6 +619,13 @@ I<predicate>: C<has_type>
 A constructor. Returns a new empty script instance.
 
 See L</from_serialized> if you want to import a serialized script instead.
+
+=head2 opcode_class
+
+	$class_name = $class->opcode_class()
+	$class->opcode_class->get_opcode_by_name($opname)
+
+Returns the name of the class used to get the proper opcodes.
 
 =head2 add_operation, add
 

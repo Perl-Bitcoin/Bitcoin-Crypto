@@ -1,5 +1,5 @@
 use Test2::V0;
-use Bitcoin::Crypto::Script;
+use Bitcoin::Crypto qw(btc_script);
 
 use lib 't/lib';
 use ScriptTest;
@@ -28,12 +28,12 @@ my @cases = (
 
 	{
 		ops => [qw(OP_VERIF)],
-		exception => 1,
+		compilation_exception => 1,
 	},
 
 	{
 		ops => [qw(OP_VERNOTIF)],
-		exception => 1,
+		compilation_exception => 1,
 	},
 
 	{
@@ -75,20 +75,27 @@ foreach my $case (@cases) {
 	subtest "testing script execution for case $case_num" => sub {
 		my @ops = @{$case->{ops}};
 
-		my $script = Bitcoin::Crypto::Script->new;
+		my $script = btc_script->new;
 		script_fill($script, @ops);
 
-		ops_are($script, \@ops, "ops ok");
-
-		my $err = dies {
-			$script->run;
+		my $comp_err = dies {
+			ops_are($script, \@ops, "ops ok");
 		};
 
-		if ($case->{exception}) {
-			isa_ok $err, 'Bitcoin::Crypto::Exception::TransactionScript';
+		if ($case->{compilation_exception}) {
+			isa_ok $comp_err, 'Bitcoin::Crypto::Exception::ScriptCompilation';
 		}
-		elsif ($err) {
-			fail "got exception: $err";
+		else {
+			my $err = dies {
+				$script->run;
+			};
+
+			if ($case->{exception}) {
+				isa_ok $err, 'Bitcoin::Crypto::Exception::TransactionScript';
+			}
+			elsif ($err) {
+				fail "got exception: $err";
+			}
 		}
 	};
 

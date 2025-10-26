@@ -11,6 +11,7 @@ our @EXPORT_OK = qw(
 	btc_extpub
 	btc_pub
 	btc_script
+	btc_tapscript
 	btc_script_tree
 	btc_transaction
 	btc_block
@@ -48,6 +49,12 @@ sub btc_script
 {
 	require Bitcoin::Crypto::Script;
 	return 'Bitcoin::Crypto::Script';
+}
+
+sub btc_tapscript
+{
+	require Bitcoin::Crypto::Tapscript;
+	return 'Bitcoin::Crypto::Tapscript';
 }
 
 sub btc_script_tree
@@ -149,6 +156,10 @@ Loads L<Bitcoin::Crypto::Key::Public>
 =head2 btc_script
 
 Loads L<Bitcoin::Crypto::Script>
+
+=head2 btc_tapscript
+
+Loads L<Bitcoin::Crypto::Tapscript>
 
 =head2 btc_script_tree
 

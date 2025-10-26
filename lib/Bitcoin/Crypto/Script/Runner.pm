@@ -17,6 +17,11 @@ use Bitcoin::Crypto::Script::Transaction;
 
 use namespace::clean;
 
+has field 'script' => (
+	isa => InstanceOf ['Bitcoin::Crypto::Script'],
+	writer => -hidden,
+);
+
 has option 'transaction' => (
 	coerce => (InstanceOf ['Bitcoin::Crypto::Script::Transaction'])
 		->plus_coercions(
@@ -25,13 +30,6 @@ has option 'transaction' => (
 		),
 	writer => 1,
 	clearer => 1,
-);
-
-# used to force tapscript without transaction
-has param '_tapscript' => (
-	isa => Bool,
-	init_arg => 'tapscript',
-	default => !!0,
 );
 
 has field 'stack' => (
@@ -58,6 +56,31 @@ has field '_codeseparator' => (
 	isa => PositiveOrZeroInt,
 	writer => 1,
 );
+
+has field '_valid' => (
+	isa => Bool,
+	writer => 1,
+	predicate => 1,
+);
+
+sub _stack_error
+{
+	die 'stack error';
+}
+
+sub _invalid_script
+{
+	my ($self) = @_;
+
+	$self->_script_error('transaction was marked as invalid');
+}
+
+sub _script_error
+{
+	my ($self, $error) = @_;
+
+	Bitcoin::Crypto::Exception::TransactionScript->raise($error);
+}
 
 sub to_int
 {
@@ -174,7 +197,7 @@ sub stack_serialized
 
 signature_for execute => (
 	method => Object,
-	positional => [InstanceOf ['Bitcoin::Crypto::Script'], ArrayRef [ByteStr], {default => []}],
+	positional => [BitcoinScript, ArrayRef [ByteStr], {default => []}],
 );
 
 sub execute
@@ -189,18 +212,37 @@ sub execute
 
 signature_for start => (
 	method => Object,
-	positional => [InstanceOf ['Bitcoin::Crypto::Script'], ArrayRef [ByteStr], {default => []}],
+	positional => [BitcoinScript, ArrayRef [ByteStr], {default => []}],
 );
 
 sub start
 {
 	my ($self, $script, $initial_stack) = @_;
 
+	$self->_set_script($script);
 	$self->_set_stack($initial_stack);
 	$self->_set_alt_stack([]);
 	$self->_set_pos(0);
 	$self->_register_codeseparator;
-	$self->_set_operations($self->compile($script));
+
+	try {
+		Bitcoin::Crypto::Exception::ScriptCompilation->trap_into(
+			sub {
+				$self->compile;
+			}
+		);
+	}
+	catch {
+		my $ex = $_;
+
+		if ($ex->isa('Bitcoin::Crypto::Exception::ScriptSuccess')) {
+			$self->_set_valid(!!1);
+			$self->_set_operations([]);
+		}
+		else {
+			die $ex;
+		}
+	};
 
 	return $self;
 }
@@ -264,14 +306,15 @@ sub subscript
 
 signature_for compile => (
 	method => Object,
-	positional => [BitcoinScript],
+	positional => [],
 );
 
 sub compile
 {
-	my ($self, $script) = @_;
+	my ($self) = @_;
+	my $script = $self->script;
 
-	my $serialized = $script->_serialized;
+	my $serialized = $script->to_serialized;
 	my @ops;
 
 	my $data_push = sub {
@@ -371,17 +414,12 @@ sub compile
 	try {
 		while (length $serialized) {
 			my $this_byte = substr $serialized, 0, 1, '';
+			my $opcode;
+			my @to_push;
 
 			try {
-				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code(ord $this_byte);
-				push @debug_ops, $opcode->name;
-				my $to_push = [$opcode, $this_byte];
-
-				if (exists $special_ops{$opcode->name}) {
-					$special_ops{$opcode->name}->($to_push, $position);
-				}
-
-				push @ops, $to_push;
+				$opcode = $script->opcode_class->get_opcode_by_code(ord $this_byte);
+				push @to_push, $this_byte;
 			}
 			catch {
 				my $err = $_;
@@ -393,13 +431,23 @@ sub compile
 				}
 
 				# NOTE: compiling standard data push into PUSHDATA1 for now
-				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name('OP_PUSHDATA1');
-				push @debug_ops, $opcode->name;
-
-				my $raw_data = $data_push->($opcode_num);
-				push @ops, [$opcode, $this_byte . $raw_data, $raw_data];
+				$opcode = $script->opcode_class->get_opcode_by_name('OP_PUSHDATA1');
+				$serialized = $this_byte . $serialized;
+				push @to_push, '';
 			};
 
+			push @debug_ops, $opcode->name;
+			unshift @to_push, $opcode;
+
+			if ($opcode->has_on_compilation) {
+				$opcode->on_compilation->($self, $opcode);
+			}
+
+			if (exists $special_ops{$opcode->name}) {
+				$special_ops{$opcode->name}->(\@to_push, $position);
+			}
+
+			push @ops, \@to_push;
 			$position += 1;
 		}
 
@@ -409,7 +457,7 @@ sub compile
 	}
 	catch {
 		my $ex = $_;
-		if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::ScriptSyntax')) {
+		if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::ScriptCompilation')) {
 			$ex->set_script(\@debug_ops);
 			$ex->set_error_position($position);
 		}
@@ -417,7 +465,7 @@ sub compile
 		die $ex;
 	};
 
-	return \@ops;
+	$self->_set_operations(\@ops);
 }
 
 signature_for success => (
@@ -429,19 +477,26 @@ sub success
 {
 	my ($self) = @_;
 
-	my $stack = $self->stack;
+	return $self->_valid if $self->_has_valid;
 
+	my $stack = $self->stack;
 	return !!0 if !$stack;
 	return !!0 if !$stack->[-1];
 	return !!0 if !$self->to_bool($stack->[-1]);
 	return !!1;
 }
 
+signature_for tapscript => (
+	method => Object,
+	positional => [],
+);
+
 sub tapscript
 {
 	my ($self) = @_;
 
-	return $self->has_transaction ? $self->transaction->is_taproot : $self->_tapscript;
+	my $script = $self->script;
+	return $script && $script->isa('Bitcoin::Crypto::Tapscript');
 }
 
 1;
@@ -499,6 +554,12 @@ I<predicate:> C<has_transaction>
 
 I<writer:> C<set_transaction>
 
+=head3 script
+
+The current script being executed. Will be set automatically in L</start>.
+
+B<Not assignable in the constructor>
+
 =head3 stack
 
 B<Not assignable in the constructor>
@@ -522,6 +583,16 @@ B<Not assignable in the constructor>
 
 Array reference - An array of operations to be executed. Same as
 L<Bitcoin::Crypto::Script/operations> and automatically obtained by calling it.
+
+	[
+		[OP_XXX (Object), raw (String), ...],
+		...
+	]
+
+The first element of each subarray is the L<Bitcoin::Crypto::Script::Opcode>
+object. The second element is the raw opcode string, usually single byte. The
+rest of elements are metadata and is dependant on the op type. This metadata is
+used during script execution.
 
 =head3 pos
 
@@ -562,22 +633,10 @@ If errors occur, they will be thrown as exceptions. See L</EXCEPTIONS>.
 
 =head3 compile
 
-	$ops_aref = $object->operations($script)
+	$object->compile()
 
-Returns an array reference of operations contained in a script:
-
-	[
-		[OP_XXX (Object), raw (String), ...],
-		...
-	]
-
-The first element of each subarray is the L<Bitcoin::Crypto::Script::Opcode>
-object. The second element is the raw opcode string, usually single byte. The
-rest of elements are metadata and is dependant on the op type. This metadata is
-used during script execution.
-
-There is no need to call this manually before calling L</start> - it will be
-called automatically.
+Fills L</operations> based on the contents of L</script>. May throw an
+exception in case of both success and failure.
 
 =head3 start
 
@@ -630,6 +689,12 @@ codeseparator, with all other codeseparators removed.
 
 Returns a boolean indicating whether the script execution was successful.
 
+=head3 tapscript
+
+	$boolean = $object->tapscript()
+
+Returns true if currently executed script is a tapscript.
+
 =head2 Helper methods
 
 =head3 to_int, from_int
@@ -643,9 +708,10 @@ BigInts are used. C<to_int> will return an instance of L<Math::BigInt>, while
 C<from_int> can accept it (but it should also handle regular numbers just
 fine).
 
-=head3 to_bool, from_bool
+=head3 to_bool, to_minimal_bool, from_bool
 
 These methods encode and decode booleans in format which is used on L</stack>.
+C<to_minimal_bool> variant is used to enforce MINIMALIF rule.
 
 =head3 stack_serialized
 
@@ -666,7 +732,7 @@ L<Bitcoin::Crypto::Exception> namespace:
 
 =item * ScriptRuntime - script has encountered a runtime exception - the transaction is invalid
 
-=item * ScriptSyntax - script syntax is invalid
+=item * ScriptCompilation - script compilation has eccountered a problem
 
 =back
 

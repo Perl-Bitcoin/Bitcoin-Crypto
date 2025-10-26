@@ -11,7 +11,7 @@ use Scalar::Util qw(blessed);
 use Carp qw(carp);
 use List::Util qw(sum any);
 
-use Bitcoin::Crypto qw(btc_pub btc_script btc_script_tree btc_utxo);
+use Bitcoin::Crypto qw(btc_pub btc_script btc_tapscript btc_script_tree btc_utxo);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
@@ -526,7 +526,7 @@ sub _verify_script_taproot
 	}
 	else {
 		my $control_block = pop @witness_stack;
-		$tapscript = btc_script->from_serialized(pop @witness_stack);
+		$tapscript = btc_tapscript->from_serialized(pop @witness_stack);
 
 		my ($control_byte, $xonly_pub, @script_blocks) = unpack 'Ca32(a32)*', $control_block;
 		die 'invalid taproot control block'
