@@ -10,7 +10,7 @@ use Types::Common -sigs, -types;
 use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Transaction;
-use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format);
+use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format merkle_root);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 
@@ -321,28 +321,13 @@ sub _build_merkle_root
 {
 	my ($self) = @_;
 
-	my @tx_hashes = map { scalar reverse $_->get_hash } @{$self->transactions};
+	my @txs = map { $_->to_serialized(witness => 0) } @{$self->transactions};
 
 	Bitcoin::Crypto::Exception::Block->raise(
 		'cannot calculate merkle root for empty block'
-	) unless @tx_hashes;
+	) unless @txs > 0;
 
-	# Build merkle tree
-	while (@tx_hashes > 1) {
-		my @next_level;
-
-		for (my $i = 0 ; $i < @tx_hashes ; $i += 2) {
-			my $left = $tx_hashes[$i];
-			my $right = $i + 1 < @tx_hashes ? $tx_hashes[$i + 1] : $left;
-
-			# Concatenate and double hash
-			push @next_level, hash256($left . $right);
-		}
-
-		@tx_hashes = @next_level;
-	}
-
-	return scalar reverse $tx_hashes[0];
+	return scalar reverse merkle_root(\@txs);
 }
 
 signature_for median_time_past => (
