@@ -61,6 +61,7 @@ has field '_valid' => (
 	isa => Bool,
 	writer => 1,
 	predicate => 1,
+	clearer => 1,
 );
 
 sub _stack_error
@@ -70,9 +71,10 @@ sub _stack_error
 
 sub _invalid_script
 {
-	my ($self) = @_;
+	my ($self, $msg) = @_;
+	$msg = defined $msg ? ": $msg" : '';
 
-	$self->_script_error('transaction was marked as invalid');
+	$self->_script_error('transaction was marked as invalid' . $msg);
 }
 
 sub _script_error
@@ -224,6 +226,7 @@ sub start
 	$self->_set_alt_stack([]);
 	$self->_set_pos(0);
 	$self->_register_codeseparator;
+	$self->_clear_valid;
 
 	try {
 		Bitcoin::Crypto::Exception::ScriptCompilation->trap_into(

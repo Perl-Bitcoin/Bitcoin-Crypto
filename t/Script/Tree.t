@@ -68,5 +68,18 @@ subtest 'testing merkle_root' => sub {
 	);
 };
 
+subtest 'testing from_path with empty path' => sub {
+	my $tree;
+	ok lives {
+		$tree = btc_script_tree->from_path(
+			{
+				leaf_version => 192,
+				script => [hex => '20d5094d2dbe9b76e2c245a2b89b6006888952e2faa6a149ae318d69e520617748ac']
+			},
+			[]
+		);
+	};
+};
+
 done_testing;
 

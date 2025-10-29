@@ -30,6 +30,17 @@ has param 'input_index' => (
 	default => 0,
 );
 
+has param 'taproot_ext_flag' => (
+	isa => PositiveOrZeroInt,
+	writer => 1,
+	default => 0,
+);
+
+has option 'taproot_script_tree' => (
+	isa => InstanceOf ['Bitcoin::Crypto::Script::Tree'],
+	writer => 1,
+);
+
 signature_for get_digest => (
 	method => Object,
 	positional => [ByteStr, Maybe [PositiveOrZeroInt]],
@@ -44,6 +55,24 @@ sub get_digest
 		signing_subscript => $subscript,
 		(defined $sighash ? (sighash => $sighash) : ()),
 	);
+}
+
+signature_for get_taproot_digest => (
+	method => Object,
+	positional => [ByteStr, Maybe [PositiveOrZeroInt], Maybe [ByteStr]],
+);
+
+sub get_taproot_digest
+{
+	my ($self, $subscript, $sighash, $ext) = @_;
+	$ext //= '';
+
+	return $self->transaction->get_digest(
+		signing_index => $self->input_index,
+		signing_subscript => $subscript,
+		taproot_ext_flag => $self->taproot_ext_flag,
+		(defined $sighash ? (sighash => $sighash) : ()),
+	) . $ext;
 }
 
 sub this_input

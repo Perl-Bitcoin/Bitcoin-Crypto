@@ -18,6 +18,10 @@ has param 'tree' => (
 	isa => ArrayRef [ArrayRef | HashRef],
 );
 
+has field '_tree_cache' => (
+	lazy => 1,
+);
+
 sub _traverse
 {
 	my ($self, $script_tree, $join_action, $leaf_action) = @_;
@@ -115,6 +119,26 @@ sub _find_leaf_action
 	return (\$leaf, $action);
 }
 
+sub _build_tree_cache
+{
+	my ($self) = @_;
+
+	my @leaves;
+	my $root = $self->_traverse(
+		$self->tree,
+		undef,
+		sub {
+			my $leaf = shift;
+			push @leaves, $leaf;
+		}
+	);
+
+	return {
+		leaves => \@leaves,
+		root => $root,
+	};
+}
+
 signature_for get_merkle_root => (
 	method => Object,
 	positional => [],
@@ -124,8 +148,26 @@ sub get_merkle_root
 {
 	my ($self) = @_;
 
-	my $result = $self->_traverse($self->tree);
-	return $result->{hash};
+	return $self->_tree_cache->{root}{hash};
+}
+
+signature_for get_tapleaf_hash => (
+	method => Object,
+	positional => [Int],
+);
+
+sub get_tapleaf_hash
+{
+	my ($self, $leaf_id) = @_;
+
+	my @leaves = grep { exists $_->{id} && $_->{id} == $leaf_id } @{$self->_tree_cache->{leaves}};
+	my $leaf = shift @leaves;
+
+	Bitcoin::Crypto::Exception::ScriptTree->raise(
+		"no such block with id=$leaf_id"
+	) unless defined $leaf;
+
+	return $leaf->{hash};
 }
 
 signature_for get_tree_paths => (
@@ -170,6 +212,9 @@ sub from_path
 		$leaf = $this_level;
 	}
 
+	$leaf = [$leaf]
+		unless ref $leaf eq 'ARRAY';
+
 	return $class->new(
 		tree => $leaf
 	);
@@ -187,13 +232,13 @@ sub get_control_block
 	my ($paths_ref, $paths_action) = $self->_tree_paths_action;
 	my ($leaf_ref, $leaf_action) = $self->_find_leaf_action($leaf_id);
 
-	$self->_traverse($self->tree, $paths_action, $leaf_action);
+	my $root = $self->_traverse($self->tree, $paths_action, $leaf_action);
 
 	Bitcoin::Crypto::Exception::ScriptTree->raise(
 		"no such block with id=$leaf_id"
 	) unless defined $$leaf_ref;
 
-	my $tapkey = $pubkey->get_taproot_tweaked_key(tweak_suffix => $self->get_merkle_root);
+	my $tapkey = $pubkey->get_taproot_tweaked_key(tweak_suffix => $root->{hash});
 	my $parity = has_even_y($tapkey);
 
 	my $leaf_version = ${$leaf_ref}->{leaf_version} | !$parity;

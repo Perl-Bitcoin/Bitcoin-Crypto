@@ -251,6 +251,7 @@ sub _get_digest_taproot
 	my $this_input = $transaction->inputs->[$self->signing_index]->clone;
 	$transaction->inputs->[$self->signing_index] = $this_input;
 	my $annex = $self->taproot_annex;
+	my $ext_flag = $self->taproot_ext_flag;
 
 	my $all = $sighash_type == Bitcoin::Crypto::Constants::sighash_all
 		|| $sighash_type == Bitcoin::Crypto::Constants::sighash_default;
@@ -325,7 +326,7 @@ sub _get_digest_taproot
 		$serialized .= sha256(join '', @outputs);
 	}
 
-	$serialized .= pack 'C', $self->taproot_ext_flag * 2 + defined $annex;
+	$serialized .= pack 'C', $ext_flag * 2 + defined $annex;
 
 	if ($anyonecanpay) {
 		$serialized .= $this_input->prevout;
@@ -351,6 +352,10 @@ sub _get_digest_taproot
 		Bitcoin::Crypto::Exception::Transaction->raise(
 			"can't digest taproot transaction with SIGHASH_SINGLE without corresponding output"
 		);
+	}
+
+	# BIP342 extension
+	if ($ext_flag == 1) {
 	}
 
 	return $serialized;

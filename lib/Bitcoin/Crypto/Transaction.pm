@@ -519,16 +519,16 @@ sub _verify_script_taproot
 		pop @witness_stack;
 	}
 
-	my $tapscript;
+	my $script;
 
 	if (@witness_stack == 1) {
-		$tapscript = Bitcoin::Crypto::Script::Common->new(TR => $pubkey);
+		$script = Bitcoin::Crypto::Script::Common->new(TR => $pubkey);
 	}
 	else {
 		my $control_block = pop @witness_stack;
-		$tapscript = btc_tapscript->from_serialized(pop @witness_stack);
+		my $raw_script = pop @witness_stack;
 
-		my ($control_byte, $xonly_pub, @script_blocks) = unpack 'Ca32(a32)*', $control_block;
+		my ($control_byte, $xonly_pub, @script_blocks) = grep { length } unpack 'Ca32(a32)*', $control_block;
 		die 'invalid taproot control block'
 			unless defined $control_byte
 			&& defined $xonly_pub
@@ -536,13 +536,28 @@ sub _verify_script_taproot
 			&& (@script_blocks == 0 || length $script_blocks[-1] == 32);
 
 		my $internal_pubkey = btc_pub->from_serialized(lift_x $xonly_pub);
+		my $leaf_version = $control_byte & 0xfe;
+
+		if ($leaf_version == 0xc0) {
+			$script = btc_tapscript->from_serialized($raw_script);
+			$script_runner->transaction->set_taproot_ext_flag(1);
+		}
+		else {
+			# future compatibility - script must succeed
+			# https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#cite_note-12
+			return;
+		}
+
 		my $tree = btc_script_tree->from_path(
 			{
-				leaf_version => $control_byte & 0xfe,
-				script => $tapscript,
+				id => 0,
+				leaf_version => $leaf_version,
+				script => $script,
 			},
 			\@script_blocks
 		);
+
+		$script_runner->transaction->set_taproot_script_tree($tree);
 
 		my $tweaked = $internal_pubkey->get_taproot_tweaked_key(tweak_suffix => $tree->get_merkle_root);
 		my $expected_parity = !has_even_y($tweaked);
@@ -558,11 +573,11 @@ sub _verify_script_taproot
 	$script_runner->execute($signature_script);
 	my $stack = $script_runner->stack;
 
-	# execute tapscript
+	# execute script
 	# NOTE: shallow copy of the stack
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
-			$script_runner->execute($tapscript, [@$stack]);
+			$script_runner->execute($script, [@$stack]);
 			die 'execution yielded failure'
 				unless $script_runner->success;
 		},

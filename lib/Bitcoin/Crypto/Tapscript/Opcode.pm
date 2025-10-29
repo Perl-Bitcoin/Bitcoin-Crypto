@@ -18,6 +18,7 @@ use namespace::clean;
 
 extends 'Bitcoin::Crypto::Script::Opcode';
 
+# TODO: BIP 342 sigopt budget
 my %tapscript_opcodes;
 %tapscript_opcodes = (
 	OP_CHECKSIG => {
@@ -25,7 +26,7 @@ my %tapscript_opcodes;
 		needs_transaction => !!1,
 
 		runner => sub {
-			my $runner = shift;
+			my ($runner) = @_;
 
 			my $stack = $runner->stack;
 			$runner->_stack_error unless @$stack >= 2;
@@ -42,7 +43,7 @@ my %tapscript_opcodes;
 				$pubkey->set_taproot(!!1);
 			}
 			elsif (length $raw_pubkey == 0) {
-				$runner->_invalid_script;
+				$runner->_invalid_script('bad pubkey');
 			}
 			else {
 				# unknown key type
@@ -60,12 +61,33 @@ my %tapscript_opcodes;
 				$hashtype = length $sig == 65 ? unpack('C', substr $sig, -1, 1, '') : undef;
 			}
 
-			my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype);
+			my $ext_flag = $runner->transaction->taproot_ext_flag;
+			my $ext;
+
+			# leaf for this script must be defined with id 0 to get a proper hash
+			if ($ext_flag == 1) {
+				my $codesep_pos = $runner->_codeseparator || 0xffffffff;
+				my $leaf_hash = $runner->transaction->taproot_script_tree->get_tapleaf_hash(0);
+
+				# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#common-signature-message-extension
+				$ext = $leaf_hash . "\x00" . pack 'V', $codesep_pos;
+			}
+
+			my $preimage = $runner->transaction->get_taproot_digest($runner->subscript, $hashtype, $ext);
 			my $result = $pubkey->verify_message($preimage, $sig);
 
-			$runner->_invalid_script unless $result;
+			$runner->_invalid_script('signature verification failed') unless $result;
 			push @$stack, $runner->from_bool($result);
 		},
+	},
+	OP_CHECKSIGVERIFY => {
+		code => 0xad,
+		needs_transaction => !!1,
+
+		runner => sub {
+			$tapscript_opcodes{OP_CHECKSIG}{runner}->(@_);
+			$tapscript_opcodes{OP_VERIFY}{runner}->(@_);
+		}
 	},
 	OP_CHECKMULTISIG => {
 		code => 0xae,
