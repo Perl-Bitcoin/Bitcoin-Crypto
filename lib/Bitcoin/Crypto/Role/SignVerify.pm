@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
+use Try::Tiny;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Helpers qw(carp_once ecc);
@@ -106,11 +107,12 @@ sub verify_message
 
 	my $digest = $algorithms{$algorithm}{digest}->($preimage);
 
-	return Bitcoin::Crypto::Exception::Verify->trap_into(
-		sub {
-			return $algorithms{$algorithm}{verification_method}->($self, $signature, $digest);
-		}
-	);
+	my $valid = !!0;
+	try {
+		$valid = $algorithms{$algorithm}{verification_method}->($self, $signature, $digest);
+	};
+
+	return $valid;
 }
 
 1;

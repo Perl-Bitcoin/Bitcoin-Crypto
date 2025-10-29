@@ -3,10 +3,13 @@ Revision history for Perl extension Bitcoin::Crypto.
 {{$NEXT}}
 	[Added interface]
 	- Bitcoin::Crypto::Util::merkle_root function
-	- Bitcoin::Crypto::Util::taproot_merkle_root function
 	- Bitcoin::Crypto::Util::tagged_hash function
 	- Bitcoin::Crypto::Util::lift_x function
 	- Bitcoin::Crypto::Util::has_even_y function
+
+	[Changes and deprecations]
+	- verify_message from public and private keys can no longer throw an exception, always returns false on failure
+	- removed Bitcoin::Crypto::Exception::Verify
 
 3.002 Fri Oct 24, 2025
 	[Added interface]

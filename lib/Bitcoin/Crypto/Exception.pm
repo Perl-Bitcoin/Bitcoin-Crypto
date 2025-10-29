@@ -124,13 +124,6 @@ sub as_string
 
 {
 
-	package Bitcoin::Crypto::Exception::Verify;
-
-	use parent -norequire, 'Bitcoin::Crypto::Exception';
-}
-
-{
-
 	package Bitcoin::Crypto::Exception::KeyCreate;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';
