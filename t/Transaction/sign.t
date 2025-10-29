@@ -1,4 +1,4 @@
-# HARNESS-DURATION-LONG
+# HARNESS-DURATION-MEDIUM
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);

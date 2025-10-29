@@ -568,7 +568,34 @@ sub _verify_script_taproot
 		},
 		'taproot script'
 	);
+}
 
+signature_for verify_script => (
+	method => Object,
+	positional => [PositiveOrZeroInt, InstanceOf ['Bitcoin::Crypto::Script::Runner']],
+);
+
+sub verify_script
+{
+	my ($self, $input_index, $script_runner) = @_;
+	$script_runner->transaction->set_input_index($input_index);
+
+	my $input = $self->inputs->[$input_index];
+	my $utxo = $input->utxo;
+
+	# run bitcoin script
+	my $procedure = '_verify_script_default';
+	$procedure = '_verify_script_segwit'
+		if $utxo->output->locking_script->is_native_segwit;
+	$procedure = '_verify_script_taproot'
+		if $utxo->output->locking_script->is_taproot;
+
+	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
+		sub {
+			$self->$procedure($input, $script_runner);
+		},
+		"transaction input $input_index verification has failed"
+	);
 }
 
 signature_for verify => (
@@ -620,27 +647,12 @@ sub verify
 
 	# per-input verification
 	foreach my $input_index (0 .. $#inputs) {
-		my $input = $inputs[$input_index];
-		my $utxo = $input->utxo;
-		$script_runner->transaction->set_input_index($input_index);
-
-		# run bitcoin script
-		my $procedure = '_verify_script_default';
-		$procedure = '_verify_script_segwit'
-			if $utxo->output->locking_script->is_native_segwit;
-		$procedure = '_verify_script_taproot'
-			if $utxo->output->locking_script->is_taproot;
-
-		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
-			sub {
-				$self->$procedure($input, $script_runner);
-			},
-			"transaction input $input_index verification has failed"
-		);
+		$self->verify_script($input_index, $script_runner);
 
 		# check sequence (BIP 68)
-		if ($self->version >= 2 && !($input->sequence_no & (1 << 31))) {
-			my $sequence = $input->sequence_no;
+		if ($self->version >= 2 && !($inputs[$input_index]->sequence_no & (1 << 31))) {
+			my $sequence = $inputs[$input_index]->sequence_no;
+			my $utxo = $inputs[$input_index]->utxo;
 			my $time_based = $sequence & (1 << 22);
 			my $relative_locktime = $sequence & 0x0000ffff;
 			my $has_block = defined $block && ($time_based || $block->has_height);
