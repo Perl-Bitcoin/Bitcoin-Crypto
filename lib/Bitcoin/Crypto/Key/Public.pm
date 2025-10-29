@@ -13,17 +13,12 @@ use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed taproot_merkle_root);
+use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed);
 use Bitcoin::Crypto::Helpers qw(ecc);
 
 use namespace::clean;
 
 extends qw(Bitcoin::Crypto::Key::Base);
-
-has extended 'key_instance' => (
-	required => 0,
-	predicate => 1,
-);
 
 sub _is_private { 0 }
 
@@ -37,6 +32,18 @@ sub get_hash
 	my ($self) = @_;
 
 	return hash160($self->to_serialized);
+}
+
+signature_for get_xonly_key => (
+	method => Object,
+	positional => [],
+);
+
+sub get_xonly_key
+{
+	my ($self) = @_;
+
+	return $self->raw_key('public_xonly');
 }
 
 sub key_hash
@@ -76,7 +83,11 @@ sub witness_program
 		},
 		(Bitcoin::Crypto::Constants::taproot_witness_version) => sub {
 			my ($self, $params) = @_;
-			return shift->taproot_tweaked_key(%$params);
+
+			$self = $self->get_taproot_tweaked_key(%$params)
+				unless $self->taproot;
+
+			return $self->get_xonly_key;
 		},
 	};
 
@@ -155,7 +166,7 @@ sub get_segwit_address
 
 signature_for get_taproot_address => (
 	method => Object,
-	positional => [Maybe [ArrayRef], {default => undef}],
+	positional => [Maybe [BitcoinScriptTree], {default => undef}],
 );
 
 sub get_taproot_address
@@ -173,7 +184,7 @@ sub get_taproot_address
 
 	my $taproot_program = $self->witness_program(
 		Bitcoin::Crypto::Constants::taproot_witness_version,
-		defined $script_tree ? {tweak_suffix => taproot_merkle_root($script_tree)} : {}
+		defined $script_tree ? {tweak_suffix => $script_tree->get_merkle_root} : {}
 	);
 
 	return encode_segwit($self->network->segwit_hrp, $taproot_program->run->stack_serialized);

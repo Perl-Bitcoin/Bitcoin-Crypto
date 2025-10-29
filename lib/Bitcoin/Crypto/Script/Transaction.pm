@@ -32,7 +32,7 @@ has param 'input_index' => (
 
 signature_for get_digest => (
 	method => Object,
-	positional => [ByteStr, PositiveOrZeroInt],
+	positional => [ByteStr, Maybe [PositiveOrZeroInt]],
 );
 
 sub get_digest
@@ -42,7 +42,7 @@ sub get_digest
 	return $self->transaction->get_digest(
 		signing_index => $self->input_index,
 		signing_subscript => $subscript,
-		sighash => $sighash
+		(defined $sighash ? (sighash => $sighash) : ()),
 	);
 }
 
@@ -58,6 +58,13 @@ sub is_native_segwit
 	my ($self) = @_;
 
 	return $self->this_input->utxo->output->locking_script->is_native_segwit;
+}
+
+sub is_taproot
+{
+	my ($self) = @_;
+
+	return $self->this_input->utxo->output->locking_script->is_taproot;
 }
 
 1;

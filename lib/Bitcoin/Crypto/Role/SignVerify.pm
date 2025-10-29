@@ -16,52 +16,60 @@ use Moo::Role;
 
 requires qw(
 	raw_key
+	taproot
 	_is_private
+);
+
+my %algorithms = (
+	default => {
+		digest => \&hash256,
+		signing_method => sub {
+			my ($key, $digest) = @_;
+
+			return ecc->sign_digest($key->raw_key, $digest);
+		},
+		verification_method => sub {
+			my ($key, $signature, $digest) = @_;
+
+			my $normalized = ecc->normalize_signature($signature);
+			return !!0 if $normalized ne $signature;
+			return ecc->verify_digest($key->raw_key('public'), $signature, $digest);
+		},
+	},
+	schnorr => {
+		digest => sub { tagged_hash('TapSighash', shift) },
+		signing_method => sub {
+			my ($key, $digest) = @_;
+
+			return ecc->sign_digest_schnorr($key->raw_key, $digest);
+		},
+		verification_method => sub {
+			my ($key, $signature, $digest) = @_;
+
+			return ecc->verify_digest_schnorr($key->raw_key('public_xonly'), $signature, $digest);
+		},
+	},
 );
 
 signature_for sign_message => (
 	method => Object,
-	head => [ByteStr],
-	named => [
-		algorithm => SignatureAlgorithm,
-		{default => Bitcoin::Crypto::Constants::signing_algorithm_ecdsa},
-		taproot_tweak_suffix => Maybe [ByteStr],
-		{default => undef},
-	],
-	bless => !!0,
+	positional => [ByteStr],
 );
 
 sub sign_message
 {
-	my ($self, $preimage, $args) = @_;
+	my ($self, $preimage) = @_;
+	my $algorithm = $self->taproot ? 'schnorr' : 'default';
 
 	Bitcoin::Crypto::Exception::Sign->raise(
 		'cannot sign a message with a public key'
 	) unless $self->_is_private;
 
-	my %algorithms = (
-		(Bitcoin::Crypto::Constants::signing_algorithm_ecdsa) => {
-			digest => \&hash256,
-			signing_method => sub { ecc->sign_digest(@_) },
-			raw_key => sub { $self->raw_key },
-		},
-		(Bitcoin::Crypto::Constants::signing_algorithm_schnorr) => {
-			digest => sub { tagged_hash('TapSighash', shift) },
-			signing_method => sub { ecc->sign_digest_schnorr(@_) },
-			raw_key => sub {
-				$self->taproot_tweaked_key(
-					tweak_suffix => $args->{taproot_tweak_suffix}
-				);
-			},
-		},
-	);
-
-	my $key = $algorithms{$args->{algorithm}}{raw_key}->();
-	my $digest = $algorithms{$args->{algorithm}}{digest}->($preimage);
+	my $digest = $algorithms{$algorithm}{digest}->($preimage);
 
 	return Bitcoin::Crypto::Exception::Sign->trap_into(
 		sub {
-			return $algorithms{$args->{algorithm}}{signing_method}->($key, $digest);
+			return $algorithms{$algorithm}{signing_method}->($self, $digest);
 		}
 	);
 }
@@ -94,13 +102,13 @@ signature_for verify_message => (
 sub verify_message
 {
 	my ($self, $preimage, $signature) = @_;
-	my $digest = hash256($preimage);
+	my $algorithm = $self->taproot ? 'schnorr' : 'default';
+
+	my $digest = $algorithms{$algorithm}{digest}->($preimage);
 
 	return Bitcoin::Crypto::Exception::Verify->trap_into(
 		sub {
-			my $normalized = ecc->normalize_signature($signature);
-			return !!0 if $normalized ne $signature;
-			return ecc->verify_digest($self->raw_key('public'), $signature, $digest);
+			return $algorithms{$algorithm}{verification_method}->($self, $signature, $digest);
 		}
 	);
 }

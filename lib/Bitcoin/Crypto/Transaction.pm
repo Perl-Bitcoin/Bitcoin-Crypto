@@ -11,15 +11,16 @@ use Scalar::Util qw(blessed);
 use Carp qw(carp);
 use List::Util qw(sum any);
 
-use Bitcoin::Crypto qw(btc_script btc_utxo);
+use Bitcoin::Crypto qw(btc_pub btc_script btc_script_tree btc_utxo);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Transaction::Digest;
-use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format);
+use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format lift_x has_even_y);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Common;
+use Bitcoin::Crypto::Script::Tree;
 
 use namespace::clean;
 
@@ -494,6 +495,82 @@ sub _verify_script_segwit
 	}
 }
 
+sub _verify_script_taproot
+{
+	my ($self, $input, $script_runner) = @_;
+
+	die 'signature script is not empty in taproot input'
+		unless $input->signature_script->is_empty;
+
+	my $locking_script = $input->utxo->output->locking_script;
+	my $pubkey = substr $locking_script->to_serialized, 2;
+
+	# shallow copy of the witness - avoid modifying the transaction
+	my @witness_stack = @{$input->witness // []};
+
+	# consensus rules from https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#script-validation-rules
+
+	die 'witness stack has 0 elements'
+		unless @witness_stack;
+
+	if (@witness_stack >= 2 && substr($witness_stack[-1], -1) eq "\x50") {
+
+		# remove the annex from the witness stack
+		pop @witness_stack;
+	}
+
+	my $tapscript;
+
+	if (@witness_stack == 1) {
+		$tapscript = Bitcoin::Crypto::Script::Common->new(TR => $pubkey);
+	}
+	else {
+		my $control_block = pop @witness_stack;
+		$tapscript = btc_script->from_serialized(pop @witness_stack);
+
+		my ($control_byte, $xonly_pub, @script_blocks) = unpack 'Ca32(a32)*', $control_block;
+		die 'invalid taproot control block'
+			unless defined $control_byte
+			&& defined $xonly_pub
+			&& @script_blocks <= 128
+			&& (@script_blocks == 0 || length $script_blocks[-1] == 32);
+
+		my $internal_pubkey = btc_pub->from_serialized(lift_x $xonly_pub);
+		my $tree = btc_script_tree->from_path(
+			{
+				leaf_version => $control_byte & 0xfe,
+				script => $tapscript,
+			},
+			\@script_blocks
+		);
+
+		my $tweaked = $internal_pubkey->get_taproot_tweaked_key(tweak_suffix => $tree->get_merkle_root);
+		my $expected_parity = !has_even_y($tweaked);
+		die 'invalid public key or control block'
+			unless $tweaked->get_xonly_key eq $pubkey && $expected_parity == ($control_byte & 1);
+	}
+
+	# execute input to get initial stack
+	my $signature_script = btc_script->new;
+	foreach my $witness (@witness_stack) {
+		$signature_script->push($witness);
+	}
+	$script_runner->execute($signature_script);
+	my $stack = $script_runner->stack;
+
+	# execute tapscript
+	# NOTE: shallow copy of the stack
+	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
+		sub {
+			$script_runner->execute($tapscript, [@$stack]);
+			die 'execution yielded failure'
+				unless $script_runner->success;
+		},
+		'taproot script'
+	);
+
+}
+
 signature_for verify => (
 	method => Object,
 	named => [
@@ -551,6 +628,8 @@ sub verify
 		my $procedure = '_verify_script_default';
 		$procedure = '_verify_script_segwit'
 			if $utxo->output->locking_script->is_native_segwit;
+		$procedure = '_verify_script_taproot'
+			if $utxo->output->locking_script->is_taproot;
 
 		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 			sub {

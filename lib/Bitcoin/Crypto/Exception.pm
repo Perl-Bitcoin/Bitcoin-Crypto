@@ -250,6 +250,13 @@ sub as_string
 
 {
 
+	package Bitcoin::Crypto::Exception::ScriptTree;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
+}
+
+{
+
 	package Bitcoin::Crypto::Exception::ScriptSyntax;
 
 	use Moo;

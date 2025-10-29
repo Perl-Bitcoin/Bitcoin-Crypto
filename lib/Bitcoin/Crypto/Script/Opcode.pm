@@ -17,7 +17,8 @@ use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Util qw(hash160 hash256 get_public_key_compressed);
+use Bitcoin::Crypto::Helpers qw(ecc);
+use Bitcoin::Crypto::Util qw(hash160 hash256 get_public_key_compressed lift_x);
 use Bitcoin::Crypto::Transaction::Input;
 
 # some private helpers for opcodes
@@ -740,15 +741,25 @@ my %opcodes = (
 
 			my $raw_pubkey = pop @$stack;
 			my $sig = pop @$stack;
-			my $hashtype = substr $sig, -1, 1, '';
 
-			my $digest = $runner->transaction->get_digest($runner->subscript, unpack 'C', $hashtype);
-			my $pubkey = btc_pub->from_serialized($raw_pubkey);
+			my $pubkey;
+			my $hashtype;
 
-			script_error('SegWit validation requires compressed public key')
-				if !$pubkey->compressed && $runner->transaction->is_native_segwit;
+			if ($runner->transaction->is_taproot) {
+				$hashtype = length $sig == 65 ? unpack('C', substr $sig, -1, 1, '') : undef;
+				$pubkey = btc_pub->from_serialized(lift_x $raw_pubkey);
+				$pubkey->set_taproot(!!1);
+			}
+			else {
+				$hashtype = unpack 'C', substr $sig, -1, 1, '';
+				$pubkey = btc_pub->from_serialized($raw_pubkey);
 
-			my $result = $pubkey->verify_message($digest, $sig);
+				script_error('SegWit validation requires compressed public key')
+					if !$pubkey->compressed && $runner->transaction->is_native_segwit;
+			}
+
+			my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype);
+			my $result = $pubkey->verify_message($preimage, $sig);
 			push @$stack, $runner->from_bool($result);
 		},
 	},

@@ -45,9 +45,6 @@ use constant {
 	psbt_global_map => 'global',
 	psbt_input_map => 'in',
 	psbt_output_map => 'out',
-
-	signing_algorithm_ecdsa => 'ecdsa',
-	signing_algorithm_schnorr => 'schnorr',
 };
 
 # These constants are environment-specific and internal only

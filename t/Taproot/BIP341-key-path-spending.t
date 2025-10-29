@@ -1,6 +1,6 @@
 use Test2::V0;
 use Bitcoin::Secp256k1;
-use Bitcoin::Crypto qw(btc_prv btc_transaction btc_utxo);
+use Bitcoin::Crypto qw(btc_prv btc_transaction btc_utxo btc_block);
 use Bitcoin::Crypto::Util qw(to_format);
 
 # Data from:
@@ -239,6 +239,10 @@ my @cases = (
 # disable randomness for deterministic signatures
 $Bitcoin::Secp256k1::FORCED_SCHNORR_AUX_RAND = "\x00" x 32;
 
+# some random block data to silence locktime verification warnings
+my $block_then = btc_block->new(timestamp => 1_000_000_000, height => 1_000);
+my $block_now = btc_block->new(timestamp => 2_000_000_000, height => 1_000_000);
+
 # tx/utxo preparation
 my $tx = btc_transaction->from_serialized([hex => $base_data{given}{raw_unsigned_tx}]);
 foreach my $input_index (0 .. $#{$base_data{given}{utxos_spent}}) {
@@ -248,12 +252,24 @@ foreach my $input_index (0 .. $#{$base_data{given}{utxos_spent}}) {
 	btc_utxo->new(
 		txid => $input->utxo_location->[0],
 		output_index => $input->utxo_location->[1],
+		block => $block_then,
 		output => {
 			value => $utxo->{amount_sats},
 			locking_script => [hex => $utxo->{script_pub_key}],
 		},
 	)->register;
 }
+
+subtest 'should verify signed tx with key path' => sub {
+	my $tx = btc_transaction->from_serialized([hex => $base_data{auxiliary}{fully_signed_tx}]);
+	ok lives { $tx->verify(block => $block_now) }, 'verification ok';
+
+	# invalidate the signature of the taproot input
+	substr $tx->inputs->[0]->witness->[0], 15, 1, "\x00";
+
+	my $err = dies { $tx->verify(block => $block_now) };
+	like $err, qr/execution yielded failure/, 'wrong signature ok';
+};
 
 foreach my $case_ind (0 .. $#cases) {
 	subtest "should pass case #$case_ind" => sub {
@@ -265,7 +281,7 @@ foreach my $case_ind (0 .. $#cases) {
 			$tx,
 			signing_index => $in_ind,
 			sighash => $case->{given}{hash_type},
-			taproot_merkle_root => [hex => $case->{given}{merkle_root} // ''],
+			($case->{given}{merkle_root} ? (script_tree => [{hash => [hex => $case->{given}{merkle_root}]}]) : ()),
 		);
 
 		is [map { to_format [hex => $_] } @{$tx->inputs->[$in_ind]->witness // []}], $case->{expected}{witness},

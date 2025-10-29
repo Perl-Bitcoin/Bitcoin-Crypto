@@ -25,6 +25,12 @@ has param 'purpose' => (
 	required => 0,
 );
 
+has param 'taproot' => (
+	isa => Bool,
+	writer => 1,
+	default => !!0,
+);
+
 with qw(Bitcoin::Crypto::Role::Network);
 
 requires qw(
@@ -50,6 +56,11 @@ sub _validate_key
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
 			'private key is not valid'
 		) unless ecc->verify_private_key(ensure_length $entropy, Bitcoin::Crypto::Constants::key_max_length);
+	}
+	else {
+		Bitcoin::Crypto::Exception::KeyCreate->raise(
+			'public key is not valid'
+		) unless ecc->verify_public_key($entropy);
 	}
 }
 
@@ -127,7 +138,7 @@ sub raw_key
 	}
 }
 
-signature_for taproot_tweaked_key => (
+signature_for get_taproot_tweaked_key => (
 	method => Object,
 	named => [
 		tweak_suffix => Maybe [ByteStr],
@@ -136,10 +147,11 @@ signature_for taproot_tweaked_key => (
 	bless => !!0,
 );
 
-sub taproot_tweaked_key
+sub get_taproot_tweaked_key
 {
 	my ($self, $args) = @_;
 
+	my $new_key;
 	if ($self->_is_private) {
 		my $internal = $self->raw_key('private');
 		my $internal_public = ecc->create_public_key($internal);
@@ -147,14 +159,21 @@ sub taproot_tweaked_key
 			unless has_even_y($internal_public);
 
 		my $tweak = tagged_hash('TapTweak', ecc->xonly_public_key($internal_public) . ($args->{tweak_suffix} // ''));
-		return ecc->add_private_key($internal, $tweak);
+		$new_key = ecc->add_private_key($internal, $tweak);
 	}
 	else {
 		my $internal = $self->raw_key('public_xonly');
 		my $tweak = tagged_hash('TapTweak', $internal . ($args->{tweak_suffix} // ''));
-		my $combined = ecc->combine_public_keys(ecc->create_public_key($tweak), lift_x $internal);
-		return ecc->xonly_public_key($combined);
+		$new_key = ecc->combine_public_keys(ecc->create_public_key($tweak), lift_x $internal);
 	}
+
+	my $pkg = ref $self;
+	return $pkg->new(
+		key_instance => $new_key,
+		purpose => $self->purpose,
+		network => $self->network,
+		taproot => !!1,
+	);
 }
 
 1;

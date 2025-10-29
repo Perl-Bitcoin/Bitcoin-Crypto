@@ -36,7 +36,6 @@ our @EXPORT_OK = qw(
 	hash160
 	hash256
 	merkle_root
-	taproot_merkle_root
 	tagged_hash
 	lift_x
 	has_even_y
@@ -428,58 +427,6 @@ sub merkle_root
 	return $parts[0];
 }
 
-# nested ArrayRef will be validated during recursive calls
-signature_for taproot_merkle_root => (
-	positional => [ArrayRef [ArrayRef | HashRef]],
-);
-
-sub taproot_merkle_root
-{
-	my ($script_tree) = @_;
-
-	my @result;
-	foreach my $item (@$script_tree) {
-		if (ref $item eq 'ARRAY') {
-
-			# this value is the next level of the tree
-			push @result, taproot_merkle_root($item);
-		}
-		else {
-			state $precomputed_type = Dict [hash => ByteStr];
-			state $leaf_type = Dict [leaf_version => IntMaxBits [8], script => BitcoinScript];
-
-			# this value is a leaf which may need calculating
-			my $value = $precomputed_type->coerce($item);
-			if (!$precomputed_type->check($value)) {
-				$value = $leaf_type->assert_coerce($item);
-				my $script = $value->{script}->to_serialized;
-				my $script_len = pack_compactsize(length $script);
-
-				$value->{hash} =
-					tagged_hash('TapLeaf', join '', pack('C', $value->{leaf_version}), $script_len, $script);
-			}
-
-			push @result, $value->{hash};
-		}
-	}
-
-	if (@result == 2) {
-
-		# sort result so that smaller hash values come first
-		@result = reverse @result
-			if $result[0] gt $result[1];
-
-		return tagged_hash('TapBranch', join '', @result);
-	}
-	elsif (@result == 1) {
-		return $result[0];
-	}
-
-	Bitcoin::Crypto::Exception->raise(
-		'invalid taproot script tree, not a binary tree'
-	);
-}
-
 signature_for tagged_hash => (
 	positional => [Str, ByteStr],
 );
@@ -509,12 +456,13 @@ sub lift_x
 }
 
 signature_for has_even_y => (
-	positional => [ByteStr],
+	positional => [ByteStr | InstanceOf ['Bitcoin::Crypto::Key::Public']],
 );
 
 sub has_even_y
 {
 	my ($key) = @_;
+	$key = $key->raw_key if ref $key;
 
 	return Bitcoin::Crypto::Exception->trap_into(
 		sub {
@@ -550,7 +498,6 @@ Bitcoin::Crypto::Util - General Bitcoin utilities
 		hash160
 		hash256
 		merkle_root
-		taproot_merkle_root
 		tagged_hash
 		lift_x
 		has_even_y
@@ -765,43 +712,6 @@ This is hash256 used by Bitcoin (C<SHA256> of C<SHA256>)
 
 Calculates a merkle root of input array reference. Leaves will be run through a
 double SHA256 before calculating the root.
-
-=head2 taproot_merkle_root
-
-	$hash = taproot_merkle_root($tree_data)
-
-Calculates a merkle root of taproot script tree (array ref). Unlike
-L</merkle_root>, this must be an actual binary tree structure:
-
-	my $leaf1 = {
-		hash => [hex => $block_hash1]
-	};
-
-	my $leaf2 = {
-		hash => [hex => $block_hash2]
-	};
-
-	my $leaf3 = {
-		leaf_version => 192,
-		script => [hex => '20c440b462ad48c7a77f94cd4532d8f2119dcebbd7c9764557e62726419b08ad4cac'],
-	};
-
-	[
-		$leaf1,
-		[
-			$leaf2,
-			$leaf3,
-		]
-	]
-
-Each level of a tree must be an array reference with up to two values in it.
-Each leaf must be a hash with either a prehashed value under C<hash> key
-(bytestring or something which can be coerced into a bytestring) or a script to
-be hashed represented by keys C<leaf_version> (integer up to 255) and C<script>
-(an instance of L<Bitcoin::Crypto::Script> or something which can be coerced
-into it).
-
-Returns a bytestring which is the root hash of the tree.
 
 =head2 tagged_hash
 

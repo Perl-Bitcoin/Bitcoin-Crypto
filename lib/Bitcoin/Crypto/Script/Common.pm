@@ -42,14 +42,14 @@ sub _make_WSH
 		->add('OP_EQUAL');
 }
 
-#sub _make_P2TR
-#{
-#	my ($class, $script, $pubkey) = @_;
-#
-#	return $script
-#		->push($pubkey)
-#		->add('OP_CHECKSIG');
-#}
+sub _make_TR
+{
+	my ($class, $script, $pubkey) = @_;
+
+	return $script
+		->push($pubkey)
+		->add('OP_CHECKSIG');
+}
 
 sub _get_method
 {

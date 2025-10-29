@@ -38,8 +38,8 @@ has option 'sighash' => (
 	writer => -hidden,
 );
 
-has option 'taproot_merkle_root' => (
-	coerce => ByteStr,
+has option 'script_tree' => (
+	coerce => BitcoinScriptTree,
 );
 
 has field 'input' => (
@@ -68,13 +68,8 @@ sub _get_signature
 		($args{signing_subscript} ? (signing_subscript => $args{signing_subscript}) : ()),
 	);
 
-	my $taproot_merkle_root = $self->taproot_merkle_root;
-
-	my $signature = $self->key->sign_message(
-		$digest->get_digest,
-		($args{algorithm} ? (algorithm => $args{algorithm}) : ()),
-		(defined $taproot_merkle_root ? (taproot_tweak_suffix => $taproot_merkle_root) : ()),
-	);
+	my $key = $args{key} // $self->key;
+	my $signature = $key->sign_message($digest->get_digest);
 
 	$self->_set_sighash($digest->sighash);
 	$signature .= pack 'C', $self->sighash;
@@ -293,20 +288,26 @@ sub _sign_P2TR
 {
 	my ($self) = @_;
 
-	# TODO: currently a happy path of signing for public key based P2TR
+	my $script_tree = $self->script_tree;
 
-	my $signature = $self->_get_signature(algorithm => Bitcoin::Crypto::Constants::signing_algorithm_schnorr);
+	my $signature = $self->_get_signature(
+		key => $self->key->get_taproot_tweaked_key(
+			tweak_suffix => $script_tree ? $script_tree->get_merkle_root : undef
+		),
+	);
 
 	# truncate sighash from signature to save 1 byte
 	if ($self->sighash == Bitcoin::Crypto::Constants::sighash_default) {
 		$signature = substr $signature, 0, -1;
 	}
 
-	$self->_set_signature(
-		[
-			$signature
-		]
-	);
+	my @witness = ($signature);
+	if ($script_tree) {
+
+		# TODO: add control block
+	}
+
+	$self->_set_signature(\@witness);
 }
 
 sub _sign_type

@@ -74,7 +74,10 @@ foreach my $case_ind (0 .. $#cases) {
 		if ($case->{address}) {
 			$key = $key->get_basic_key;
 
-			is to_format [hex => $key->get_public_key->taproot_tweaked_key], $case->{output_key}, 'tweaked key ok';
+			is to_format [hex => $key->get_public_key->get_taproot_tweaked_key->get_xonly_key],
+				$case->{output_key}, 'tweaked public key ok';
+			is to_format [hex => $key->get_taproot_tweaked_key->get_public_key->get_xonly_key],
+				$case->{output_key}, 'tweaked private key ok';
 			is $key->get_public_key->get_address, $case->{address}, 'address ok';
 		}
 	};
