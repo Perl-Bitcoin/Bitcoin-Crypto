@@ -4,6 +4,11 @@ use Bitcoin::Crypto qw(btc_transaction btc_utxo);
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Script::Runner;
 
+# WARNING: this test is VERY complete, achieving 100% tests passing here is
+# likely very hard. Instead, it can be used as a way to tell how much in line
+# with Bitcoin Core Bitcoin::Crypto is. It also shows areas for improvement for
+# the future.
+
 BEGIN {
 	eval { require JSON::MaybeXS; 1 }
 		or skip_all 'This test requires module JSON::MaybeXS';
@@ -15,7 +20,7 @@ BEGIN {
 my $data = do {
 	local $/;
 
-	my $file = 'xt/release/taproot-validation.json';
+	my $file = 'xt/bitcoin-core/taproot-validation.json';
 	open my $fh, '<', $file
 		or skip_all "This test requires file $file";
 	decode_json(readline $fh);
