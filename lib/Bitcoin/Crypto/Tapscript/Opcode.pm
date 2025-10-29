@@ -21,6 +21,18 @@ extends 'Bitcoin::Crypto::Script::Opcode';
 # TODO: BIP 342 sigopt budget
 my %tapscript_opcodes;
 %tapscript_opcodes = (
+	OP_VERIFY => {
+		code => 0x69,
+		runner => sub {
+			my $runner = shift;
+			my $stack = $runner->stack;
+
+			$runner->_invalid_script unless $runner->to_bool($stack->[-1]);
+
+			# pop later so that problematic value can be seen on the stack
+			pop @$stack;
+		},
+	},
 	OP_CHECKSIG => {
 		code => 0xac,
 		needs_transaction => !!1,
