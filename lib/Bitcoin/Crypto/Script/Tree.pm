@@ -22,63 +22,78 @@ has field '_tree_cache' => (
 	lazy => 1,
 );
 
+# this is flat traversal algorithm that avoids deep recursion warnings in deep
+# script trees
 sub _traverse
 {
-	my ($self, $script_tree, $join_action, $leaf_action) = @_;
+	my ($self, $join_action, $leaf_action) = @_;
 
-	my @result;
-	foreach my $item (@$script_tree) {
-		if (ref $item eq 'ARRAY') {
+	my @stack = ({nodes => [@{$self->tree}], results => []});
+	my $result;
 
-			# this value is the next level of the tree
-			push @result, $self->_traverse($item, $join_action, $leaf_action);
+	while ('avoiding recursion by using stack') {
+		while (@{$stack[-1]{nodes}} > 0) {
+			my $item = shift @{$stack[-1]{nodes}};
+			if (ref $item eq 'ARRAY') {
+
+				# this value is the next level of the tree
+				push @stack, {nodes => [@$item], results => []};
+			}
+			else {
+				state $precomputed_type = Dict [hash => ByteStr];
+				state $leaf_type = Dict [
+					leaf_version => IntMaxBits [8],
+					script => BitcoinScript,
+					id => Optional [Int],
+					hash => Optional [ByteStr],
+				];
+
+				# this value is a leaf which may need calculating
+				my $value = $precomputed_type->coerce($item);
+				if (!$precomputed_type->check($value)) {
+					$value = $leaf_type->assert_coerce($item);
+					if (!defined $value->{hash}) {
+						my $script = $value->{script}->to_serialized;
+						my $script_len = pack_compactsize(length $script);
+
+						$value->{hash} =
+							tagged_hash('TapLeaf', join '', pack('C', $value->{leaf_version}), $script_len, $script);
+					}
+				}
+
+				$leaf_action->($value) if defined $leaf_action;
+				push @{$stack[-1]{results}}, $value;
+			}
+		}
+
+		my @results = @{$stack[-1]{results}};
+		if (@results == 2) {
+
+			# sort result so that smaller hash values come first
+			@results = reverse @results
+				if $results[0]{hash} gt $results[1]{hash};
+
+			my %data = defined $join_action ? $join_action->(@results) : ();
+			$result = {
+				%data,
+				hash => tagged_hash('TapBranch', join '', map { $_->{hash} } @results),
+			};
+		}
+		elsif (@results == 1) {
+			$result = $results[0];
 		}
 		else {
-			state $precomputed_type = Dict [hash => ByteStr];
-			state $leaf_type = Dict [
-				leaf_version => IntMaxBits [8],
-				script => BitcoinScript,
-				id => Optional [Int],
-				hash => Optional [ByteStr],
-			];
-
-			# this value is a leaf which may need calculating
-			my $value = $precomputed_type->coerce($item);
-			if (!$precomputed_type->check($value)) {
-				$value = $leaf_type->assert_coerce($item);
-				if (!defined $value->{hash}) {
-					my $script = $value->{script}->to_serialized;
-					my $script_len = pack_compactsize(length $script);
-
-					$value->{hash} =
-						tagged_hash('TapLeaf', join '', pack('C', $value->{leaf_version}), $script_len, $script);
-				}
-			}
-
-			$leaf_action->($value) if defined $leaf_action;
-			push @result, $value;
+			Bitcoin::Crypto::Exception->raise(
+				'invalid taproot script tree, not a binary tree'
+			);
 		}
+
+		pop @stack;
+		last unless @stack > 0;
+		push @{$stack[-1]{results}}, $result;
 	}
 
-	if (@result == 2) {
-
-		# sort result so that smaller hash values come first
-		@result = reverse @result
-			if $result[0]->{hash} gt $result[1]->{hash};
-
-		my %data = defined $join_action ? $join_action->(@result) : ();
-		return {
-			%data,
-			hash => tagged_hash('TapBranch', join '', map { $_->{hash} } @result),
-		};
-	}
-	elsif (@result == 1) {
-		return $result[0];
-	}
-
-	Bitcoin::Crypto::Exception->raise(
-		'invalid taproot script tree, not a binary tree'
-	);
+	return $result;
 }
 
 sub _tree_paths_action
@@ -132,7 +147,6 @@ sub _build_tree_cache
 
 	my @leaves;
 	my $root = $self->_traverse(
-		$self->tree,
 		undef,
 		sub {
 			my $leaf = shift;
@@ -187,7 +201,7 @@ sub get_tree_paths
 	my ($self) = @_;
 	my ($paths, $action) = $self->_tree_paths_action;
 
-	my $result = $self->_traverse($self->tree, $action);
+	my $result = $self->_traverse($action);
 
 	return $paths;
 }
@@ -239,7 +253,7 @@ sub get_control_block
 	my ($paths_ref, $paths_action) = $self->_tree_paths_action;
 	my ($leaf_ref, $leaf_action) = $self->_find_leaf_action($leaf_id);
 
-	my $root = $self->_traverse($self->tree, $paths_action, $leaf_action);
+	my $root = $self->_traverse($paths_action, $leaf_action);
 
 	Bitcoin::Crypto::Exception::ScriptTree->raise(
 		"no such block with id=$leaf_id"
