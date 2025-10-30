@@ -324,6 +324,10 @@ sub compile
 		my ($size) = @_;
 
 		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+			'no PUSHDATA size in the script'
+		) unless defined $size;
+
+		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
 			'not enough bytes of data in the script'
 		) if length $serialized < $size;
 
