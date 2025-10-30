@@ -85,7 +85,7 @@ my %tapscript_opcodes;
 				$ext = $leaf_hash . "\x00" . pack 'V', $codesep_pos;
 			}
 
-			my $preimage = $runner->transaction->get_taproot_digest($runner->subscript, $hashtype, $ext);
+			my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype, $ext);
 			my $result = $pubkey->verify_message($preimage, $sig);
 
 			$runner->_invalid_script('signature verification failed') unless $result;

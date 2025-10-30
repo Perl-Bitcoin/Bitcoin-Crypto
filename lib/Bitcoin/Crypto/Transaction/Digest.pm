@@ -37,6 +37,10 @@ has param 'taproot_ext_flag' => (
 	default => 0,
 );
 
+has option 'taproot_ext' => (
+	coerce => ByteStr,
+);
+
 has param 'taproot_annex' => (
 	coerce => ByteStr,
 	required => 0,
@@ -356,6 +360,11 @@ sub _get_digest_taproot
 
 	# BIP342 extension
 	if ($ext_flag == 1) {
+		Bitcoin::Crypto::Exception::Transaction->raise(
+			"missing taproot extension for ext_flag=1"
+		) unless $self->has_taproot_ext;
+
+		$serialized .= $self->taproot_ext;
 	}
 
 	return $serialized;

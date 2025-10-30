@@ -43,36 +43,20 @@ has option 'taproot_script_tree' => (
 
 signature_for get_digest => (
 	method => Object,
-	positional => [ByteStr, Maybe [PositiveOrZeroInt]],
+	positional => [ByteStr, Maybe [PositiveOrZeroInt], Maybe [ByteStr], {default => undef}],
 );
 
 sub get_digest
 {
-	my ($self, $subscript, $sighash) = @_;
-
-	return $self->transaction->get_digest(
-		signing_index => $self->input_index,
-		signing_subscript => $subscript,
-		(defined $sighash ? (sighash => $sighash) : ()),
-	);
-}
-
-signature_for get_taproot_digest => (
-	method => Object,
-	positional => [ByteStr, Maybe [PositiveOrZeroInt], Maybe [ByteStr]],
-);
-
-sub get_taproot_digest
-{
 	my ($self, $subscript, $sighash, $ext) = @_;
-	$ext //= '';
 
 	return $self->transaction->get_digest(
 		signing_index => $self->input_index,
 		signing_subscript => $subscript,
 		taproot_ext_flag => $self->taproot_ext_flag,
 		(defined $sighash ? (sighash => $sighash) : ()),
-	) . $ext;
+		(defined $ext ? (taproot_ext => $ext) : ()),
+	);
 }
 
 sub this_input
