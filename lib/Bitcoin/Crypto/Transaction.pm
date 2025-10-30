@@ -513,11 +513,9 @@ sub _verify_script_taproot
 	die 'witness stack has 0 elements'
 		unless @witness_stack;
 
-	if (@witness_stack >= 2 && substr($witness_stack[-1], -1) eq "\x50") {
-
-		# remove the annex from the witness stack
-		pop @witness_stack;
-	}
+	# remove the annex from the witness stack - annex first byte is 0x50
+	pop @witness_stack
+		if @witness_stack >= 2 && substr($witness_stack[-1], 0, 1) eq "\x50";
 
 	my $script;
 
