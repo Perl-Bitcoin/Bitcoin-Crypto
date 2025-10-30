@@ -35,17 +35,24 @@ sub _traverse
 		}
 		else {
 			state $precomputed_type = Dict [hash => ByteStr];
-			state $leaf_type = Dict [leaf_version => IntMaxBits [8], script => BitcoinScript, id => Optional [Int]];
+			state $leaf_type = Dict [
+				leaf_version => IntMaxBits [8],
+				script => BitcoinScript,
+				id => Optional [Int],
+				hash => Optional [ByteStr],
+			];
 
 			# this value is a leaf which may need calculating
 			my $value = $precomputed_type->coerce($item);
 			if (!$precomputed_type->check($value)) {
 				$value = $leaf_type->assert_coerce($item);
-				my $script = $value->{script}->to_serialized;
-				my $script_len = pack_compactsize(length $script);
+				if (!defined $value->{hash}) {
+					my $script = $value->{script}->to_serialized;
+					my $script_len = pack_compactsize(length $script);
 
-				$value->{hash} =
-					tagged_hash('TapLeaf', join '', pack('C', $value->{leaf_version}), $script_len, $script);
+					$value->{hash} =
+						tagged_hash('TapLeaf', join '', pack('C', $value->{leaf_version}), $script_len, $script);
+				}
 			}
 
 			$leaf_action->($value) if defined $leaf_action;

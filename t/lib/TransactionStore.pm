@@ -146,6 +146,26 @@ my %utxos = (
 		locking_script => [P2TR => 'bc1pelw7fppkej6rmudv5uqllsflc0tzdpjxdm7hxyss7vu3qjtjqs2sx0nqqy'],
 		value => 94726,
 	},
+	'a7115c7267dbb4aab62b37818d431b784fe731f4d2f9fa0939a9980d581690ec;0' => {
+		locking_script => [P2TR => 'bc1ppuxgmd6n4j73wdp688p08a8rte97dkn5n70r2ym6kgsw0v3c5ensrytduf'],
+		value => 20000,
+	},
+	'44d275a5364b2430e7a8aa76d4b3235380fef79cf663dc544889c33208a20dc2;0' => {
+		locking_script => [P2WPKH => 'bc1qj2uv8ft04sfpmhxll0y9kqhmnmmgzqu2zplyzu'],
+		value => 999,
+	},
+	'8bc4f8facaaf7c4bdf6d77fac90aea208c2099a091d4b09658d002739daaad87;1' => {
+		locking_script => [P2TR => 'bc1prwh247gy0nzzq4dr0gavnqda7l66h9h66rfdqlz5vz8g5xqmj3msh7uxx0'],
+		value => 20000,
+	},
+	'd1c40446c65456a9b11a9dddede31ee34b8d3df83788d98f690225d2958bfe3c;0' => {
+		locking_script => [P2TR => 'bc1p7dmcmml9zuafhackj463zc3yl9suq0rjts8f3wx63u2a72gefwqqku46c7'],
+		value => 20000,
+	},
+	'ec7b0fdfeb2c115b5a4b172a3a1cf406acc2425229c540d40ec752d893aac0d7;0' => {
+		locking_script => [P2TR => 'bc1pj7w0lxtrdksmpeylsug4znry9ajq68myxsxr0py5y2trdrad6zjsrfwpyj'],
+		value => 10000,
+	},
 );
 
 sub get_utxo
