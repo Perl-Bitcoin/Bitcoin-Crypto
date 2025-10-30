@@ -8,6 +8,7 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
 
+use List::Util qw(none);
 use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Util qw(lift_x);
 use Bitcoin::Crypto::Script::Opcode;
@@ -71,6 +72,17 @@ my %tapscript_opcodes;
 			}
 			else {
 				$hashtype = length $sig == 65 ? unpack('C', substr $sig, -1, 1, '') : undef;
+				state $allowed_sighash = [
+					Bitcoin::Crypto::Constants::sighash_all,
+					Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+					Bitcoin::Crypto::Constants::sighash_single,
+					Bitcoin::Crypto::Constants::sighash_single | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+					Bitcoin::Crypto::Constants::sighash_none,
+					Bitcoin::Crypto::Constants::sighash_none | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+				];
+
+				$runner->_invalid_script('bad sighash')
+					if defined $hashtype && none { $hashtype == $_ } @$allowed_sighash;
 			}
 
 			my $ext_flag = $runner->transaction->taproot_ext_flag;
