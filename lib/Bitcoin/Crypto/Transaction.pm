@@ -546,6 +546,8 @@ sub _verify_script_taproot
 			return;
 		}
 
+		# TODO: for now, leaf must have id 0 to get recognized by runner (see
+		# OP_CHECKSIG for tapscript)
 		my $tree = btc_script_tree->from_path(
 			{
 				id => 0,

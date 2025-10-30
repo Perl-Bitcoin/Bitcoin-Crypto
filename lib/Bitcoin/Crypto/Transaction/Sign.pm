@@ -296,18 +296,12 @@ sub _sign_P2TR
 		),
 	);
 
-	# truncate sighash from signature to save 1 byte
+	# truncate sighash from signature to save 1 byte (required)
 	if ($self->sighash == Bitcoin::Crypto::Constants::sighash_default) {
 		$signature = substr $signature, 0, -1;
 	}
 
-	my @witness = ($signature);
-	if ($script_tree) {
-
-		# TODO: add control block
-	}
-
-	$self->_set_signature(\@witness);
+	$self->_set_signature([$signature]);
 }
 
 sub _sign_type
