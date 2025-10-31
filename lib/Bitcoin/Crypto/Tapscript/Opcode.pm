@@ -20,172 +20,145 @@ use namespace::clean;
 extends 'Bitcoin::Crypto::Script::Opcode';
 
 # TODO: BIP 342 sigopt budget
-my %tapscript_opcodes;
-%tapscript_opcodes = (
-	OP_VERIFY => {
-		code => 0x69,
-		runner => sub {
-			my $runner = shift;
-			my $stack = $runner->stack;
 
-			$runner->_invalid_script unless $runner->to_bool($stack->[-1]);
+sub _OP_CHECKSIG
+{
+	return sub {
+		my ($runner) = @_;
 
-			# pop later so that problematic value can be seen on the stack
-			pop @$stack;
-		},
-	},
-	OP_CHECKSIG => {
-		code => 0xac,
-		needs_transaction => !!1,
+		my $stack = $runner->stack;
+		$runner->_stack_error unless @$stack >= 2;
 
-		runner => sub {
-			my ($runner) = @_;
+		my $raw_pubkey = pop @$stack;
+		my $sig = pop @$stack;
 
-			my $stack = $runner->stack;
-			$runner->_stack_error unless @$stack >= 2;
+		my $pubkey;
+		my $hashtype;
 
-			my $raw_pubkey = pop @$stack;
-			my $sig = pop @$stack;
-
-			my $pubkey;
-			my $hashtype;
-
-			# rules according to https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#rules-for-signature-opcodes
-			if (length $raw_pubkey == 32) {
-				$pubkey = btc_pub->from_serialized(lift_x $raw_pubkey);
-				$pubkey->set_taproot(!!1);
-			}
-			elsif (length $raw_pubkey == 0) {
-				$runner->_invalid_script('bad pubkey');
-			}
-			else {
-				# unknown key type
-				push @$stack, $runner->from_bool(!!1);
-				return;
-			}
-
-			if (length $sig == 0) {
-
-				# empty signature
-				push @$stack, $runner->from_bool(!!0);
-				return;
-			}
-			else {
-				$hashtype = length $sig == 65 ? unpack('C', substr $sig, -1, 1, '') : undef;
-				state $allowed_sighash = [
-					Bitcoin::Crypto::Constants::sighash_all,
-					Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-					Bitcoin::Crypto::Constants::sighash_single,
-					Bitcoin::Crypto::Constants::sighash_single | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-					Bitcoin::Crypto::Constants::sighash_none,
-					Bitcoin::Crypto::Constants::sighash_none | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-				];
-
-				$runner->_invalid_script('bad sighash')
-					if defined $hashtype && none { $hashtype == $_ } @$allowed_sighash;
-			}
-
-			my $ext_flag = $runner->transaction->taproot_ext_flag;
-			my $ext;
-
-			# leaf for this script must be defined with id 0 to get a proper hash
-			if ($ext_flag == 1) {
-				my $codesep_pos = $runner->_codeseparator || 0xffffffff;
-				my $leaf_hash = $runner->transaction->taproot_script_tree->get_tapleaf_hash(0);
-
-				# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#common-signature-message-extension
-				$ext = $leaf_hash . "\x00" . pack 'V', $codesep_pos;
-			}
-
-			my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype, $ext);
-			my $result = $pubkey->verify_message($preimage, $sig);
-
-			$runner->_invalid_script('signature verification failed') unless $result;
-			push @$stack, $runner->from_bool($result);
-		},
-	},
-	OP_CHECKSIGVERIFY => {
-		code => 0xad,
-		needs_transaction => !!1,
-
-		runner => sub {
-			$tapscript_opcodes{OP_CHECKSIG}{runner}->(@_);
-			$tapscript_opcodes{OP_VERIFY}{runner}->(@_);
+		# rules according to https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#rules-for-signature-opcodes
+		if (length $raw_pubkey == 32) {
+			$pubkey = btc_pub->from_serialized(lift_x $raw_pubkey);
+			$pubkey->set_taproot(!!1);
 		}
-	},
-	OP_CHECKMULTISIG => {
-		code => 0xae,
-		needs_transaction => !!1,
-
-		runner => sub {
-			my $runner = shift;
-
-			$runner->_invalid_script;
-		},
-	},
-	OP_CHECKMULTISIGVERIFY => {
-		code => 0xaf,
-		needs_transaction => !!1,
-
-		runner => sub {
-			my $runner = shift;
-
-			$runner->_invalid_script;
+		elsif (length $raw_pubkey == 0) {
+			$runner->_invalid_script('bad pubkey');
 		}
-	},
-	OP_CHECKSIGADD => {
-		code => 0xba,
-		needs_transaction => !!1,
+		else {
+			# unknown key type
+			push @$stack, $runner->from_bool(!!1);
+			return;
+		}
 
-		runner => sub {
-			my $runner = shift;
+		if (length $sig == 0) {
 
-			my $stack = $runner->stack;
-			$runner->_stack_error unless @$stack >= 3;
-			my $n = $runner->to_int(splice @$stack, -2, 1);
+			# empty signature
+			push @$stack, $runner->from_bool(!!0);
+			return;
+		}
+		else {
+			$hashtype = length $sig == 65 ? unpack('C', substr $sig, -1, 1, '') : undef;
+			state $allowed_sighash = [
+				Bitcoin::Crypto::Constants::sighash_all,
+				Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+				Bitcoin::Crypto::Constants::sighash_single,
+				Bitcoin::Crypto::Constants::sighash_single | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+				Bitcoin::Crypto::Constants::sighash_none,
+				Bitcoin::Crypto::Constants::sighash_none | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+			];
 
-			$tapscript_opcodes{OP_CHECKSIG}{runner}->($runner);
-			push @$stack, $runner->from_int($n + $runner->to_int(pop @$stack));
-		},
-	},
-);
+			$runner->_invalid_script('bad sighash')
+				if defined $hashtype && none { $hashtype == $_ } @$allowed_sighash;
+		}
 
-# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#specification
-for my $succ (80, 98, 126 .. 129, 131 .. 134, 137, 138, 141, 142, 149 .. 153, 187 .. 254) {
-	$tapscript_opcodes{"OP_SUCCESS$succ"} = {
-		code => $succ,
-		on_compilation => sub {
-			my ($runner, $opcode) = @_;
+		my $ext_flag = $runner->transaction->taproot_ext_flag;
+		my $ext;
 
-			Bitcoin::Crypto::Exception::ScriptSuccess->raise('OP_SUCCESS encountered');
-		},
-		runner => sub {
+		# leaf for this script must be defined with id 0 to get a proper hash
+		if ($ext_flag == 1) {
+			my $codesep_pos = $runner->_codeseparator || 0xffffffff;
+			my $leaf_hash = $runner->transaction->taproot_script_tree->get_tapleaf_hash(0);
 
-			# never reached
-		},
+			# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#common-signature-message-extension
+			$ext = $leaf_hash . "\x00" . pack 'V', $codesep_pos;
+		}
+
+		my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype, $ext);
+		my $result = $pubkey->verify_message($preimage, $sig);
+
+		$runner->_invalid_script('signature verification failed') unless $result;
+		push @$stack, $runner->from_bool($result);
 	};
 }
 
-sub OPCODES
+sub _OP_CHECKMULTISIG
 {
-	my ($self) = @_;
+	return sub {
+		my $runner = shift;
 
-	state $codes = do {
-		my %opcodes = %{$self->SUPER::OPCODES};
-		my %opcodes_tmp_map = map { $opcodes{$_}{code}, $_ } keys %opcodes;
-
-		for my $key (keys %tapscript_opcodes) {
-			my $opcode = $tapscript_opcodes{$key};
-			delete $opcodes{$opcodes_tmp_map{$opcode->{code}}}
-				if defined $opcodes_tmp_map{$opcode->{code}};
-
-			$opcodes{$key} = $self->new(name => $key, %$opcode);
-		}
-
-		\%opcodes;
+		$runner->_invalid_script;
 	};
+}
 
-	return $codes;
+sub _OP_CHECKSIGADD
+{
+	my ($class) = @_;
+
+	my $checksig = $class->_OP_CHECKSIG;
+
+	return sub {
+		my $runner = shift;
+
+		my $stack = $runner->stack;
+		$runner->_stack_error unless @$stack >= 3;
+		my $n = $runner->to_int(splice @$stack, -2, 1);
+
+		$checksig->($runner);
+		push @$stack, $runner->from_int($n + $runner->to_int(pop @$stack));
+	};
+}
+
+sub _build_opcodes
+{
+	my ($class) = @_;
+	my %parent_opcodes = $class->SUPER::_build_opcodes;
+
+	my %opcodes = (
+		%parent_opcodes,
+		OP_CHECKSIG => {
+			code => 0xac,
+			needs_transaction => !!1,
+			runner => __PACKAGE__->_OP_CHECKSIG,
+		},
+		OP_CHECKMULTISIG => {
+			code => 0xae,
+			needs_transaction => !!1,
+			runner => __PACKAGE__->_OP_CHECKMULTISIG,
+		},
+		OP_CHECKSIGADD => {
+			code => 0xba,
+			needs_transaction => !!1,
+			runner => __PACKAGE__->_OP_CHECKSIGADD,
+		},
+	);
+
+	my %opcodes_by_code = map { $opcodes{$_}{code} => $_ } keys %opcodes;
+
+	# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#specification
+	for my $succ (80, 98, 126 .. 129, 131 .. 134, 137, 138, 141, 142, 149 .. 153, 187 .. 254) {
+		delete $opcodes{$opcodes_by_code{$succ}}
+			if exists $opcodes_by_code{$succ};
+
+		$opcodes{"OP_SUCCESS$succ"} = {
+			code => $succ,
+			on_compilation => sub {
+				my ($runner, $opcode) = @_;
+
+				Bitcoin::Crypto::Exception::ScriptSuccess->raise('OP_SUCCESS encountered');
+			},
+		};
+	}
+
+	return %opcodes;
 }
 
 1;
