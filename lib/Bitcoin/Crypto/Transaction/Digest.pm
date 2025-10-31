@@ -13,47 +13,34 @@ use Bitcoin::Crypto::Util qw(hash256 pack_compactsize tagged_hash);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Transaction::Digest::Config;
 
 has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],
+	weak_ref => 1,
 );
 
-has param 'signing_index' => (
-	isa => PositiveOrZeroInt,
+has field 'config' => (
+	coerce => (InstanceOf ['Bitcoin::Crypto::Transaction::Digest::Config'])
+		->plus_coercions(HashRef, q{Bitcoin::Crypto::Transaction::Digest::Config->new($_)}),
+	writer => 1,
+	handles => [
+		qw(
+			signing_index
+			signing_subscript
+			sighash
+			_default_sighash
+			taproot_ext_flag
+			taproot_ext
+			taproot_annex
+		)
+	],
 );
 
-has option 'signing_subscript' => (
-	coerce => ByteStr,
+has field '_cache' => (
+	isa => HashRef,
+	default => sub { {} },
 );
-
-has param 'sighash' => (
-	isa => PositiveOrZeroInt,
-	required => 0,
-	writer => -hidden,
-);
-
-has param 'taproot_ext_flag' => (
-	isa => PositiveOrZeroInt,
-	default => 0,
-);
-
-has option 'taproot_ext' => (
-	coerce => ByteStr,
-);
-
-has param 'taproot_annex' => (
-	coerce => ByteStr,
-	required => 0,
-);
-
-sub _default_sighash
-{
-	my ($self, $value) = @_;
-
-	if (!defined $self->sighash) {
-		$self->_set_sighash($value);
-	}
-}
 
 sub get_digest
 {
@@ -297,37 +284,40 @@ sub _get_digest_taproot
 	$serialized .= pack 'V', $transaction->version;
 	$serialized .= pack 'V', $transaction->locktime;
 
-	# TODO: many values here should be cached at transaction level
-
 	if (!$anyonecanpay) {
-		my @prevouts;
-		my @amounts;
-		my @pubkeys;
-		my @sequences;
-		foreach my $input (@{$transaction->inputs}) {
-			push @prevouts, $input->prevout;
-			push @amounts, $input->utxo->output->value_serialized;
-			push @sequences, pack 'V', $input->sequence_no;
+		$serialized .= $self->_cache->{taproot_common_tx_data} //= do {
+			my @prevouts;
+			my @amounts;
+			my @pubkeys;
+			my @sequences;
+			foreach my $input (@{$transaction->inputs}) {
+				push @prevouts, $input->prevout;
+				push @amounts, $input->utxo->output->value_serialized;
+				push @sequences, pack 'V', $input->sequence_no;
 
-			my $pubkey = $input->utxo->output->locking_script->to_serialized;
-			push @pubkeys, pack_compactsize(length $pubkey) . $pubkey;
+				my $pubkey = $input->utxo->output->locking_script->to_serialized;
+				push @pubkeys, pack_compactsize(length $pubkey) . $pubkey;
+			}
+
+			sha256(join '', @prevouts)
+				. sha256(join '', @amounts)
+				. sha256(join '', @pubkeys)
+				. sha256(join '', @sequences);
+		};
+	}
+
+	my $outputs = $self->_cache->{taproot_outputs} //= do {
+		my @outputs;
+		foreach my $output (@{$transaction->outputs}) {
+			my $tmp = $output->locking_script->to_serialized;
+			push @outputs, $output->to_serialized;
 		}
 
-		$serialized .= sha256(join '', @prevouts);
-		$serialized .= sha256(join '', @amounts);
-		$serialized .= sha256(join '', @pubkeys);
-		$serialized .= sha256(join '', @sequences);
-
-	}
-
-	my @outputs;
-	foreach my $output (@{$transaction->outputs}) {
-		my $tmp = $output->locking_script->to_serialized;
-		push @outputs, $output->to_serialized;
-	}
+		\@outputs;
+	};
 
 	if (!$none && !$single) {
-		$serialized .= sha256(join '', @outputs);
+		$serialized .= sha256(join '', @$outputs);
 	}
 
 	$serialized .= pack 'C', $ext_flag * 2 + defined $annex;
@@ -349,8 +339,8 @@ sub _get_digest_taproot
 		$serialized .= sha256(pack_compactsize(length $annex) . $annex);
 	}
 
-	if ($single && $self->signing_index < @outputs) {
-		$serialized .= sha256($outputs[$self->signing_index]);
+	if ($single && $self->signing_index < @$outputs) {
+		$serialized .= sha256($outputs->[$self->signing_index]);
 	}
 	elsif ($single) {
 		Bitcoin::Crypto::Exception::Transaction->raise(
@@ -360,11 +350,13 @@ sub _get_digest_taproot
 
 	# BIP342 extension
 	if ($ext_flag == 1) {
+		my $ext = $self->taproot_ext;
+
 		Bitcoin::Crypto::Exception::Transaction->raise(
 			"missing taproot extension for ext_flag=1"
-		) unless $self->has_taproot_ext;
+		) unless defined $ext;
 
-		$serialized .= $self->taproot_ext;
+		$serialized .= $ext;
 	}
 
 	return $serialized;

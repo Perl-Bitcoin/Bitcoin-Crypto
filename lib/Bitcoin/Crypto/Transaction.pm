@@ -44,6 +44,14 @@ has param 'locktime' => (
 	default => 0,
 );
 
+has field '_digest_object' => (
+	isa => InstanceOf ['Bitcoin::Crypto::Transaction::Digest'],
+	lazy => sub {
+		Bitcoin::Crypto::Transaction::Digest->new(transaction => shift);
+	},
+	clearer => -public,
+);
+
 with qw(
 	Bitcoin::Crypto::Role::ShallowClone
 );
@@ -69,6 +77,7 @@ sub add_input
 	}
 
 	push @{$self->inputs}, $data;
+	$self->clear_digest_object;
 	return $self;
 }
 
@@ -93,6 +102,7 @@ sub add_output
 	}
 
 	push @{$self->outputs}, $data;
+	$self->clear_digest_object;
 	return $self;
 }
 
@@ -266,8 +276,8 @@ sub get_digest_object
 {
 	my ($self, $params) = @_;
 
-	$params->{transaction} = $self;
-	my $digest = Bitcoin::Crypto::Transaction::Digest->new($params);
+	my $digest = $self->_digest_object;
+	$digest->set_config($params);
 	return $digest;
 }
 
@@ -890,6 +900,13 @@ custom scripts.
 The sighash which should be used for the digest. By default C<SIGHASH_ALL>.
 
 =back
+
+Note that digest is implemented as a persistent object associated with the
+transaction which may hold some data cached for reuse. Adding inputs and
+outputs through L</add_input> and L</add_output> will cause this object to be
+recreated, since the cache must be invalidated. If you change transaction in a
+way that won't clear this cache and you call C<get_digest> repeatedly, you may
+force this by calling C<clear_digest_object>.
 
 =head3 get_digest_object
 
