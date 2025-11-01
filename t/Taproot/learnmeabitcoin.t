@@ -75,7 +75,7 @@ subtest 'should sign/verify simple script path spend case' => sub {
 	$tx->inputs->[1]->set_witness($input_witness);
 	push @$input_witness, "\x08";
 	push @$input_witness, $script->to_serialized;
-	push @$input_witness, $tree->get_control_block(0, $pub);
+	push @$input_witness, $tree->get_control_block(0, $pub)->to_serialized;
 	is [map { to_format [hex => $_] } @{$tx->inputs->[1]->witness}], [
 		'08',
 		'5887',
@@ -144,7 +144,7 @@ subtest 'should sign/verify script path spend case with signature' => sub {
 		)
 	) . pack('C', Bitcoin::Crypto::Constants::sighash_all);
 	push @$input_witness, $script->to_serialized;
-	push @$input_witness, $tree->get_control_block(0, $pub);
+	push @$input_witness, $tree->get_control_block(0, $pub)->to_serialized;
 
 	is [map { to_format [hex => $_] } @{$tx->inputs->[0]->witness}], [
 		'01769105cbcbdcaaee5e58cd201ba3152477fda31410df8b91b4aee2c4864c7700615efb425e002f146a39ca0a4f2924566762d9213bd33f825fad83977fba7f01',
@@ -214,7 +214,7 @@ subtest 'should sign/verify script path spend case with tree' => sub {
 	$tx->inputs->[0]->set_witness($input_witness);
 	push @$input_witness, "\x03";
 	push @$input_witness, $script->to_serialized;
-	push @$input_witness, $tree->get_control_block(0, $pub);
+	push @$input_witness, $tree->get_control_block(0, $pub)->to_serialized;
 
 	is [map { to_format [hex => $_] } @{$tx->inputs->[0]->witness}], [
 		'03',

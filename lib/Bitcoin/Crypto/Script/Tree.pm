@@ -10,6 +10,7 @@ use Types::Common -sigs, -types;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(tagged_hash pack_compactsize has_even_y);
+use Bitcoin::Crypto::Transaction::ControlBlock;
 
 use namespace::clean;
 
@@ -262,10 +263,11 @@ sub get_control_block
 	my $tapkey = $pubkey->get_taproot_tweaked_key(tweak_suffix => $root->{hash});
 	my $parity = has_even_y($tapkey);
 
-	my $leaf_version = ${$leaf_ref}->{leaf_version} | !$parity;
-	my $path = $paths_ref->{$leaf_id} // [];
-
-	return pack('C', $leaf_version) . $pubkey->get_xonly_key . join '', @$path;
+	return Bitcoin::Crypto::Transaction::ControlBlock->new(
+		control_byte => ${$leaf_ref}->{leaf_version} | !$parity,
+		public_key => $pubkey,
+		script_blocks => $paths_ref->{$leaf_id} // [],
+	);
 }
 
 1;
@@ -280,7 +282,7 @@ Bitcoin::Crypto::Script::Tree - BIP341 Script trees
 
 =head1 DESCRIPTION
 
-This module contains implementation script trees described in
+This module contains implementation of script trees described in
 L<BIP341|https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki>. These
 trees are used by taproot and are necessary to build custom taproot scripts.
 
@@ -391,11 +393,12 @@ not exist, an exception is thrown. Returns a bytestring.
 
 =head2 get_control_block
 
-	$bytestr = $tree->get_control_block($leaf_id, $pubkey)
+	$block = $tree->get_control_block($leaf_id, $pubkey)
 
-Builds a binary taproot control block used in taproot witness data. C<$leaf_id>
-must be a valid identifier of a leaf existing in the tree. C<$pubkey> is a
-public key that associated with the address for key path spending.
+Builds a taproot control block used in taproot witness data. C<$leaf_id> must
+be a valid identifier of a leaf existing in the tree. C<$pubkey> is a public
+key that associated with the address for key path spending. Returns an instance
+of L<Bitcoin::Crypto::Transaction::ControlBlock>.
 
 =head2 get_tree_paths
 

@@ -21,6 +21,7 @@ use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_form
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Common;
 use Bitcoin::Crypto::Script::Tree;
+use Bitcoin::Crypto::Transaction::ControlBlock;
 
 use namespace::clean;
 
@@ -533,19 +534,16 @@ sub _verify_script_taproot
 		$script = Bitcoin::Crypto::Script::Common->new(TR => $pubkey);
 	}
 	else {
-		my $control_block = pop @witness_stack;
+		my $control_block = Bitcoin::Crypto::Exception->trap_into(
+			sub {
+				return Bitcoin::Crypto::Transaction::ControlBlock->from_serialized(pop @witness_stack);
+			},
+			'invalid control block'
+		);
+
 		my $raw_script = pop @witness_stack;
 
-		my ($control_byte, $xonly_pub, @script_blocks) = grep { length } unpack 'Ca32(a32)*', $control_block;
-		die 'invalid taproot control block'
-			unless defined $control_byte
-			&& defined $xonly_pub
-			&& @script_blocks <= 128
-			&& (@script_blocks == 0 || length $script_blocks[-1] == 32);
-
-		my $internal_pubkey = btc_pub->from_serialized(lift_x $xonly_pub);
-		my $leaf_version = $control_byte & 0xfe;
-
+		my $leaf_version = $control_block->get_leaf_version;
 		if ($leaf_version == 0xc0) {
 			$script = btc_tapscript->from_serialized($raw_script);
 			$script_runner->transaction->set_taproot_ext_flag(1);
@@ -564,15 +562,16 @@ sub _verify_script_taproot
 				leaf_version => $leaf_version,
 				script => $script,
 			},
-			\@script_blocks
+			$control_block->script_blocks
 		);
 
 		$script_runner->transaction->set_taproot_script_tree($tree);
 
-		my $tweaked = $internal_pubkey->get_taproot_tweaked_key(tweak_suffix => $tree->get_merkle_root);
+		my $tweaked = $control_block->public_key->get_taproot_tweaked_key(tweak_suffix => $tree->get_merkle_root);
 		my $expected_parity = !has_even_y($tweaked);
 		die 'invalid public key or control block'
-			unless $tweaked->get_xonly_key eq $pubkey && $expected_parity == ($control_byte & 1);
+			unless $tweaked->get_xonly_key eq $pubkey
+			&& $expected_parity == ($control_block->control_byte & 1);
 	}
 
 	# execute input to get initial stack

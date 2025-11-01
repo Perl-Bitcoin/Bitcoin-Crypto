@@ -63,6 +63,35 @@ $bytestr->coercion->add_type_coercions(
 	$formatdesc, q{ Bitcoin::Crypto::Helpers::parse_formatdesc(@{$_}) }
 );
 
+__PACKAGE__->add_type(
+	name => 'ByteStrLen',
+	parent => $bytestr,
+
+	constraint_generator => sub {
+		my $len = shift;
+		PositiveInt->assert_valid($len);
+
+		return sub {
+			return length $_ == $len;
+		};
+	},
+
+	inline_generator => sub {
+		my $len = shift;
+
+		return sub {
+			my $varname = pop;
+
+			return (undef, qq{ length $varname == $len });
+		}
+	},
+
+	message => sub {
+		my $len = shift;
+		return "Bytestring does not have length of $len";
+	},
+);
+
 my $scripttype = __PACKAGE__->add_type(
 	name => 'ScriptType',
 	parent => Enum->of(qw(P2PK P2PKH P2SH P2MS P2WPKH P2WSH P2TR NULLDATA))
@@ -121,7 +150,8 @@ __PACKAGE__->add_type(
 	parent => PositiveOrZeroInt,
 
 	constraint_generator => sub {
-		my $bits = PositiveInt->assert_valid(shift);
+		my $bits = shift;
+		PositiveInt->assert_valid($bits);
 
 		# for same bits as system, no need for special constraint
 		return sub { 1 }

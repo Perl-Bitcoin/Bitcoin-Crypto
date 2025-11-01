@@ -188,7 +188,7 @@ foreach my $case_ind (0 .. $#cases) {
 				my $expected = $case->{expected}{script_path_control_blocks}[$control_block_id];
 				my $got = $tree->get_control_block($control_block_id, $key);
 
-				is to_format [hex => $got], $expected, "control block $control_block_id ok";
+				is to_format [hex => $got->to_serialized], $expected, "control block $control_block_id ok";
 			}
 		}
 	};

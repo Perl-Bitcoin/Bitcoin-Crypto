@@ -62,5 +62,13 @@ subtest 'testing ByteStr' => sub {
 	ok !$type->check(undef), 'undef check ok';
 };
 
+subtest 'testing ByteStrLen[1]' => sub {
+	my $type = ByteStrLen [1];
+
+	ok !$type->check(''), 'empty string ok';
+	ok $type->check(chr(255)), 'string with one byte ok';
+	ok !$type->check(chr(255) . chr(256)), 'string with two bytes ok';
+};
+
 done_testing;
 
