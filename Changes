@@ -1,19 +1,74 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
-	[Added interface]
-	- Bitcoin::Crypto::Util::merkle_root function
-	- Bitcoin::Crypto::Util::tagged_hash function
-	- Bitcoin::Crypto::Util::lift_x function
-	- Bitcoin::Crypto::Util::has_even_y function
+	[Public interface changes]
+	- Bitcoin::Crypto:
+		- added btc_tapscript function
+		- added btc_script_tree function
+	- Bitcoin::Crypto::Util:
+		- added merkle_root function
+		- added tagged_hash function
+		- added lift_x function
+		- added has_even_y function
+	- Bitcoin::Crypto::Script:
+		- added opcode_class method
+	- Bitcoin::Crypto::Script::Runner:
+		- added script attribute
+		- added to_minimal_bool method
+		- added compile method
+		- added tapscript method
+	- Bitcoin::Crypto::Key::Private:
+		- added get_taproot_tweaked_key method
+		- added script_tree argument to sign_transaction method
+	- Bitcoin::Crypto::Key::Public:
+		- added get_xonly_key method
+		- added get_taproot_address method
+		- added get_taproot_tweaked_key method
+		- added $version and $source_data arguments to witness_program method
+	- Bitcoin::Crypto::Transaction:
+		- added get_digest_object method
+		- added clear_digest_object method
+		- added taproot_ext_flag argument to get_digest method
+		- added taproot_ext argument to get_digest method
+		- added taproot_annex argument to get_digest method
+	- Bitcoin::Crypto::Transaction::Input:
+		- added is_taproot method
+	- Bitcoin::Crypto::PSBT:
+		- added $key argument to get_field method
+		- added $key argument to get_all_fields method
+		- added list_fields method
+		- added handling of taproot-specific fields (BIP371)
+	- Bitcoin::Crypto::Types:
+		- added ByteStrLen type
+		- added BitcoinScriptTree type
+	- Bitcoin::Crypto::Exception:
+		- added ScriptTree exception subclass
+		- added ScriptCompilation exception subclass
+		- added ScriptSuccess exception subclass
+		- added KeyConvert exception subclass
+		- removed Verify exception subclass
+	- added Bitcoin::Crypto::Script::Tree class
+	- added Bitcoin::Crypto::Tapscript class
+	- added Bitcoin::Crypto::Tapscript::Opcode class
+	- added Bitcoin::Crypto::Transaction::ControlBlock class
+
+	[Behavior changes]
+	- it is now possible to sign and verify P2TR transactions
+	- public key's get_address method now returns taproot address by default
+	- BIP44 derivation methods now accept purpose 86, known as bip44_taproot_purpose in Bitcoin::Crypto::Constants
 
 	[Fixes]
 	- verify_message from public and private keys can no longer throw an exception, always returns false on failure
+	- OP_VERIF and OP_VERNOTIF now correctly mark script as invalid on compilation
 	- scripts now correctly place empty vector on execution stack for false values
 	- scripts now correctly check integer value for 4 byte limit
+	- serializing PSBTs now creates missing maps if they don't exist instead of raising an exception
+	- creating PSBT field with undefined key or value is now permitted and ignores the value
+	- minor bugfixes
 
-	[Changes and deprecations]
-	- removed Bitcoin::Crypto::Exception::Verify
+	[Breaking changes]
+	- changed interface of PSBT fields PSBT_GLOBAL_XPUB, PSBT_IN_BIP32_DERIVATION, PSBT_OUT_BIP32_DERIVATION:
+		- these fields now return instance of Bitcoin::Crypto::DerivationPath instead of list of numbers
 
 3.002 Fri Oct 24, 2025
 	[Added interface]
