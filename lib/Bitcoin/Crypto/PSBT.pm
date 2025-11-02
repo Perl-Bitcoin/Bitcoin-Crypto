@@ -8,6 +8,7 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
 use List::Util qw(any);
+use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::PSBT::Map;
 use Bitcoin::Crypto::PSBT::Field;

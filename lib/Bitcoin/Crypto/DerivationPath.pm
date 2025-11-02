@@ -56,9 +56,9 @@ sub get_path_hardened
 	];
 }
 
-signature_for get_path_hardened => (
-	method => Object,
-	positional => [],
+signature_for from_string => (
+	method => Str,
+	positional => [Str],
 );
 
 sub from_string

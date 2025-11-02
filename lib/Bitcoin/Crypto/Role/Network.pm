@@ -28,7 +28,7 @@ sub _trigger_network
 	if (Bitcoin::Crypto::Network->single_network) {
 		my $default = Bitcoin::Crypto::Network->get;
 		Bitcoin::Crypto::Exception::NetworkCheck->raise(
-			'invalid network, running in single-network mode with ' . $default->id
+			sprintf 'invalid network %s, running in single-network mode with %s', $self->network->id, $default->id
 		) if $default->id ne $self->network->id;
 	}
 }
