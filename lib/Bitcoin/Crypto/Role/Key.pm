@@ -140,16 +140,12 @@ sub raw_key
 
 signature_for get_taproot_tweaked_key => (
 	method => Object,
-	named => [
-		tweak_suffix => Maybe [ByteStr],
-		{default => undef},
-	],
-	bless => !!0,
+	positional => [Maybe [ByteStr], {default => undef}],
 );
 
 sub get_taproot_tweaked_key
 {
-	my ($self, $args) = @_;
+	my ($self, $tweak_suffix) = @_;
 
 	my $new_key;
 	if ($self->_is_private) {
@@ -158,12 +154,12 @@ sub get_taproot_tweaked_key
 		$internal = ecc->negate_private_key($internal)
 			unless has_even_y($internal_public);
 
-		my $tweak = tagged_hash('TapTweak', ecc->xonly_public_key($internal_public) . ($args->{tweak_suffix} // ''));
+		my $tweak = tagged_hash('TapTweak', ecc->xonly_public_key($internal_public) . ($tweak_suffix // ''));
 		$new_key = ecc->add_private_key($internal, $tweak);
 	}
 	else {
 		my $internal = $self->raw_key('public_xonly');
-		my $tweak = tagged_hash('TapTweak', $internal . ($args->{tweak_suffix} // ''));
+		my $tweak = tagged_hash('TapTweak', $internal . ($tweak_suffix // ''));
 		$new_key = ecc->combine_public_keys(ecc->create_public_key($tweak), lift_x $internal);
 	}
 

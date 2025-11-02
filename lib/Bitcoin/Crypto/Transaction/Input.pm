@@ -474,11 +474,17 @@ start decoding. It will be set to the next byte after end of input stream.
 
 	$boolean = $object->is_segwit()
 
-Returns true if this input represents a segwit output.
+Returns true if this input references a segwit output.
 
 For scripts which have C<signature_script> filled out, this method is able to
 detect both native and compatibility segwit outputs (unlike
 L<Bitcoin::Crypto::Script/is_native_segwit>).
+
+=head3 is_taproot
+
+	$boolean = $object->is_taproot()
+
+Returns true if this input references a taproot output.
 
 =head3 prevout
 

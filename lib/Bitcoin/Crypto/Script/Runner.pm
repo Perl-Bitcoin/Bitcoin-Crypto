@@ -493,12 +493,12 @@ sub success
 	return !!1;
 }
 
-signature_for tapscript => (
+signature_for is_tapscript => (
 	method => Object,
 	positional => [],
 );
 
-sub tapscript
+sub is_tapscript
 {
 	my ($self) = @_;
 
@@ -644,7 +644,7 @@ If errors occur, they will be thrown as exceptions. See L</EXCEPTIONS>.
 	$object->compile()
 
 Fills L</operations> based on the contents of L</script>. May throw an
-exception in case of both success and failure.
+exception in case of both success and failure. Advanced use only.
 
 =head3 start
 
@@ -697,9 +697,9 @@ codeseparator, with all other codeseparators removed.
 
 Returns a boolean indicating whether the script execution was successful.
 
-=head3 tapscript
+=head3 is_tapscript
 
-	$boolean = $object->tapscript()
+	$boolean = $object->is_tapscript()
 
 Returns true if currently executed script is a tapscript.
 

@@ -567,7 +567,7 @@ sub _verify_script_taproot
 
 		$script_runner->transaction->set_taproot_script_tree($tree);
 
-		my $tweaked = $control_block->public_key->get_taproot_tweaked_key(tweak_suffix => $tree->get_merkle_root);
+		my $tweaked = $control_block->public_key->get_taproot_tweaked_key($tree->get_merkle_root);
 		my $expected_parity = !has_even_y($tweaked);
 		die 'invalid public key or control block'
 			unless $tweaked->get_xonly_key eq $pubkey
@@ -897,6 +897,22 @@ custom scripts.
 =item * C<sighash>
 
 The sighash which should be used for the digest. By default C<SIGHASH_ALL>.
+
+=item * C<taproot_ext_flag>
+
+Taproot extension flag defined by BIP341 (integer). 0 (no extension) by
+default.
+
+=item * C<taproot_ext>
+
+Taproot extension as a bytestring. No extension by default.
+
+=item = C<taproot_annex>
+
+Taproot annex defined by BIP341. No annex by default.
+
+Caution: BIP341 warns to not use annex until the meaning of this field is
+defined by a softfork.
 
 =back
 

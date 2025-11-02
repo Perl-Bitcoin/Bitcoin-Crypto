@@ -224,9 +224,11 @@ Bitcoin::Crypto::Types - Bitcoin-specific data types
 		FormatStr
 		FormatDesc
 		ByteStr
+		ByteStrLen
 		ScriptType
 		ScriptDesc
 		BitcoinScript
+		BitcoinScriptTree
 		PSBTMapType
 		PSBTFieldType
 		IntMaxBits
@@ -259,6 +261,10 @@ format.
 
 A string where each character is 8 bit. Can be coerced from L</FormatDesc>.
 
+=head2 ByteStrLen
+
+Same as L</ByteStr>, but can be parametrized to have a certain length.
+
 =head2 ScriptType
 
 A string with one of the available script type names, like C<P2WPKH>.
@@ -273,6 +279,12 @@ specific for that script type.
 
 An instance of L<Bitcoin::Crypto::Script>. Can be coerced from L</ScriptDesc>
 or L</ByteStr> (or any of its coercion types).
+
+=head2 BitcoinScriptTree
+
+An instance of L<Bitcoin::Crypto::Script::Tree>. Can be coerced from a
+structure by calling L<Bitcoin::Crypto::Script::Tree/from_structure>
+implicitly.
 
 =head2 PSBTMapType
 

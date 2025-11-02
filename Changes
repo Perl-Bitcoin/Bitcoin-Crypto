@@ -16,15 +16,17 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added script attribute
 		- added to_minimal_bool method
 		- added compile method
-		- added tapscript method
+		- added is_tapscript method
 	- Bitcoin::Crypto::Key::Private:
+		- added taproot attribute
 		- added get_taproot_tweaked_key method
 		- added script_tree argument to sign_transaction method
 	- Bitcoin::Crypto::Key::Public:
+		- added taproot attribute
 		- added get_xonly_key method
 		- added get_taproot_address method
 		- added get_taproot_tweaked_key method
-		- added $version and $source_data arguments to witness_program method
+		- added $version and $args arguments to witness_program method
 	- Bitcoin::Crypto::Transaction:
 		- added get_digest_object method
 		- added clear_digest_object method

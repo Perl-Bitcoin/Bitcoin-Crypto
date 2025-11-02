@@ -117,7 +117,7 @@ sub _OP_IF
 
 		$runner->_stack_error unless @$stack >= 1;
 		my $value = pop @$stack;
-		$value = $runner->tapscript ? $runner->to_minimal_bool($value) : $runner->to_bool($value);
+		$value = $runner->is_tapscript ? $runner->to_minimal_bool($value) : $runner->to_bool($value);
 		$runner->_invalid_script unless defined $value;
 		$value = !$value if $inverted;
 

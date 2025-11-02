@@ -181,3 +181,15 @@ This module is functionally equal to L<Bitcoin::Crypto::Script::Opcode>, but it
 contains tapscript-specific changes to Bitcoin opcodes defined in
 L<BIP-342|https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki>.
 
+=head1 SEE ALSO
+
+=over
+
+=item L<Bitcoin::Crypto::Tapscript>
+
+=item L<Bitcoin::Crypto::Script::Opcode>
+
+=back
+
+=cut
+

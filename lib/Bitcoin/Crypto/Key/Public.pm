@@ -84,7 +84,7 @@ sub witness_program
 		(Bitcoin::Crypto::Constants::taproot_witness_version) => sub {
 			my ($self, $params) = @_;
 
-			$self = $self->get_taproot_tweaked_key(%$params)
+			$self = $self->get_taproot_tweaked_key($params->{tweak_suffix})
 				unless $self->taproot;
 
 			return $self->get_xonly_key;
@@ -323,6 +323,39 @@ L<Bitcoin::Crypto::Network> package or an instance of this class.
 
 Returns current key instance.
 
+=head2 witness_program
+
+	$script = $object->witness_program($version, \%args = {})
+
+Returns a witness program for given witness C<$version> as
+L<Bitcoin::Crypto::Script> instance. C<%args> depends on witness version:
+
+=over
+
+=item
+
+For witness version 0 (segwit), no arguments are used.
+
+=item
+
+For witness version 1 (taproot), C<tweak_suffix> optional bytestring argument
+can be passed.
+
+=back
+
+=head2 get_taproot_tweaked_key
+
+	$pub = $object->get_taproot_tweaked_key($tweak_suffix = undef)
+
+Returns a new public key instance that represents an internal taproot key.
+Optional C<$tweak_suffix> can be passed as bytestring.
+
+=head2 get_xonly_key
+
+	$bytestring = $object->get_xonly_key()
+
+Returns a 32-byte bytestring containing the xonly key for this public key.
+
 =head2 verify_message
 
 	$signature_valid = $object->verify_message($message, $signature)
@@ -364,10 +397,26 @@ you wish to generate this address anyway, call L</clear_purpose>.
 
 	$address_string = $object->get_segwit_address()
 
-Returns string containing Bech32 encoded witness program (C<p2wpkh> address)
+Returns a string containing Bech32 encoded witness version 0 program (C<p2wpkh>
+address)
 
 If the public key was obtained through BIP44 derivation scheme, this method
 will check whether the purpose was C<84> and raise an exception otherwise. If
+you wish to generate this address anyway, call L</clear_purpose>.
+
+=head2 get_taproot_address
+
+	$address_string = $object->get_taproot_address($script_tree = undef)
+
+Returns a string containing Bech32m encoded witness version 1 program (C<p2tr>
+address)
+
+Optional C<$script_tree> can be passed as L<Bitcoin::Crypto::Script::Tree>
+object. Passing this argument will generate an address that can be spent using
+script path spend as well as key path spend.
+
+If the public key was obtained through BIP44 derivation scheme, this method
+will check whether the purpose was C<86> and raise an exception otherwise. If
 you wish to generate this address anyway, call L</clear_purpose>.
 
 =head2 get_address
@@ -383,14 +432,15 @@ most fitting:
 matches the purpose
 
 =item * If the key doesn't have a purpose but the network supports segwit,
-returns a segwit address (same as C<get_segwit_address>)
+returns a taproot address (same as C<get_taproot_address>, but does not accept
+a script tree)
 
 =item * If the network doesn't support segwit, returns legacy address
 
 =back
 
 B<NOTE>: The rules this function uses to choose the address type B<will>
-change when more up-to-date address types are implemented (like taproot). Use
+change when more up-to-date address types are implemented. Use
 other address functions if this is not what you want.
 
 =head2 clear_purpose

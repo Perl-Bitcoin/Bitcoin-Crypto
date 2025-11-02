@@ -292,7 +292,7 @@ sub _sign_P2TR
 
 	my $signature = $self->_get_signature(
 		key => $self->key->get_taproot_tweaked_key(
-			tweak_suffix => $script_tree ? $script_tree->get_merkle_root : undef
+			$script_tree ? $script_tree->get_merkle_root : undef
 		),
 	);
 
