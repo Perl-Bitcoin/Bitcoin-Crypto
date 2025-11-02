@@ -296,7 +296,27 @@ foreach my $case (@cases) {
 		}, 'deserialization ok';
 
 		$checker->($psbt) if $checker;
-		is to_format [base64 => $psbt->to_serialized], $base64, 'serialized again ok';
+
+		# try all serializers and deserializers
+		my @fields = $psbt->list_fields;
+		my $new_psbt = btc_psbt->new;
+		foreach my $field (@fields) {
+			my @field_objs = $psbt->get_all_fields(@$field);
+
+			foreach my $field_obj (@field_objs) {
+				my $new_field_obj = Bitcoin::Crypto::PSBT::Field->new(
+					type => $field->[0],
+					key => $field_obj->key,
+					value => $field_obj->value,
+				);
+				$new_psbt->add_field($new_field_obj, $field->[1]);
+
+				is to_format [hex => $new_field_obj->to_serialized],
+					to_format [hex => $field_obj->to_serialized], 'serialized field ' . $field->[0]->name . ' ok';
+			}
+		}
+
+		is to_format [base64 => $new_psbt->to_serialized], $base64, 'serialized psbt ok';
 	};
 }
 

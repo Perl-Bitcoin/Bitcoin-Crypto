@@ -89,14 +89,18 @@ sub output_count
 
 signature_for get_field => (
 	method => Object,
-	positional => [PSBTFieldType, Maybe [PositiveOrZeroInt], {default => undef}],
+	positional => [
+		PSBTFieldType,
+		Maybe [PositiveOrZeroInt], {default => undef},
+		Maybe [ByteStr], {default => undef}
+	],
 );
 
 sub get_field
 {
-	my ($self, $type, $index) = @_;
+	my ($self, $type, $index, $key) = @_;
 
-	my @values = $self->get_all_fields($type, $index);
+	my @values = $self->get_all_fields($type, $index, $key);
 	Bitcoin::Crypto::Exception::PSBT->raise(
 		'Could not get value for field ' . $type->name . ': found ' . @values . ' values in PSBT'
 	) unless @values == 1;
@@ -106,16 +110,20 @@ sub get_field
 
 signature_for get_all_fields => (
 	method => Object,
-	positional => [PSBTFieldType, Maybe [PositiveOrZeroInt], {default => undef}],
+	positional => [
+		PSBTFieldType,
+		Maybe [PositiveOrZeroInt], {default => undef},
+		Maybe [ByteStr], {default => undef}
+	],
 );
 
 sub get_all_fields
 {
-	my ($self, $type, $index) = @_;
+	my ($self, $type, $index, $key) = @_;
 
 	my $map = $self->_get_map($type->map_type, index => $index);
 	return () unless $map;
-	return $map->find($type);
+	return $map->find($type, $key);
 }
 
 signature_for add_field => (
@@ -142,6 +150,31 @@ sub add_field
 	$map->add($field);
 
 	return $self;
+}
+
+signature_for list_fields => (
+	method => Object,
+	positional => [],
+);
+
+sub list_fields
+{
+	my ($self) = @_;
+
+	my @results;
+	foreach my $map (@{$self->maps}) {
+		my $index = $map->index;
+		my %seen;
+
+		foreach my $field (@{$map->fields}) {
+			next if $seen{$field->type->code}++;
+
+			push @results, [$field->type, $index];
+		}
+	}
+
+	# force list context to have same UI as get_all_fields
+	return @results[0 .. $#results];
 }
 
 signature_for version => (
@@ -225,15 +258,15 @@ sub to_serialized
 	$self->check;
 
 	my $serialized = Bitcoin::Crypto::Constants::psbt_magic;
-	$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_global_map)->to_serialized;
+	$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_global_map, set => !!1)->to_serialized;
 
 	for my $input_index (0 .. $self->input_count - 1) {
-		$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_input_map, index => $input_index)
+		$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_input_map, index => $input_index, set => !!1)
 			->to_serialized;
 	}
 
 	for my $output_index (0 .. $self->output_count - 1) {
-		$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_output_map, index => $output_index)
+		$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_output_map, index => $output_index, set => !!1)
 			->to_serialized;
 	}
 
@@ -395,11 +428,12 @@ Returns the number of outputs the PSBT defines.
 
 =head3 get_field
 
-	$field = $object->get_field($field_type_name, $map_index = undef)
+	$field = $object->get_field($field_type_name, $map_index = undef, $key = undef)
 
 Tries to get a field of C<$field_type_name> as defined in BIP174, for example
 C<PSBT_GLOBAL_UNSIGNED_TX>. If the field is from input or output maps, it also
 requires C<$map_index> to be passed (0-based index of the input or output).
+Optional C<$key> (a bytestring) can be provided if this PSBT field defines keys.
 
 Returns an instance of L<Bitcoin::Crypto::PSBT::Field>, which you can use to
 access key and value data.
@@ -414,7 +448,7 @@ See L</get_all_fields> for a variant which does not check the field count.
 
 =head3 get_all_fields
 
-	@fields = $object->get_all_fields($field_type_name, $map_index = undef)
+	@fields = $object->get_all_fields($field_type_name, $map_index = undef, $key = undef)
 
 Same as L</get_field>, but will return all the fields of given type from a
 given map. It may be used if the field exists, or to get multiple fields with
@@ -439,6 +473,15 @@ enough to pass them. For this reason, sometimes it could be more preferable to
 construct and fill the field by hand before adding it to the PSBT.
 
 Note that a field cannot be used in more than one map at a time.
+
+=head3 list_fields
+
+	@list = $object->list_fields()
+
+This method lists all fields present in the PSBT. It returns a list of array
+references, each array reference has two elements: field type and map index.
+These are the same elements that are needed in L</get_all_fields> calls, so you
+may use this data to loop through PSBT fields.
 
 =head3 check
 

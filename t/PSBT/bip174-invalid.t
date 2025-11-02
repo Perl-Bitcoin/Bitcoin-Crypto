@@ -120,12 +120,14 @@ my @cases = (
 foreach my $error_case (@cases) {
 	my ($name, $err, $base64) = @{$error_case};
 
-	my $caught = dies {
-		btc_psbt->from_serialized([base64 => $base64]);
-	};
+	subtest "testing case $name" => sub {
+		my $caught = dies {
+			btc_psbt->from_serialized([base64 => $base64]);
+		};
 
-	like $caught, $err, $name;
-	isa_ok $caught, 'Bitcoin::Crypto::Exception::PSBT';
+		like $caught, $err, 'error ok';
+		isa_ok $caught, 'Bitcoin::Crypto::Exception::PSBT';
+	};
 }
 
 done_testing;

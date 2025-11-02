@@ -9,13 +9,15 @@ use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
 use List::Util qw(any notall);
 
-use Bitcoin::Crypto qw(btc_extpub btc_pub btc_transaction btc_script);
+use Bitcoin::Crypto qw(btc_extpub btc_pub btc_transaction btc_script btc_tapscript btc_script_tree);
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize);
+use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize lift_x);
 use Bitcoin::Crypto::Helpers qw(ensure_length);    # loads Math::BigInt
 use Bitcoin::Crypto::Types -types;
+use Bitcoin::Crypto::Transaction::ControlBlock;
+use Bitcoin::Crypto::DerivationPath;
 
 use namespace::clean;
 
@@ -127,19 +129,20 @@ my %uint_compactsize_serializers = (
 );
 
 my %fingerprint_and_path_serializers = (
-	value_data => "Array reference, where the first item is a fingerprint and the rest are integer path elements",
+	value_data =>
+		"Array reference, where the first item is a fingerprint and the second item is Bitcoin::Crypto::DerivationPath",
 	serializer => sub {
-		state $sig = signature(positional => [ByteStr, ArrayRef [PositiveOrZeroInt], {slurpy => !!1}]);
+		state $sig = signature(positional => [ByteStr, DerivationPath]);
 		my ($fingerprint, $path) = $sig->(@{$_[0]});
 
-		return $fingerprint . pack 'V*', @$path;
+		return $fingerprint . pack 'V*', @{$path->path};
 	},
 	deserializer => sub {
 		my $val = shift;
 		my $fingerprint = substr $val, 0, 4, '';
 		return [
 			$fingerprint,
-			unpack 'V*', $val,
+			Bitcoin::Crypto::DerivationPath->new(private => 1, path => [unpack 'V*', $val]),
 		];
 	},
 );
@@ -193,6 +196,44 @@ my %public_key_serializers = (
 	},
 	key_deserializer => sub {
 		return btc_pub->from_serialized(shift);
+	},
+);
+
+my %taproot_public_key_serializers = (
+	key_data => "Bitcoin::Crypto::Key::Public object",
+	key_serializer => sub {
+		state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Key::Public']]);
+		my $value = ($sig->(@_))[0];
+		return $value->get_xonly_key;
+	},
+	key_deserializer => sub {
+		my $pubkey = btc_pub->from_serialized(lift_x shift);
+		$pubkey->set_taproot(!!1);
+		return $pubkey;
+	},
+);
+
+my %taproot_fingerprint_and_path_serializers = (
+	value_data =>
+		"Array reference, where first item is an array of leaf hashes, second element is a fingerprint and the third element is Bitcoin::Crypto::DerivationPath",
+	serializer => sub {
+		state $sig = signature(positional => [ArrayRef [ByteStr], ArrayRef, {slurpy => !!1}]);
+		my ($hashes, $rest) = $sig->(@{$_[0]});
+		my $hashes_raw = pack_compactsize(scalar @$hashes) . join '', @$hashes;
+
+		return $hashes_raw . $fingerprint_and_path_serializers{serializer}->($rest);
+	},
+	deserializer => sub {
+		my $val = shift;
+
+		my $pos = 0;
+		my $hash_count = unpack_compactsize($val, \$pos);
+		my @hashes = unpack "(a32)$hash_count", substr $val, $pos;
+		$pos += $hash_count * 32;
+
+		my $arr = $fingerprint_and_path_serializers{deserializer}->(substr $val, $pos);
+		unshift @$arr, \@hashes;
+		return $arr;
 	},
 );
 
@@ -514,9 +555,13 @@ my %types = (
 
 	PSBT_IN_TAP_KEY_SIG => {
 		code => 0x13,
-		value_data => "<64 or 65 byte signature>",
-
-		# TODO: taproot not yet supported
+		value_data => "Bytestring value",
+		validator => sub {
+			my ($value) = @_;
+			state $validator = ByteStrLen [64] | ByteStrLen [65];
+			die 'invalid signature length'
+				unless $validator->check($value);
+		},
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -525,10 +570,33 @@ my %types = (
 
 	PSBT_IN_TAP_SCRIPT_SIG => {
 		code => 0x14,
-		key_data => "<32 byte xonlypubkey> <leafhash>",
-		value_data => "<64 or 65 byte signature>",
+		key_data =>
+			"Array reference, where the first item is Bitcoin::Crypto::Key::Public and second element is a leaf hash bytestring",
+		key_serializer => sub {
+			state $sig = signature(positional => [Any, ByteStr]);
+			my ($pubkey, $leaf_hash) = $sig->(@{$_[0]});
 
-		# TODO: taproot not yet supported
+			return $taproot_public_key_serializers{key_serializer}->($pubkey) . $leaf_hash;
+		},
+		key_deserializer => sub {
+			my $val = shift;
+			die 'invalid length'
+				unless length $val == 64;
+
+			my $leaf_hash = substr $val, 32, 32;
+
+			return [
+				$taproot_public_key_serializers{key_deserializer}->(substr $val, 0, 32),
+				$leaf_hash,
+			];
+		},
+		value_data => "Bytestring value",
+		validator => sub {
+			my ($key, $value) = @_;
+			state $validator = ByteStrLen [64] | ByteStrLen [65];
+			die 'invalid signature length'
+				unless $validator->check($value);
+		},
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -537,10 +605,38 @@ my %types = (
 
 	PSBT_IN_TAP_LEAF_SCRIPT => {
 		code => 0x15,
-		key_data => "<bytes control block>",
-		value_data => "<bytes script> <8-bit uint leaf version>",
+		key_data => "Instance of Bitcoin::Crypto::Transaction::ControlBlock",
+		key_serializer => sub {
+			state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Transaction::ControlBlock']]);
+			my $block = ($sig->(@_))[0];
 
-		# TODO: taproot not yet supported
+			return $block->to_serialized;
+		},
+		key_deserializer => sub {
+			my $val = shift;
+
+			return Bitcoin::Crypto::Transaction::ControlBlock->from_serialized($val);
+		},
+		value_data =>
+			"Array reference, where the first item is Bitcoin::Crypto::Script and second element is a leaf version number",
+		serializer => sub {
+			state $sig = signature(positional => [BitcoinScript, PositiveOrZeroInt]);
+			my ($script, $leaf_version) = $sig->(@{$_[0]});
+
+			return $script->to_serialized . pack 'C', $leaf_version;
+		},
+		deserializer => sub {
+			my $val = shift;
+
+			my $leaf_version = unpack 'C', substr $val, -1, 1, '';
+			my $script_raw = $val;
+
+			# NOTE: we assume here that future leaf versions will also use tapscript
+			return [
+				btc_tapscript->from_serialized($script_raw),
+				$leaf_version,
+			];
+		},
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -549,11 +645,8 @@ my %types = (
 
 	PSBT_IN_TAP_BIP32_DERIVATION => {
 		code => 0x16,
-		key_data => "<32 byte xonlypubkey>",
-		value_data =>
-			"<compact size uint number of hashes> <32 byte leaf hash>* <4 byte fingerprint> <32-bit little endian uint path element>*",
-
-		# TODO: taproot not yet supported
+		%taproot_fingerprint_and_path_serializers,
+		%taproot_public_key_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -562,9 +655,9 @@ my %types = (
 
 	PSBT_IN_TAP_INTERNAL_KEY => {
 		code => 0x17,
-		value_data => "<32 byte xonlypubkey>",
-
-		# TODO: taproot not yet supported
+		value_data => $taproot_public_key_serializers{key_data},
+		serializer => $taproot_public_key_serializers{key_serializer},
+		deserializer => $taproot_public_key_serializers{key_deserializer},
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -573,9 +666,13 @@ my %types = (
 
 	PSBT_IN_TAP_MERKLE_ROOT => {
 		code => 0x18,
-		value_data => "<32-byte hash>",
-
-		# TODO: taproot not yet supported
+		value_data => "Bytestring value",
+		validator => sub {
+			my ($value) = @_;
+			state $validator = ByteStrLen [32];
+			die 'invalid merkle root length'
+				unless $validator->check($value);
+		},
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -645,9 +742,9 @@ my %types = (
 
 	PSBT_OUT_TAP_INTERNAL_KEY => {
 		code => 0x05,
-		value_data => "<32 byte xonlypubkey>",
-
-		# TODO: taproot not yet supported
+		value_data => $taproot_public_key_serializers{key_data},
+		serializer => $taproot_public_key_serializers{key_serializer},
+		deserializer => $taproot_public_key_serializers{key_deserializer},
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -656,10 +753,85 @@ my %types = (
 
 	PSBT_OUT_TAP_TREE => {
 		code => 0x06,
-		value_data =>
-			"{<8-bit uint depth> <8-bit uint leaf version> <compact size uint scriptlen> <bytes script>}*",
+		value_data => "Bitcoin::Crypto::Script::Tree instance",
+		serializer => sub {
+			state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Script::Tree']]);
+			my $tree = ($sig->(@_))[0];
 
-		# TODO: taproot not yet supported
+			my @list;
+			my $action = sub {
+				my ($value, $depth) = @_;
+
+				die 'tree must have all its leaves unhashed'
+					unless defined $value->{script};
+
+				my $serialized = $value->{script}->to_serialized;
+
+				push @list, pack('C', $depth)
+					. pack('C', $value->{leaf_version})
+					. pack_compactsize(length $serialized)
+					. $serialized;
+			};
+
+			$tree->_traverse(undef, $action);
+
+			return join '', @list;
+
+		},
+		deserializer => sub {
+			my $value = shift;
+			my $pos = 0;
+
+			my $tree = [];
+			my @stack = ($tree);
+
+			while ($pos < length $value) {
+				my $depth = unpack 'C', substr $value, $pos, 1;
+				$pos += 1;
+
+				my $leaf_version = unpack 'C', substr $value, $pos, 1;
+				$pos += 1;
+
+				my $script_len = unpack_compactsize($value, \$pos);
+				my $script_raw = substr $value, $pos, $script_len;
+				$pos += $script_len;
+
+				# NOTE: we assume here that future leaf versions will also use tapscript
+				my $leaf = {
+					leaf_version => $leaf_version,
+					script => btc_tapscript->from_serialized($script_raw),
+				};
+
+				while ($#stack > $depth) {
+					pop @stack;
+				}
+
+				while ($depth > $#stack) {
+					my $new_branch = [];
+					push @{$stack[-1]}, $new_branch;
+					push @stack, $new_branch;
+				}
+
+				push @{$stack[-1]}, $leaf;
+			}
+
+			# make sure we handle depth 0 without an extra level
+			if (@{$tree} == 1 && ref $tree->[0] eq 'ARRAY') {
+				$tree = $tree->[0];
+			}
+
+			$tree = btc_script_tree->from_structure($tree);
+
+			# validate tree by getting merkle root (will traverse)
+			Bitcoin::Crypto::Exception::PSBT->trap_into(
+				sub {
+					$tree->get_merkle_root;
+				},
+				'invalid tree'
+			);
+
+			return $tree;
+		},
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,
@@ -668,11 +840,8 @@ my %types = (
 
 	PSBT_OUT_TAP_BIP32_DERIVATION => {
 		code => 0x07,
-		key_data => "<32 byte xonlypubkey>",
-		value_data =>
-			"<compact size uint number of hashes> <32 byte leaf hash>* <4 byte fingerprint> <32-bit little endian uint path element>*",
-
-		# TODO: taproot not yet supported
+		%taproot_fingerprint_and_path_serializers,
+		%taproot_public_key_serializers,
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,

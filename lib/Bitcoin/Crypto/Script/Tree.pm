@@ -62,7 +62,7 @@ sub _traverse
 					}
 				}
 
-				$leaf_action->($value) if defined $leaf_action;
+				$leaf_action->($value, scalar @stack) if defined $leaf_action;
 				push @{$stack[-1]{results}}, $value;
 			}
 		}
@@ -74,7 +74,7 @@ sub _traverse
 			@results = reverse @results
 				if $results[0]{hash} gt $results[1]{hash};
 
-			my %data = defined $join_action ? $join_action->(@results) : ();
+			my %data = defined $join_action ? $join_action->(@results, scalar @stack) : ();
 			$result = {
 				%data,
 				hash => tagged_hash('TapBranch', join '', map { $_->{hash} } @results),

@@ -101,13 +101,13 @@ my @cases = (
 					0,
 					'768a40bbd740cbe81d988e71de2a4d5c71396b1d',
 					'b4a6ba67',
-					[2147483648, 2147483648, 2147483650],
+					"m/0'/0'/2'",
 				],
 				[
 					1,
 					'6f4620b553fa095e721b9ee0efe9fa039cca4597',
 					'b4a6ba67',
-					[2147483648, 2147483649, 2147483650],
+					"m/0'/1'/2'",
 				]
 			);
 
@@ -120,9 +120,9 @@ my @cases = (
 					$key_hash,
 					'key hash ok';
 
-				my ($fingerprint, @path) = @{$values[0]->value};
+				my ($fingerprint, $path) = @{$values[0]->value};
 				is to_format [hex => $fingerprint], $expected_fingerprint, 'fingerprint ok';
-				is \@path, $expected_path, 'path ok';
+				is $path->as_string, $expected_path, 'path ok';
 			}
 		},
 	],
@@ -160,12 +160,12 @@ my @cases = (
 			my %data = (
 				'3c3e4f3467b6632a7bbc6f5d564cd4deaf6cb521' => [
 					'b4a6ba67',
-					[2147483648, 2147483648, 2147483652],
+					"m/0'/0'/4'",
 					'304302200424b58effaaa694e1559ea5c93bbfd4a89064224055cdf070b6771469442d07021f5c8eb0fea6516d60b8acb33ad64ede60e8785bfb3aa94b99bdf86151db9a9a01'
 				],
 				'38c8ab6e1dc92b031458c197af2ffcbeb83acb4e' => [
 					'b4a6ba67',
-					[2147483648, 2147483648, 2147483653],
+					"m/0'/0'/5'",
 				],
 			);
 
@@ -175,9 +175,9 @@ my @cases = (
 				ok exists $data{$hash}, 'key ok';
 				my ($expected_fingerprint, $expected_path, $expected_signature) = @{$data{$hash}};
 
-				my ($fingerprint, @path) = @{$key->value};
+				my ($fingerprint, $path) = @{$key->value};
 				is to_format [hex => $fingerprint], $expected_fingerprint, 'fingerprint ok';
-				is \@path, $expected_path, 'path ok';
+				is $path->as_string, $expected_path, 'path ok';
 
 				if ($expected_signature) {
 					my $signature = first { $_->raw_key eq $key->raw_key } @signatures;
@@ -223,10 +223,10 @@ my @cases = (
 
 			my $xpub = $psbt->get_field('PSBT_GLOBAL_XPUB');
 			my $xpub_key = $xpub->key;
-			my ($xpub_fingerprint, @xpub_path) = @{$xpub->value};
+			my ($xpub_fingerprint, $xpub_path) = @{$xpub->value};
 			is to_format [hex => $xpub_key->get_fingerprint], 'a0c1121e', 'xpub fingerprint ok';
 			is to_format [hex => $xpub_fingerprint], '27569c50', 'fingerprint ok';
-			is \@xpub_path, [2147483697, 2147483648, 2147483648], 'path ok';
+			is $xpub_path->as_string, "m/49'/0'/0'", 'path ok';
 		},
 	],
 
@@ -251,7 +251,27 @@ foreach my $case (@cases) {
 		}, 'deserialization ok';
 
 		$checker->($psbt) if $checker;
-		is to_format [base64 => $psbt->to_serialized], $base64, 'serialized again ok';
+
+		# try all serializers and deserializers
+		my @fields = $psbt->list_fields;
+		my $new_psbt = btc_psbt->new;
+		foreach my $field (@fields) {
+			my @field_objs = $psbt->get_all_fields(@$field);
+
+			foreach my $field_obj (@field_objs) {
+				my $new_field_obj = Bitcoin::Crypto::PSBT::Field->new(
+					type => $field->[0],
+					key => $field_obj->key,
+					value => $field_obj->value,
+				);
+				$new_psbt->add_field($new_field_obj, $field->[1]);
+
+				is to_format [hex => $new_field_obj->to_serialized],
+					to_format [hex => $field_obj->to_serialized], 'serialized field ' . $field->[0]->name . ' ok';
+			}
+		}
+
+		is to_format [base64 => $new_psbt->to_serialized], $base64, 'serialized psbt ok';
 	};
 }
 
