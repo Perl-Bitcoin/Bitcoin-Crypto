@@ -567,7 +567,7 @@ sub _verify_script_taproot
 
 		$script_runner->transaction->set_taproot_script_tree($tree);
 
-		my $tweaked = $control_block->public_key->get_taproot_tweaked_key($tree->get_merkle_root);
+		my $tweaked = $control_block->public_key->get_taproot_output_key($tree->get_merkle_root);
 		my $expected_parity = !has_even_y($tweaked);
 		die 'invalid public key or control block'
 			unless $tweaked->get_xonly_key eq $pubkey

@@ -25,7 +25,7 @@ has param 'purpose' => (
 	required => 0,
 );
 
-has param 'taproot' => (
+has param 'taproot_output' => (
 	isa => Bool,
 	writer => 1,
 	default => !!0,
@@ -138,12 +138,12 @@ sub raw_key
 	}
 }
 
-signature_for get_taproot_tweaked_key => (
+signature_for get_taproot_output_key => (
 	method => Object,
 	positional => [Maybe [ByteStr], {default => undef}],
 );
 
-sub get_taproot_tweaked_key
+sub get_taproot_output_key
 {
 	my ($self, $tweak_suffix) = @_;
 
@@ -168,7 +168,7 @@ sub get_taproot_tweaked_key
 		key_instance => $new_key,
 		purpose => $self->purpose,
 		network => $self->network,
-		taproot => !!1,
+		taproot_output => !!1,
 	);
 }
 

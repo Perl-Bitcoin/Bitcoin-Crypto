@@ -17,7 +17,7 @@ use Moo::Role;
 
 requires qw(
 	raw_key
-	taproot
+	taproot_output
 	_is_private
 );
 
@@ -60,7 +60,7 @@ signature_for sign_message => (
 sub sign_message
 {
 	my ($self, $preimage) = @_;
-	my $algorithm = $self->taproot ? 'schnorr' : 'default';
+	my $algorithm = $self->taproot_output ? 'schnorr' : 'default';
 
 	Bitcoin::Crypto::Exception::Sign->raise(
 		'cannot sign a message with a public key'
@@ -103,7 +103,7 @@ signature_for verify_message => (
 sub verify_message
 {
 	my ($self, $preimage, $signature) = @_;
-	my $algorithm = $self->taproot ? 'schnorr' : 'default';
+	my $algorithm = $self->taproot_output ? 'schnorr' : 'default';
 
 	my $digest = $algorithms{$algorithm}{digest}->($preimage);
 

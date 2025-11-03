@@ -101,7 +101,7 @@ subtest 'should sign/verify simple script path spend case' => sub {
 subtest 'should sign/verify script path spend case with signature' => sub {
 	my $script_prv =
 		btc_prv->from_serialized([hex => '9b8de5d7f20a8ebb026a82babac3aa47a008debbfde5348962b2c46520bd5189']);
-	$script_prv->set_taproot(!!1);
+	$script_prv->set_taproot_output(!!1);
 
 	my $script = btc_tapscript->new
 		->push($script_prv->get_public_key->get_xonly_key)

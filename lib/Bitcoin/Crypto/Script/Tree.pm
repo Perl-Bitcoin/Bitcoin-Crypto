@@ -260,7 +260,7 @@ sub get_control_block
 		"no such block with id=$leaf_id"
 	) unless defined $$leaf_ref;
 
-	my $tapkey = $pubkey->get_taproot_tweaked_key($root->{hash});
+	my $tapkey = $pubkey->get_taproot_output_key($root->{hash});
 	my $parity = has_even_y($tapkey);
 
 	return Bitcoin::Crypto::Transaction::ControlBlock->new(

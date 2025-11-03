@@ -252,11 +252,11 @@ Returns current key instance.
 Returns instance of L<Bitcoin::Crypto::Key::Public> generated from the private
 key.
 
-=head2 get_taproot_tweaked_key
+=head2 get_taproot_output_key
 
-	$prv = $object->get_taproot_tweaked_key($tweak_suffix = undef)
+	$prv = $object->get_taproot_output_key($tweak_suffix = undef)
 
-Returns a new private key instance that represents an internal taproot key.
+Returns a new private key instance that represents an output taproot key.
 Optional C<$tweak_suffix> can be passed as bytestring.
 
 =head2 sign_message

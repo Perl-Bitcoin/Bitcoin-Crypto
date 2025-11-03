@@ -291,7 +291,7 @@ sub _sign_P2TR
 	my $script_tree = $self->script_tree;
 
 	my $signature = $self->_get_signature(
-		key => $self->key->get_taproot_tweaked_key(
+		key => $self->key->get_taproot_output_key(
 			$script_tree ? $script_tree->get_merkle_root : undef
 		),
 	);

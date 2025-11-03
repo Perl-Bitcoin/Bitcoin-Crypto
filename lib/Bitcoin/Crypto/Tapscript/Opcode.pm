@@ -38,7 +38,7 @@ sub _OP_CHECKSIG
 		# rules according to https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#rules-for-signature-opcodes
 		if (length $raw_pubkey == 32) {
 			$pubkey = btc_pub->from_serialized(lift_x $raw_pubkey);
-			$pubkey->set_taproot(!!1);
+			$pubkey->set_taproot_output(!!1);
 		}
 		elsif (length $raw_pubkey == 0) {
 			$runner->_invalid_script('bad pubkey');

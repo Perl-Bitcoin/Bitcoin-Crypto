@@ -208,7 +208,6 @@ my %taproot_public_key_serializers = (
 	},
 	key_deserializer => sub {
 		my $pubkey = btc_pub->from_serialized(lift_x shift);
-		$pubkey->set_taproot(!!1);
 		return $pubkey;
 	},
 );
