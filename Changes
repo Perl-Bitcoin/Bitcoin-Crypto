@@ -53,6 +53,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- added Bitcoin::Crypto::Tapscript class
 	- added Bitcoin::Crypto::Tapscript::Opcode class
 	- added Bitcoin::Crypto::Transaction::ControlBlock class
+	- added Bitcoin::Crypto::Key::NUMS class
 
 	[Behavior changes]
 	- it is now possible to sign and verify P2TR transactions
