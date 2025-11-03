@@ -63,7 +63,7 @@ $bytestr->coercion->add_type_coercions(
 	$formatdesc, q{ Bitcoin::Crypto::Helpers::parse_formatdesc(@{$_}) }
 );
 
-__PACKAGE__->add_type(
+my $bytestrlen = __PACKAGE__->add_type(
 	name => 'ByteStrLen',
 	parent => $bytestr,
 
@@ -84,6 +84,10 @@ __PACKAGE__->add_type(
 
 			return (undef, qq{ length $varname == $len });
 		}
+	},
+
+	coercion_generator => sub {
+		return $bytestr->coercion;
 	},
 
 	message => sub {
