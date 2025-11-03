@@ -138,13 +138,6 @@ sub as_string
 
 {
 
-	package Bitcoin::Crypto::Exception::KeyConvert;
-
-	use parent -norequire, 'Bitcoin::Crypto::Exception';
-}
-
-{
-
 	package Bitcoin::Crypto::Exception::MnemonicGenerate;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';

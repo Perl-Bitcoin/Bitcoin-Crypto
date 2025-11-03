@@ -460,8 +460,6 @@ L<Bitcoin::Crypto::Exception> namespace:
 
 =item * KeyCreate - key couldn't be created correctly
 
-=item * KeyConvert - taproot key couldn't be converted to ecc key
-
 =item * Verify - couldn't verify the message correctly
 
 =item * NetworkConfig - incomplete or corrupted network configuration

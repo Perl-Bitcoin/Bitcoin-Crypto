@@ -47,7 +47,6 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added ScriptTree exception subclass
 		- added ScriptCompilation exception subclass
 		- added ScriptSuccess exception subclass
-		- added KeyConvert exception subclass
 		- removed Verify exception subclass
 	- added Bitcoin::Crypto::Script::Tree class
 	- added Bitcoin::Crypto::Tapscript class
