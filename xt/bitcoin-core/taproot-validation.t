@@ -26,6 +26,10 @@ my $data = do {
 	decode_json(readline $fh);
 };
 
+if (length $ENV{SINGLE_TEST}) {
+	$data = [$data->[$ENV{SINGLE_TEST}]];
+}
+
 my $script_runner = Bitcoin::Crypto::Script::Runner->new;
 foreach my $case_ind (0 .. $#$data)
 {
