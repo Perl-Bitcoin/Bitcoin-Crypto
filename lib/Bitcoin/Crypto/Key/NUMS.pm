@@ -10,10 +10,11 @@ use Types::Common -sigs, -types;
 use Crypt::PRNG qw(random_bytes);
 use Crypt::Digest::SHA256 qw(sha256);
 
-use Bitcoin::Crypto qw(btc_prv btc_pub);
+use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(lift_x);
 use Bitcoin::Crypto::Helpers qw(ecc);
+use Bitcoin::Crypto::Constants;
 
 use namespace::clean;
 
@@ -32,8 +33,7 @@ sub get_public_key
 {
 	my ($self) = @_;
 
-	state $nums_base =
-		lift_x sha256 btc_prv->from_serialized("\x01")->get_public_key->set_compressed(!!0)->to_serialized;
+	state $nums_base = lift_x sha256 Bitcoin::Crypto::Constants::curve_generator;
 	return btc_pub->from_serialized(ecc->add_public_key($nums_base, $self->tweak));
 }
 

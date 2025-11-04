@@ -10,9 +10,11 @@ use Config;
 # need them
 use constant {
 	curve_name => 'secp256k1',
-	curve_order => 'fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141',
-	curve_generator_x => '79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
-	curve_generator_y => '483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+	curve_order => pack('H*', 'fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141'),
+	curve_generator => pack(
+		'H*',
+		'0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8'
+	),
 
 	max_child_keys => (2 << 30),
 	key_max_length => 32,
@@ -40,7 +42,7 @@ use constant {
 	p2sh_timestamp_threshold => 1333238400,
 	rbf_sequence_no_threshold => 0xffffffff - 2,
 
-	psbt_magic => "\x70\x73\x62\x74\xff",
+	psbt_magic => pack('H*', '70736274ff'),
 	psbt_separator => "\x00",
 	psbt_global_map => 'global',
 	psbt_input_map => 'in',
