@@ -55,6 +55,7 @@ has field 'operations' => (
 has field '_codeseparator' => (
 	isa => PositiveOrZeroInt,
 	writer => 1,
+	clearer => 1,
 );
 
 has field '_valid' => (
@@ -225,7 +226,7 @@ sub start
 	$self->_set_stack($initial_stack);
 	$self->_set_alt_stack([]);
 	$self->_set_pos(0);
-	$self->_register_codeseparator;
+	$self->_clear_codeseparator;
 	$self->_clear_valid;
 
 	try {
@@ -292,7 +293,7 @@ signature_for subscript => (
 sub subscript
 {
 	my ($self) = @_;
-	my $start = $self->_codeseparator;
+	my $start = $self->_codeseparator // 0;
 	my @operations = @{$self->operations};
 
 	my $result = '';

@@ -75,7 +75,7 @@ sub _OP_CHECKSIG
 
 		# leaf for this script must be defined with id 0 to get a proper hash
 		if ($ext_flag == 1) {
-			my $codesep_pos = $runner->_codeseparator || 0xffffffff;
+			my $codesep_pos = $runner->_codeseparator // 0xffffffff;
 			my $leaf_hash = $runner->transaction->taproot_script_tree->get_tapleaf_hash(0);
 
 			# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#common-signature-message-extension
