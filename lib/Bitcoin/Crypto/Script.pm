@@ -15,7 +15,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit get_hrp);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(hash160 hash256 get_address_type);
+use Bitcoin::Crypto::Util qw(hash160 hash256 get_address_type to_format);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Opcode;
@@ -556,6 +556,28 @@ sub is_empty
 	return length $self->_serialized == 0;
 }
 
+signature_for dump => (
+	method => Object,
+	positional => [],
+);
+
+sub dump
+{
+	my ($self) = @_;
+
+	my $ops = $self->operations;
+	my $num = @$ops;
+	my $type = $self->type // 'Custom';
+
+	my @result;
+	CORE::push @result, "$type script, $num ops:";
+	foreach my $op (@$ops) {
+		CORE::push @result, $op->[0]->name . ': ' . to_format [hex => $op->[1]];
+	}
+
+	return join "\n", @result;
+}
+
 1;
 
 __END__
@@ -739,8 +761,8 @@ Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>.
 	$ops_aref = $object->operations
 
 Returns an array reference of operations contained in a script. It is the same
-as calling L<Bitcoin::Crypto::Script::Runner/compile>. It always returns the
-operations for a normal (non-taproot) script.
+as getting L<Bitcoin::Crypto::Script::Runner/operations> after calling
+C<compile>.
 
 =head2 run
 
@@ -769,6 +791,12 @@ Returns true if the script is completely empty (contains no opcodes).
 	$boolean = $object->is_pushes_only
 
 Returns true if the script contains only opcodes pushing to the stack.
+
+=head2 dump
+
+	$string = $object->dump
+
+Returns a readable representation of the script
 
 =head1 EXCEPTIONS
 

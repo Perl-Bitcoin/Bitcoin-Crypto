@@ -13,6 +13,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added get_taproot_ext function
 	- Bitcoin::Crypto::Script:
 		- added opcode_class method
+		- added dump method
 	- Bitcoin::Crypto::Script::Runner:
 		- added script attribute
 		- added codeseparator attribute
