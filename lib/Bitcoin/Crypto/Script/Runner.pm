@@ -316,9 +316,8 @@ signature_for compile => (
 sub compile
 {
 	my ($self) = @_;
-	my $script = $self->script;
-
-	my $serialized = $script->to_serialized;
+	my $opcode_class = $self->script->opcode_class;
+	my $serialized = $self->script->to_serialized;
 	my @ops;
 
 	my $data_push = sub {
@@ -342,6 +341,13 @@ sub compile
 	);
 
 	my %special_ops = (
+		OP_PUSH => sub {
+			my ($op) = @_;
+			my $size = $op->[0]->code;
+
+			push @$op, $data_push->($size);
+			$op->[1] .= $op->[2];
+		},
 		OP_PUSHDATA1 => sub {
 			my ($op) = @_;
 			my $raw_size = substr $serialized, 0, 1, '';
@@ -426,22 +432,13 @@ sub compile
 			my @to_push;
 
 			try {
-				$opcode = $script->opcode_class->get_opcode_by_code(ord $this_byte);
+				$opcode = $opcode_class->get_opcode_by_code(ord $this_byte);
 				push @to_push, $this_byte;
 			}
 			catch {
 				my $err = $_;
-
-				my $opcode_num = ord($this_byte);
-				unless ($opcode_num > 0 && $opcode_num <= 75) {
-					push @debug_ops, unpack 'H*', $this_byte;
-					die $err;
-				}
-
-				# NOTE: compiling standard data push into PUSHDATA1 for now
-				$opcode = $script->opcode_class->get_opcode_by_name('OP_PUSHDATA1');
-				$serialized = $this_byte . $serialized;
-				push @to_push, '';
+				push @debug_ops, unpack 'H*', $this_byte;
+				die $err;
 			};
 
 			push @debug_ops, $opcode->name;

@@ -1227,6 +1227,15 @@ sub _build_opcodes
 		},
 	);
 
+	for my $num (1 .. 75) {
+		$opcodes{"OP_PUSH$num"} = {
+			name => 'OP_PUSH',
+			code => $num,
+			pushes => !!1,
+			runner => $class->_OP_PUSHDATA,
+		};
+	}
+
 	for my $num (1 .. 16) {
 		$opcodes{"OP_$num"} = {
 			code => 0x50 + $num,

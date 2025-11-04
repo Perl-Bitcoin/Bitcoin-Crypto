@@ -88,7 +88,7 @@ sub _get_old_signature
 		my $old_script = $self->input->signature_script->operations;
 		my @result;
 		foreach my $part (@$old_script) {
-			if ($part->[0]->name =~ /^OP_PUSHDATA/) {
+			if ($part->[0]->name =~ /^OP_PUSH(DATA\d)?$/) {
 
 				# using OP_PUSHDATA, as operations present most data pushes as this
 				push @result, $part->[2];

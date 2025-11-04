@@ -9,7 +9,7 @@ my $data = pack 'H*', '00010203';
 
 my @cases = (
 	[
-		'OP_PUSHDATA1',
+		'OP_PUSH',
 		$data x 10,
 	],
 	[
