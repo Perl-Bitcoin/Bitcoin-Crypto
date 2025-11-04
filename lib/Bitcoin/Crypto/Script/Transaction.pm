@@ -36,7 +36,7 @@ has param 'taproot_ext_flag' => (
 	default => 0,
 );
 
-has option 'taproot_script_tree' => (
+has option 'script_tree' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script::Tree'],
 	writer => 1,
 );

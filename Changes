@@ -10,6 +10,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added tagged_hash function
 		- added lift_x function
 		- added has_even_y function
+		- added get_taproot_ext function
 	- Bitcoin::Crypto::Script:
 		- added opcode_class method
 	- Bitcoin::Crypto::Script::Runner:

@@ -565,7 +565,7 @@ sub _verify_script_taproot
 			$control_block->script_blocks
 		);
 
-		$script_runner->transaction->set_taproot_script_tree($tree);
+		$script_runner->transaction->set_script_tree($tree);
 
 		my $tweaked = $control_block->public_key->get_taproot_output_key($tree->get_merkle_root);
 		my $expected_parity = !has_even_y($tweaked);

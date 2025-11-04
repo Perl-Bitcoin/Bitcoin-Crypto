@@ -39,6 +39,7 @@ our @EXPORT_OK = qw(
 	tagged_hash
 	lift_x
 	has_even_y
+	get_taproot_ext
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -472,6 +473,38 @@ sub has_even_y
 	);
 }
 
+signature_for get_taproot_ext => (
+	positional => [PositiveOrZeroInt, HashRef, {slurpy => !!1}],
+);
+
+sub get_taproot_ext
+{
+	my ($ext_flag, $args) = @_;
+
+	if ($ext_flag == 0) {
+		return '';
+	}
+	elsif ($ext_flag == 1) {
+		state $type = Dict [
+			script_tree => BitcoinScriptTree,
+			leaf_id => Int,
+			codesep_pos => Optional [Maybe [PositiveOrZeroInt]],
+		];
+
+		$type->assert_valid($args);
+
+		# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#common-signature-message-extension
+		return $args->{script_tree}->get_tapleaf_hash($args->{leaf_id})
+			. "\x00"
+			. pack('V', $args->{codesep_pos} // 0xffffffff);
+	}
+	else {
+		Bitcoin::Crypto::Exception->raise(
+			"can not create taproot_ext for unknown ext flag $ext_flag"
+		);
+	}
+}
+
 1;
 
 __END__
@@ -501,6 +534,7 @@ Bitcoin::Crypto::Util - General Bitcoin utilities
 		tagged_hash
 		lift_x
 		has_even_y
+		get_taproot_ext
 	);
 
 =head1 DESCRIPTION
@@ -727,7 +761,7 @@ non-ascii, always use utf8 and set binmodes to get decoded (wide) characters.
 
 =head2 lift_x
 
-	$public_key = lift_x $xonly_public_key;
+	$public_key = lift_x($xonly_public_key)
 
 This implements C<lift_x> function defined in BIP340. Returns a compressed ECC
 public key with even Y coordinate as a bytestring for a given 32-byte bytestring
@@ -736,11 +770,38 @@ key.
 
 =head2 has_even_y
 
-	$even_y = has_even_y $public_key;
+	$even_y = has_even_y($public_key)
 
 This implements C<has_even_y> function defined in BIP340. Returns a boolean for
 a given serialized C<$public_key> - a bytestring. Throws an exception if the
 argument is not a valid public key.
+
+=head2 get_taproot_ext
+
+	$bytestring = get_taproot_ext($ext_flag, %args)
+
+This function generates a binary ext for C<$ext_flag> used by taproot
+transactions. C<%args> and result depend on the value of C<$ext_flag>:
+
+=over
+
+=item * C<$ext_flag = 0>
+
+C<%args> are empty, an empty string is generated.
+
+=item * C<$ext_flag = 1>
+
+C<script_tree> - instance of L<Bitcoin::Crypto::Script::Tree> (required)
+
+C<leaf_id> - integer, identifier of C<script_tree> leaf for current context (required)
+
+C<codesep_pos> - position of last executed codeseparator, or undef if there was none (optional)
+
+Returns ext according to BIP342.
+
+=back
+
+Raises an exception for unknown C<$ext_flag>.
 
 =head1 SEE ALSO
 

@@ -1,7 +1,7 @@
 use Test2::V0;
 use Bitcoin::Secp256k1;
 use Bitcoin::Crypto qw(btc_prv btc_pub btc_transaction btc_script_tree btc_tapscript);
-use Bitcoin::Crypto::Util qw(lift_x to_format);
+use Bitcoin::Crypto::Util qw(lift_x to_format get_taproot_ext);
 
 use lib 't/lib';
 use TransactionStore;
@@ -139,7 +139,7 @@ subtest 'should sign/verify script path spend case with signature' => sub {
 			signing_index => 0,
 			signing_subscript => $script->to_serialized,
 			taproot_ext_flag => 1,
-			taproot_ext => $tree->get_tapleaf_hash(0) . "\x00\xff\xff\xff\xff",
+			taproot_ext => get_taproot_ext(1, script_tree => $tree, leaf_id => 0),
 			sighash => Bitcoin::Crypto::Constants::sighash_all,
 		)
 	) . pack('C', Bitcoin::Crypto::Constants::sighash_all);

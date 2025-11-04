@@ -10,7 +10,7 @@ use Types::Common -sigs, -types;
 
 use List::Util qw(none);
 use Bitcoin::Crypto qw(btc_pub);
-use Bitcoin::Crypto::Util qw(lift_x);
+use Bitcoin::Crypto::Util qw(lift_x get_taproot_ext);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
@@ -73,13 +73,15 @@ sub _OP_CHECKSIG
 		my $ext_flag = $runner->transaction->taproot_ext_flag;
 		my $ext;
 
-		# leaf for this script must be defined with id 0 to get a proper hash
 		if ($ext_flag == 1) {
-			my $codesep_pos = $runner->_codeseparator // 0xffffffff;
-			my $leaf_hash = $runner->transaction->taproot_script_tree->get_tapleaf_hash(0);
 
-			# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#common-signature-message-extension
-			$ext = $leaf_hash . "\x00" . pack 'V', $codesep_pos;
+			# leaf for this script must be defined with id 0 to get a proper hash
+			$ext = get_taproot_ext(
+				$ext_flag,
+				script_tree => $runner->transaction->script_tree,
+				leaf_id => 0,
+				codesep_pos => $runner->_codeseparator,
+			);
 		}
 
 		my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype, $ext);
