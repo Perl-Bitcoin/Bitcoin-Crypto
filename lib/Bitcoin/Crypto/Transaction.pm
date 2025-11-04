@@ -463,13 +463,8 @@ sub _verify_script_segwit
 	die 'signature script is not empty in segwit input'
 		unless $compat_script || $input->signature_script->is_empty;
 
-	# execute input to get initial stack
-	my $signature_script = btc_script->new;
-	foreach my $witness (@{$input->witness // []}) {
-		$signature_script->push($witness);
-	}
-	$script_runner->execute($signature_script);
-	my $stack = $script_runner->stack;
+	# use shallow copy of witness as initial stack
+	my $stack = [@{$input->witness // []}];
 
 	my $locking_script = $compat_script // $input->utxo->output->locking_script;
 	my $hash = substr $locking_script->to_serialized, 2;
@@ -574,19 +569,11 @@ sub _verify_script_taproot
 			&& $expected_parity == ($control_block->control_byte & 1);
 	}
 
-	# execute input to get initial stack
-	my $signature_script = btc_script->new;
-	foreach my $witness (@witness_stack) {
-		$signature_script->push($witness);
-	}
-	$script_runner->execute($signature_script);
-	my $stack = $script_runner->stack;
-
 	# execute script
-	# NOTE: shallow copy of the stack
+	# use remaining witness elements as initial stack
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
-			$script_runner->execute($script, [@$stack]);
+			$script_runner->execute($script, \@witness_stack);
 			die 'execution yielded failure'
 				unless $script_runner->success;
 		},
