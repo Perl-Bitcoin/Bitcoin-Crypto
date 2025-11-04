@@ -129,17 +129,17 @@ sub _build_opcodes
 		OP_CHECKSIG => {
 			code => 0xac,
 			needs_transaction => !!1,
-			runner => __PACKAGE__->_OP_CHECKSIG,
+			runner => $class->_OP_CHECKSIG,
 		},
 		OP_CHECKMULTISIG => {
 			code => 0xae,
 			needs_transaction => !!1,
-			runner => __PACKAGE__->_OP_CHECKMULTISIG,
+			runner => $class->_OP_CHECKMULTISIG,
 		},
 		OP_CHECKSIGADD => {
 			code => 0xba,
 			needs_transaction => !!1,
-			runner => __PACKAGE__->_OP_CHECKSIGADD,
+			runner => $class->_OP_CHECKSIGADD,
 		},
 	);
 

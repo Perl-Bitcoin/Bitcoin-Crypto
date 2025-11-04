@@ -1257,7 +1257,13 @@ sub opcodes
 	state $maps = {};
 	return $maps->{$class} //= do {
 		my %opcodes = $class->_build_opcodes;
-		+{map { $_, $self->new(name => $_, %{$opcodes{$_}}) } keys %opcodes};
+		+{
+			map {
+				my $name = $_;
+				$name =~ s/^_//;
+				$_, $self->new(name => $name, %{$opcodes{$_}})
+			} keys %opcodes
+		};
 	};
 }
 
@@ -1290,11 +1296,11 @@ signature_for get_opcode_by_code => (
 
 sub get_opcode_by_code
 {
-	my ($self, $code, $script) = @_;
+	my ($self, $code) = @_;
 	my $hash = $self->opcodes_reverse;
 
 	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
-		"unknown opcode code $code"
+		sprintf "unknown opcode code %s (%s)", $code, ref $self || $self
 	) unless exists $hash->{$code};
 
 	return $hash->{$code};
@@ -1313,7 +1319,7 @@ sub get_opcode_by_name
 	my $opcode = $hash->{$name} || $hash->{"_$name"};
 
 	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
-		"unknown opcode $name"
+		sprintf "unknown opcode %s (%s)", $name, ref $self || $self
 	) unless $opcode;
 
 	return $opcode;
