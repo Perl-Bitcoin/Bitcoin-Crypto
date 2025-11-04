@@ -1298,6 +1298,17 @@ sub execute
 	return $self->runner->(@args);
 }
 
+sub _make_unknown
+{
+	my ($self, $code) = @_;
+
+	return $self->new(
+		name => 'UNKNOWN',
+		code => $code,
+		runner => $self->_OP_RESERVED,
+	);
+}
+
 signature_for get_opcode_by_code => (
 	method => Str,
 	positional => [IntMaxBits [8]],
@@ -1308,11 +1319,7 @@ sub get_opcode_by_code
 	my ($self, $code) = @_;
 	my $hash = $self->opcodes_reverse;
 
-	Bitcoin::Crypto::Exception::ScriptOpcode->raise(
-		sprintf "unknown opcode code %s (%s)", $code, ref $self || $self
-	) unless exists $hash->{$code};
-
-	return $hash->{$code};
+	return $hash->{$code} // $self->_make_unknown($code);
 }
 
 signature_for get_opcode_by_name => (
@@ -1379,7 +1386,8 @@ If opcode was not found an exception is raised
 Finds an opcode by its code (integer in range 0-255) and returns an object
 instance.
 
-If opcode was not found an exception is raised (C<Bitcoin::Crypto::Exception::ScriptOpcode>).
+If opcode was not found, an C<UNKNOWN> opcode is returned which marks the
+script as invalid on execution.
 
 =head2 Attributes
 

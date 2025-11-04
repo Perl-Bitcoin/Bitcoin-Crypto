@@ -18,9 +18,10 @@ subtest 'testing getting OP_TRUE' => sub {
 };
 
 subtest 'testing getting opcode 187' => sub {
-	ok dies {
-		my $script_op = Bitcoin::Crypto::Script->opcode_class->get_opcode_by_code(187);
-	};
+	my $script_op = Bitcoin::Crypto::Script->opcode_class->get_opcode_by_code(187);
+	isa_ok $script_op, 'Bitcoin::Crypto::Script::Opcode';
+	is $script_op->name, 'UNKNOWN', 'script opcode name ok';
+	is $script_op->code, 187, 'script opcode code ok';
 
 	my $tapscript_op = Bitcoin::Crypto::Tapscript->opcode_class->get_opcode_by_code(187);
 	isa_ok $tapscript_op, 'Bitcoin::Crypto::Tapscript::Opcode';

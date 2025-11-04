@@ -66,6 +66,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	[Fixes]
 	- verify_message from public and private keys can no longer throw an exception, always returns false on failure
 	- OP_VERIF and OP_VERNOTIF now correctly mark script as invalid on compilation
+	- getting unknown opcode by code now returns an UNKNOWN pseudo-opcode that fails on execution (like OP_RESERVED)
 	- scripts now correctly place empty vector on execution stack for false values
 	- scripts now correctly check integer value for 4 byte limit
 	- serializing PSBTs now creates missing maps if they don't exist instead of raising an exception
