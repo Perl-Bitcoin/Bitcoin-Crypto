@@ -80,7 +80,7 @@ sub _OP_CHECKSIG
 				$ext_flag,
 				script_tree => $runner->transaction->script_tree,
 				leaf_id => 0,
-				codesep_pos => $runner->_codeseparator,
+				codesep_pos => $runner->codeseparator,
 			);
 		}
 

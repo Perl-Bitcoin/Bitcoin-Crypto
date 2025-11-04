@@ -15,6 +15,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added opcode_class method
 	- Bitcoin::Crypto::Script::Runner:
 		- added script attribute
+		- added codeseparator attribute
 		- added to_minimal_bool method
 		- added compile method
 		- added is_tapscript method

@@ -52,10 +52,10 @@ has field 'operations' => (
 	writer => -hidden,
 );
 
-has field '_codeseparator' => (
+has field 'codeseparator' => (
 	isa => PositiveOrZeroInt,
-	writer => 1,
-	clearer => 1,
+	writer => -hidden,
+	clearer => -hidden,
 );
 
 has field '_valid' => (
@@ -293,7 +293,7 @@ signature_for subscript => (
 sub subscript
 {
 	my ($self) = @_;
-	my $start = $self->_codeseparator // 0;
+	my $start = $self->codeseparator // 0;
 	my @operations = @{$self->operations};
 
 	my $result = '';
@@ -609,6 +609,13 @@ B<Not assignable in the constructor>
 
 Positive integer - the position of the operation to be run in the next step
 (from L</operations>).
+
+=head3 codeseparator
+
+B<Not assignable in the constructor>
+
+Positive integer - L</pos> of the last encountered codeseparator, or undef
+if none was encountered.
 
 =head2 Methods
 
