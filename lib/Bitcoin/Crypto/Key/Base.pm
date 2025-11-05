@@ -4,14 +4,21 @@ use v5.10;
 use strict;
 use warnings;
 use Moo;
+use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
-use Carp qw(carp);
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Util qw(to_format tagged_hash lift_x has_even_y);
+use Bitcoin::Crypto::Helpers qw(ecc);
 
 use namespace::clean;
+
+has param 'taproot_output' => (
+	isa => Bool,
+	writer => 1,
+	default => !!0,
+);
 
 with qw(
 	Bitcoin::Crypto::Role::Key
@@ -46,6 +53,40 @@ sub to_serialized
 	my ($self) = @_;
 
 	return $self->raw_key;
+}
+
+signature_for get_taproot_output_key => (
+	method => Object,
+	positional => [Maybe [ByteStr], {default => undef}],
+);
+
+sub get_taproot_output_key
+{
+	my ($self, $tweak_suffix) = @_;
+
+	my $new_key;
+	if ($self->_is_private) {
+		my $internal = $self->raw_key('private');
+		my $internal_public = ecc->create_public_key($internal);
+		$internal = ecc->negate_private_key($internal)
+			unless has_even_y($internal_public);
+
+		my $tweak = tagged_hash('TapTweak', ecc->xonly_public_key($internal_public) . ($tweak_suffix // ''));
+		$new_key = ecc->add_private_key($internal, $tweak);
+	}
+	else {
+		my $internal = $self->raw_key('public_xonly');
+		my $tweak = tagged_hash('TapTweak', $internal . ($tweak_suffix // ''));
+		$new_key = ecc->combine_public_keys(ecc->create_public_key($tweak), lift_x $internal);
+	}
+
+	my $pkg = ref $self;
+	return $pkg->new(
+		key_instance => $new_key,
+		purpose => $self->purpose,
+		network => $self->network,
+		taproot_output => !!1,
+	);
 }
 
 1;

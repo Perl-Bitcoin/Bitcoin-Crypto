@@ -8,7 +8,7 @@ use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(get_key_type tagged_hash lift_x has_even_y);
+use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length ecc);
 use Bitcoin::Crypto::Exception;
 
@@ -23,12 +23,6 @@ has param 'purpose' => (
 	writer => 1,
 	clearer => 1,
 	required => 0,
-);
-
-has param 'taproot_output' => (
-	isa => Bool,
-	writer => 1,
-	default => !!0,
 );
 
 with qw(Bitcoin::Crypto::Role::Network);
@@ -136,40 +130,6 @@ sub raw_key
 
 		return $self->__public_compressed($key, $type eq 'public_compressed');
 	}
-}
-
-signature_for get_taproot_output_key => (
-	method => Object,
-	positional => [Maybe [ByteStr], {default => undef}],
-);
-
-sub get_taproot_output_key
-{
-	my ($self, $tweak_suffix) = @_;
-
-	my $new_key;
-	if ($self->_is_private) {
-		my $internal = $self->raw_key('private');
-		my $internal_public = ecc->create_public_key($internal);
-		$internal = ecc->negate_private_key($internal)
-			unless has_even_y($internal_public);
-
-		my $tweak = tagged_hash('TapTweak', ecc->xonly_public_key($internal_public) . ($tweak_suffix // ''));
-		$new_key = ecc->add_private_key($internal, $tweak);
-	}
-	else {
-		my $internal = $self->raw_key('public_xonly');
-		my $tweak = tagged_hash('TapTweak', $internal . ($tweak_suffix // ''));
-		$new_key = ecc->combine_public_keys(ecc->create_public_key($tweak), lift_x $internal);
-	}
-
-	my $pkg = ref $self;
-	return $pkg->new(
-		key_instance => $new_key,
-		purpose => $self->purpose,
-		network => $self->network,
-		taproot_output => !!1,
-	);
 }
 
 1;
