@@ -240,6 +240,8 @@ Bitcoin::Crypto::Types - Bitcoin-specific data types
 		DerivationPath
 	);
 
+	use Bitcoin::Crypto::Types -types;
+
 =head1 DESCRIPTION
 
 This module is a L<Type::Tiny> library for types which are either specific for

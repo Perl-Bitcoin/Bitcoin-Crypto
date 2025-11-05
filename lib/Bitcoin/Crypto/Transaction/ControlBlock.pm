@@ -88,42 +88,50 @@ L<BIP341|https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki>. These
 blocks are used by taproot and are necessary to build transactions using custom
 taproot scripts.
 
-=head1 ATTRIBUTES
+=head1 INTERFACE
 
-=head2 control_byte
+=head2 Attributes
+
+=head3 control_byte
 
 B<Required in constructor.>
 
 This attribute contains a control byte in form of an integer.
 
-=head2 public_key
+=head3 public_key
 
 B<Required in constructor.>
 
 This attribute contains an instance of L<Bitcoin::Crypto::Key::Public>.
 
-=head2 script_blocks
+=head3 script_blocks
 
 B<Required in constructor.>
 
 This attribute contains an array reference of bytestrings. These blocks can be
 used in L<Bitcoin::Crypto::Script::Tree/from_path>.
 
-=head1 METHODS
+=head2 METHODS
 
-=head2 from_serialized
+=head3 new
+
+	$tree = $class->new(%args)
+
+Standard Moo constructor - see L</Attributes>.
+
+=head3 from_serialized
 
 	$object = $class->from_serialized($bytestr)
 
 Standard deserialization method. Returns a new instance.
 
-=head2 to_serialized
+=head3 to_serialized
 
 	$bytestr = $object->to_serialized()
 
 Standard serialization method.
 
-=head2 get_leaf_version
+=head3 get_leaf_version
 
 	$leaf_version = $object->get_leaf_version()
 

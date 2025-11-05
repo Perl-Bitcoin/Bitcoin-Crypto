@@ -245,14 +245,14 @@ You can use a public key to verify messages and get addresses.
 
 Boolean value indicating if this ECC key should be compressed. Default: C<true>.
 
-I<writer:> B<set_compressed>
+I<writer:> C<set_compressed>
 
 =head3 network
 
 Instance of L<Bitcoin::Crypto::Network> - current network for this key. Can be
 coerced from network id. Default: current default network.
 
-I<writer:> B<set_network>
+I<writer:> C<set_network>
 
 =head3 purpose
 
@@ -260,9 +260,9 @@ BIP44 purpose which was used to obtain this key. Filled automatically when
 deriving an extended key. If the key was not obtained through BIP44 derivation,
 this attribute is C<undef>.
 
-I<writer:> B<set_purpose>
+I<writer:> C<set_purpose>
 
-I<clearer:> B<clear_purpose>
+I<clearer:> C<clear_purpose>
 
 =head3 taproot_output
 
@@ -270,7 +270,7 @@ Boolean value indicating if this key was obtained through taproot tweaking.
 Taproot output keys are used to sign and verify schnorr signatures in P2TR
 outputs. Default: C<false>
 
-I<writer:> B<set_taproot_output>
+I<writer:> C<set_taproot_output>
 
 =head2 Methods
 

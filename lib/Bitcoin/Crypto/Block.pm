@@ -485,7 +485,7 @@ required - other block header fields can be omitted.
 
 Block version number. Default: 1.
 
-I<writer:> B<set_version>
+I<writer:> C<set_version>
 
 I<Available in the constructor>.
 
@@ -495,9 +495,9 @@ Optional previous block hash as binary string (32 bytes)
 
 I<Available in the constructor>.
 
-I<writer:> B<set_prev_block_hash>
+I<writer:> C<set_prev_block_hash>
 
-I<predicate:> B<has_prev_block_hash>
+I<predicate:> C<has_prev_block_hash>
 
 =head3 merkle_root
 
@@ -512,7 +512,7 @@ Block timestamp as Unix timestamp. Default: current time.
 
 I<Available in the constructor>.
 
-I<writer:> B<set_timestamp>
+I<writer:> C<set_timestamp>
 
 =head3 bits
 
@@ -520,7 +520,7 @@ Block difficulty target in compact notation. Default: 0x207fffff.
 
 I<Available in the constructor>.
 
-I<writer:> B<set_bits>
+I<writer:> C<set_bits>
 
 =head3 nonce
 
@@ -528,7 +528,7 @@ Block nonce used in proof-of-work. Default: 0.
 
 I<Available in the constructor>.
 
-I<writer:> B<set_nonce>
+I<writer:> C<set_nonce>
 
 =head3 height
 
@@ -536,9 +536,9 @@ Optional block height.
 
 I<Available in the constructor>.
 
-I<writer:> B<set_height>
+I<writer:> C<set_height>
 
-I<predicate:> B<has_height>
+I<predicate:> C<has_height>
 
 =head3 previous
 
@@ -548,9 +548,9 @@ transactions. It may silently replace the existing C<prev_block_hash>.
 
 I<Available in the constructor>.
 
-I<writer:> B<set_previous>
+I<writer:> C<set_previous>
 
-I<predicate:> B<has_previous>
+I<predicate:> C<has_previous>
 
 =head3 transactions
 

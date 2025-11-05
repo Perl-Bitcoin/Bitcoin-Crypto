@@ -392,6 +392,8 @@ field has a value and can optionally have extra key data.
 
 =head3 maps
 
+B<Not assignable in the constructor>
+
 An array reference of PSBT internal maps - objects of class
 L<Bitcoin::Crypto::PSBT::Map>. It should seldom be handled manually - use
 L</get_field>, L</get_all_fields> and L</add_field> to access fields of
@@ -403,8 +405,7 @@ specific map.
 
 	$psbt = $class->new(%args)
 
-This is a standard Moo constructor, which can be used to create the object. It
-takes arguments specified in L</Attributes>.
+This is a standard Moo constructor, which can be used to create the object.
 
 Returns class instance.
 

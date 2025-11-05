@@ -625,7 +625,7 @@ I<predicate>: B<has_type>
 Instance of L<Bitcoin::Crypto::Network> - current network for this key. Can be
 coerced from network id. Default: current default network.
 
-I<writer:> B<set_network>
+I<writer:> C<set_network>
 
 =head2 Methods
 

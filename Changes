@@ -76,11 +76,12 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- added Bitcoin::Crypto::Transaction::ControlBlock class
 	- added Bitcoin::Crypto::Key::NUMS class
 
-	[Behavior changes]
+	[Improvements and behavior changes]
 	- it is now possible to sign and verify P2TR transactions
 	- public key's get_address method now returns taproot address by default
 	- BIP44 derivation methods now accept purpose 86, known as bip44_taproot_purpose in Bitcoin::Crypto::Constants
 	- standard data push in scripts is now compiled to OP_PUSH pseudo-opcode (was OP_PUSHDATA1)
+	- documentation overhaul
 
 	[Fixes]
 	- verify_message from public and private keys can no longer throw an exception, always returns false on failure
