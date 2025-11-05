@@ -39,6 +39,8 @@ use constant {
 	sighash_single => 0x03,
 	sighash_anyonecanpay => 0x80,
 
+	tapscript_leaf_version => 0xc0,
+
 	p2sh_timestamp_threshold => 1333238400,
 	rbf_sequence_no_threshold => 0xffffffff - 2,
 

@@ -48,7 +48,7 @@ subtest 'should sign/verify simple script path spend case' => sub {
 		[
 			{
 				id => 0,
-				leaf_version => 0xc0,
+				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
 				script => $script,
 			}
 		]
@@ -111,7 +111,7 @@ subtest 'should sign/verify script path spend case with signature' => sub {
 		[
 			{
 				id => 0,
-				leaf_version => 0xc0,
+				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
 				script => $script,
 			}
 		]
@@ -168,27 +168,27 @@ subtest 'should sign/verify script path spend case with tree' => sub {
 				[
 					[
 						{
-							leaf_version => 0xc0,
+							leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
 							script => btc_tapscript->from_serialized([hex => '5187']),
 						},
 						{
-							leaf_version => 0xc0,
+							leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
 							script => btc_tapscript->from_serialized([hex => '5287']),
 						}
 					],
 					{
 						id => 0,
-						leaf_version => 0xc0,
+						leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
 						script => $script,
 					}
 				],
 				{
-					leaf_version => 0xc0,
+					leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
 					script => btc_tapscript->from_serialized([hex => '5487']),
 				}
 			],
 			{
-				leaf_version => 0xc0,
+				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
 				script => btc_tapscript->from_serialized([hex => '5587']),
 			}
 		]

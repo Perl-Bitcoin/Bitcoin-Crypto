@@ -539,7 +539,7 @@ sub _verify_script_taproot
 		my $raw_script = pop @witness_stack;
 
 		my $leaf_version = $control_block->get_leaf_version;
-		if ($leaf_version == 0xc0) {
+		if ($leaf_version == Bitcoin::Crypto::Constants::tapscript_leaf_version) {
 			$script = btc_tapscript->from_serialized($raw_script);
 			$script_runner->transaction->set_taproot_ext_flag(1);
 		}
