@@ -10,6 +10,8 @@ use Types::Common -types;
 
 use Bitcoin::Crypto::Types -types;
 
+use namespace::clean;
+
 has param 'signing_index' => (
 	isa => PositiveOrZeroInt,
 );

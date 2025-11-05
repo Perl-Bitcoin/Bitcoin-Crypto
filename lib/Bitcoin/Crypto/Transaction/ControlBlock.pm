@@ -12,6 +12,8 @@ use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(lift_x);
 
+use namespace::clean;
+
 has param 'control_byte' => (
 	isa => IntMaxBits [8],
 );

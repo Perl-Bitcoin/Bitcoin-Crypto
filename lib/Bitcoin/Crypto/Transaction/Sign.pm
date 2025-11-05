@@ -13,6 +13,8 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types -types;
 
+use namespace::clean;
+
 has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],
 );

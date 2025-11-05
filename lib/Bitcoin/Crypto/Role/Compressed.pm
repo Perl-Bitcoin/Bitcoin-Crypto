@@ -6,8 +6,9 @@ use warnings;
 use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
 
-use Moo::Role;
 use Carp qw(carp);
+
+use Moo::Role;
 
 has param 'compressed' => (
 	coerce => Bool,

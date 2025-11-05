@@ -15,6 +15,8 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Transaction::Digest::Config;
 
+use namespace::clean;
+
 has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],
 	weak_ref => 1,

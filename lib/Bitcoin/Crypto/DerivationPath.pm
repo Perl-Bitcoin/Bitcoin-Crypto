@@ -11,6 +11,8 @@ use Types::Common -sigs, -types;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 has param 'private' => (
 	isa => Bool,
 );

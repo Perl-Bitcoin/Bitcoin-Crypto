@@ -12,6 +12,8 @@ use Try::Tiny;
 
 use Bitcoin::Crypto::Script::Opcode;
 
+use namespace::clean;
+
 has param 'script' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script'],
 );
