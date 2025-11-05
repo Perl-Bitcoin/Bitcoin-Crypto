@@ -23,24 +23,6 @@ extends qw(Bitcoin::Crypto::Key::ExtBase);
 
 sub _is_private { 1 }
 
-sub generate_mnemonic
-{
-	shift;
-	carp 'Bitcoin::Crypto::Key::ExtPrivate->generate_mnemonic is deprecated.'
-		. ' Use generate_mnemonic function from Bitcoin::Crypto::Util instead.';
-
-	goto \&Bitcoin::Crypto::Util::generate_mnemonic;
-}
-
-sub mnemonic_from_entropy
-{
-	shift;
-	carp 'Bitcoin::Crypto::Key::ExtPrivate->mnemonic_from_entropy is deprecated.'
-		. ' Use mnemonic_from_entropy function from Bitcoin::Crypto::Util instead.';
-
-	goto \&Bitcoin::Crypto::Util::mnemonic_from_entropy;
-}
-
 signature_for from_mnemonic => (
 	method => Str,
 	positional => [Str, Maybe [Str], {default => ''}, Maybe [Str], {default => undef}],
@@ -169,17 +151,6 @@ sub _derive_key_partial
 	);
 }
 
-### DEPRECATED
-
-sub from_hex_seed
-{
-	my ($class, $seed) = @_;
-
-	carp "$class->from_hex_seed(\$seed) is now deprecated. Use $class->from_seed([hex => \$seed]) instead";
-
-	return $class->from_seed([hex => $seed]);
-}
-
 1;
 
 __END__
@@ -239,18 +210,6 @@ Bitcoin Mainnet.
 Constructor is reserved for internal and advanced use only. Use
 L</from_mnemonic>, L</from_seed> or L</from_serialized> instead.
 
-=head2 generate_mnemonic
-
-	$mnemonic = $class->generate_mnemonic($len = 128, $lang = 'en')
-
-Deprecated - see L<Bitcoin::Crypto::Util/generate_mnemonic>.
-
-=head2 mnemonic_from_entropy
-
-	$mnemonic = $class->mnemonic_from_entropy($bytes, $lang = 'en')
-
-Deprecated - see L<Bitcoin::Crypto::Util/mnemonic_from_entropy>.
-
 =head2 from_mnemonic
 
 	$key_object = $class->from_mnemonic($mnemonic, $password = '', $lang = undef)
@@ -286,19 +245,11 @@ wallet.
 Creates and returns a new key from seed, which can be any data of any length.
 C<$seed> is expected to be a byte string.
 
-=head2 from_hex_seed
-
-Deprecated. Use C<< $class->from_seed([hex => $seed]) >> instead.
-
 =head2 to_serialized
 
 	$serialized = $object->to_serialized()
 
 Returns the key serialized in format specified in BIP32 as byte string.
-
-=head2 to_serialized_base58
-
-Deprecated. Use C<< to_format [base58 => $key->to_serialized] >> instead.
 
 =head2 from_serialized
 
@@ -308,10 +259,6 @@ Tries to unserialize byte string C<$serialized> with format specified in BIP32.
 
 Dies on errors. If multiple networks match serialized data specify C<$network>
 manually (id of the network) to avoid exception.
-
-=head2 from_serialized_base58
-
-Deprecated. Use C<< $class->from_serialized([base58 => $base58]) >> instead.
 
 =head2 set_network
 

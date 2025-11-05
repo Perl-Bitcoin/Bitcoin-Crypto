@@ -123,10 +123,6 @@ Constructor is reserved for internal and advanced use only. Use L</from_serializ
 
 Returns the key serialized in format specified in BIP32 as byte string.
 
-=head2 to_serialized_base58
-
-Deprecated. Use C<< to_format [base58 => $key->to_serialized] >> instead.
-
 =head2 from_serialized
 
 	$key_object = $class->from_serialized($serialized, $network = undef)
@@ -135,10 +131,6 @@ Tries to unserialize byte string C<$serialized> with format specified in BIP32.
 
 Dies on errors. If multiple networks match serialized data specify C<$network>
 manually (id of the network) to avoid exception.
-
-=head2 from_serialized_base58
-
-Deprecated. Use C<< $class->from_serialized([base58 => $base58]) >> instead.
 
 =head2 set_network
 

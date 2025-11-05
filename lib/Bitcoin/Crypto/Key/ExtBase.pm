@@ -273,28 +273,6 @@ sub derive_key
 	return $key;
 }
 
-### DEPRECATED
-
-sub to_serialized_base58
-{
-	my ($self) = @_;
-
-	my $class = ref $self;
-	carp "$class->to_serialized_base58 is now deprecated. Use to_format [base58 => $class->to_serialized] instead";
-
-	return to_format [base58 => $self->to_serialized];
-}
-
-sub from_serialized_base58
-{
-	my ($class, $base58, $network) = @_;
-
-	carp
-		"$class->from_serialized_base58(\$base58) is now deprecated. Use $class->from_serialized([base58 => \$base58]) instead";
-
-	return $class->from_serialized([base58 => $base58], $network);
-}
-
 1;
 
 # Internal use only

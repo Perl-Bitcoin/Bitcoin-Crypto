@@ -46,15 +46,6 @@ sub get_xonly_key
 	return $self->raw_key('public_xonly');
 }
 
-sub key_hash
-{
-	my $self = shift;
-	my $class = ref $self;
-
-	carp "$class->key_hash() is now deprecated. Use $class->get_hash() instead";
-	return $self->get_hash(@_);
-}
-
 signature_for from_serialized => (
 	method => Str,
 	positional => [ByteStr],
@@ -279,31 +270,11 @@ can be further formated with C<to_format> utility.
 
 The result will vary depending on compression state: see L</set_compressed>
 
-=head2 from_bytes
-
-Deprecated. Use C<< $class->from_serialized($data) >> instead.
-
-=head2 to_bytes
-
-Deprecated. Use C<< $key->to_serialized() >> instead.
-
-=head2 from_hex
-
-Deprecated. Use C<< $class->from_serialized([hex => $data]) >> instead.
-
-=head2 to_hex
-
-Deprecated. Use C<< to_format [hex => $key->to_serialized()] >> instead.
-
 =head2 get_hash
 
 	$bytestr = $object->get_hash()
 
 Returns hash160 of the serialized public key.
-
-=head2 key_hash
-
-Deprecated. Use C<< $key->get_hash() >> instead.
 
 =head2 set_compressed
 

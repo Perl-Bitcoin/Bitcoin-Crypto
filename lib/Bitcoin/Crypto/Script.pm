@@ -330,14 +330,6 @@ sub is_taproot
 	return ($self->type // '') eq 'P2TR';
 }
 
-sub get_script
-{
-	my ($self) = @_;
-
-	carp "Bitcoin::Crypto::Script->get_script is deprecated. Use Bitcoin::Crypto::Script->to_serialized instead.";
-	return $self->to_serialized;
-}
-
 signature_for get_hash => (
 	method => Object,
 	positional => [],
@@ -347,12 +339,6 @@ sub get_hash
 {
 	my ($self) = @_;
 	return hash160($self->_serialized);
-}
-
-sub get_script_hash
-{
-	carp "Bitcoin::Crypto::Script->get_script_hash is deprecated. Use Bitcoin::Crypto::Script->get_hash instead.";
-	goto \&get_hash;
 }
 
 signature_for to_serialized => (

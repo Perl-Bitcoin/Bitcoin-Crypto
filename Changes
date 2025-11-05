@@ -20,16 +20,35 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added to_minimal_bool method
 		- added compile method
 		- added is_tapscript method
+		- removed deprecated methods:
+			- get_script, get_script_hash
+	- Bitcoin::Crypto::Key::ExtPrivate:
+		- removed deprecated methods:
+			- generate_mnemonic, mnemonic_from_entropy
+			- from_hex_seed
+			- from_serialized_base58, to_serialized_base58
+	- Bitcoin::Crypto::Key::ExtPublic:
+		- removed deprecated methods:
+			- from_serialized_base58, to_serialized_base58
 	- Bitcoin::Crypto::Key::Private:
 		- added taproot_output attribute
 		- added get_taproot_output_key method
 		- added script_tree argument to sign_transaction method
+		- removed deprecated methods:
+			- new($bytes) variant
+			- from_bytes, to_bytes
+			- from_hex, to_hex
 	- Bitcoin::Crypto::Key::Public:
 		- added taproot_output attribute
 		- added get_xonly_key method
 		- added get_taproot_address method
 		- added get_taproot_output_key method
 		- added $version and $args arguments to witness_program method
+		- removed deprecated methods:
+			- new($bytes) variant
+			- from_bytes, to_bytes
+			- from_hex, to_hex
+			- key_hash
 	- Bitcoin::Crypto::Transaction:
 		- added get_digest_object method
 		- added clear_digest_object method

@@ -190,22 +190,6 @@ Returns a new key object instance.
 This returns a private key as a sequence of bytes. The result is a bytestring
 which can be further formated with C<to_format> utility.
 
-=head2 from_bytes
-
-Deprecated. Use C<< $class->from_serialized($data) >> instead.
-
-=head2 to_bytes
-
-Deprecated. Use C<< $key->to_serialized() >> instead.
-
-=head2 from_hex
-
-Deprecated. Use C<< $class->from_serialized([hex => $data]) >> instead.
-
-=head2 to_hex
-
-Deprecated. Use C<< to_format [hex => $key->to_serialized()] >> instead.
-
 =head2 from_wif
 
 	$key_object = $class->from_wif($str, $network = undef)

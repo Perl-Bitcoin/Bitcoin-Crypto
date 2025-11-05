@@ -24,17 +24,6 @@ sub _is_private
 	die __PACKAGE__ . '::_is_private is unimplemented';
 }
 
-around BUILDARGS => sub {
-	my ($orig, $class, @params) = @_;
-
-	if (@params == 1) {
-		carp "$class->new(\$bytes) is now deprecated. Use $class->from_serialized(\$bytes) instead";
-		unshift @params, 'key_instance';
-	}
-
-	return $class->$orig(@params);
-};
-
 signature_for from_serialized => (
 	method => Str,
 	positional => [ByteStr],
@@ -57,43 +46,6 @@ sub to_serialized
 	my ($self) = @_;
 
 	return $self->raw_key;
-}
-
-### DEPRECATED
-
-sub from_hex
-{
-	my ($class, $val) = @_;
-
-	carp "$class->from_hex(\$str) is now deprecated. Use $class->from_serialized([hex => \$str]) instead";
-	return $class->from_serialized([hex => $val]);
-}
-
-sub to_hex
-{
-	my ($self) = @_;
-
-	my $class = ref $self;
-	carp
-		"$class->to_hex() is now deprecated. Use Bitcoin::Crypto::Util::to_format [hex => $class->to_serialized()] instead";
-	return to_format [hex => $self->to_serialized];
-}
-
-sub from_bytes
-{
-	my ($class, $bytes) = @_;
-
-	carp "$class->from_bytes() is now deprecated. Use $class->from_serialized() instead";
-	return $class->from_serialized($bytes);
-}
-
-sub to_bytes
-{
-	my ($self) = @_;
-
-	my $class = ref $self;
-	carp "$class->to_bytes() is now deprecated. Use $class->to_serialized() instead";
-	return $self->to_serialized;
 }
 
 1;
