@@ -27,7 +27,7 @@ has param 'depth' => (
 );
 
 has param 'parent_fingerprint' => (
-	isa => StrLength [4, 4],
+	coerce => ByteStrLen [4],
 	default => (pack 'x4'),
 );
 
@@ -37,7 +37,7 @@ has param 'child_number' => (
 );
 
 has param 'chain_code' => (
-	isa => StrLength [32, 32],
+	coerce => ByteStrLen [32],
 );
 
 with qw(Bitcoin::Crypto::Role::Key);
@@ -84,21 +84,21 @@ sub to_serialized
 	) unless defined $version;
 
 	# version number (4B)
-	my $serialized = ensure_length pack('N', $version), 4;
+	my $serialized = pack('N', $version);
 
 	# depth (1B)
-	$serialized .= ensure_length pack('C', $self->depth), 1;
+	$serialized .= pack('C', $self->depth);
 
 	# parent's fingerprint (4B) - ensured
 	$serialized .= $self->parent_fingerprint;
 
 	# child number (4B)
-	$serialized .= ensure_length pack('N', $self->child_number), 4;
+	$serialized .= pack('N', $self->child_number);
 
-	# chain code (32B) - ensured
+	# chain code (32B)
 	$serialized .= $self->chain_code;
 
-	# key entropy (1 + 32B or 33B)
+	# key entropy (1 + 32B)
 	$serialized .= ensure_length $self->raw_key, Bitcoin::Crypto::Constants::key_max_length + 1;
 
 	return $serialized;
