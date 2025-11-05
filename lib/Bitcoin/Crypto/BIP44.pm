@@ -182,7 +182,7 @@ All of these attributes can be fetched using a method with the same name.
 =head3 purpose
 
 Purpose contains the BIP document number that you wish to use. Can be either
-C<44>, C<49> or C<84>.
+C<44>, C<49>, C<84> or C<86>.
 
 By default, number C<44> will be used.
 

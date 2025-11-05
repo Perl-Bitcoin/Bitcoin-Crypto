@@ -752,13 +752,11 @@ Bitcoin::Crypto::Transaction - Bitcoin transaction instance
 =head1 DESCRIPTION
 
 Transaction support in Bitcoin::Crypto is provided on best-effort basis. The
-goal is not to reimplement Bitcoin Core, which would most likely lead to security
-issues, but rather to provide means to manipulate a set of well-known standard
-transaction types. Widely used C<P2PKH>, C<P2SH>, their SegWit counterparts and
-C<P2MS> are thoroughly tested and should be safe to use. B<Still, before
-putting any real money on the line, make sure to check the serialized
-transactions in other tools and review that its contents are correct. There is
-absolutely no guarantee!>
+goal is not to reimplement Bitcoin Core, which would most likely lead to
+security issues, but rather to provide means to manipulate a set of well-known
+standard transaction types. Widely used C<P2PKH>, C<P2SH>, their SegWit
+counterparts, C<P2TR> and C<P2MS> are thoroughly tested and should be safe to
+use. Still, keep L<Bitcoin::Crypto::Manual/DISCLAIMER> in mind.
 
 See L<Bitcoin::Crypto::Manual::Transactions> for details and guidelines.
 
