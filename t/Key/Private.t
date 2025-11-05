@@ -25,7 +25,8 @@ my @cases = (
 my $case_num = 0;
 for my $case (@cases) {
 	subtest "should convert private to public, case $case_num" => sub {
-		my $privkey = btc_prv->from_serialized([hex => $case->{priv}])->set_compressed(0);
+		my $privkey = btc_prv->from_serialized([hex => $case->{priv}]);
+		$privkey->set_compressed(0);
 
 		is(to_format [hex => $privkey->to_serialized], $case->{priv}, 'imported and exported correctly');
 		is(
@@ -37,7 +38,8 @@ for my $case (@cases) {
 	++$case_num;
 }
 
-my $privkey = btc_prv->from_serialized([hex => $cases[0]{priv}])->set_compressed(0);
+my $privkey = btc_prv->from_serialized([hex => $cases[0]{priv}]);
+$privkey->set_compressed(0);
 my $pubkey = $privkey->get_public_key;
 my @messages = ('Perl test script', '', 'a', "_ś\x1f " x 250);
 
@@ -67,10 +69,11 @@ subtest 'should import and export WIF' => sub {
 	my $wif = '5JxsKGzCoJwaWEjQvfNqD4qPEoUQ696BUEq68Y68WQ2GNR6zrxW';
 	my $testnet_wif = '92jVu1okPY1iUJEhZ1Gk5fPLtTq7FJdNpBh3DASdr8mK9SZXqy3';
 	is(to_format [hex => btc_prv->from_wif($wif)->to_serialized], $wif_raw_key, 'imported WIF correctly');
-	is(
-		btc_prv->from_serialized([hex => $wif_raw_key])->set_compressed(0)->to_wif, $wif,
-		'exported WIF correctly'
-	);
+
+	my $priv_unc = btc_prv->from_serialized([hex => $wif_raw_key]);
+	$priv_unc->set_compressed(0);
+	is($priv_unc->to_wif, $wif, 'exported WIF correctly');
+
 	is(
 		btc_prv->from_wif($testnet_wif)->network->name,
 		'Bitcoin Testnet',

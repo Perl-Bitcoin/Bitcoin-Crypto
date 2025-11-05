@@ -7,6 +7,7 @@ use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
 
 use Moo::Role;
+use Carp qw(carp);
 
 has param 'compressed' => (
 	coerce => Bool,
@@ -16,14 +17,19 @@ has param 'compressed' => (
 
 signature_for set_compressed => (
 	method => Object,
-	positional => [Bool, {default => !!1}],
+	positional => [Maybe [Bool], {default => undef}],
 );
 
 sub set_compressed
 {
 	my ($self, $state) = @_;
 
-	$self->_set_compressed($state);
+	carp 'set_compressed without argument is deprecated: use set_compressed(1) instead'
+		unless defined $state;
+
+	$self->_set_compressed($state // !!1);
+
+	# chainable - undocumented behavior, but kept for backcompat
 	return $self;
 }
 

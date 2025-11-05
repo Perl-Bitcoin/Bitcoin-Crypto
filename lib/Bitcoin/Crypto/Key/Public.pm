@@ -278,21 +278,17 @@ Returns hash160 of the serialized public key.
 
 =head2 set_compressed
 
-	$key_object = $object->set_compressed($val)
+	$object->set_compressed($val)
 
 Change key's compression state to C<$val> (boolean). This will change the
-address. If C<$val> is omitted it is set to C<1>.
-
-Returns current key instance.
+address.
 
 =head2 set_network
 
-	$key_object = $object->set_network($val)
+	$object->set_network($val)
 
 Change key's network state to C<$val>. It can be either network name present in
 L<Bitcoin::Crypto::Network> package or an instance of this class.
-
-Returns current key instance.
 
 =head2 witness_program
 

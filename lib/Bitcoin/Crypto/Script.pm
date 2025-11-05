@@ -705,12 +705,10 @@ Returns a serialized script parsed with C<HASH160> (ripemd160 of sha256).
 
 =head2 set_network
 
-	$script_object = $object->set_network($val)
+	$object->set_network($val)
 
 Change key's network state to C<$val>. It can be either network name present in
 L<Bitcoin::Crypto::Network> package or an instance of this class.
-
-Returns current object instance.
 
 =head2 get_legacy_address
 

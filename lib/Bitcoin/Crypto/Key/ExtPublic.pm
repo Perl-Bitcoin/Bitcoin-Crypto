@@ -134,12 +134,10 @@ manually (id of the network) to avoid exception.
 
 =head2 set_network
 
-	$key_object = $object->set_network($val)
+	$object->set_network($val)
 
 Change key's network state to C<$val>. It can be either network name present in
 Bitcoin::Crypto::Network package or an instance of this class.
-
-Returns current key instance.
 
 =head2 get_basic_key
 

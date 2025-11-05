@@ -33,11 +33,12 @@ sub _trigger_network
 	}
 }
 
-# make writer chainable
 sub set_network
 {
 	my ($self, $network) = @_;
 	$self->_set_network($network);
+
+	# chainable - undocumented behavior, but kept for backcompat
 	return $self;
 }
 
