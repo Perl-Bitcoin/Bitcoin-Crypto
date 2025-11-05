@@ -105,7 +105,7 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 
 	my $master_key = btc_extprv->from_mnemonic($mnemonic);
 	my $derived_key = $master_key->derive_key_bip44(
-		purpose => Bitcoin::Crypto::Constants::bip44_segwit_purpose,
+		purpose => Bitcoin::Crypto::Constants::bip44_taproot_purpose,
 		index => 0,
 	);
 
@@ -128,7 +128,7 @@ L<Bitcoin::Crypto::Manual> for an overview of the module.
 This package exports the following functions when asked for them. These are
 shourtcut functions and will load needed packages and return their names. You
 can then use names of loaded packages to instantiate them however you want.
-It's also possible to load all of them with the I<:all> tag in import. They
+It's also possible to load all of them with the C<:all> tag in import. These
 functions can be used as follows:
 
 	use Bitcoin::Crypto qw(btc_pub);
@@ -207,7 +207,7 @@ In no particular order:
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2018 - 2024 by Bartosz Jarzyna
+Copyright (C) 2018 - 2025 by Bartosz Jarzyna
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
