@@ -110,6 +110,7 @@ sub get_public_key
 		compressed => $self->compressed,
 		network => $self->network,
 		purpose => $self->purpose,
+		taproot_output => $self->taproot_output,
 	);
 
 	return $public;

@@ -115,5 +115,13 @@ subtest 'should not allow creation of private keys from public key data' => sub 
 	}, 'Bitcoin::Crypto::Exception::KeyCreate';
 };
 
+subtest 'should mark generated public key as taproot_output' => sub {
+	my $priv = btc_prv->from_serialized([hex => '010203']);
+	$priv->set_taproot_output(1);
+
+	my $pub = $priv->get_public_key;
+	ok $pub->taproot_output, 'taproot output bit ok';
+};
+
 done_testing;
 
