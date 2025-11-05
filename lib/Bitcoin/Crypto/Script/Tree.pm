@@ -207,18 +207,6 @@ sub get_tree_paths
 	return $paths;
 }
 
-signature_for from_structure => (
-	method => Str,
-	positional => [ArrayRef],
-);
-
-sub from_structure
-{
-	my ($class, $tree) = @_;
-
-	return $class->new(tree => $tree);
-}
-
 signature_for from_path => (
 	method => Str,
 	positional => [HashRef, ArrayRef [ByteStr]],
@@ -306,15 +294,16 @@ instead:
 		hash => bytestring with prehashed leaf,
 	}
 
-=head1 METHODS
+=head1 INTERFACE
 
-=head2 from_structure
+=head2 Attributes
 
-	$tree = $class->from_structure($structure)
+=head3 tree
 
-This static method builds a new C<$tree> object from structure C<$structure>.
-This structure represents a binary tree and must contain an array reference of
-array or hash references.
+I<Available in the constructor.>
+
+Internal structure of the tree. This structure represents a binary tree and
+must contain an array reference of array or hash references.
 
 Each level of a tree must be an array reference with up to two values in it.
 Each leaf must be a hash with either a prehashed value under C<hash> key
@@ -329,18 +318,18 @@ Example structure:
 	[
 		{
 			id => 0,
-			leaf_version => 192,
+			leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
 			script => [hex => '2071981521ad9fc9036687364118fb6ccd2035b96a423c59c5430e98310a11abe2ac']
 		},
 		[
 			{
 				id => 1,
-				leaf_version => 192,
+				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
 				script => [hex => '20d5094d2dbe9b76e2c245a2b89b6006888952e2faa6a149ae318d69e520617748ac']
 			},
 			{
 				id => 2,
-				leaf_version => 192,
+				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
 				script => [hex => '20c440b462ad48c7a77f94cd4532d8f2119dcebbd7c9764557e62726419b08ad4cac']
 			}
 		]
@@ -354,14 +343,22 @@ disclosing information about a script:
 		{hash => [hex => 'f154e8e8e17c31d3462d7132589ed29353c6fafdb884c5a6e04ea938834f0d9d']},
 		[
 			{
-				leaf_version => 192,
+				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
 				script => [hex => '20d5094d2dbe9b76e2c245a2b89b6006888952e2faa6a149ae318d69e520617748ac']
 			},
 			{hash => [hex => 'd7485025fceb78b9ed667db36ed8b8dc7b1f0b307ac167fa516fe4352b9f4ef7']},
 		]
 	]
 
-=head2 from_path
+=head2 Methods
+
+=head3 new
+
+	$tree = $class->new(%args)
+
+Standard Moo constructor - see L</Attributes>.
+
+=head3 from_path
 
 	$tree = $class->from_path($leaf, \@path)
 
@@ -377,21 +374,21 @@ could look like this:
 		[hex => 'f154e8e8e17c31d3462d7132589ed29353c6fafdb884c5a6e04ea938834f0d9d'],
 	)
 
-=head2 get_merkle_root
+=head3 get_merkle_root
 
 	$hash = $tree->get_merkle_root()
 
 Calculates a merkle root of the script tree. Returns a bytestring which is the
 root hash of the tree.
 
-=head2 get_tapleaf_hash
+=head3 get_tapleaf_hash
 
 	$hash = $tree->get_tapleaf_hash($leaf_id)
 
 Calculates a tapleaf hash of a leaf with given C<$leaf_id>. If such leaf does
 not exist, an exception is thrown. Returns a bytestring.
 
-=head2 get_control_block
+=head3 get_control_block
 
 	$block = $tree->get_control_block($leaf_id, $pubkey)
 
@@ -400,7 +397,7 @@ be a valid identifier of a leaf existing in the tree. C<$pubkey> is a public
 key that associated with the address for key path spending. Returns an instance
 of L<Bitcoin::Crypto::Transaction::ControlBlock>.
 
-=head2 get_tree_paths
+=head3 get_tree_paths
 
 	$paths = $tree->get_tree_paths()
 

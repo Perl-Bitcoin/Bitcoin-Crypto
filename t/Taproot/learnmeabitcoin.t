@@ -44,8 +44,8 @@ subtest 'should sign/verify key path spend case' => sub {
 
 subtest 'should sign/verify simple script path spend case' => sub {
 	my $script = btc_tapscript->from_serialized([hex => '5887']);
-	my $tree = btc_script_tree->from_structure(
-		[
+	my $tree = btc_script_tree->new(
+		tree => [
 			{
 				id => 0,
 				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
@@ -107,8 +107,8 @@ subtest 'should sign/verify script path spend case with signature' => sub {
 		->push($script_prv->get_public_key->get_xonly_key)
 		->add('OP_CHECKSIG');
 
-	my $tree = btc_script_tree->from_structure(
-		[
+	my $tree = btc_script_tree->new(
+		tree => [
 			{
 				id => 0,
 				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
@@ -162,8 +162,8 @@ subtest 'should sign/verify script path spend case with tree' => sub {
 		->add('OP_3')
 		->add('OP_EQUAL');
 
-	my $tree = btc_script_tree->from_structure(
-		[
+	my $tree = btc_script_tree->new(
+		tree => [
 			[
 				[
 					[

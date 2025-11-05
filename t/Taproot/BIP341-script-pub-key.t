@@ -178,7 +178,7 @@ foreach my $case_ind (0 .. $#cases) {
 
 		my $key = btc_pub->from_serialized(lift_x [hex => $case->{given}{internal_pubkey}]);
 		my $tree;
-		$tree = btc_script_tree->from_structure($case->{given}{script_tree})
+		$tree = btc_script_tree->new(tree => $case->{given}{script_tree})
 			if $case->{given}{script_tree};
 
 		is $key->get_taproot_address($tree), $case->{expected}{bip350_address}, 'address ok';

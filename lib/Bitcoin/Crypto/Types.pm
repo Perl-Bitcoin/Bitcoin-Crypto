@@ -126,7 +126,7 @@ my $script_tree = __PACKAGE__->add_type(
 
 $script_tree->coercion->add_type_coercions(
 	ArrayRef [ArrayRef | HashRef],
-	q{ require Bitcoin::Crypto::Script::Tree; Bitcoin::Crypto::Script::Tree->from_structure($_) }
+	q{ require Bitcoin::Crypto::Script::Tree; Bitcoin::Crypto::Script::Tree->new(tree => $_) }
 );
 
 my $psbt_map_type = __PACKAGE__->add_type(
@@ -287,7 +287,7 @@ or L</ByteStr> (or any of its coercion types).
 =head2 BitcoinScriptTree
 
 An instance of L<Bitcoin::Crypto::Script::Tree>. Can be coerced from a
-structure by calling L<Bitcoin::Crypto::Script::Tree/from_structure>
+structure by calling L<Bitcoin::Crypto::Script::Tree/new>
 implicitly.
 
 =head2 PSBTMapType

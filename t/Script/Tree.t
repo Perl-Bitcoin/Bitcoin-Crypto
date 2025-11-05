@@ -3,8 +3,8 @@ use Bitcoin::Crypto qw(btc_script_tree);
 use Bitcoin::Crypto::Util qw(to_format);
 
 # this example is a modified test case from BIP341
-my $tree = btc_script_tree->from_structure(
-	[
+my $tree = btc_script_tree->new(
+	tree => [
 		{
 			id => 0,
 			leaf_version => 192,
@@ -25,8 +25,8 @@ my $tree = btc_script_tree->from_structure(
 	]
 );
 
-my $tree_prehashed = btc_script_tree->from_structure(
-	[
+my $tree_prehashed = btc_script_tree->new(
+	tree => [
 		{hash => [hex => 'f154e8e8e17c31d3462d7132589ed29353c6fafdb884c5a6e04ea938834f0d9d']},
 		[
 			{

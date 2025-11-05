@@ -819,7 +819,7 @@ my %types = (
 				$tree = $tree->[0];
 			}
 
-			$tree = btc_script_tree->from_structure($tree);
+			$tree = btc_script_tree->new(tree => $tree);
 
 			# validate tree by getting merkle root (will traverse)
 			Bitcoin::Crypto::Exception::PSBT->trap_into(
