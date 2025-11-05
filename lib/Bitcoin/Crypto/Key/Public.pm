@@ -235,24 +235,51 @@ Bitcoin::Crypto::Key::Public - Bitcoin public keys
 
 This class allows you to create a public key instance.
 
-You can use a public key to:
+You can use a public key to verify messages and get addresses.
 
-=over
+=head1 INTERFACE
 
-=item * verify messages
+=head2 Attributes
 
-=item * create addresses: legacy (p2pkh), compatibility (p2sh(p2wpkh)) and segwit (p2wpkh).
+=head3 compressed
 
-=back
+Boolean value indicating if this ECC key should be compressed. Default: C<true>.
 
-=head1 METHODS
+I<writer:> B<set_compressed>
 
-=head2 new
+=head3 network
+
+Instance of L<Bitcoin::Crypto::Network> - current network for this key. Can be
+coerced from network id. Default: current default network.
+
+I<writer:> B<set_network>
+
+=head3 purpose
+
+BIP44 purpose which was used to obtain this key. Filled automatically when
+deriving an extended key. If the key was not obtained through BIP44 derivation,
+this attribute is C<undef>.
+
+I<writer:> B<set_purpose>
+
+I<clearer:> B<clear_purpose>
+
+=head3 taproot_output
+
+Boolean value indicating if this key was obtained through taproot tweaking.
+Taproot output keys are used to sign and verify schnorr signatures in P2TR
+outputs. Default: C<false>
+
+I<writer:> B<set_taproot_output>
+
+=head2 Methods
+
+=head3 new
 
 Constructor is reserved for internal and advanced use only. Use L</from_serialized>
 instead.
 
-=head2 from_serialized
+=head3 from_serialized
 
 	$key_object = $class->from_serialized($serialized)
 
@@ -261,40 +288,26 @@ formatable bytestring which must represent a public key in ASN X9.62 format.
 
 Returns a new key object instance.
 
-=head2 to_serialized
+=head3 to_serialized
 
 	$serialized = $key_object->to_serialized()
 
 This returns a public key in ASN X9.62 format. The result is a bytestring which
 can be further formated with C<to_format> utility.
 
-The result will vary depending on compression state: see L</set_compressed>
+The result will vary depending on compression state: see L</compressed>
 
-=head2 get_hash
+=head3 get_hash
 
 	$bytestr = $object->get_hash()
 
 Returns hash160 of the serialized public key.
 
-=head2 set_compressed
-
-	$object->set_compressed($val)
-
-Change key's compression state to C<$val> (boolean). This will change the
-address.
-
-=head2 set_network
-
-	$object->set_network($val)
-
-Change key's network state to C<$val>. It can be either network name present in
-L<Bitcoin::Crypto::Network> package or an instance of this class.
-
-=head2 witness_program
+=head3 witness_program
 
 	$script = $object->witness_program($version, \%args = {})
 
-Returns a witness program for given witness C<$version> as
+Builds a witness program for given witness C<$version> as
 L<Bitcoin::Crypto::Script> instance. C<%args> depends on witness version:
 
 =over
@@ -310,20 +323,20 @@ can be passed.
 
 =back
 
-=head2 get_taproot_output_key
+=head3 get_taproot_output_key
 
 	$pub = $object->get_taproot_output_key($tweak_suffix = undef)
 
 Returns a new public key instance that represents an output taproot key.
 Optional C<$tweak_suffix> can be passed as bytestring.
 
-=head2 get_xonly_key
+=head3 get_xonly_key
 
 	$bytestring = $object->get_xonly_key()
 
 Returns a 32-byte bytestring containing the xonly key for this public key.
 
-=head2 verify_message
+=head3 verify_message
 
 	$signature_valid = $object->verify_message($message, $signature)
 
@@ -339,7 +352,7 @@ function to fail. You can encode like this (for UTF-8):
 	use Encode qw(encode);
 	$message = encode('UTF-8', $message);
 
-=head2 get_legacy_address
+=head3 get_legacy_address
 
 	$address_string = $object->get_legacy_address()
 
@@ -347,9 +360,9 @@ Returns string containing Base58Check encoded public key hash (C<p2pkh> address)
 
 If the public key was obtained through BIP44 derivation scheme, this method
 will check whether the purpose was C<44> and raise an exception otherwise. If
-you wish to generate this address anyway, call L</clear_purpose>.
+you wish to generate this address anyway, call C<clear_purpose>.
 
-=head2 get_compat_address
+=head3 get_compat_address
 
 	$address_string = $object->get_compat_address()
 
@@ -358,9 +371,9 @@ program for compatibility purposes (C<p2sh(p2wpkh)> address)
 
 If the public key was obtained through BIP44 derivation scheme, this method
 will check whether the purpose was C<49> and raise an exception otherwise. If
-you wish to generate this address anyway, call L</clear_purpose>.
+you wish to generate this address anyway, call C<clear_purpose>.
 
-=head2 get_segwit_address
+=head3 get_segwit_address
 
 	$address_string = $object->get_segwit_address()
 
@@ -369,9 +382,9 @@ address)
 
 If the public key was obtained through BIP44 derivation scheme, this method
 will check whether the purpose was C<84> and raise an exception otherwise. If
-you wish to generate this address anyway, call L</clear_purpose>.
+you wish to generate this address anyway, call C<clear_purpose>.
 
-=head2 get_taproot_address
+=head3 get_taproot_address
 
 	$address_string = $object->get_taproot_address($script_tree = undef)
 
@@ -380,13 +393,14 @@ address)
 
 Optional C<$script_tree> can be passed as L<Bitcoin::Crypto::Script::Tree>
 object. Passing this argument will generate an address that can be spent using
-script path spend as well as key path spend.
+script path spend as well as key path spend. If this argument is not passed, an
+unspendable script path will be used accord to BIP341.
 
 If the public key was obtained through BIP44 derivation scheme, this method
 will check whether the purpose was C<86> and raise an exception otherwise. If
-you wish to generate this address anyway, call L</clear_purpose>.
+you wish to generate this address anyway, call C<clear_purpose>.
 
-=head2 get_address
+=head3 get_address
 
 	$address_string = $object->get_address()
 
@@ -410,13 +424,6 @@ B<NOTE>: The rules this function uses to choose the address type B<will>
 change when more up-to-date address types are implemented. Use
 other address functions if this is not what you want.
 
-=head2 clear_purpose
-
-	$object->clear_purpose;
-
-Clears the BIP44 purpose of this key instance, removing safety checks on
-address generation.
-
 =head1 EXCEPTIONS
 
 This module throws an instance of L<Bitcoin::Crypto::Exception> if it
@@ -438,6 +445,8 @@ L<Bitcoin::Crypto::Exception> namespace:
 =head1 SEE ALSO
 
 L<Bitcoin::Crypto::Key::Private>
+
+L<Bitcoin::Crypto::Key::NUMS>
 
 L<Bitcoin::Crypto::Base58>
 

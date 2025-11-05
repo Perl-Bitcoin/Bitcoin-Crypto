@@ -894,7 +894,7 @@ default.
 
 Taproot extension as a bytestring. No extension by default.
 
-=item = C<taproot_annex>
+=item * C<taproot_annex>
 
 Taproot annex defined by BIP341. No annex by default.
 

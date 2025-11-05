@@ -196,21 +196,55 @@ Moreover, you can use an extended private key to:
 
 =item * derive extended keys using standard bip44 or a custom path
 
-=item * restore keys from mnemonic codes, seeds and base58 format
+=item * restore keys from mnemonic codes, seeds and serialized form
 
 =back
 
-see L<Bitcoin::Crypto::Network> if you want to work with other networks than
-Bitcoin Mainnet.
+=head1 INTERFACE
 
-=head1 METHODS
+=head2 Attributes
 
-=head2 new
+=head3 network
+
+Instance of L<Bitcoin::Crypto::Network> - current network for this key. Can be
+coerced from network id. Default: current default network.
+
+I<writer:> B<set_network>
+
+=head3 purpose
+
+BIP44 purpose which was used to obtain this key. Filled automatically when
+deriving an extended key. If the key was not obtained through BIP44 derivation,
+this attribute is C<undef>.
+
+I<writer:> B<set_purpose>
+
+I<clearer:> B<clear_purpose>
+
+=head3 depth
+
+Integer - depth of derivation. Default: C<0> (master key)
+
+=head3 parent_fingerprint
+
+Bytestring of length 4 - fingerprint of the parent key. Default: four zero bytes
+
+=head3 child_number
+
+Integer - sequence number of the key on the current L</depth>. Default: C<0>
+
+=head3 chain_code
+
+Bytestring of length 32 - chain code of the extended key.
+
+=head2 Methods
+
+=head3 new
 
 Constructor is reserved for internal and advanced use only. Use
 L</from_mnemonic>, L</from_seed> or L</from_serialized> instead.
 
-=head2 from_mnemonic
+=head3 from_mnemonic
 
 	$key_object = $class->from_mnemonic($mnemonic, $password = '', $lang = undef)
 
@@ -238,20 +272,20 @@ password. If there's a possibility of non-ascii, always use utf8 and set
 binmodes to get decoded (wide) characters to avoid problems recovering your
 wallet.
 
-=head2 from_seed
+=head3 from_seed
 
 	$key_object = $class->from_seed($seed)
 
 Creates and returns a new key from seed, which can be any data of any length.
 C<$seed> is expected to be a byte string.
 
-=head2 to_serialized
+=head3 to_serialized
 
 	$serialized = $object->to_serialized()
 
 Returns the key serialized in format specified in BIP32 as byte string.
 
-=head2 from_serialized
+=head3 from_serialized
 
 	$key_object = $class->from_serialized($serialized, $network = undef)
 
@@ -260,27 +294,27 @@ Tries to unserialize byte string C<$serialized> with format specified in BIP32.
 Dies on errors. If multiple networks match serialized data specify C<$network>
 manually (id of the network) to avoid exception.
 
-=head2 set_network
+=head3 set_network
 
 	$object->set_network($val)
 
 Change key's network state to C<$val>. It can be either network name present in
 L<Bitcoin::Crypto::Network> package or an instance of this class.
 
-=head2 get_public_key
+=head3 get_public_key
 
 	$public_key_object = $object->get_public_key()
 
 Returns instance of L<Bitcoin::Crypto::Key::ExtPublic> generated from the
 private key.
 
-=head2 get_basic_key
+=head3 get_basic_key
 
 	$basic_key_object = $object->get_basic_key()
 
 Returns the key in basic format: L<Bitcoin::Crypto::Key::Private>
 
-=head2 derive_key
+=head3 derive_key
 
 	$derived_key_object = $object->derive_key($path)
 
@@ -291,7 +325,7 @@ See BIP32 document for details on derivation paths and methods.
 
 Returns a new extended key instance - result of a derivation.
 
-=head2 derive_key_bip44
+=head3 derive_key_bip44
 
 	$derived_key_object = $object->derive_key_bip44(%data)
 
@@ -307,7 +341,7 @@ checking.
 I<Note: coin_type parameter will be ignored, and the current network
 configuration set in the extended key will be used.>
 
-=head2 get_fingerprint
+=head3 get_fingerprint
 
 	$fingerprint = $object->get_fingerprint($len = 4)
 
@@ -339,7 +373,7 @@ L<Bitcoin::Crypto::Exception> namespace:
 
 =item L<Bitcoin::Crypto::Key::ExtPublic>
 
-=item L<Bitcoin::Crypto::Network>
+=item L<Bitcoin::Crypto::Key::Private>
 
 =back
 
