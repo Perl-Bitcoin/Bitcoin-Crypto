@@ -609,18 +609,27 @@ You can use a script object to:
 
 =back
 
-=head1 ATTRIBUTES
+=head1 INTERFACE
 
-=head2 type
+=head2 Attributes
+
+=head3 type
 
 Contains the type of the script, if the script is standard and the type is
 known. Otherwise, contains C<undef>.
 
-I<predicate>: C<has_type>
+I<predicate>: B<has_type>
 
-=head1 METHODS
+=head3 network
 
-=head2 new
+Instance of L<Bitcoin::Crypto::Network> - current network for this key. Can be
+coerced from network id. Default: current default network.
+
+I<writer:> B<set_network>
+
+=head2 Methods
+
+=head3 new
 
 	$script_object = $class->new()
 
@@ -628,14 +637,14 @@ A constructor. Returns a new empty script instance.
 
 See L</from_serialized> if you want to import a serialized script instead.
 
-=head2 opcode_class
+=head3 opcode_class
 
 	$class_name = $class->opcode_class()
 	$class->opcode_class->get_opcode_by_name($opname)
 
 Returns the name of the class used to get the proper opcodes.
 
-=head2 add_operation, add
+=head3 add_operation, add
 
 	$script_object = $object->add_operation($opcode)
 
@@ -645,7 +654,7 @@ C<add> is a shorter alias for C<add_operation>.
 
 Throws an exception for unknown opcodes.
 
-=head2 add_raw
+=head3 add_raw
 
 	$script_object = $object->add_raw($bytes)
 
@@ -653,7 +662,7 @@ Adds C<$bytes> at the end of the script without processing them at all.
 
 Returns the object instance for chaining.
 
-=head2 push_bytes, push
+=head3 push_bytes, push
 
 	$script_object = $object->push_bytes($bytes)
 
@@ -671,19 +680,19 @@ operation, but this method will not check for that.
 
 Returns the object instance for chaining.
 
-=head2 to_serialized
+=head3 to_serialized
 
 	$bytestring = $object->to_serialized()
 
 Returns a serialized script as byte string.
 
-=head2 from_serialized
+=head3 from_serialized
 
-	$script = Bitcoin::Crypto::Script->from_serialized($bytestring);
+	$script = Bitcoin::Crypto::Script->from_serialized($bytestring)
 
 Creates a new script instance from a bytestring.
 
-=head2 from_standard
+=head3 from_standard
 
 	$object = Bitcoin::Crypto::Script->from_standard([P2PKH => '1Ehr6cNDzPCx3wQRu1sMdXWViEi2MQnFzH'])
 	$object = Bitcoin::Crypto::Script->from_standard([address => '1Ehr6cNDzPCx3wQRu1sMdXWViEi2MQnFzH'])
@@ -691,56 +700,49 @@ Creates a new script instance from a bytestring.
 Creates a new object of standard type with given address. The address must be
 of the currently default network. In case of C<NULLDATA>, C<P2MS> and C<P2PK>
 there is no address, and the second argument must be custom data (C<NULLDATA>),
-public key (C<P2PK>) or an array reference with number N of signatures followed
-by M public keys (N of M C<P2MS>).
+public key (C<P2PK>) or an array reference with number C<N> of signatures followed
+by C<M> public keys (C<N> of C<M> C<P2MS>).
 
 The first argument can also be specified as C<address> to enable auto-detection
 of script type.
 
-=head2 get_hash
+=head3 get_hash
 
 	$bytestring = $object->get_hash()
 
-Returns a serialized script parsed with C<HASH160> (ripemd160 of sha256).
+Returns a serialized script parsed with C<HASH160> (C<RIPEMD160> of C<SHA256>).
 
-=head2 set_network
-
-	$object->set_network($val)
-
-Change key's network state to C<$val>. It can be either network name present in
-L<Bitcoin::Crypto::Network> package or an instance of this class.
-
-=head2 get_legacy_address
+=head3 get_legacy_address
 
 	$address = $object->get_legacy_address()
 
-Returns string containing Base58Check encoded script hash (P2SH address)
+Returns string containing Base58Check encoded script hash (C<P2SH> address)
 
-=head2 get_compat_address
+=head3 get_compat_address
 
 	$address = $object->get_compat_address()
 
 Returns string containing Base58Check encoded script hash containing a witness
-program for compatibility purposes (P2SH(P2WSH) address)
+program for compatibility purposes (C<P2SH(P2WSH)> address)
 
-=head2 get_segwit_address
+=head3 get_segwit_address
 
 	$address = $object->get_segwit_address()
 
-Returns string containing Bech32 encoded witness program (P2WSH address)
+Returns string containing Bech32 encoded witness program (C<P2WSH> address)
 
-=head2 get_address
+=head3 get_address
 
 	$address = $object->get_address()
 
-This method does not return P2SH address, but instead the address encoded in
-the script of standard type. For example, if the script is of type C<P2WPKH>,
-then the contained alegacy address will be returned. If the script is not of
-standard type or the type does not contain an address, returns C<undef>.
+This method does not return P2SH-type address, but instead the address encoded
+in the script of standard type. For example, if the script is of type
+C<P2WPKH>, then a bech32 segwit address will be returned. If the script is not
+of standard type or the type does not use addresses, returns C<undef>.
 
-Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>.
+Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>, C<P2TR>.
 
-=head2 operations
+=head3 operations
 
 	$ops_aref = $object->operations
 
@@ -748,7 +750,7 @@ Returns an array reference of operations contained in a script. It is the same
 as getting L<Bitcoin::Crypto::Script::Runner/operations> after calling
 C<compile>.
 
-=head2 run
+=head3 run
 
 	$runner = $object->run(\@initial_stack)
 
@@ -758,25 +760,25 @@ after running the script.
 This is a convenience method which constructs runner instance in the
 background. This helper is only meant to run simple scripts.
 
-=head2 is_native_segwit
+=head3 is_native_segwit
 
 	$boolean = $object->is_native_segwit
 
-Returns true if the type of the script is either C<P2WPKH> or C<P2WSH>.
+Returns true if the type of the script is either C<P2WPKH>, C<P2WSH> or C<P2TR>.
 
-=head2 is_empty
+=head3 is_empty
 
 	$boolean = $object->is_empty
 
 Returns true if the script is completely empty (contains no opcodes).
 
-=head2 is_pushes_only
+=head3 is_pushes_only
 
 	$boolean = $object->is_pushes_only
 
 Returns true if the script contains only opcodes pushing to the stack.
 
-=head2 dump
+=head3 dump
 
 	$string = $object->dump
 
