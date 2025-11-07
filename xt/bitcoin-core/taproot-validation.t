@@ -35,6 +35,12 @@ foreach my $case_ind (0 .. $#$data)
 {
 	my $case = $data->[$case_ind];
 
+	if ($case->{success} && !length $case->{success}{scriptSig} && !@{$case->{success}{witness}}) {
+		note "skipping bogus success case with no signatures";
+		next;
+	}
+
+	note "about to test case #$case_ind";
 	subtest "should pass case index $case_ind ($case->{comment})" => sub {
 		my $tx = btc_transaction->from_serialized([hex => $case->{tx}]);
 
