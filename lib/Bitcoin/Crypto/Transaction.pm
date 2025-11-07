@@ -512,7 +512,7 @@ sub _verify_script_taproot
 		unless @witness_stack;
 
 	# remove the annex from the witness stack - annex first byte is 0x50
-	pop @witness_stack
+	$script_runner->transaction->set_taproot_annex(pop @witness_stack)
 		if @witness_stack >= 2 && substr($witness_stack[-1], 0, 1) eq "\x50";
 
 	my $script;
@@ -887,7 +887,7 @@ Taproot extension as a bytestring. No extension by default.
 
 =item * C<taproot_annex>
 
-Taproot annex defined by BIP341. No annex by default.
+Taproot annex defined by BIP341 as a bytestring. No annex by default.
 
 Caution: BIP341 warns to not use annex until the meaning of this field is
 defined by a softfork.

@@ -36,6 +36,12 @@ has param 'taproot_ext_flag' => (
 	default => 0,
 );
 
+has param 'taproot_annex' => (
+	coerce => ByteStr,
+	writer => 1,
+	required => 0,
+);
+
 has option 'script_tree' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script::Tree'],
 	writer => 1,
@@ -55,10 +61,13 @@ sub get_digest
 {
 	my ($self, $subscript, $sighash, $ext) = @_;
 
+	my $annex = $self->taproot_annex;
+
 	return $self->transaction->get_digest(
 		signing_index => $self->input_index,
 		signing_subscript => $subscript,
 		taproot_ext_flag => $self->taproot_ext_flag,
+		(defined $annex ? (taproot_annex => $annex) : ()),
 		(defined $sighash ? (sighash => $sighash) : ()),
 		(defined $ext ? (taproot_ext => $ext) : ()),
 	);
