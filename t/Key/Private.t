@@ -123,5 +123,18 @@ subtest 'should mark generated public key as taproot_output' => sub {
 	ok $pub->taproot_output, 'taproot output bit ok';
 };
 
+subtest 'should generate taproot output keys consistently for both private and public keys' => sub {
+	my $uneven_y_prv = btc_prv->from_serialized([hex => '010203']);
+	my $even_y_prv = btc_prv->from_serialized([hex => '030201']);
+
+	is to_format [hex => $uneven_y_prv->get_taproot_output_key->get_public_key->to_serialized],
+		to_format [hex => $uneven_y_prv->get_public_key->get_taproot_output_key->to_serialized],
+		'uneven key ok';
+
+	is to_format [hex => $even_y_prv->get_taproot_output_key->get_public_key->to_serialized],
+		to_format [hex => $even_y_prv->get_public_key->get_taproot_output_key->to_serialized],
+		'even key ok';
+};
+
 done_testing;
 
