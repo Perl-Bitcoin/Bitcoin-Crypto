@@ -293,17 +293,20 @@ signature_for subscript => (
 sub subscript
 {
 	my ($self) = @_;
-	my $start = $self->codeseparator // 0;
+	my $start = ($self->codeseparator // -1) + 1;
 	my @operations = @{$self->operations};
+
+	my $witness = $self->transaction->this_input->is_segwit;
 
 	my $result = '';
 	foreach my $operation (@operations[$start .. $#operations]) {
 		my ($op, $raw_op) = @$operation;
-		next if $op->name eq 'OP_CODESEPARATOR';
+		next if !$witness && $op->name eq 'OP_CODESEPARATOR';
 		$result .= $raw_op;
 	}
 
-	# NOTE: signature is not removed from the subscript, since runner doesn't know what it is
+	# NOTE: signature is not removed from the subscript for non-witness, since
+	# runner doesn't know what it is
 
 	return $result;
 }
@@ -695,7 +698,22 @@ $runner->pos >>, which contains the position of the B<next> opcode to execute.
 	$subscript = $object->subscript()
 
 Returns current subscript - part of the running script from after the last
-codeseparator, with all other codeseparators removed.
+codeseparator, also known as scriptCode.
+
+Depending on the input spending segwit, the subscript will behave differently:
+
+=over
+
+=item * pre-segwit
+
+Removes all codeseparators after the last executed codeseparator. B<Currently
+does not remove the signature (known as FindAndDelete)>.
+
+=item * segwit
+
+Only removes the part up to the last executed C<OP_CODESEPARATOR>.
+
+=back
 
 =head3 success
 
