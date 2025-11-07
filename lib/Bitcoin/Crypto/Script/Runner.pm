@@ -552,8 +552,9 @@ and returns its stack.
 
 =head3 transaction
 
-Instance of L<Bitcoin::Crypto::Transaction>. It is optional, but some opcodes
-will refuse to function without it.
+Instance of L<Bitcoin::Crypto::Transaction> wrapped inside
+C<Bitcoin::Crypto::Script::Transaction> for some extra data. It is optional,
+but some opcodes will refuse to function without it.
 
 I<predicate:> C<has_transaction>
 

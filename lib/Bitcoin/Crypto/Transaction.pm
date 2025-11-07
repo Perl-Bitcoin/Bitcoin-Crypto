@@ -163,15 +163,7 @@ sub to_serialized
 	}
 
 	if ($with_witness) {
-		foreach my $input (@inputs) {
-			my @this_witness = $input->has_witness ? @{$input->witness} : ();
-
-			$serialized .= pack_compactsize(scalar @this_witness);
-			foreach my $witness_item (@this_witness) {
-				$serialized .= pack_compactsize(length $witness_item);
-				$serialized .= $witness_item;
-			}
-		}
+		$serialized .= join '', map { $_->serialized_witness } @inputs;
 	}
 
 	$serialized .= pack 'V', $self->locktime;
@@ -524,6 +516,7 @@ sub _verify_script_taproot
 		if @witness_stack >= 2 && substr($witness_stack[-1], 0, 1) eq "\x50";
 
 	my $script;
+	$script_runner->transaction->set_sigop_budget(length $input->serialized_witness);
 
 	if (@witness_stack == 1) {
 		$script = Bitcoin::Crypto::Script::Common->new(TR => $pubkey);

@@ -19,8 +19,6 @@ use namespace::clean;
 
 extends 'Bitcoin::Crypto::Script::Opcode';
 
-# TODO: BIP 342 sigopt budget
-
 sub _OP_CHECKSIG
 {
 	return sub {
@@ -70,10 +68,16 @@ sub _OP_CHECKSIG
 				if defined $hashtype && none { $hashtype == $_ } @$allowed_sighash;
 		}
 
+		$runner->_invalid_script('sigop budget exceeded')
+			unless $runner->transaction->reduce_sigop_budget;
+
 		my $ext_flag = $runner->transaction->taproot_ext_flag;
 		my $ext;
 
 		if ($ext_flag == 1) {
+
+			die 'no script_tree in script transaction object'
+				unless $runner->transaction->has_script_tree;
 
 			# leaf for this script must be defined with id 0 to get a proper hash
 			$ext = get_taproot_ext(

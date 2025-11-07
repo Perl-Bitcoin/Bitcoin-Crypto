@@ -276,6 +276,27 @@ sub prevout
 	return scalar reverse($txid) . pack 'V', $index;
 }
 
+signature_for serialized_witness => (
+	method => Object,
+	positional => [],
+);
+
+sub serialized_witness
+{
+	my ($self) = @_;
+	my $serialized = '';
+
+	my @witness = $self->has_witness ? @{$self->witness} : ();
+
+	$serialized .= pack_compactsize(scalar @witness);
+	foreach my $witness_item (@witness) {
+		$serialized .= pack_compactsize(length $witness_item);
+		$serialized .= $witness_item;
+	}
+
+	return $serialized;
+}
+
 signature_for script_base => (
 	method => Object,
 	positional => [],

@@ -41,6 +41,11 @@ has option 'script_tree' => (
 	writer => 1,
 );
 
+has option 'sigop_budget' => (
+	isa => Int,
+	writer => -hidden,
+);
+
 signature_for get_digest => (
 	method => Object,
 	positional => [ByteStr, Maybe [PositiveOrZeroInt], Maybe [ByteStr], {default => undef}],
@@ -64,6 +69,26 @@ sub this_input
 	my ($self) = @_;
 
 	return $self->inputs->[$self->input_index];
+}
+
+sub set_sigop_budget
+{
+	my ($self, $witness_size) = @_;
+
+	$self->_set_sigop_budget(50 + $witness_size);
+}
+
+sub reduce_sigop_budget
+{
+	my ($self) = @_;
+
+	die 'no sigop budget defined for the transaction object'
+		unless $self->has_sigop_budget;
+
+	my $budget = $self->sigop_budget;
+	$budget -= 50;
+	$self->_set_sigop_budget($budget);
+	return $budget >= 0;
 }
 
 sub is_native_segwit
