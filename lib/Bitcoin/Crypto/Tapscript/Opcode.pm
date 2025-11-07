@@ -31,20 +31,20 @@ sub _OP_CHECKSIG
 		my $sig = pop @$stack;
 
 		my $pubkey;
+		my $known_pubkey_type;
 		my $hashtype;
 
 		# rules according to https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#rules-for-signature-opcodes
 		if (length $raw_pubkey == 32) {
 			$pubkey = btc_pub->from_serialized(lift_x $raw_pubkey);
+			$known_pubkey_type = !!1;
 			$pubkey->set_taproot_output(!!1);
 		}
 		elsif (length $raw_pubkey == 0) {
 			$runner->_invalid_script('bad pubkey');
 		}
 		else {
-			# unknown key type
-			push @$stack, $runner->from_bool(!!1);
-			return;
+			$known_pubkey_type = !!0;
 		}
 
 		if (length $sig == 0) {
@@ -89,7 +89,7 @@ sub _OP_CHECKSIG
 		}
 
 		my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype, $ext);
-		my $result = $pubkey->verify_message($preimage, $sig);
+		my $result = $known_pubkey_type ? $pubkey->verify_message($preimage, $sig) : !!1;
 
 		$runner->_invalid_script('signature verification failed') unless $result;
 		push @$stack, $runner->from_bool($result);
