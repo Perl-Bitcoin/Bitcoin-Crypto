@@ -152,6 +152,10 @@ sub get_segwit_address
 		'segwit addresses can only be created with BIP44 in segwit (BIP84) mode'
 	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_segwit_purpose);
 
+	Bitcoin::Crypto::Exception::AddressGenerate->raise(
+		'segwit addresses must not be generated with uncompressed keys to avoid potential fund loss'
+	) unless $self->compressed;
+
 	return encode_segwit($self->network->segwit_hrp, $self->witness_program->run->stack_serialized);
 }
 

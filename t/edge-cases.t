@@ -103,6 +103,14 @@ subtest 'should handle importing wif (multiple networks) with default' => sub {
 	is $key->network->id, 'bitcoin';
 };
 
+subtest 'refuses to generate segwit address from uncompressed key' => sub {
+	my $wif = '5JKZUnxc5G8toCqErCQpHiUYff3t7GvBd2my4bf6odejtZAy7hG';
+	my $key = btc_prv->from_wif($wif);
+	isa_ok dies {
+		$key->get_public_key->get_segwit_address;
+	}, 'Bitcoin::Crypto::Exception::AddressGenerate';
+};
+
 subtest 'should not handle importing wif (multiple networks) if default is not one of the networks' => sub {
 	my $old_default = Bitcoin::Crypto::Network->get;
 	Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
