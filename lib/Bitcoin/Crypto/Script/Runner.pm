@@ -502,6 +502,7 @@ sub success
 	return !!0 if !$stack;
 	return !!0 if !$stack->[-1];
 	return !!0 if !$self->to_bool($stack->[-1]);
+	return !!0 if $self->is_tapscript && @$stack > 1;
 	return !!1;
 }
 
