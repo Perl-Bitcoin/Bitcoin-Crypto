@@ -13,7 +13,7 @@ use Bitcoin::Crypto::Script::Runner;
 
 sub test_validation
 {
-	my ($case_name) = @_;
+	my ($case_name, $single_case_ind) = @_;
 
 	my $data = do {
 		local $/;
@@ -29,6 +29,7 @@ sub test_validation
 	my $script_runner = Bitcoin::Crypto::Script::Runner->new;
 	foreach my $case_ind (0 .. $#$data)
 	{
+		next if defined $single_case_ind && $single_case_ind != $case_ind;
 		my $case = $data->[$case_ind];
 
 		subtest "should pass $case_name index $case_ind ($case->{comment})" => sub {

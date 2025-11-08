@@ -442,7 +442,7 @@ sub _verify_script_default
 			'redeem script'
 		);
 
-		if ($redeem_script->is_native_segwit) {
+		if ($redeem_script->is_native_segwit && !$redeem_script->is_taproot) {
 			$self->_verify_script_segwit($input, $script_runner, $redeem_script);
 		}
 	}
