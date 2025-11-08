@@ -8,26 +8,42 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Types::Common -types;
 
+use Crypt::Digest::SHA256 qw(sha256);
+use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Util qw(hash256 pack_compactsize);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Transaction::Digest::Config;
+use Bitcoin::Crypto::Transaction::Digest::Result;
+
+use namespace::clean;
 
 has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],
+	weak_ref => 1,
 );
 
-has param 'signing_index' => (
-	isa => PositiveOrZeroInt,
+has field 'config' => (
+	coerce => (InstanceOf ['Bitcoin::Crypto::Transaction::Digest::Config'])
+		->plus_coercions(HashRef, q{Bitcoin::Crypto::Transaction::Digest::Config->new($_)}),
+	writer => 1,
+	handles => [
+		qw(
+			signing_index
+			signing_subscript
+			sighash
+			_default_sighash
+			taproot_ext_flag
+			taproot_ext
+			taproot_annex
+		)
+	],
 );
 
-has option 'signing_subscript' => (
-	coerce => ByteStr,
-);
-
-has param 'sighash' => (
-	isa => PositiveOrZeroInt,
-	default => Bitcoin::Crypto::Constants::sighash_all,
+has field '_cache' => (
+	isa => HashRef,
+	default => sub { {} },
 );
 
 sub get_digest
@@ -41,18 +57,25 @@ sub get_digest
 	) if !$input;
 
 	my $procedure = '_get_digest_default';
-	$procedure = '_get_digest_segwit'
-		if $input->is_segwit;
+	if ($input->is_taproot) {
+		$procedure = '_get_digest_taproot';
+	}
+	elsif ($input->is_segwit) {
+		$procedure = '_get_digest_segwit';
+	}
 
-	my $sighash_type = $self->sighash & 31 || Bitcoin::Crypto::Constants::sighash_all;
-	my $anyonecanpay = $self->sighash & Bitcoin::Crypto::Constants::sighash_anyonecanpay;
-
-	return $self->$procedure($sighash_type, $anyonecanpay);
+	return $self->$procedure();
 }
 
 sub _get_digest_default
 {
-	my ($self, $sighash_type, $anyonecanpay) = @_;
+	my ($self) = @_;
+
+	$self->_default_sighash(Bitcoin::Crypto::Constants::sighash_all);
+
+	my $sighash_type = $self->sighash & 31;
+	my $anyonecanpay = $self->sighash & Bitcoin::Crypto::Constants::sighash_anyonecanpay;
+
 	my $transaction = $self->transaction;
 	my $tx_copy = $transaction->clone;
 
@@ -87,10 +110,8 @@ sub _get_digest_default
 	elsif ($sighash_type == Bitcoin::Crypto::Constants::sighash_single) {
 		if ($self->signing_index >= @{$transaction->outputs}) {
 
-			# TODO: this should verify with digest 0000..0001 (without hashed)
-			Bitcoin::Crypto::Exception::Transaction->raise(
-				'illegal input ' . $self->signing_index . ' in SIGHASH_SINGLE'
-			);
+			# this should verify with constant digest (without hashing)
+			return Bitcoin::Crypto::Transaction::Digest::Result->new(hash => "\x01" . ("\x00" x 31));
 		}
 
 		@{$tx_copy->outputs} = ();
@@ -117,12 +138,18 @@ sub _get_digest_default
 	my $serialized = $tx_copy->to_serialized(witness => 0);
 	$serialized .= pack 'V', $self->sighash;
 
-	return $serialized;
+	return Bitcoin::Crypto::Transaction::Digest::Result->new(preimage => $serialized);
 }
 
 sub _get_digest_segwit
 {
-	my ($self, $sighash_type, $anyonecanpay) = @_;
+	my ($self) = @_;
+
+	$self->_default_sighash(Bitcoin::Crypto::Constants::sighash_all);
+
+	my $sighash_type = $self->sighash & 31;
+	my $anyonecanpay = $self->sighash & Bitcoin::Crypto::Constants::sighash_anyonecanpay;
+
 	my $transaction = $self->transaction->clone;
 	my $this_input = $transaction->inputs->[$self->signing_index]->clone;
 	$transaction->inputs->[$self->signing_index] = $this_input;
@@ -163,8 +190,7 @@ sub _get_digest_segwit
 
 	my @outputs;
 	foreach my $output (@{$transaction->outputs}) {
-		my $tmp = $output->locking_script->to_serialized;
-		push @outputs, $output->value_serialized . pack_compactsize(length $tmp) . $tmp;
+		push @outputs, $output->to_serialized;
 	}
 
 	# handle prevouts
@@ -202,7 +228,143 @@ sub _get_digest_segwit
 	$serialized .= pack 'V', $transaction->locktime;
 	$serialized .= pack 'V', $self->sighash;
 
-	return $serialized;
+	return Bitcoin::Crypto::Transaction::Digest::Result->new(preimage => $serialized);
+}
+
+sub _get_digest_taproot
+{
+	my ($self) = @_;
+
+	$self->_default_sighash(Bitcoin::Crypto::Constants::sighash_default);
+
+	my $sighash_type = $self->sighash & 3;
+	my $anyonecanpay = $self->sighash & Bitcoin::Crypto::Constants::sighash_anyonecanpay;
+
+	my $transaction = $self->transaction->clone;
+	my $this_input = $transaction->inputs->[$self->signing_index]->clone;
+	$transaction->inputs->[$self->signing_index] = $this_input;
+	my $annex = $self->taproot_annex;
+	my $ext_flag = $self->taproot_ext_flag;
+
+	my $all = $sighash_type == Bitcoin::Crypto::Constants::sighash_all
+		|| $sighash_type == Bitcoin::Crypto::Constants::sighash_default;
+	my $single = $sighash_type == Bitcoin::Crypto::Constants::sighash_single;
+	my $none = $sighash_type == Bitcoin::Crypto::Constants::sighash_none;
+
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		"can't digest taproot transaction with unknown SIGHASH"
+	) unless $all || $single || $none;
+
+	# According to https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
+	# SHA256 of the serialization of:
+	# hash_type (1).
+	# nVersion (4): the nVersion of the transaction.
+	# nLockTime (4): the nLockTime of the transaction.
+	# If the hash_type & 0x80 does not equal SIGHASH_ANYONECANPAY:
+	# - sha_prevouts (32): the SHA256 of the serialization of all input outpoints.
+	# - sha_amounts (32): the SHA256 of the serialization of all input amounts.
+	# - sha_scriptpubkeys (32): the SHA256 of all spent outputs' scriptPubKeys, serialized as script inside CTxOut.
+	# - sha_sequences (32): the SHA256 of the serialization of all input nSequence.
+	# If hash_type & 3 does not equal SIGHASH_NONE or SIGHASH_SINGLE:
+	# - sha_outputs (32): the SHA256 of the serialization of all outputs in CTxOut format.
+	# spend_type (1): equal to (ext_flag * 2) + annex_present, where annex_present is 0 if no annex is present, or 1 otherwise (the original witness stack has two or more witness elements, and the first byte of the last element is 0x50)
+	# If hash_type & 0x80 equals SIGHASH_ANYONECANPAY:
+	# - outpoint (36): the COutPoint of this input (32-byte hash + 4-byte little-endian).
+	# - amount (8): value of the previous output spent by this input.
+	# - scriptPubKey (35): scriptPubKey of the previous output spent by this input, serialized as script inside CTxOut. Its size is always 35 bytes.
+	# - nSequence (4): nSequence of this input.
+	# If hash_type & 0x80 does not equal SIGHASH_ANYONECANPAY:
+	# - input_index (4): index of this input in the transaction input vector. Index of the first input is 0.
+	# If an annex is present (the lowest bit of spend_type is set):
+	# - sha_annex (32): the SHA256 of (compact_size(size of annex) || annex), where annex includes the mandatory 0x50 prefix.
+	# If hash_type & 3 equals SIGHASH_SINGLE:
+	# - sha_single_output (32): the SHA256 of the corresponding output in CTxOut format.
+
+	my $serialized = '';
+	$serialized .= "\x00";    # sighash epoch
+	$serialized .= pack 'C', $self->sighash;
+	$serialized .= pack 'V', $transaction->version;
+	$serialized .= pack 'V', $transaction->locktime;
+
+	if (!$anyonecanpay) {
+		$serialized .= $self->_cache->{taproot_common_tx_data} //= do {
+			my @prevouts;
+			my @amounts;
+			my @pubkeys;
+			my @sequences;
+			foreach my $input (@{$transaction->inputs}) {
+				push @prevouts, $input->prevout;
+				push @amounts, $input->utxo->output->value_serialized;
+				push @sequences, pack 'V', $input->sequence_no;
+
+				my $pubkey = $input->utxo->output->locking_script->to_serialized;
+				push @pubkeys, pack_compactsize(length $pubkey) . $pubkey;
+			}
+
+			sha256(join '', @prevouts)
+				. sha256(join '', @amounts)
+				. sha256(join '', @pubkeys)
+				. sha256(join '', @sequences);
+		};
+	}
+
+	my $outputs = $self->_cache->{taproot_outputs} //= do {
+		my @outputs;
+		foreach my $output (@{$transaction->outputs}) {
+			my $tmp = $output->locking_script->to_serialized;
+			push @outputs, $output->to_serialized;
+		}
+
+		\@outputs;
+	};
+
+	if (!$none && !$single) {
+		$serialized .= sha256(join '', @$outputs);
+	}
+
+	$serialized .= pack 'C', $ext_flag * 2 + defined $annex;
+
+	if ($anyonecanpay) {
+		$serialized .= $this_input->prevout;
+		$serialized .= $this_input->utxo->output->value_serialized;
+
+		my $pubkey = $this_input->utxo->output->locking_script->to_serialized;
+		$serialized .= pack_compactsize(length $pubkey) . $pubkey;
+
+		$serialized .= pack 'V', $this_input->sequence_no;
+	}
+	else {
+		$serialized .= pack 'V', $self->signing_index;
+	}
+
+	if (defined $annex) {
+		$serialized .= sha256(pack_compactsize(length $annex) . $annex);
+	}
+
+	if ($single && $self->signing_index < @$outputs) {
+		$serialized .= sha256($outputs->[$self->signing_index]);
+	}
+	elsif ($single) {
+		Bitcoin::Crypto::Exception::Transaction->raise(
+			"can't digest taproot transaction with SIGHASH_SINGLE without corresponding output"
+		);
+	}
+
+	# BIP342 extension
+	if ($ext_flag == 1) {
+		my $ext = $self->taproot_ext;
+
+		Bitcoin::Crypto::Exception::Transaction->raise(
+			"missing taproot extension for ext_flag=1"
+		) unless defined $ext;
+
+		$serialized .= $ext;
+	}
+
+	return Bitcoin::Crypto::Transaction::Digest::Result->new(
+		taproot => !!1,
+		preimage => $serialized,
+	);
 }
 
 1;

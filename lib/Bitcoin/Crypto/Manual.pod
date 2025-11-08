@@ -127,6 +127,54 @@ L<Bitcoin::Crypto::Script> will help you build, de/serialize and run a script.
 L<Bitcoin::Crypto::Script::Runner> gives you more control over script execution,
 including running the script step by step, stopping after each opcode.
 
+=item * build script trees
+
+	use Bitcoin::Crypto qw(btc_tapscript btc_script_tree);
+
+	my $script1 = btc_tapscript->new
+		->push($pubkey1)
+		->add('OP_CHECKSIG');
+
+	my $script2 = btc_tapscript->new
+		->add('OP_0')
+		->push($pubkey2)
+		->add('OP_CHECKSIGADD')
+		->push($pubkey3)
+		->add('OP_CHECKSIGADD')
+		->add('OP_2')
+		->add('OP_EQUAL');
+
+	my $script3 = btc_tapscript->new
+		->add('OP_7')
+		->add('OP_EQUAL');
+
+	my $tree = btc_script_tree->new(
+		tree => [
+			{
+				id => 0,
+				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+				script => $script1,
+			},
+			[
+				{
+					id => 1,
+					leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+					script => $script2,
+				},
+				{
+					id => 2,
+					leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+					script => $script3,
+				},
+			]
+		],
+	);
+
+	my $merkle_root = $tree->get_merkle_root;
+
+L<Bitcoin::Crypto::Script::Tree> lets you create tapscript trees and utilize
+them in transactions.
+
 =item * work with Bitcoin-related encodings
 
 	use Bitcoin::Crypto::Bech32 qw(encode_bech32);
@@ -160,21 +208,21 @@ cryptocurrency. Also see L</Support for other cryptocurrencies>
 
 This module requires you to have access to a compiler to install some of its
 dependencies. You are also required to have C<libsecp256k1> installed. If it
-isn't, it will be attempted to download and install it automatically through
-L<Alien::libsecp256k1>.
+isn't, L<Alien::libsecp256k1> will attempt to download and install it
+automatically.
 
 =head2 How to read the documentation?
 
-Most functions in this documentation have a code line showcasing the arguments
+Most functions in this documentation have a code snippet showcasing the arguments
 used by the function. These lines are not meant to be valid perl. They're there
 for you to understand what arguments the function expects.
 
-Most packages in this module have the types of their thrown exceptions
+Most packages in this module have types of their thrown exceptions
 documented near the bottom of the document. The exceptions section may be
 useful to understand which types of exceptions can be thrown when using
 functions or methods from the package and what they mean. It is not meant to be
 a full list of exceptions a function can throw and unblessed errors may still
-be raised.
+be raised ocassionally.
 
 =head2 Class shortcuts
 
@@ -185,14 +233,14 @@ compact and avoid manually requiring too many classes, but they are completely
 optional. If this style does not sound reasonable to you, feel free to ignore
 it.
 
-See L<Bitcoin::Crypto/Exported interface> for details.
+See L<Bitcoin::Crypto/SHORTCUT FUNCTIONS> for details.
 
 =head2 How to pass data to functions?
 
 Many frequently used functions (like C<from_serialized> commonly used in keys,
 scripts and transactions) require you to pass in a string of bytes. Bytestring
 is a string in which each character has numeric value less than or equal to
-255. It is the default way to pass in data to functions in Bitcoin::Crypto.
+C<255>. It is the default way to pass in data to functions in Bitcoin::Crypto.
 
 It is not rare that you may want to use some other format instead, like hex
 strings. To avoid duplicating functions for different formats or manually

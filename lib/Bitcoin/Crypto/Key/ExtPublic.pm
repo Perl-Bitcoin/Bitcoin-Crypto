@@ -14,7 +14,7 @@ use Bitcoin::Crypto::BIP44;
 
 use namespace::clean;
 
-with qw(Bitcoin::Crypto::Role::ExtendedKey);
+extends qw(Bitcoin::Crypto::Key::ExtBase);
 
 sub _is_private { 0 }
 
@@ -95,9 +95,8 @@ Bitcoin::Crypto::Key::ExtPublic - Bitcoin extended public keys
 
 =head1 DESCRIPTION
 
-This class allows you to create an extended public key instance. They are a
-public counterparts to master keys, but sharing them poses some security risks.
-Do not share your extended public keys if you are not aware of these threats.
+This class allows you to create an extended public key instance. They are
+public counterparts to extended keys.
 
 You can use an extended public key to:
 
@@ -105,29 +104,66 @@ You can use an extended public key to:
 
 =item * derive extended keys using a path (only public keys, no hardened paths)
 
-=item * restore keys from serialized base58 format
+=item * export and restore keys from the serialized format
 
 =back
 
-see L<Bitcoin::Crypto::Network> if you want to work with other networks than Bitcoin Mainnet.
+Extended public keys pose a security risk: if the attacker obtains an extended
+public key and a single private key derived from the extended private key
+associated with the public key, they can obtain every private key on the same
+derivation path. For this reason, it is not recommended to share extended
+public keys.
 
-=head1 METHODS
+=head1 INTERFACE
 
-=head2 new
+=head2 Attributes
+
+=head3 network
+
+Instance of L<Bitcoin::Crypto::Network> - current network for this key. Can be
+coerced from network id. Default: current default network.
+
+I<writer:> C<set_network>
+
+=head3 purpose
+
+BIP44 purpose which was used to obtain this key. Filled automatically when
+deriving an extended key. If the key was not obtained through BIP44 derivation,
+this attribute is C<undef>.
+
+I<writer:> C<set_purpose>
+
+I<clearer:> C<clear_purpose>
+
+=head3 depth
+
+Integer - depth of derivation. Default: C<0> (master key)
+
+=head3 parent_fingerprint
+
+Bytestring of length 4 - fingerprint of the parent key. Default: four zero bytes
+
+=head3 child_number
+
+Integer - sequence number of the key on the current L</depth>. Default: C<0>
+
+=head3 chain_code
+
+Bytestring of length 32 - chain code of the extended key.
+
+=head2 Methods
+
+=head3 new
 
 Constructor is reserved for internal and advanced use only. Use L</from_serialized> instead.
 
-=head2 to_serialized
+=head3 to_serialized
 
 	$serialized_key = $object->to_serialized()
 
 Returns the key serialized in format specified in BIP32 as byte string.
 
-=head2 to_serialized_base58
-
-Deprecated. Use C<< to_format [base58 => $key->to_serialized] >> instead.
-
-=head2 from_serialized
+=head3 from_serialized
 
 	$key_object = $class->from_serialized($serialized, $network = undef)
 
@@ -136,26 +172,13 @@ Tries to unserialize byte string C<$serialized> with format specified in BIP32.
 Dies on errors. If multiple networks match serialized data specify C<$network>
 manually (id of the network) to avoid exception.
 
-=head2 from_serialized_base58
-
-Deprecated. Use C<< $class->from_serialized([base58 => $base58]) >> instead.
-
-=head2 set_network
-
-	$key_object = $object->set_network($val)
-
-Change key's network state to C<$val>. It can be either network name present in
-Bitcoin::Crypto::Network package or an instance of this class.
-
-Returns current key instance.
-
-=head2 get_basic_key
+=head3 get_basic_key
 
 	$basic_key_object = $object->get_basic_key()
 
 Returns the key in basic format: L<Bitcoin::Crypto::Key::Public>
 
-=head2 derive_key
+=head3 derive_key
 
 	$derived_key_object = $object->derive_key($path)
 
@@ -169,7 +192,7 @@ start with M (capital m).
 
 Returns a new extended key instance - result of a derivation.
 
-=head2 derive_key_bip44
+=head3 derive_key_bip44
 
 	$derived_key_object = $object->derive_key_bip44(%data)
 
@@ -178,7 +201,7 @@ calls L</derive_key> with it. In extended public keys, bip44 is always
 constructed with C<public> setting - it will always derive starting from
 account, effectively only using C<change> and C<index> attributes.
 
-=head2 get_fingerprint
+=head3 get_fingerprint
 
 	$fingerprint = $object->get_fingerprint($len = 4)
 

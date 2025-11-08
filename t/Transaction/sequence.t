@@ -244,6 +244,9 @@ foreach my $case (@cases) {
 		if ($exception) {
 			isa_ok $ex, $exception;
 		}
+		elsif ($ex) {
+			diag $ex;
+		}
 	};
 }
 

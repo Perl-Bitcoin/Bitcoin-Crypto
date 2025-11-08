@@ -124,13 +124,6 @@ sub as_string
 
 {
 
-	package Bitcoin::Crypto::Exception::Verify;
-
-	use parent -norequire, 'Bitcoin::Crypto::Exception';
-}
-
-{
-
 	package Bitcoin::Crypto::Exception::KeyCreate;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';
@@ -243,7 +236,14 @@ sub as_string
 
 {
 
-	package Bitcoin::Crypto::Exception::ScriptSyntax;
+	package Bitcoin::Crypto::Exception::ScriptTree;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception';
+}
+
+{
+
+	package Bitcoin::Crypto::Exception::ScriptCompilation;
 
 	use Moo;
 	use Mooish::AttributeBuilder -standard;
@@ -276,6 +276,20 @@ sub as_string
 
 		return $message;
 	}
+}
+
+{
+
+	package Bitcoin::Crypto::Exception::ScriptSyntax;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception::ScriptCompilation';
+}
+
+{
+
+	package Bitcoin::Crypto::Exception::ScriptSuccess;
+
+	use parent -norequire, 'Bitcoin::Crypto::Exception::ScriptCompilation';
 }
 
 {

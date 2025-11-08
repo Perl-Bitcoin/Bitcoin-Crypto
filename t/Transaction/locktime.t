@@ -75,6 +75,21 @@ my @cases = (
 	],
 
 	[
+		'big time satisfied',
+		{
+			transaction => {
+				locktime => 2**31 + 500,
+			},
+			block => {
+				timestamp => 2**31 + 800,
+				height => 0,
+			}
+		},
+		Bitcoin::Crypto::Script::Runner->from_int(2**31 + 500),
+		undef,
+	],
+
+	[
 		'time unsatisfied - CLTV',
 		{
 			transaction => {
@@ -164,6 +179,9 @@ foreach my $case (@cases) {
 
 		if ($exception) {
 			isa_ok $ex, $exception;
+		}
+		elsif ($ex) {
+			diag $ex;
 		}
 	};
 }

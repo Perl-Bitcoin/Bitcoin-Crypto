@@ -11,6 +11,8 @@ use Types::Common -sigs, -types;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 
+use namespace::clean;
+
 has param 'private' => (
 	isa => Bool,
 );
@@ -56,9 +58,9 @@ sub get_path_hardened
 	];
 }
 
-signature_for get_path_hardened => (
-	method => Object,
-	positional => [],
+signature_for from_string => (
+	method => Str,
+	positional => [Str],
 );
 
 sub from_string

@@ -72,6 +72,12 @@ sub _script_code
 	my $locking_script = $utxo->output->locking_script;
 	my $program;
 	my %types = (
+		P2TR => sub {
+
+			# get taproot key from P2TR (ignore the first two OPs - version and push)
+			my $pubkey = substr $locking_script->to_serialized, 2;
+			$program = Bitcoin::Crypto::Script::Common->new(P2TR => $pubkey);
+		},
 		P2WPKH => sub {
 
 			# get script hash from P2WPKH (ignore the first two OPs - version and push)
@@ -245,6 +251,18 @@ sub is_segwit
 	return !!0;
 }
 
+signature_for is_taproot => (
+	method => Object,
+	positional => [],
+);
+
+sub is_taproot
+{
+	my ($self) = @_;
+
+	return $self->utxo->output->locking_script->is_taproot;
+}
+
 signature_for prevout => (
 	method => Object,
 	positional => [],
@@ -256,6 +274,27 @@ sub prevout
 	my ($txid, $index) = @{$self->utxo_location};
 
 	return scalar reverse($txid) . pack 'V', $index;
+}
+
+signature_for serialized_witness => (
+	method => Object,
+	positional => [],
+);
+
+sub serialized_witness
+{
+	my ($self) = @_;
+	my $serialized = '';
+
+	my @witness = $self->has_witness ? @{$self->witness} : ();
+
+	$serialized .= pack_compactsize(scalar @witness);
+	foreach my $witness_item (@witness) {
+		$serialized .= pack_compactsize(length $witness_item);
+		$serialized .= $witness_item;
+	}
+
+	return $serialized;
 }
 
 signature_for script_base => (
@@ -456,11 +495,17 @@ start decoding. It will be set to the next byte after end of input stream.
 
 	$boolean = $object->is_segwit()
 
-Returns true if this input represents a segwit output.
+Returns true if this input references a segwit output.
 
 For scripts which have C<signature_script> filled out, this method is able to
 detect both native and compatibility segwit outputs (unlike
 L<Bitcoin::Crypto::Script/is_native_segwit>).
+
+=head3 is_taproot
+
+	$boolean = $object->is_taproot()
+
+Returns true if this input references a taproot output.
 
 =head3 prevout
 

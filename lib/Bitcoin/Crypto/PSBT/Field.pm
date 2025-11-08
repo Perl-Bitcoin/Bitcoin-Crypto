@@ -49,11 +49,11 @@ sub BUILD
 		$self->_set_raw_key(undef);
 	}
 
-	if (exists $args->{value}) {
+	if (defined $args->{value}) {
 		$self->set_value($args->{value});
 	}
 
-	if (exists $args->{key}) {
+	if (defined $args->{key}) {
 		$self->set_key($args->{key});
 	}
 

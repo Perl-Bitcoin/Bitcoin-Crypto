@@ -9,6 +9,7 @@ use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Types -types;
 
 use namespace::clean;
 
@@ -25,15 +26,15 @@ has param 'name' => (
 );
 
 has param 'p2pkh_byte' => (
-	isa => StrLength [1, 1],
+	coerce => ByteStrLen [1],
 );
 
 has param 'wif_byte' => (
-	isa => StrLength [1, 1],
+	coerce => ByteStrLen [1],
 );
 
 has param 'p2sh_byte' => (
-	isa => StrLength [1, 1],
+	coerce => ByteStrLen [1],
 	required => 0,
 );
 

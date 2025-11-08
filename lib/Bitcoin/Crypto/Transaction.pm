@@ -11,15 +11,17 @@ use Scalar::Util qw(blessed);
 use Carp qw(carp);
 use List::Util qw(sum any);
 
-use Bitcoin::Crypto qw(btc_script btc_utxo);
+use Bitcoin::Crypto qw(btc_pub btc_script btc_tapscript btc_script_tree btc_utxo);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Transaction::Digest;
-use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format);
+use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format lift_x has_even_y);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Common;
+use Bitcoin::Crypto::Script::Tree;
+use Bitcoin::Crypto::Transaction::ControlBlock;
 
 use namespace::clean;
 
@@ -41,6 +43,14 @@ has field 'outputs' => (
 has param 'locktime' => (
 	isa => IntMaxBits [32],
 	default => 0,
+);
+
+has field '_digest_object' => (
+	isa => InstanceOf ['Bitcoin::Crypto::Transaction::Digest'],
+	lazy => sub {
+		Bitcoin::Crypto::Transaction::Digest->new(transaction => shift);
+	},
+	clearer => -public,
 );
 
 with qw(
@@ -68,6 +78,7 @@ sub add_input
 	}
 
 	push @{$self->inputs}, $data;
+	$self->clear_digest_object;
 	return $self;
 }
 
@@ -92,6 +103,7 @@ sub add_output
 	}
 
 	push @{$self->outputs}, $data;
+	$self->clear_digest_object;
 	return $self;
 }
 
@@ -151,15 +163,7 @@ sub to_serialized
 	}
 
 	if ($with_witness) {
-		foreach my $input (@inputs) {
-			my @this_witness = $input->has_witness ? @{$input->witness} : ();
-
-			$serialized .= pack_compactsize(scalar @this_witness);
-			foreach my $witness_item (@this_witness) {
-				$serialized .= pack_compactsize(length $witness_item);
-				$serialized .= $witness_item;
-			}
-		}
+		$serialized .= join '', map { $_->serialized_witness } @inputs;
 	}
 
 	$serialized .= pack 'V', $self->locktime;
@@ -253,9 +257,21 @@ sub get_digest
 {
 	my ($self, $params) = @_;
 
-	$params->{transaction} = $self;
-	my $digest = Bitcoin::Crypto::Transaction::Digest->new($params);
-	return $digest->get_digest;
+	return $self->get_digest_object($params)->get_digest;
+}
+
+signature_for get_digest_object => (
+	method => Object,
+	positional => [HashRef, {slurpy => !!1}],
+);
+
+sub get_digest_object
+{
+	my ($self, $params) = @_;
+
+	my $digest = $self->_digest_object;
+	$digest->set_config($params);
+	return $digest;
 }
 
 signature_for fee => (
@@ -426,7 +442,7 @@ sub _verify_script_default
 			'redeem script'
 		);
 
-		if ($redeem_script->is_native_segwit) {
+		if ($redeem_script->is_native_segwit && !$redeem_script->is_taproot) {
 			$self->_verify_script_segwit($input, $script_runner, $redeem_script);
 		}
 	}
@@ -439,13 +455,8 @@ sub _verify_script_segwit
 	die 'signature script is not empty in segwit input'
 		unless $compat_script || $input->signature_script->is_empty;
 
-	# execute input to get initial stack
-	my $signature_script = btc_script->new;
-	foreach my $witness (@{$input->witness // []}) {
-		$signature_script->push($witness);
-	}
-	$script_runner->execute($signature_script);
-	my $stack = $script_runner->stack;
+	# use shallow copy of witness as initial stack
+	my $stack = [@{$input->witness // []}];
 
 	my $locking_script = $compat_script // $input->utxo->output->locking_script;
 	my $hash = substr $locking_script->to_serialized, 2;
@@ -480,6 +491,115 @@ sub _verify_script_segwit
 			'segwit redeem script'
 		);
 	}
+}
+
+sub _verify_script_taproot
+{
+	my ($self, $input, $script_runner) = @_;
+
+	die 'signature script is not empty in taproot input'
+		unless $input->signature_script->is_empty;
+
+	my $locking_script = $input->utxo->output->locking_script;
+	my $pubkey = substr $locking_script->to_serialized, 2;
+
+	# shallow copy of the witness - avoid modifying the transaction
+	my @witness_stack = @{$input->witness // []};
+
+	# consensus rules from https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#script-validation-rules
+
+	die 'witness stack has 0 elements'
+		unless @witness_stack;
+
+	# remove the annex from the witness stack - annex first byte is 0x50
+	$script_runner->transaction->set_taproot_annex(pop @witness_stack)
+		if @witness_stack >= 2 && substr($witness_stack[-1], 0, 1) eq "\x50";
+
+	my $script;
+	$script_runner->transaction->set_sigop_budget(length $input->serialized_witness);
+
+	if (@witness_stack == 1) {
+		$script = Bitcoin::Crypto::Script::Common->new(TR => $pubkey);
+	}
+	else {
+		my $control_block = Bitcoin::Crypto::Exception->trap_into(
+			sub {
+				return Bitcoin::Crypto::Transaction::ControlBlock->from_serialized(pop @witness_stack);
+			},
+			'invalid control block'
+		);
+
+		my $raw_script = pop @witness_stack;
+
+		my $leaf_version = $control_block->get_leaf_version;
+		if ($leaf_version == Bitcoin::Crypto::Constants::tapscript_leaf_version) {
+			$script = btc_tapscript->from_serialized($raw_script);
+			$script_runner->transaction->set_taproot_ext_flag(1);
+		}
+		else {
+			# future compatibility - script must succeed
+			# https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#cite_note-12
+			return;
+		}
+
+		# TODO: for now, leaf must have id 0 to get recognized by runner (see
+		# OP_CHECKSIG for tapscript)
+		my $tree = btc_script_tree->from_path(
+			{
+				id => 0,
+				leaf_version => $leaf_version,
+				script => $script,
+			},
+			$control_block->script_blocks
+		);
+
+		$script_runner->transaction->set_script_tree($tree);
+
+		my $tweaked = $control_block->public_key->get_taproot_output_key($tree->get_merkle_root);
+		my $expected_parity = !has_even_y($tweaked);
+		die 'invalid public key or control block'
+			unless $tweaked->get_xonly_key eq $pubkey
+			&& $expected_parity == ($control_block->control_byte & 1);
+	}
+
+	# execute script
+	# use remaining witness elements as initial stack
+	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
+		sub {
+			$script_runner->execute($script, \@witness_stack);
+			die 'execution yielded failure'
+				unless $script_runner->success;
+		},
+		'taproot script'
+	);
+}
+
+signature_for verify_script => (
+	method => Object,
+	positional => [PositiveOrZeroInt, InstanceOf ['Bitcoin::Crypto::Script::Runner']],
+);
+
+sub verify_script
+{
+	my ($self, $input_index, $script_runner) = @_;
+	$script_runner->transaction->set_input_index($input_index);
+
+	my $input = $self->inputs->[$input_index];
+	my $utxo = $input->utxo;
+
+	# run bitcoin script
+	my $procedure = '_verify_script_default';
+	$procedure = '_verify_script_segwit'
+		if $utxo->output->locking_script->is_native_segwit;
+	$procedure = '_verify_script_taproot'
+		if $utxo->output->locking_script->is_taproot;
+
+	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
+		sub {
+			$self->$procedure($input, $script_runner);
+		},
+		"transaction input $input_index verification has failed"
+	);
 }
 
 signature_for verify => (
@@ -531,25 +651,12 @@ sub verify
 
 	# per-input verification
 	foreach my $input_index (0 .. $#inputs) {
-		my $input = $inputs[$input_index];
-		my $utxo = $input->utxo;
-		$script_runner->transaction->set_input_index($input_index);
-
-		# run bitcoin script
-		my $procedure = '_verify_script_default';
-		$procedure = '_verify_script_segwit'
-			if $utxo->output->locking_script->is_native_segwit;
-
-		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
-			sub {
-				$self->$procedure($input, $script_runner);
-			},
-			"transaction input $input_index verification has failed"
-		);
+		$self->verify_script($input_index, $script_runner);
 
 		# check sequence (BIP 68)
-		if ($self->version >= 2 && !($input->sequence_no & (1 << 31))) {
-			my $sequence = $input->sequence_no;
+		if ($self->version >= 2 && !($inputs[$input_index]->sequence_no & (1 << 31))) {
+			my $sequence = $inputs[$input_index]->sequence_no;
+			my $utxo = $inputs[$input_index]->utxo;
 			my $time_based = $sequence & (1 << 22);
 			my $relative_locktime = $sequence & 0x0000ffff;
 			my $has_block = defined $block && ($time_based || $block->has_height);
@@ -638,13 +745,11 @@ Bitcoin::Crypto::Transaction - Bitcoin transaction instance
 =head1 DESCRIPTION
 
 Transaction support in Bitcoin::Crypto is provided on best-effort basis. The
-goal is not to reimplement Bitcoin Core, which would most likely lead to security
-issues, but rather to provide means to manipulate a set of well-known standard
-transaction types. Widely used C<P2PKH>, C<P2SH>, their SegWit counterparts and
-C<P2MS> are thoroughly tested and should be safe to use. B<Still, before
-putting any real money on the line, make sure to check the serialized
-transactions in other tools and review that its contents are correct. There is
-absolutely no guarantee!>
+goal is not to reimplement Bitcoin Core, which would most likely lead to
+security issues, but rather to provide means to manipulate a set of well-known
+standard transaction types. Widely used C<P2PKH>, C<P2SH>, their SegWit
+counterparts, C<P2TR> and C<P2MS> are thoroughly tested and should be safe to
+use. Still, keep L<Bitcoin::Crypto::Manual/DISCLAIMER> in mind.
 
 See L<Bitcoin::Crypto::Manual::Transactions> for details and guidelines.
 
@@ -771,7 +876,38 @@ custom scripts.
 
 The sighash which should be used for the digest. By default C<SIGHASH_ALL>.
 
+=item * C<taproot_ext_flag>
+
+Taproot extension flag defined by BIP341 (integer). 0 (no extension) by
+default.
+
+=item * C<taproot_ext>
+
+Taproot extension as a bytestring. No extension by default.
+
+=item * C<taproot_annex>
+
+Taproot annex defined by BIP341 as a bytestring. No annex by default.
+
+Caution: BIP341 warns to not use annex until the meaning of this field is
+defined by a softfork.
+
 =back
+
+Note that digest is implemented as a persistent object associated with the
+transaction which may hold some data cached for reuse. Adding inputs and
+outputs through L</add_input> and L</add_output> will cause this object to be
+recreated, since the cache must be invalidated. If you change transaction in a
+way that won't clear this cache and you call C<get_digest> repeatedly, you may
+force this by calling C<clear_digest_object>.
+
+=head3 get_digest_object
+
+	$digest_object = $object->get_digest_object(%params)
+
+Same as L</get_digest>, but returns an object of
+L<Bitcoin::Crypto::Transaction::Digest> instead of a bytestring. Advanced use
+only.
 
 =head3 fee
 

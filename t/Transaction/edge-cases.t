@@ -112,10 +112,9 @@ subtest 'should handle NULLDATA outputs' => sub {
 };
 
 subtest 'should correctly handle extra SIGHASH_SINGLE inputs' => sub {
-	skip_all 'unable to implement yet';
 
 	# from https://bitcointalk.org/index.php?topic=260595.0
-	# (verify previous transaction as well just for completeness)
+	# (verify previous non-SINGLE transaction as well just for completeness)
 
 	btc_utxo->extract(
 		[
@@ -146,37 +145,6 @@ subtest 'should correctly handle extra SIGHASH_SINGLE inputs' => sub {
 	ok lives {
 		$tx->verify;
 	}, 'this transaction verified ok';
-};
-
-subtest 'should not verify segwit transactions with uncompressed public keys (P2WPKH)' => sub {
-	$prv->set_compressed(0);
-
-	my $random_txid = sha256($prv->to_serialized);
-	btc_utxo->new(
-		txid => $random_txid,
-		output_index => 0,
-		output => {
-			locking_script => [P2WPKH => $prv->get_public_key->get_segwit_address],
-			value => 11,
-		},
-	)->register;
-
-	$tx = btc_transaction->new;
-
-	$tx->add_input(
-		utxo => [$random_txid, 0],
-	);
-
-	$tx->add_output(
-		locking_script => [P2SH => $prv->get_public_key->get_compat_address],
-		value => $tx->fee - 1,
-	);
-
-	$prv->sign_transaction($tx, signing_index => 0);
-
-	my $ex = dies { $tx->verify };
-	isa_ok $ex, 'Bitcoin::Crypto::Exception::TransactionScript';
-	like $ex, qr/compressed/, 'error string ok';
 };
 
 subtest 'should not verify segwit transactions with uncompressed public keys (P2WSH)' => sub {
@@ -238,6 +206,18 @@ subtest 'should be able to create transactions without registered UTXOs' => sub 
 	isa_ok dies {
 		$tx->verify;
 	}, 'Bitcoin::Crypto::Exception::UTXO';
+};
+
+# this case comes from BIP143
+subtest 'should correctly verify a transaction with unexecuted codeseparator' => sub {
+	$tx = btc_transaction->from_serialized(
+		[
+			hex =>
+				'01000000000102e9b542c5176808107ff1df906f46bb1f2583b16112b95ee5380665ba7fcfc0010000000000ffffffff80e68831516392fcd100d186b3c2c7b95c80b53c77e77c35ba03a66b429a2a1b0000000000ffffffff0280969800000000001976a914de4b231626ef508c9a74a8517e6783c0546d6b2888ac80969800000000001976a9146648a8cd4531e1ec47f35916de8e259237294d1e88ac02483045022100f6a10b8604e6dc910194b79ccfc93e1bc0ec7c03453caaa8987f7d6c3413566002206216229ede9b4d6ec2d325be245c5b508ff0339bf1794078e20bfe0babc7ffe683270063ab68210392972e2eb617b2388771abe27235fd5ac44af8e61693261550447a4c3e39da98ac024730440220032521802a76ad7bf74d0e2c218b72cf0cbc867066e2e53db905ba37f130397e02207709e2188ed7f08f4c952d9d13986da504502b8c3be59617e043552f506c46ff83275163ab68210392972e2eb617b2388771abe27235fd5ac44af8e61693261550447a4c3e39da98ac00000000',
+		]
+	);
+
+	ok lives { $tx->verify }, 'transaction verification should succeed';
 };
 
 done_testing;

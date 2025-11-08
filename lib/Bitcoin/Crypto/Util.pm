@@ -14,7 +14,7 @@ use Try::Tiny;
 use Scalar::Util qw(blessed);
 use Types::Common -sigs, -types;
 
-use Bitcoin::Crypto::Helpers qw(parse_formatdesc);
+use Bitcoin::Crypto::Helpers qw(parse_formatdesc ecc);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
@@ -35,6 +35,11 @@ our @EXPORT_OK = qw(
 	unpack_compactsize
 	hash160
 	hash256
+	merkle_root
+	tagged_hash
+	lift_x
+	has_even_y
+	get_taproot_ext
 );
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
@@ -398,6 +403,108 @@ sub hash256
 	return sha256(sha256($data));
 }
 
+signature_for merkle_root => (
+	positional => [ArrayRef [ByteStr]],
+);
+
+sub merkle_root
+{
+	my ($leaves) = @_;
+
+	my @parts = map { hash256($_) } @$leaves;
+
+	Bitcoin::Crypto::Exception->raise(
+		'need at least one element to calculate a merkle root'
+	) unless @parts;
+
+	while (@parts > 1) {
+		@parts = map {
+			hash256($parts[$_] . ($parts[$_ + 1] // $parts[$_]))
+		} grep {
+			$_ % 2 == 0
+		} 0 .. $#parts;
+	}
+
+	return $parts[0];
+}
+
+signature_for tagged_hash => (
+	positional => [Str, ByteStr],
+);
+
+sub tagged_hash
+{
+	my ($tag, $message) = @_;
+
+	my $partial = sha256(encode 'UTF-8', $tag);
+	return sha256($partial . $partial . $message);
+}
+
+signature_for lift_x => (
+	positional => [ByteStr],
+);
+
+sub lift_x
+{
+	my ($x) = @_;
+
+	my $key = "\x02" . $x;
+	Bitcoin::Crypto::Exception::KeyCreate->raise(
+		'invalid xonly public key'
+	) unless ecc->verify_public_key($key);
+
+	return $key;
+}
+
+signature_for has_even_y => (
+	positional => [ByteStr | InstanceOf ['Bitcoin::Crypto::Key::Public']],
+);
+
+sub has_even_y
+{
+	my ($key) = @_;
+	$key = $key->raw_key if ref $key;
+
+	return Bitcoin::Crypto::Exception->trap_into(
+		sub {
+			$key = ecc->compress_public_key($key);
+			return substr($key, 0, 1) eq "\x02";
+		}
+	);
+}
+
+signature_for get_taproot_ext => (
+	positional => [PositiveOrZeroInt, HashRef, {slurpy => !!1}],
+);
+
+sub get_taproot_ext
+{
+	my ($ext_flag, $args) = @_;
+
+	if ($ext_flag == 0) {
+		return '';
+	}
+	elsif ($ext_flag == 1) {
+		state $type = Dict [
+			script_tree => BitcoinScriptTree,
+			leaf_id => Int,
+			codesep_pos => Optional [Maybe [PositiveOrZeroInt]],
+		];
+
+		$type->assert_valid($args);
+
+		# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#common-signature-message-extension
+		return $args->{script_tree}->get_tapleaf_hash($args->{leaf_id})
+			. "\x00"
+			. pack('V', $args->{codesep_pos} // 0xffffffff);
+	}
+	else {
+		Bitcoin::Crypto::Exception->raise(
+			"can not create taproot_ext for unknown ext flag $ext_flag"
+		);
+	}
+}
+
 1;
 
 __END__
@@ -423,6 +530,11 @@ Bitcoin::Crypto::Util - General Bitcoin utilities
 		unpack_compactsize
 		hash160
 		hash256
+		merkle_root
+		tagged_hash
+		lift_x
+		has_even_y
+		get_taproot_ext
 	);
 
 =head1 DESCRIPTION
@@ -591,7 +703,7 @@ Supported C<$format> values are:
 
 =head2 from_format
 
-	$decoded = from_format [$format => $string];
+	$decoded = from_format [$format => $string]
 
 Reverse of L</to_format> - decodes C<$string> into bytestring, treating it as
 C<$format>.
@@ -601,13 +713,13 @@ parameter of the module will do this conversion implicitly.>
 
 =head2 pack_compactsize
 
-	$bytestr = pack_compactsize($integer);
+	$bytestr = pack_compactsize($integer)
 
 Serializes C<$integer> as Bitcoin's CompactSize format and returns it as a byte string.
 
 =head2 unpack_compactsize
 
-	$integer = unpack_compactsize($bytestr, $pos = undef);
+	$integer = unpack_compactsize($bytestr, $pos = undef)
 
 Deserializes CompactSize from C<$bytestr>, returning an integer.
 
@@ -618,15 +730,78 @@ an exception if C<$bytestr> contains anything other than CompactSize.
 
 =head2 hash160
 
-	$hash = hash160($data);
+	$hash = hash160($data)
 
 This is hash160 used by Bitcoin (C<RIPEMD160> of C<SHA256>)
 
 =head2 hash256
 
-	$hash = hash256($data);
+	$hash = hash256($data)
 
 This is hash256 used by Bitcoin (C<SHA256> of C<SHA256>)
+
+=head2 merkle_root
+
+	$hash = merkle_root([$leaf1, $leaf2, ...])
+
+Calculates a merkle root of input array reference. Leaves will be run through a
+double SHA256 before calculating the root.
+
+=head2 tagged_hash
+
+	$hash = tagged_hash($tag, $message)
+
+Calculates a tagged hash of C<$message> using C<$tag> as a tag. These hashes
+are described in BIP340.
+
+B<Important note about unicode:> this function only accepts UTF8-decoded
+strings for C<$tag>, but can't detect whether it got it or not. This will only
+become a problem if you use non-ascii tag. If there's a possibility of
+non-ascii, always use utf8 and set binmodes to get decoded (wide) characters.
+
+=head2 lift_x
+
+	$public_key = lift_x($xonly_public_key)
+
+This implements C<lift_x> function defined in BIP340. Returns a compressed ECC
+public key with even Y coordinate as a bytestring for a given 32-byte bytestring
+C<$xonly_public_key>. Throws an exception if the result is not a valid public
+key.
+
+=head2 has_even_y
+
+	$even_y = has_even_y($public_key)
+
+This implements C<has_even_y> function defined in BIP340. Returns a boolean for
+a given serialized C<$public_key> - a bytestring. Throws an exception if the
+argument is not a valid public key.
+
+=head2 get_taproot_ext
+
+	$bytestring = get_taproot_ext($ext_flag, %args)
+
+This function generates a binary ext for C<$ext_flag> used by taproot
+transactions. C<%args> and result depend on the value of C<$ext_flag>:
+
+=over
+
+=item * C<$ext_flag = 0>
+
+C<%args> are empty, an empty string is generated.
+
+=item * C<$ext_flag = 1>
+
+C<script_tree> - instance of L<Bitcoin::Crypto::Script::Tree> (required)
+
+C<leaf_id> - integer, identifier of C<script_tree> leaf for current context (required)
+
+C<codesep_pos> - position of last executed codeseparator, or undef if there was none (optional)
+
+Returns ext according to BIP342.
+
+=back
+
+Raises an exception for unknown C<$ext_flag>.
 
 =head1 SEE ALSO
 

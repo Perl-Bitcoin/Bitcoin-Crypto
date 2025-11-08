@@ -79,7 +79,7 @@ foreach my $case (@cases_compression) {
 		is(to_format [hex => $pubkey->to_serialized], $case->{uncompressed}, 'imported and exported correctly');
 		is($pubkey->get_legacy_address, $case->{uncompressed_address}, 'correctly created address');
 
-		$pubkey->set_compressed;
+		$pubkey->set_compressed(1);
 		is(to_format [hex => $pubkey->to_serialized], $case->{compressed}, 'exported compressed key correctly');
 		is(
 			$pubkey->get_legacy_address,
@@ -158,9 +158,7 @@ subtest 'verify message using pubkey' => sub {
 subtest 'generate addresses from non-default network' => sub {
 	my $pub = btc_pub->from_serialized([hex => $validation_case{uncompressed}]);
 	$pub->set_compressed(0);
-
-	my $should_be_pub = $pub->set_network('bitcoin_testnet');
-	is $should_be_pub, $pub, 'set_network return value ok';
+	$pub->set_network('bitcoin_testnet');
 
 	my $testnet_addr = 'mtSw17LGTmJgBKx1i8RscCV4PTQoWg7NsR';
 	is($pub->network->name, 'Bitcoin Testnet', 'changed network to testnet');

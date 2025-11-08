@@ -5,36 +5,67 @@ use strict;
 use warnings;
 use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
+use Try::Tiny;
 
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Helpers qw(carp_once ecc);
-use Bitcoin::Crypto::Util qw(hash256);
+use Bitcoin::Crypto::Helpers qw(ecc);
 use Bitcoin::Crypto::Transaction::Sign;
+use Bitcoin::Crypto::Constants;
 use Moo::Role;
 
 requires qw(
 	raw_key
+	taproot_output
 	_is_private
+);
+
+my %algorithms = (
+	default => {
+		signing_method => sub {
+			my ($key, $digest) = @_;
+
+			return ecc->sign_digest($key->raw_key, $digest);
+		},
+		verification_method => sub {
+			my ($key, $signature, $digest) = @_;
+
+			# high-S is a standardness rule, not a protocol rule
+			# my $normalized = ecc->normalize_signature($signature);
+			# return !!0 if $normalized ne $signature;
+			return ecc->verify_digest($key->raw_key('public'), $signature, $digest);
+		},
+	},
+	schnorr => {
+		signing_method => sub {
+			my ($key, $digest) = @_;
+
+			return ecc->sign_digest_schnorr($key->raw_key, $digest);
+		},
+		verification_method => sub {
+			my ($key, $signature, $digest) = @_;
+
+			return ecc->verify_digest_schnorr($key->raw_key('public_xonly'), $signature, $digest);
+		},
+	},
 );
 
 signature_for sign_message => (
 	method => Object,
-	positional => [ByteStr],
+	positional => [BitcoinDigest],
 );
 
 sub sign_message
 {
-	my ($self, $preimage) = @_;
+	my ($self, $digest_result) = @_;
+	my $algorithm = $self->taproot_output ? 'schnorr' : 'default';
 
 	Bitcoin::Crypto::Exception::Sign->raise(
 		'cannot sign a message with a public key'
 	) unless $self->_is_private;
 
-	my $digest = hash256($preimage);
-
 	return Bitcoin::Crypto::Exception::Sign->trap_into(
 		sub {
-			return ecc->sign_digest($self->raw_key, $digest);
+			return $algorithms{$algorithm}{signing_method}->($self, $digest_result->hash);
 		}
 	);
 }
@@ -61,21 +92,20 @@ sub sign_transaction
 
 signature_for verify_message => (
 	method => Object,
-	positional => [ByteStr, ByteStr],
+	positional => [BitcoinDigest, ByteStr],
 );
 
 sub verify_message
 {
-	my ($self, $preimage, $signature) = @_;
-	my $digest = hash256($preimage);
+	my ($self, $digest_result, $signature) = @_;
+	my $algorithm = $self->taproot_output ? 'schnorr' : 'default';
 
-	return Bitcoin::Crypto::Exception::Verify->trap_into(
-		sub {
-			my $normalized = ecc->normalize_signature($signature);
-			return !!0 if $normalized ne $signature;
-			return ecc->verify_digest($self->raw_key('public'), $signature, $digest);
-		}
-	);
+	my $valid = !!0;
+	try {
+		$valid = $algorithms{$algorithm}{verification_method}->($self, $signature, $digest_result->hash);
+	};
+
+	return $valid;
 }
 
 1;

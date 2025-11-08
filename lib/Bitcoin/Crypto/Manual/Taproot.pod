@@ -1,0 +1,124 @@
+=head1 NAME
+
+Bitcoin::Crypto::Manual::Taproot - Taproot support details
+
+=head1 DESCRIPTION
+
+This page describes all the various bits and pieces that are used in
+Bitcoin::Crypto's taproot support.
+
+=head2 Keys and derivation
+
+Taproot is implemented using the same key classes as before. You can use
+purpose C<86> or C<Bitcoin::Crypto::Constants::bip44_taproot_purpose> to
+L<BIP44|https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki>-derive
+extended keys in compilance with
+L<BIP86|https://github.com/bitcoin/bips/blob/master/bip-0086.mediawiki>.
+L<Bitcoin::Crypto::Key::Public/get_address> now returns taproot addresses by
+default.
+
+Bitcoin::Crypto's taproot handling should be opaque, so that you don't need to
+manually handle xonly public keys, taproot output keys and schnorr signatures.
+Standard keypair of L<Bitcoin::Crypto::Key::Private> and
+L<Bitcoin::Crypto::Key::Public> should be all you need most of the time.
+
+=head2 Constructing addresses
+
+Method L<Bitcoin::Crypto::Key::Public/get_taproot_address> works like other
+address-generating methods, but can optionally accept an additional argument to
+support spending via a script. Taproot scripts can simultaneously be spendable
+using key path (like C<P2WPKH>) or script path (like C<P2WSH>). If you omit the
+extra argument, coins sent to address will only be spendable with the key path.
+
+To enable script path, the extra argument to the method mentioned above must be
+an instance of L<Bitcoin::Crypto::Script::Tree> (shortcut
+L<Bitcoin::Crypto/btc_script_tree>). Script trees are explained in
+L<BIP341|https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#user-content-Constructing_and_spending_Taproot_outputs>
+- they are binary trees with each leaf being a single script. When spending a
+taproot output, any script from a tree can be selected, and only this script
+must be revealed. All other scripts in the tree will stay private.
+
+Currently, all leaves in the tree must have C<leaf_version> equal to C<0xc0> or
+C<Bitcoin::Crypto::Constants::tapscript_leaf_version>, according to
+L<BIP342|https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki>. Using
+this C<leaf_version> means that C<script> in the leaf must be an instance of
+L<Bitcoin::Crypto::Tapscript> (shortcut L<Bitcoin::Crypto/btc_tapscript>).
+Tapscripts are similar to scripts, but they use a different set of opcodes
+(L<Bitcoin::Crypto::Tapscript::Opcode>).
+
+To completely disable spending via key path (to force spending with scripts),
+"Nothing Up My Sleeve" L<Bitcoin::Crypto::Key::NUMS> can be used, which
+generates public keys that have no known private key counterparts.
+
+=head2 Spending taproot outputs
+
+Signing transactions by using key path spend is as simple as calling
+L<Bitcoin::Crypto::Key::Private/sign_transaction> on a transaction with proper
+C<signing_index>. Signing spend by script path is much harder and currently has
+no internal implementation. Here's a naive example of witness stack
+construction that uses C<sighash_all> and assumes no C<OP_CODESEPARATOR> in the
+script:
+
+	my $tree = btc_script_tree->new(tree => [{id => 0, script => $script, leaf_version => 0xc0}]);
+	my @input_witness;
+
+	# first witness element: signature for script [<pubkey> OP_CHECKSIG]
+	push @input_witness, $privkey->sign_message(
+		$tx->get_digest(
+			signing_index => 0,
+			signing_subscript => $script->to_serialized,
+			taproot_ext_flag => 1,
+			taproot_ext => get_taproot_ext(1, script_tree => $tree, leaf_id => 0),
+			sighash => Bitcoin::Crypto::Constants::sighash_all,
+		)
+	) . pack('C', Bitcoin::Crypto::Constants::sighash_all);
+
+	# second witness element: serialized script
+	push @input_witness, $script->to_serialized;
+
+	# third witness element: taproot control block
+	push @input_witness, $tree->get_control_block(0, $pub)->to_serialized;
+
+This example uses L<Bitcoin::Crypto::Util/get_taproot_ext> to build extension
+defined in BIP342. L<Bitcoin::Crypto::Script::Tree/get_control_block> returns
+an instance of L<Bitcoin::Crypto::Transaction::ControlBlock>. After
+serialization, control block will contain the data required for the transaction
+to reconstruct the script tree and validate the used script was a part of it.
+
+To be able to spend via script path you need to have the exact copy of script
+tree saved somewhere. L<Bitcoin::Crypto::Script::Tree> class has no
+serialization method, but L<Bitcoin::Crypto::PSBT> with C<PSBT_OUT_TAP_TREE>
+field can be used to store the entire unhashed script tree in base64 format.
+
+=head2 Various bits and pieces
+
+=over
+
+=item
+
+Public keys in scripts should be taproot output keys. These are xonly keys
+after taproot tweaking, so they use a different way of serialization. Use
+sequence C<< $pubkey->get_taproot_output_key->get_xonly_key >> to get the
+tweaked output key. Alternatively, to avoid tweaking and use the key as-is,
+call C<< $privkey->set_taproot_output(1) >> before signing and use C<<
+$pubkey->get_xonly_key >> instead.
+
+=item
+
+To create a public key from 32-byte xonly public key, use
+L<Bitcoin::Crypto::Util/lift_x> by calling C<< btc_pub->from_serialized(lift_x
+$bytes) >>. Call C<set_taproot_output> on it if it is supposed to be a taproot
+output key (e.g. used in schnorr signatures).
+
+=item
+
+Encountering one of the new C<OP_SUCCESS> opcodes while compiling a tapscript
+will mark it as unconditionally valid. L<Bitcoin::Crypto::Script/operations> of
+such script will appear empty, but calling
+L<Bitcoin::Crypto::Script::Runner/success> on the runner which compiled it will
+return C<true>.
+
+=back
+
+=cut
+

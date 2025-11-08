@@ -1,6 +1,117 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
+	[Public interface changes]
+	- Bitcoin::Crypto:
+		- added btc_tapscript function
+		- added btc_script_tree function
+	- Bitcoin::Crypto::Util:
+		- added merkle_root function
+		- added tagged_hash function
+		- added lift_x function
+		- added has_even_y function
+		- added get_taproot_ext function
+	- Bitcoin::Crypto::Script:
+		- added opcode_class method
+		- added dump method
+	- Bitcoin::Crypto::Script::Runner:
+		- added script attribute
+		- added codeseparator attribute
+		- added to_minimal_bool method
+		- added compile method
+		- added is_tapscript method
+		- removed deprecated methods:
+			- get_script, get_script_hash
+	- Bitcoin::Crypto::Key::ExtPrivate:
+		- removed deprecated methods:
+			- generate_mnemonic, mnemonic_from_entropy
+			- from_hex_seed
+			- from_serialized_base58, to_serialized_base58
+	- Bitcoin::Crypto::Key::ExtPublic:
+		- removed deprecated methods:
+			- from_serialized_base58, to_serialized_base58
+	- Bitcoin::Crypto::Key::Private:
+		- added taproot_output attribute
+		- added get_taproot_output_key method
+		- added script_tree argument to sign_transaction method
+		- removed deprecated methods:
+			- new($bytes) variant
+			- from_bytes, to_bytes
+			- from_hex, to_hex
+	- Bitcoin::Crypto::Key::Public:
+		- added taproot_output attribute
+		- added get_xonly_key method
+		- added get_taproot_address method
+		- added get_taproot_output_key method
+		- added $version and $args arguments to witness_program method
+		- removed deprecated methods:
+			- new($bytes) variant
+			- from_bytes, to_bytes
+			- from_hex, to_hex
+			- key_hash
+	- Bitcoin::Crypto::Transaction:
+		- added get_digest_object method
+		- added clear_digest_object method
+		- added taproot_ext_flag argument to get_digest method
+		- added taproot_ext argument to get_digest method
+		- added taproot_annex argument to get_digest method
+	- Bitcoin::Crypto::Transaction::Input:
+		- added is_taproot method
+	- Bitcoin::Crypto::PSBT:
+		- added $key argument to get_field method
+		- added $key argument to get_all_fields method
+		- added list_fields method
+		- added handling of taproot-specific fields (BIP371)
+	- Bitcoin::Crypto::Types:
+		- added ByteStrLen type
+		- added BitcoinScriptTree type
+	- Bitcoin::Crypto::Exception:
+		- added ScriptTree exception subclass
+		- added ScriptCompilation exception subclass
+		- added ScriptSuccess exception subclass
+		- removed Verify exception subclass
+	- added Bitcoin::Crypto::Script::Tree class
+	- added Bitcoin::Crypto::Tapscript class
+	- added Bitcoin::Crypto::Tapscript::Opcode class
+	- added Bitcoin::Crypto::Transaction::ControlBlock class
+	- added Bitcoin::Crypto::Key::NUMS class
+	- added Bitcoin::Crypto::Transaction::Digest::Result class
+
+	[Improvements and behavior changes]
+	- it is now possible to sign and verify P2TR transactions
+	- public key's get_address method now returns taproot address by default
+	- BIP44 derivation methods now accept purpose 86, known as bip44_taproot_purpose in Bitcoin::Crypto::Constants
+	- standard data push in scripts is now compiled to OP_PUSH pseudo-opcode (was OP_PUSHDATA1)
+	- documentation overhaul
+
+	[Fixes]
+	- verify_message from public and private keys can no longer throw an exception, always returns false on failure
+	- OP_VERIF and OP_VERNOTIF now correctly mark script as invalid on compilation
+	- getting unknown opcode by code now returns an UNKNOWN pseudo-opcode that fails on execution (like OP_RESERVED)
+	- scripts now correctly place empty vector on execution stack for false values
+	- scripts now correctly check integer value for 4 byte limit
+	- scripts now correctly handle SIGHASH_SINGLE with input index higher than last output index
+	- scripts now correctly fail when stack element count exceeds 1000
+	- scripts now correctly fail when stack element size exceeds 520 bytes
+	- serializing PSBTs now creates missing maps if they don't exist instead of raising an exception
+	- creating PSBT field with undefined key or value is now permitted and ignores the value
+	- subscripts of witness scripts now no longer remove codeseparators after the last one executed (as specified in BIP143)
+	- module no longer rejects unnormalized signatures, since they are forced by the standard, not protocol
+	- module no longer rejects uncompressed public keys in segwit, since they are forced by a default policy only
+	- module now rejects generating P2WPKH addresses from uncompressed public keys (to conform to above policy)
+	- minor bugfixes
+
+	[Breaking changes and deprecations]
+	- using set_compressed and set_network (from various classes) in method chaining is no longer supported:
+		- these methods will continue to return $self, but this behavior is no longer documented
+		- this is done to standardize the way setters work across the module (not returning $self)
+	- using set_compressed from key classes without argument is deprecated:
+		- this behavior is surprising, use set_compressed(1) instead
+	- changed interface of PSBT fields PSBT_GLOBAL_XPUB, PSBT_IN_BIP32_DERIVATION, PSBT_OUT_BIP32_DERIVATION:
+		- these fields now return instance of Bitcoin::Crypto::DerivationPath instead of list of numbers
+	- digesting a transaction now returns an instance of Bitcoin::Crypto::Transaction::Digest::Result:
+		- this class stringifies automatically to preimage (which was returned previously)
+		- using it directly will work the same, but checking its identity will behave differently
 
 3.002 Fri Oct 24, 2025
 	[Added interface]

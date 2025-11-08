@@ -1,8 +1,9 @@
-package Bitcoin::Crypto::Role::ExtendedKey;
+package Bitcoin::Crypto::Key::ExtBase;
 
 use v5.10;
 use strict;
 use warnings;
+use Moo;
 use Scalar::Util qw(blessed);
 use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
@@ -17,7 +18,8 @@ use Bitcoin::Crypto::Util qw(hash160 to_format);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
-use Moo::Role;
+
+use namespace::clean;
 
 has param 'depth' => (
 	isa => IntMaxBits [8],
@@ -25,7 +27,7 @@ has param 'depth' => (
 );
 
 has param 'parent_fingerprint' => (
-	isa => StrLength [4, 4],
+	coerce => ByteStrLen [4],
 	default => (pack 'x4'),
 );
 
@@ -35,12 +37,20 @@ has param 'child_number' => (
 );
 
 has param 'chain_code' => (
-	isa => StrLength [32, 32],
+	coerce => ByteStrLen [32],
 );
 
 with qw(Bitcoin::Crypto::Role::Key);
 
-requires '_derive_key_partial';
+sub _is_private
+{
+	die __PACKAGE__ . '::_is_private is unimplemented';
+}
+
+sub _derive_key_partial
+{
+	die __PACKAGE__ . '::_derive_key_partial is unimplemented';
+}
 
 sub _get_network_extkey_version
 {
@@ -74,21 +84,21 @@ sub to_serialized
 	) unless defined $version;
 
 	# version number (4B)
-	my $serialized = ensure_length pack('N', $version), 4;
+	my $serialized = pack('N', $version);
 
 	# depth (1B)
-	$serialized .= ensure_length pack('C', $self->depth), 1;
+	$serialized .= pack('C', $self->depth);
 
 	# parent's fingerprint (4B) - ensured
 	$serialized .= $self->parent_fingerprint;
 
 	# child number (4B)
-	$serialized .= ensure_length pack('N', $self->child_number), 4;
+	$serialized .= pack('N', $self->child_number);
 
-	# chain code (32B) - ensured
+	# chain code (32B)
 	$serialized .= $self->chain_code;
 
-	# key entropy (1 + 32B or 33B)
+	# key entropy (1 + 32B)
 	$serialized .= ensure_length $self->raw_key, Bitcoin::Crypto::Constants::key_max_length + 1;
 
 	return $serialized;
@@ -263,27 +273,7 @@ sub derive_key
 	return $key;
 }
 
-### DEPRECATED
-
-sub to_serialized_base58
-{
-	my ($self) = @_;
-
-	my $class = ref $self;
-	carp "$class->to_serialized_base58 is now deprecated. Use to_format [base58 => $class->to_serialized] instead";
-
-	return to_format [base58 => $self->to_serialized];
-}
-
-sub from_serialized_base58
-{
-	my ($class, $base58, $network) = @_;
-
-	carp
-		"$class->from_serialized_base58(\$base58) is now deprecated. Use $class->from_serialized([base58 => \$base58]) instead";
-
-	return $class->from_serialized([base58 => $base58], $network);
-}
-
 1;
+
+# Internal use only
 

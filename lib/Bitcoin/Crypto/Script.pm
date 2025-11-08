@@ -6,7 +6,6 @@ use warnings;
 use Moo;
 use Crypt::Digest::SHA256 qw(sha256);
 use Mooish::AttributeBuilder -standard;
-use Try::Tiny;
 use Scalar::Util qw(blessed);
 use List::Util qw(any);
 use Types::Common -sigs, -types;
@@ -16,7 +15,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit get_hrp);
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Util qw(hash160 hash256 get_address_type);
+use Bitcoin::Crypto::Util qw(hash160 hash256 get_address_type to_format);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Opcode;
@@ -181,6 +180,11 @@ sub _build
 	return;
 }
 
+sub opcode_class
+{
+	return 'Bitcoin::Crypto::Script::Opcode';
+}
+
 sub BUILD
 {
 	my ($self, $args) = @_;
@@ -192,164 +196,6 @@ sub BUILD
 
 		$self->_build($args->{type}, $args->{address});
 	}
-}
-
-signature_for operations => (
-	method => Object,
-	positional => [],
-);
-
-sub operations
-{
-	my ($self) = @_;
-
-	my $serialized = $self->_serialized;
-	my @ops;
-
-	my $data_push = sub {
-		my ($size) = @_;
-
-		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-			'not enough bytes of data in the script'
-		) if length $serialized < $size;
-
-		return substr $serialized, 0, $size, '';
-	};
-
-	my %context = (
-		op_if => undef,
-		op_else => undef,
-		previous_context => undef,
-	);
-
-	my %special_ops = (
-		OP_PUSHDATA1 => sub {
-			my ($op) = @_;
-			my $raw_size = substr $serialized, 0, 1, '';
-			my $size = unpack 'C', $raw_size;
-
-			push @$op, $data_push->($size);
-			$op->[1] .= $raw_size . $op->[2];
-		},
-		OP_PUSHDATA2 => sub {
-			my ($op) = @_;
-			my $raw_size = substr $serialized, 0, 2, '';
-			my $size = unpack 'v', $raw_size;
-
-			push @$op, $data_push->($size);
-			$op->[1] .= $raw_size . $op->[2];
-		},
-		OP_PUSHDATA4 => sub {
-			my ($op) = @_;
-			my $raw_size = substr $serialized, 0, 4, '';
-			my $size = unpack 'V', $raw_size;
-
-			push @$op, $data_push->($size);
-			$op->[1] .= $raw_size . $op->[2];
-		},
-		OP_IF => sub {
-			my ($op) = @_;
-
-			if ($context{op_if}) {
-				%context = (
-					previous_context => {%context},
-				);
-			}
-			$context{op_if} = $op;
-		},
-		OP_ELSE => sub {
-			my ($op, $pos) = @_;
-
-			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-				'OP_ELSE found but no previous OP_IF or OP_NOTIF'
-			) if !$context{op_if};
-
-			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-				'multiple OP_ELSE for a single OP_IF'
-			) if @{$context{op_if}} > 2;
-
-			$context{op_else} = $op;
-
-			push @{$context{op_if}}, $pos;
-		},
-		OP_ENDIF => sub {
-			my ($op, $pos) = @_;
-
-			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-				'OP_ENDIF found but no previous OP_IF or OP_NOTIF'
-			) if !$context{op_if};
-
-			push @{$context{op_if}}, undef
-				if @{$context{op_if}} == 2;
-			push @{$context{op_if}}, $pos;
-
-			if ($context{op_else}) {
-				push @{$context{op_else}}, $pos;
-			}
-
-			if ($context{previous_context}) {
-				%context = %{$context{previous_context}};
-			}
-			else {
-				%context = ();
-			}
-		},
-	);
-
-	$special_ops{OP_NOTIF} = $special_ops{OP_IF};
-	my @debug_ops;
-	my $position = 0;
-
-	try {
-		while (length $serialized) {
-			my $this_byte = substr $serialized, 0, 1, '';
-
-			try {
-				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code(ord $this_byte);
-				push @debug_ops, $opcode->name;
-				my $to_push = [$opcode, $this_byte];
-
-				if (exists $special_ops{$opcode->name}) {
-					$special_ops{$opcode->name}->($to_push, $position);
-				}
-
-				push @ops, $to_push;
-			}
-			catch {
-				my $err = $_;
-
-				my $opcode_num = ord($this_byte);
-				unless ($opcode_num > 0 && $opcode_num <= 75) {
-					push @debug_ops, unpack 'H*', $this_byte;
-					die $err;
-				}
-
-				# NOTE: compiling standard data push into PUSHDATA1 for now
-				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name('OP_PUSHDATA1');
-				push @debug_ops, $opcode->name;
-
-				my $raw_data = $data_push->($opcode_num);
-				push @ops, [$opcode, $this_byte . $raw_data, $raw_data];
-			};
-
-			$position += 1;
-		}
-
-		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-			'some OP_IFs were not closed'
-		) if $context{op_if};
-	}
-	catch {
-		my $ex = $_;
-		if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::ScriptSyntax')) {
-			$ex->set_script(\@debug_ops);
-			$ex->set_error_position($position);
-		}
-
-		die $ex;
-	};
-
-	return \@ops;
 }
 
 signature_for is_pushes_only => (
@@ -390,7 +236,7 @@ sub add_operation
 {
 	my ($self, $name) = @_;
 
-	my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name($name);
+	my $opcode = $self->opcode_class->get_opcode_by_name($name);
 	$self->add_raw(chr $opcode->code);
 
 	return $self;
@@ -465,19 +311,23 @@ signature_for is_native_segwit => (
 sub is_native_segwit
 {
 	my ($self) = @_;
-	my @segwit_types = qw(P2WPKH P2WSH);
+	my @segwit_types = qw(P2WPKH P2WSH P2TR);
 
 	my $script_type = $self->type // '';
 
 	return any { $script_type eq $_ } @segwit_types;
 }
 
-sub get_script
+signature_for is_taproot => (
+	method => Object,
+	positional => [],
+);
+
+sub is_taproot
 {
 	my ($self) = @_;
 
-	carp "Bitcoin::Crypto::Script->get_script is deprecated. Use Bitcoin::Crypto::Script->to_serialized instead.";
-	return $self->to_serialized;
+	return ($self->type // '') eq 'P2TR';
 }
 
 signature_for get_hash => (
@@ -489,12 +339,6 @@ sub get_hash
 {
 	my ($self) = @_;
 	return hash160($self->_serialized);
-}
-
-sub get_script_hash
-{
-	carp "Bitcoin::Crypto::Script->get_script_hash is deprecated. Use Bitcoin::Crypto::Script->get_hash instead.";
-	goto \&get_hash;
 }
 
 signature_for to_serialized => (
@@ -540,6 +384,20 @@ sub from_standard
 		type => $desc->[0],
 		address => $desc->[1],
 	);
+}
+
+signature_for operations => (
+	method => Object,
+	positional => [],
+);
+
+sub operations
+{
+	my ($self) = @_;
+
+	my $runner = Bitcoin::Crypto::Script::Runner->new();
+	$runner->start($self);
+	return $runner->operations;
 }
 
 signature_for run => (
@@ -641,12 +499,12 @@ sub get_address
 		return encode_segwit($self->network->segwit_hrp, $version . $address);
 	};
 
-	if ($self->is_native_segwit) {
-		my $version = pack 'C', Bitcoin::Crypto::Constants::segwit_witness_version;
+	if ($self->type eq 'P2TR') {
+		my $version = pack 'C', Bitcoin::Crypto::Constants::taproot_witness_version;
 		return $segwit->($version, $address);
 	}
-	elsif ($self->type eq 'P2TR') {
-		my $version = pack 'C', Bitcoin::Crypto::Constants::taproot_witness_version;
+	elsif ($self->is_native_segwit) {
+		my $version = pack 'C', Bitcoin::Crypto::Constants::segwit_witness_version;
 		return $segwit->($version, $address);
 	}
 	elsif ($self->type eq 'P2PKH') {
@@ -682,6 +540,28 @@ sub is_empty
 	my ($self) = @_;
 
 	return length $self->_serialized == 0;
+}
+
+signature_for dump => (
+	method => Object,
+	positional => [],
+);
+
+sub dump
+{
+	my ($self) = @_;
+
+	my $ops = $self->operations;
+	my $num = @$ops;
+	my $type = $self->type // 'Custom';
+
+	my @result;
+	CORE::push @result, "$type script, $num ops:";
+	foreach my $op (@$ops) {
+		CORE::push @result, $op->[0]->name . ': ' . to_format [hex => $op->[1]];
+	}
+
+	return join "\n", @result;
 }
 
 1;
@@ -729,18 +609,27 @@ You can use a script object to:
 
 =back
 
-=head1 ATTRIBUTES
+=head1 INTERFACE
 
-=head2 type
+=head2 Attributes
+
+=head3 type
 
 Contains the type of the script, if the script is standard and the type is
 known. Otherwise, contains C<undef>.
 
-I<predicate>: C<has_type>
+I<predicate>: B<has_type>
 
-=head1 METHODS
+=head3 network
 
-=head2 new
+Instance of L<Bitcoin::Crypto::Network> - current network for this key. Can be
+coerced from network id. Default: current default network.
+
+I<writer:> C<set_network>
+
+=head2 Methods
+
+=head3 new
 
 	$script_object = $class->new()
 
@@ -748,23 +637,14 @@ A constructor. Returns a new empty script instance.
 
 See L</from_serialized> if you want to import a serialized script instead.
 
-=head2 operations
+=head3 opcode_class
 
-	$ops_aref = $object->operations
+	$class_name = $class->opcode_class()
+	$class->opcode_class->get_opcode_by_name($opname)
 
-Returns an array reference of operations contained in a script:
+Returns the name of the class used to get the proper opcodes.
 
-	[
-		[OP_XXX (Object), raw (String), ...],
-		...
-	]
-
-The first element of each subarray is the L<Bitcoin::Crypto::Script::Opcode>
-object. The second element is the raw opcode string, usually single byte. The
-rest of elements are metadata and is dependant on the op type. This metadata is
-used during script execution.
-
-=head2 add_operation, add
+=head3 add_operation, add
 
 	$script_object = $object->add_operation($opcode)
 
@@ -774,7 +654,7 @@ C<add> is a shorter alias for C<add_operation>.
 
 Throws an exception for unknown opcodes.
 
-=head2 add_raw
+=head3 add_raw
 
 	$script_object = $object->add_raw($bytes)
 
@@ -782,7 +662,7 @@ Adds C<$bytes> at the end of the script without processing them at all.
 
 Returns the object instance for chaining.
 
-=head2 push_bytes, push
+=head3 push_bytes, push
 
 	$script_object = $object->push_bytes($bytes)
 
@@ -800,19 +680,19 @@ operation, but this method will not check for that.
 
 Returns the object instance for chaining.
 
-=head2 to_serialized
+=head3 to_serialized
 
 	$bytestring = $object->to_serialized()
 
 Returns a serialized script as byte string.
 
-=head2 from_serialized
+=head3 from_serialized
 
-	$script = Bitcoin::Crypto::Script->from_serialized($bytestring);
+	$script = Bitcoin::Crypto::Script->from_serialized($bytestring)
 
 Creates a new script instance from a bytestring.
 
-=head2 from_standard
+=head3 from_standard
 
 	$object = Bitcoin::Crypto::Script->from_standard([P2PKH => '1Ehr6cNDzPCx3wQRu1sMdXWViEi2MQnFzH'])
 	$object = Bitcoin::Crypto::Script->from_standard([address => '1Ehr6cNDzPCx3wQRu1sMdXWViEi2MQnFzH'])
@@ -820,58 +700,57 @@ Creates a new script instance from a bytestring.
 Creates a new object of standard type with given address. The address must be
 of the currently default network. In case of C<NULLDATA>, C<P2MS> and C<P2PK>
 there is no address, and the second argument must be custom data (C<NULLDATA>),
-public key (C<P2PK>) or an array reference with number N of signatures followed
-by M public keys (N of M C<P2MS>).
+public key (C<P2PK>) or an array reference with number C<N> of signatures followed
+by C<M> public keys (C<N> of C<M> C<P2MS>).
 
 The first argument can also be specified as C<address> to enable auto-detection
 of script type.
 
-=head2 get_hash
+=head3 get_hash
 
 	$bytestring = $object->get_hash()
 
-Returns a serialized script parsed with C<HASH160> (ripemd160 of sha256).
+Returns a serialized script parsed with C<HASH160> (C<RIPEMD160> of C<SHA256>).
 
-=head2 set_network
-
-	$script_object = $object->set_network($val)
-
-Change key's network state to C<$val>. It can be either network name present in
-L<Bitcoin::Crypto::Network> package or an instance of this class.
-
-Returns current object instance.
-
-=head2 get_legacy_address
+=head3 get_legacy_address
 
 	$address = $object->get_legacy_address()
 
-Returns string containing Base58Check encoded script hash (P2SH address)
+Returns string containing Base58Check encoded script hash (C<P2SH> address)
 
-=head2 get_compat_address
+=head3 get_compat_address
 
 	$address = $object->get_compat_address()
 
 Returns string containing Base58Check encoded script hash containing a witness
-program for compatibility purposes (P2SH(P2WSH) address)
+program for compatibility purposes (C<P2SH(P2WSH)> address)
 
-=head2 get_segwit_address
+=head3 get_segwit_address
 
 	$address = $object->get_segwit_address()
 
-Returns string containing Bech32 encoded witness program (P2WSH address)
+Returns string containing Bech32 encoded witness program (C<P2WSH> address)
 
-=head2 get_address
+=head3 get_address
 
 	$address = $object->get_address()
 
-This method does not return P2SH address, but instead the address encoded in
-the script of standard type. For example, if the script is of type C<P2WPKH>,
-then the contained alegacy address will be returned. If the script is not of
-standard type or the type does not contain an address, returns C<undef>.
+This method does not return P2SH-type address, but instead the address encoded
+in the script of standard type. For example, if the script is of type
+C<P2WPKH>, then a bech32 segwit address will be returned. If the script is not
+of standard type or the type does not use addresses, returns C<undef>.
 
-Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>.
+Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>, C<P2TR>.
 
-=head2 run
+=head3 operations
+
+	$ops_aref = $object->operations
+
+Returns an array reference of operations contained in a script. It is the same
+as getting L<Bitcoin::Crypto::Script::Runner/operations> after calling
+C<compile>.
+
+=head3 run
 
 	$runner = $object->run(\@initial_stack)
 
@@ -881,23 +760,29 @@ after running the script.
 This is a convenience method which constructs runner instance in the
 background. This helper is only meant to run simple scripts.
 
-=head2 is_native_segwit
+=head3 is_native_segwit
 
 	$boolean = $object->is_native_segwit
 
-Returns true if the type of the script is either C<P2WPKH> or C<P2WSH>.
+Returns true if the type of the script is either C<P2WPKH>, C<P2WSH> or C<P2TR>.
 
-=head2 is_empty
+=head3 is_empty
 
 	$boolean = $object->is_empty
 
 Returns true if the script is completely empty (contains no opcodes).
 
-=head2 is_pushes_only
+=head3 is_pushes_only
 
 	$boolean = $object->is_pushes_only
 
 Returns true if the script contains only opcodes pushing to the stack.
+
+=head3 dump
+
+	$string = $object->dump
+
+Returns a readable representation of the script
 
 =head1 EXCEPTIONS
 
