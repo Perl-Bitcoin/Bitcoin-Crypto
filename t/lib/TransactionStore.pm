@@ -166,6 +166,14 @@ my %utxos = (
 		locking_script => [P2TR => 'bc1pj7w0lxtrdksmpeylsug4znry9ajq68myxsxr0py5y2trdrad6zjsrfwpyj'],
 		value => 10000,
 	},
+	'09347a39275641e291dff2d8beded236b6b1bb0f4a6ae40a50f67dce02cf7323;0' => {
+		locking_script => [P2TR => 'bc1pveaamy78cq5hvl74zmfw52fxyjun3lh7lgt44j03ygx02zyk8lesgk06f6'],
+		value => 1130279,
+	},
+	'777c998695de4b7ecec54c058c73b2cab71184cf1655840935cd9388923dc288;0' => {
+		locking_script => [P2TR => 'bc1pveaamy78cq5hvl74zmfw52fxyjun3lh7lgt44j03ygx02zyk8lesgk06f6'],
+		value => 30000,
+	},
 );
 
 sub get_utxo
