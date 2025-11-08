@@ -899,8 +899,10 @@ sub _OP_CHECKSIG
 		my $hashtype = unpack 'C', substr $sig, -1, 1, '';
 		my $pubkey = btc_pub->from_serialized($raw_pubkey);
 
-		$runner->_script_error('SegWit validation requires compressed public key')
-			if !$pubkey->compressed && $runner->transaction->is_native_segwit;
+		# this is only a policy:
+		# https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#restrictions-on-public-key-type
+		# $runner->_script_error('SegWit validation requires compressed public key')
+		# 	if !$pubkey->compressed && $runner->transaction->is_native_segwit;
 
 		my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype);
 		my $result = $pubkey->verify_message($preimage, $sig);

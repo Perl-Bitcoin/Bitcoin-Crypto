@@ -96,6 +96,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- creating PSBT field with undefined key or value is now permitted and ignores the value
 	- subscripts of witness scripts now no longer remove codeseparators after the last one executed (as specified in BIP143)
 	- module no longer rejects unnormalized signatures, since they are forced by the standard, not protocol
+	- module no longer rejects uncompressed public keys in segwit, since they are forced by a default policy only
 	- minor bugfixes
 
 	[Breaking changes and deprecations]
