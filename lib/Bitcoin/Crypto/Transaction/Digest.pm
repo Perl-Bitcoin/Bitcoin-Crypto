@@ -9,11 +9,13 @@ use Mooish::AttributeBuilder -standard;
 use Types::Common -types;
 
 use Crypt::Digest::SHA256 qw(sha256);
-use Bitcoin::Crypto::Util qw(hash256 pack_compactsize tagged_hash);
+use Bitcoin::Crypto::Helpers qw(ensure_length);
+use Bitcoin::Crypto::Util qw(hash256 pack_compactsize);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Transaction::Digest::Config;
+use Bitcoin::Crypto::Transaction::Digest::Result;
 
 use namespace::clean;
 
@@ -108,10 +110,8 @@ sub _get_digest_default
 	elsif ($sighash_type == Bitcoin::Crypto::Constants::sighash_single) {
 		if ($self->signing_index >= @{$transaction->outputs}) {
 
-			# TODO: this should verify with digest 0000..0001 (without hashed)
-			Bitcoin::Crypto::Exception::Transaction->raise(
-				'illegal input ' . $self->signing_index . ' in SIGHASH_SINGLE'
-			);
+			# this should verify with constant digest (without hashing)
+			return Bitcoin::Crypto::Transaction::Digest::Result->new(hash => "\x01" . ("\x00" x 31));
 		}
 
 		@{$tx_copy->outputs} = ();
@@ -138,7 +138,7 @@ sub _get_digest_default
 	my $serialized = $tx_copy->to_serialized(witness => 0);
 	$serialized .= pack 'V', $self->sighash;
 
-	return $serialized;
+	return Bitcoin::Crypto::Transaction::Digest::Result->new(preimage => $serialized);
 }
 
 sub _get_digest_segwit
@@ -228,7 +228,7 @@ sub _get_digest_segwit
 	$serialized .= pack 'V', $transaction->locktime;
 	$serialized .= pack 'V', $self->sighash;
 
-	return $serialized;
+	return Bitcoin::Crypto::Transaction::Digest::Result->new(preimage => $serialized);
 }
 
 sub _get_digest_taproot
@@ -361,7 +361,10 @@ sub _get_digest_taproot
 		$serialized .= $ext;
 	}
 
-	return $serialized;
+	return Bitcoin::Crypto::Transaction::Digest::Result->new(
+		taproot => !!1,
+		preimage => $serialized,
+	);
 }
 
 1;

@@ -112,10 +112,9 @@ subtest 'should handle NULLDATA outputs' => sub {
 };
 
 subtest 'should correctly handle extra SIGHASH_SINGLE inputs' => sub {
-	skip_all 'unable to implement yet';
 
 	# from https://bitcointalk.org/index.php?topic=260595.0
-	# (verify previous transaction as well just for completeness)
+	# (verify previous non-SINGLE transaction as well just for completeness)
 
 	btc_utxo->extract(
 		[

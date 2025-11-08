@@ -133,12 +133,6 @@ Contributions sorting out any of those are welcome!
 Some details like minimal push opcodes and OP_PUSHDATA 520 byte push limit are
 not implemented.
 
-=item * legacy SIGHASH_SINGLE with more inputs than outputs
-
-It should result in the transaction digest of static value (value C<1> encoded
-on 32 bits), but this edge case is not handled currently and an exception is
-thrown instead.
-
 =item * P2SH timestamp threshold is not checked
 
 BIP16 provides a timestamp value which sets a block time from which a certain

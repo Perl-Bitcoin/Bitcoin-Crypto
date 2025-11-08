@@ -8,9 +8,7 @@ use Types::Common -sigs, -types;
 use Try::Tiny;
 
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Helpers qw(carp_once ecc);
-use Bitcoin::Crypto::Util qw(hash256 tagged_hash);
-use Crypt::Digest::SHA256 qw(sha256);
+use Bitcoin::Crypto::Helpers qw(ecc);
 use Bitcoin::Crypto::Transaction::Sign;
 use Bitcoin::Crypto::Constants;
 use Moo::Role;
@@ -23,7 +21,6 @@ requires qw(
 
 my %algorithms = (
 	default => {
-		digest => \&hash256,
 		signing_method => sub {
 			my ($key, $digest) = @_;
 
@@ -32,13 +29,13 @@ my %algorithms = (
 		verification_method => sub {
 			my ($key, $signature, $digest) = @_;
 
-			my $normalized = ecc->normalize_signature($signature);
-			return !!0 if $normalized ne $signature;
+			# high-S is a standardness rule, not a protocol rule
+			# my $normalized = ecc->normalize_signature($signature);
+			# return !!0 if $normalized ne $signature;
 			return ecc->verify_digest($key->raw_key('public'), $signature, $digest);
 		},
 	},
 	schnorr => {
-		digest => sub { tagged_hash('TapSighash', shift) },
 		signing_method => sub {
 			my ($key, $digest) = @_;
 
@@ -54,23 +51,21 @@ my %algorithms = (
 
 signature_for sign_message => (
 	method => Object,
-	positional => [ByteStr],
+	positional => [BitcoinDigest],
 );
 
 sub sign_message
 {
-	my ($self, $preimage) = @_;
+	my ($self, $digest_result) = @_;
 	my $algorithm = $self->taproot_output ? 'schnorr' : 'default';
 
 	Bitcoin::Crypto::Exception::Sign->raise(
 		'cannot sign a message with a public key'
 	) unless $self->_is_private;
 
-	my $digest = $algorithms{$algorithm}{digest}->($preimage);
-
 	return Bitcoin::Crypto::Exception::Sign->trap_into(
 		sub {
-			return $algorithms{$algorithm}{signing_method}->($self, $digest);
+			return $algorithms{$algorithm}{signing_method}->($self, $digest_result->hash);
 		}
 	);
 }
@@ -97,19 +92,17 @@ sub sign_transaction
 
 signature_for verify_message => (
 	method => Object,
-	positional => [ByteStr, ByteStr],
+	positional => [BitcoinDigest, ByteStr],
 );
 
 sub verify_message
 {
-	my ($self, $preimage, $signature) = @_;
+	my ($self, $digest_result, $signature) = @_;
 	my $algorithm = $self->taproot_output ? 'schnorr' : 'default';
-
-	my $digest = $algorithms{$algorithm}{digest}->($preimage);
 
 	my $valid = !!0;
 	try {
-		$valid = $algorithms{$algorithm}{verification_method}->($self, $signature, $digest);
+		$valid = $algorithms{$algorithm}{verification_method}->($self, $signature, $digest_result->hash);
 	};
 
 	return $valid;

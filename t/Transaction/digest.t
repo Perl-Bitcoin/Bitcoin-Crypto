@@ -48,7 +48,10 @@ subtest 'should digest transactions - legacy' => sub {
 		);
 
 		is to_format [hex => $tx->get_hash], $expected_txid, 'hash ok';
-		is to_format [hex => $tx->get_digest(signing_index => 0)], $expected, 'digest ok';
+		my $digest = $tx->get_digest(signing_index => 0);
+		isa_ok $digest, 'Bitcoin::Crypto::Transaction::Digest::Result';
+		ok "$digest" eq $digest->preimage, 'digest stringifies to preimage';
+		is to_format [hex => $digest], $expected, 'digest ok';
 	};
 
 	# Other sighashes - all from single transaction

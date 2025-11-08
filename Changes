@@ -75,6 +75,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- added Bitcoin::Crypto::Tapscript::Opcode class
 	- added Bitcoin::Crypto::Transaction::ControlBlock class
 	- added Bitcoin::Crypto::Key::NUMS class
+	- added Bitcoin::Crypto::Transaction::Digest::Result class
 
 	[Improvements and behavior changes]
 	- it is now possible to sign and verify P2TR transactions
@@ -89,9 +90,11 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- getting unknown opcode by code now returns an UNKNOWN pseudo-opcode that fails on execution (like OP_RESERVED)
 	- scripts now correctly place empty vector on execution stack for false values
 	- scripts now correctly check integer value for 4 byte limit
+	- scripts now correctly handle SIGHASH_SINGLE with input index higher than last output index
 	- serializing PSBTs now creates missing maps if they don't exist instead of raising an exception
 	- creating PSBT field with undefined key or value is now permitted and ignores the value
 	- subscripts of witness scripts now no longer remove codeseparators after the last one executed (as specified in BIP143)
+	- module no longer rejects unnormalized signatures, since they are forced by the standard, not protocol
 	- minor bugfixes
 
 	[Breaking changes and deprecations]
@@ -102,6 +105,9 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- this behavior is surprising, use set_compressed(1) instead
 	- changed interface of PSBT fields PSBT_GLOBAL_XPUB, PSBT_IN_BIP32_DERIVATION, PSBT_OUT_BIP32_DERIVATION:
 		- these fields now return instance of Bitcoin::Crypto::DerivationPath instead of list of numbers
+	- digesting a transaction now returns an instance of Bitcoin::Crypto::Transaction::Digest::Result:
+		- this class stringifies automatically to preimage (which was returned previously)
+		- using it directly will work the same, but checking its identity will behave differently
 
 3.002 Fri Oct 24, 2025
 	[Added interface]
