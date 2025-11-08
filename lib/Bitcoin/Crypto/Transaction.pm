@@ -855,9 +855,11 @@ transaction, you should first C<scalar reverse> it.
 
 	$digest = $object->get_digest(%params)
 
-This method produces the digest preimage of the transaction. It is a bytestring
-against which the input signature is created (after hashing it with
-C<hash256>).
+This method produces the digest of the transaction. The result is an object of
+L<Bitcoin::Crypto::Transaction::Digest::Result> class. Transaction digests can
+be signed by L<Bitcoin::Crypto::Key::Private/sign_message>, but for standard
+transactions L<Bitcoin::Crypto::Key::Private/sign_transaction> can be used
+instead to skip manual work.
 
 C<%params> can be any of:
 
