@@ -56,6 +56,16 @@ has option 'runner' => (
 	predicate => 'implemented',
 );
 
+sub _verify_stack
+{
+	my $class = shift;
+	my $runner = shift;
+
+	if (@{$runner->stack} + @{$runner->alt_stack} > 1000) {
+		$runner->_invalid_script('maximum stack size exceeded');
+	}
+}
+
 sub _OP_NUM
 {
 	my ($class, $num) = @_;
@@ -64,29 +74,38 @@ sub _OP_NUM
 		my $runner = shift;
 
 		push @{$runner->stack}, $num == 0 ? '' : $runner->from_int($num);
+		$class->_verify_stack($runner);
 	};
 }
 
 sub _OP_PUSHDATA
 {
+	my ($class) = @_;
+
 	return sub {
 		my ($runner, $bytes) = @_;
 
 		push @{$runner->stack}, $bytes;
+		$class->_verify_stack($runner);
 	};
 }
 
 sub _OP_1NEGATE
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 
 		push @{$runner->stack}, $runner->from_int(-1);
+		$class->_verify_stack($runner);
 	};
 }
 
 sub _OP_RESERVED
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		$runner->_invalid_script;
@@ -96,11 +115,15 @@ sub _OP_RESERVED
 # does nothing
 sub _OP_NOP
 {
+	my ($class) = @_;
+
 	return sub { };
 }
 
 sub _OP_VER
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		$runner->_invalid_script;
@@ -139,6 +162,8 @@ sub _OP_IF
 # should only get called when IF branch ops are depleted
 sub _OP_ELSE
 {
+	my ($class) = @_;
+
 	return sub {
 		my ($runner, $endif_pos) = @_;
 
@@ -150,12 +175,15 @@ sub _OP_ELSE
 # nothing to do here, will step to the next op
 sub _OP_ENDIF
 {
-	my $class = shift;
+	my ($class) = @_;
+
 	return $class->_OP_NOP;
 }
 
 sub _OP_VERIFY
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -169,6 +197,8 @@ sub _OP_VERIFY
 
 sub _OP_RETURN
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		$runner->_invalid_script;
@@ -177,6 +207,8 @@ sub _OP_RETURN
 
 sub _OP_TOALTSTACK
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -188,6 +220,8 @@ sub _OP_TOALTSTACK
 
 sub _OP_FROMALTSTACK
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $alt = $runner->alt_stack;
@@ -199,6 +233,8 @@ sub _OP_FROMALTSTACK
 
 sub _OP_2DROP
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -210,39 +246,50 @@ sub _OP_2DROP
 
 sub _OP_2DUP
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
 
 		$runner->_stack_error unless @$stack >= 2;
 		push @$stack, @$stack[-2, -1];
+		$class->_verify_stack($runner);
 	};
 }
 
 sub _OP_3DUP
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
 
 		$runner->_stack_error unless @$stack >= 3;
 		push @$stack, @$stack[-3, -2, -1];
+		$class->_verify_stack($runner);
 	};
 }
 
 sub _OP_2OVER
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
 
 		$runner->_stack_error unless @$stack >= 4;
 		push @$stack, @$stack[-4, -3];
+		$class->_verify_stack($runner);
 	};
 }
 
 sub _OP_2ROT
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -254,6 +301,8 @@ sub _OP_2ROT
 
 sub _OP_2SWAP
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -265,6 +314,8 @@ sub _OP_2SWAP
 
 sub _OP_IFDUP
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -272,22 +323,28 @@ sub _OP_IFDUP
 		$runner->_stack_error unless @$stack >= 1;
 		if ($runner->to_bool($stack->[-1])) {
 			push @$stack, $stack->[-1];
+			$class->_verify_stack($runner);
 		}
 	};
 }
 
 sub _OP_DEPTH
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
 
 		push @$stack, $runner->from_int(scalar @$stack);
+		$class->_verify_stack($runner);
 	};
 }
 
 sub _OP_DROP
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -299,17 +356,22 @@ sub _OP_DROP
 
 sub _OP_DUP
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
 
 		$runner->_stack_error unless @$stack >= 1;
 		push @$stack, $stack->[-1];
+		$class->_verify_stack($runner);
 	};
 }
 
 sub _OP_NIP
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -321,17 +383,22 @@ sub _OP_NIP
 
 sub _OP_OVER
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
 
 		$runner->_stack_error unless @$stack >= 2;
 		push @$stack, $stack->[-2];
+		$class->_verify_stack($runner);
 	};
 }
 
 sub _OP_PICK
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -342,11 +409,14 @@ sub _OP_PICK
 		$runner->_stack_error if $n < 0 || $n >= @$stack;
 
 		push @$stack, $stack->[-1 * ($n + 1)];
+		$class->_verify_stack($runner);
 	};
 }
 
 sub _OP_ROLL
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -362,6 +432,8 @@ sub _OP_ROLL
 
 sub _OP_ROT
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -373,6 +445,8 @@ sub _OP_ROT
 
 sub _OP_SWAP
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -384,6 +458,8 @@ sub _OP_SWAP
 
 sub _OP_TUCK
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -395,17 +471,22 @@ sub _OP_TUCK
 
 sub _OP_SIZE
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
 
 		$runner->_stack_error unless @$stack >= 1;
 		push @$stack, $runner->from_int(length $stack->[-1]);
+		$class->_verify_stack($runner);
 	};
 }
 
 sub _OP_EQUAL
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -430,6 +511,8 @@ sub _OP_EQUALVERIFY
 
 sub _OP_1ADD
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -441,6 +524,8 @@ sub _OP_1ADD
 
 sub _OP_1SUB
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -452,6 +537,8 @@ sub _OP_1SUB
 
 sub _OP_NEGATE
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -463,6 +550,8 @@ sub _OP_NEGATE
 
 sub _OP_ABS
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -474,6 +563,8 @@ sub _OP_ABS
 
 sub _OP_NOT
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -485,6 +576,8 @@ sub _OP_NOT
 
 sub _OP_0NOTEQUAL
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -496,6 +589,8 @@ sub _OP_0NOTEQUAL
 
 sub _OP_ADD
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -510,6 +605,8 @@ sub _OP_ADD
 
 sub _OP_SUB
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -524,6 +621,8 @@ sub _OP_SUB
 
 sub _OP_BOOLAND
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -540,6 +639,8 @@ sub _OP_BOOLAND
 
 sub _OP_BOOLOR
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -556,6 +657,8 @@ sub _OP_BOOLOR
 
 sub _OP_NUMEQUAL
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -583,6 +686,8 @@ sub _OP_NUMEQUALVERIFY
 
 sub _OP_NUMNOTEQUAL
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -597,6 +702,8 @@ sub _OP_NUMNOTEQUAL
 
 sub _OP_LESSTHAN
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -611,6 +718,8 @@ sub _OP_LESSTHAN
 
 sub _OP_GREATERTHAN
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -625,6 +734,8 @@ sub _OP_GREATERTHAN
 
 sub _OP_LESSTHANOREQUAL
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -639,6 +750,8 @@ sub _OP_LESSTHANOREQUAL
 
 sub _OP_GREATERTHANOREQUAL
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -653,6 +766,8 @@ sub _OP_GREATERTHANOREQUAL
 
 sub _OP_MIN
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -666,6 +781,8 @@ sub _OP_MIN
 
 sub _OP_MAX
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -679,6 +796,8 @@ sub _OP_MAX
 
 sub _OP_WITHIN
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -691,6 +810,8 @@ sub _OP_WITHIN
 
 sub _OP_RIPEMD160
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -702,6 +823,8 @@ sub _OP_RIPEMD160
 
 sub _OP_SHA1
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -713,6 +836,8 @@ sub _OP_SHA1
 
 sub _OP_SHA256
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -724,6 +849,8 @@ sub _OP_SHA256
 
 sub _OP_HASH160
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -735,6 +862,8 @@ sub _OP_HASH160
 
 sub _OP_HASH256
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $stack = $runner->stack;
@@ -746,6 +875,8 @@ sub _OP_HASH256
 
 sub _OP_CODESEPARATOR
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		$runner->_register_codeseparator;
@@ -754,6 +885,8 @@ sub _OP_CODESEPARATOR
 
 sub _OP_CHECKSIG
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 
@@ -791,6 +924,8 @@ sub _OP_CHECKSIGVERIFY
 
 sub _OP_CHECKMULTISIG
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 
@@ -849,6 +984,8 @@ sub _OP_CHECKMULTISIGVERIFY
 
 sub _OP_CHECKLOCKTIMEVERIFY
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $transaction = $runner->transaction;
@@ -880,6 +1017,8 @@ sub _OP_CHECKLOCKTIMEVERIFY
 
 sub _OP_CHECKSEQUENCEVERIFY
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 		my $transaction = $runner->transaction;

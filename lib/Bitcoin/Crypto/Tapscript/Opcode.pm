@@ -21,6 +21,8 @@ extends 'Bitcoin::Crypto::Script::Opcode';
 
 sub _OP_CHECKSIG
 {
+	my ($class) = @_;
+
 	return sub {
 		my ($runner) = @_;
 
@@ -98,6 +100,8 @@ sub _OP_CHECKSIG
 
 sub _OP_CHECKMULTISIG
 {
+	my ($class) = @_;
+
 	return sub {
 		my $runner = shift;
 
