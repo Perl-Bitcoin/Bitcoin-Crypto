@@ -9,6 +9,7 @@ use Types::Common -sigs, -types;
 
 use Try::Tiny;
 use Scalar::Util qw(blessed);
+use List::Util qw(any);
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
@@ -223,7 +224,6 @@ sub start
 	my ($self, $script, $initial_stack) = @_;
 
 	$self->set_script($script);
-	$self->_set_stack($initial_stack);
 	$self->_set_alt_stack([]);
 	$self->_set_pos(0);
 	$self->_clear_codeseparator;
@@ -233,6 +233,17 @@ sub start
 		Bitcoin::Crypto::Exception::ScriptCompilation->trap_into(
 			sub {
 				$self->compile;
+			}
+		);
+
+		Bitcoin::Crypto::Exception::ScriptPush->trap_into(
+			sub {
+				die 'maximum initial stack element size exceeded'
+					if $self->is_tapscript && @$initial_stack > Bitcoin::Crypto::Constants::script_max_stack_elements;
+				die 'maximum initial stack element size exceeded'
+					if any { length $_ > Bitcoin::Crypto::Constants::script_max_element_size } @$initial_stack;
+
+				$self->_set_stack($initial_stack);
 			}
 		);
 	}

@@ -130,8 +130,7 @@ Contributions sorting out any of those are welcome!
 
 =item * Transaction malleability is not fully solved
 
-Some details like minimal push opcodes and OP_PUSHDATA 520 byte push limit are
-not implemented.
+Some details like enforcing minimal push opcodes are not implemented.
 
 =item * P2SH timestamp threshold is not checked
 

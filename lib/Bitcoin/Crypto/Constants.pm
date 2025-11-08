@@ -39,6 +39,8 @@ use constant {
 	sighash_single => 0x03,
 	sighash_anyonecanpay => 0x80,
 
+	script_max_stack_elements => 1000,
+	script_max_element_size => 520,
 	tapscript_leaf_version => 0xc0,
 
 	p2sh_timestamp_threshold => 1333238400,

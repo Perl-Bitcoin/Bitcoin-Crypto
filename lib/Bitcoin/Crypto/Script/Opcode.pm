@@ -61,7 +61,7 @@ sub _verify_stack
 	my $class = shift;
 	my $runner = shift;
 
-	if (@{$runner->stack} + @{$runner->alt_stack} > 1000) {
+	if (@{$runner->stack} + @{$runner->alt_stack} > Bitcoin::Crypto::Constants::script_max_stack_elements) {
 		$runner->_invalid_script('maximum stack size exceeded');
 	}
 }
@@ -84,6 +84,9 @@ sub _OP_PUSHDATA
 
 	return sub {
 		my ($runner, $bytes) = @_;
+
+		$runner->_invalid_script('maximum stack element size exceeded')
+			if length $bytes > Bitcoin::Crypto::Constants::script_max_element_size;
 
 		push @{$runner->stack}, $bytes;
 		$class->_verify_stack($runner);
