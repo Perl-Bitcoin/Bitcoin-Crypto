@@ -1,6 +1,8 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
+
+4.000 Sun Nov 9, 2025
 	[Public interface changes]
 	- Bitcoin::Crypto:
 		- added btc_tapscript function
