@@ -19,12 +19,18 @@ GetOptions(
 my $extpub;
 if ($generate) {
 	my $purpose;
+
 	$purpose = Bitcoin::Crypto::Constants::bip44_purpose
 		if $generate eq 'legacy';
+
 	$purpose = Bitcoin::Crypto::Constants::bip44_compat_purpose
 		if $generate eq 'compat';
+
 	$purpose = Bitcoin::Crypto::Constants::bip44_segwit_purpose
 		if $generate eq 'segwit';
+
+	$purpose = Bitcoin::Crypto::Constants::bip44_taproot_purpose
+		if $generate eq 'taproot';
 
 	die "unknown generate argument: $generate"
 		if !$purpose;
@@ -71,7 +77,7 @@ extended public key before outputting the addresses.
 C<EXTPUB> shouldn't be passed. The program will read two lines from STDIN
 instead, so that mnemonic key isn't saved in bash history.
 
-C<TYPE> should be either C<legacy>, C<compat> or C<segwit>.
+C<TYPE> should be either C<legacy>, C<compat>, C<segwit> or C<taproot>.
 
 =head2 -c COUNT, --count=COUNT
 

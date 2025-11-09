@@ -123,7 +123,7 @@ use warnings;
 		my ($self, $account, $index) = @_;
 
 		return $self->master_key->derive_key_bip44(
-			purpose => 84,
+			purpose => 86,
 			account => $account // $self->account,
 			index => $index // $self->last_key
 		)->get_basic_key;
