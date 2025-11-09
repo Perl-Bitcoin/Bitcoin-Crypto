@@ -244,7 +244,7 @@ key.
 
 	$prv = $object->get_taproot_output_key($tweak_suffix = undef)
 
-Returns a new private key instance that represents an output taproot key.
+Returns a new private key object that represents an output taproot key.
 Optional C<$tweak_suffix> can be passed as bytestring.
 
 =head3 sign_message

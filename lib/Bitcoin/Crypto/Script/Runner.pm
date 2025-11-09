@@ -743,14 +743,14 @@ Returns true if currently executed script is a tapscript.
 
 =head3 to_int, from_int
 
-	my $int = $runner->to_int($byte_vector);
+	my $int = $runner->to_int($byte_vector, $max_bytes = 4);
 	my $byte_vector = $runner->from_int($int);
 
 These methods encode and decode numbers in format which is used on L</stack>.
 
 BigInts are used. C<to_int> will return an instance of L<Math::BigInt>, while
 C<from_int> can accept it (but it should also handle regular numbers just
-fine).
+fine). C<to_int> limits the size of an integer to C<$max_bytes>.
 
 =head3 to_bool, to_minimal_bool, from_bool
 
@@ -760,11 +760,6 @@ C<to_minimal_bool> variant is used to enforce MINIMALIF rule.
 =head3 stack_serialized
 
 Returns the serialized stack. Any null vectors will be transformed to C<0x00>.
-
-=head1 CAVEATS
-
-There is curretly no limit on the size of byte vector which is going to be
-transformed to an integer for ops like OP_ADD. BigInts are used for all integers.
 
 =head1 EXCEPTIONS
 
@@ -776,7 +771,7 @@ L<Bitcoin::Crypto::Exception> namespace:
 
 =item * ScriptRuntime - script has encountered a runtime exception - the transaction is invalid
 
-=item * ScriptCompilation - script compilation has eccountered a problem
+=item * ScriptCompilation - script compilation has encountered a problem
 
 =back
 

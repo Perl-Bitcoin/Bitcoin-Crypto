@@ -65,6 +65,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Types:
 		- added ByteStrLen type
 		- added BitcoinScriptTree type
+		- added BitcoinDigest type
 	- Bitcoin::Crypto::Exception:
 		- added ScriptTree exception subclass
 		- added ScriptCompilation exception subclass
@@ -102,10 +103,11 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- minor bugfixes
 
 	[Breaking changes and deprecations]
+	- module now requires perl version 5.10.1 (was 5.10.0)
 	- using set_compressed and set_network (from various classes) in method chaining is no longer supported:
 		- these methods will continue to return $self, but this behavior is no longer documented
 		- this is done to standardize the way setters work across the module (not returning $self)
-	- using set_compressed from key classes without argument is deprecated:
+	- using set_compressed from key classes without an argument is deprecated:
 		- this behavior is surprising, use set_compressed(1) instead
 	- changed interface of PSBT fields PSBT_GLOBAL_XPUB, PSBT_IN_BIP32_DERIVATION, PSBT_OUT_BIP32_DERIVATION:
 		- these fields now return instance of Bitcoin::Crypto::DerivationPath instead of list of numbers

@@ -201,7 +201,7 @@ I<Available in the constructor>.
 
 =head3 new
 
-	$tx = $class->new(%args)
+	$utxo = $class->new(%args)
 
 This is a standard Moo constructor, which can be used to create the object. It
 takes arguments specified in L</Attributes>.
@@ -223,7 +223,7 @@ Does the opposite of L</register>.
 
 =head3 get
 
-	$utxo = $object->get($txid, $output_index);
+	$utxo = $class->get($txid, $output_index);
 
 Returns the UTXO registered with given txid and output index. Throws an
 exception if it cannot be found or loaded.

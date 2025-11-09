@@ -386,6 +386,9 @@ PSBT consists of a number of maps: one global, one for each transaction input
 and one for each transaction output. Each map holds a number of fields. Each
 field has a value and can optionally have extra key data.
 
+For a list of PSBT fields, see
+L<BIP174|https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki>.
+
 =head1 INTERFACE
 
 =head2 Attributes

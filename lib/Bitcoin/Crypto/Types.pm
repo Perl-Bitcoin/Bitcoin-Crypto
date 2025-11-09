@@ -309,7 +309,7 @@ implicitly.
 =head2 BitcoinDigest
 
 An instance of L<Bitcoin::Crypto::Transaction::Digest::Result>. Can be coerced
-from a bytestring (will be used as a preimage>.
+from a bytestring (will be used as a preimage).
 
 =head2 PSBTMapType
 

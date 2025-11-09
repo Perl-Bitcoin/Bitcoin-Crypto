@@ -1541,7 +1541,7 @@ The name of the opcode (C<OP_XXX>).
 
 =head3 code
 
-The code of the opcode - a bytestring of length 1.
+The code of the opcode - an 8-bit unsigned integer.
 
 =head3 runner
 

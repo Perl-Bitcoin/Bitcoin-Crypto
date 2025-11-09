@@ -91,8 +91,7 @@ public key to the one you had beforehand:
 
 	my $nums = Bitcoin::Crypto::Key::NUMS->new(tweak => $got_tweak);
 	my $pubkey = $nums->get_public_key;
-	die 'bad key'
-		unless $pubkey->to_serialized eq $got_pubkey;
+	die 'bad key' unless $pubkey->to_serialized eq $got_pubkey;
 
 =back
 

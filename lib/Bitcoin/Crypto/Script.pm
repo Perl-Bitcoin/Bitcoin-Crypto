@@ -583,7 +583,7 @@ Bitcoin::Crypto::Script - Bitcoin Script instance
 	my $serialized = $script->to_serialized();
 
 	# getting P2WSH address from script
-	my $sh_address = $script->get_segwit_adress();
+	my $sh_address = $script->get_segwit_address();
 
 	# getting back the address encoded in P2WPKH script
 	my $address = $script->get_address();
@@ -603,11 +603,14 @@ You can use a script object to:
 
 =item * deserialize a script into a sequence of opcodes
 
-=item * create legacy (p2sh), compat (p2sh(p2wsh)) and segwit (p2wsh) adresses
+=item * create legacy (p2sh), compat (p2sh(p2wsh)) and segwit (p2wsh) addresses
 
 =item * execute the script
 
 =back
+
+Note that taproot addresses (p2tr) with script spend paths are created using
+L<Bitcoin::Crypto::Key::Public>.
 
 =head1 INTERFACE
 
@@ -735,10 +738,10 @@ Returns string containing Bech32 encoded witness program (C<P2WSH> address)
 
 	$address = $object->get_address()
 
-This method does not return P2SH-type address, but instead the address encoded
-in the script of standard type. For example, if the script is of type
-C<P2WPKH>, then a bech32 segwit address will be returned. If the script is not
-of standard type or the type does not use addresses, returns C<undef>.
+This method does not generate P2SH-type address, but instead returns the
+address encoded in the script of standard type. For example, if the script is
+of type C<P2WPKH>, then a bech32 segwit address will be returned. If the script
+is not of standard type or the type does not use addresses, returns C<undef>.
 
 Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>, C<P2TR>.
 

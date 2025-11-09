@@ -1061,7 +1061,9 @@ If no such field is defined, a new unknown field type will be created.
 
 Returns a field type with a given C<$name>.
 
-If no such field is defined, an exception will be thrown.
+If no such field is defined, an exception will be thrown. Unknown field type
+cannot be created like in L</get_field_by_code>, because code is a required
+part of a field, while name is only informatory.
 
 =head3 get_fields_required_in_version
 

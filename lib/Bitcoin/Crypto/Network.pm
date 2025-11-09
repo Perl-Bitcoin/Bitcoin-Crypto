@@ -526,13 +526,13 @@ Throws an exception if network doesn't exist.
 
 =head2 find
 
-	@network_objects = $class->find($sub = undef)
+	@network_ids = $class->find($sub = undef)
 
-Without arguments, returns a list of all registered network identifiers.
+Without arguments, returns a list of all registered network ids (strings).
 
 With the C<$sub> argument (coderef), searches for all networks that pass the
 criteria and returns their ids. The C<$sub> will be passed all the instances of
-registered networks, one at a time. If must perform required checks and return
+registered networks, one at a time. It must perform required checks and return
 a boolean value. All the networks that pass this test will be returned.
 Example:
 

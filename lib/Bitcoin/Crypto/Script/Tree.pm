@@ -287,6 +287,10 @@ Each leaf in the tree is represented with this Perl structure:
 Optional C<id> is used to identify the leaf in the tree, which is used in
 methods like L</get_control_block>.
 
+Currently, C<leaf_version> must be equal to
+C<Bitcoin::Crypto::Constants::tapscript_leaf_version>, since other versions are
+reserved for future use.
+
 If the leaf is prehashed or not known, it can be represented as this structure
 instead:
 
@@ -363,7 +367,7 @@ Standard Moo constructor - see L</Attributes>.
 	$tree = $class->from_path($leaf, \@path)
 
 This static method builds a new C<$tree> object from key path C<@path>. Key
-path and represents a script tree by a series of prehashed leaves. C<$leaf> is
+path represents a script tree by a series of prehashed leaves. C<$leaf> is
 a tree leaf deserialized from transaction data.
 
 C<@path> must only contain bytestrings or their coercibles. Example C<@path>

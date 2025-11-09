@@ -7,10 +7,21 @@ Bitcoin::Crypto::Manual::Taproot - Taproot support details
 This page describes all the various bits and pieces that are used in
 Bitcoin::Crypto's taproot support.
 
+Taproot extends bitcoin functionality to add one new type of address (C<P2TR>),
+xonly public keys (32-byte public keys with only X coordinate), schnorr
+signatures, script trees and tapscripts (along with new C<OP_CHECKSIGADD>).
+Taproot outputs can be spent using key path (like C<P2PKH>) or script path
+(like C<P2SH>). There is no visual distiction between key path and script path
+spending before outputs are spent. In addition, taproot outputs can contain
+many scripts organized in a tree, and any single script can be used for
+spending without the need to reveal all scripts in the tree. Overall, taproot
+increases privacy, increases flexibility of scripts and reduces the size of
+transactions, which results in lower fees.
+
 =head2 Keys and derivation
 
 Taproot is implemented using the same key classes as before. You can use
-purpose C<86> or C<Bitcoin::Crypto::Constants::bip44_taproot_purpose> to
+purpose number C<86> or C<Bitcoin::Crypto::Constants::bip44_taproot_purpose> to
 L<BIP44|https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki>-derive
 extended keys in compilance with
 L<BIP86|https://github.com/bitcoin/bips/blob/master/bip-0086.mediawiki>.
@@ -99,9 +110,9 @@ field can be used to store the entire unhashed script tree in base64 format.
 Public keys in scripts should be taproot output keys. These are xonly keys
 after taproot tweaking, so they use a different way of serialization. Use
 sequence C<< $pubkey->get_taproot_output_key->get_xonly_key >> to get the
-tweaked output key. Alternatively, to avoid tweaking and use the key as-is,
-call C<< $privkey->set_taproot_output(1) >> before signing and use C<<
-$pubkey->get_xonly_key >> instead.
+tweaked output key as a bytestring. Alternatively, to avoid tweaking and use
+the key as-is, call C<< $privkey->set_taproot_output(1) >> before signing and
+use C<< $pubkey->get_xonly_key >> instead.
 
 =item
 

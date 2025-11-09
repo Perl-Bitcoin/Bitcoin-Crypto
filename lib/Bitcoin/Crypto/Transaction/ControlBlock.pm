@@ -81,12 +81,20 @@ Bitcoin::Crypto::Transaction::ControlBlock - BIP341 Control blocks
 
 =head1 SYNOPSIS
 
+	# get control block from Bitcoin::Crypto::Script::Tree and $public_key
+	# (tree must have a leaf with id => $leaf_id)
+	my $control_block = $tree->get_control_block($leaf_id, $public_key);
+
+	# get serialized form of the control block (used in taproot script path spending)
+	$control_block->to_serialized;
+
 =head1 DESCRIPTION
 
 This module contains implementation of control blocks described in
 L<BIP341|https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki>. These
 blocks are used by taproot and are necessary to build transactions using custom
-taproot scripts.
+taproot scripts. Taproot outputs spent by scripts must have a serialized
+control block in their witness data (after the serialized script leaf data).
 
 =head1 INTERFACE
 
@@ -108,8 +116,9 @@ This attribute contains an instance of L<Bitcoin::Crypto::Key::Public>.
 
 B<Required in constructor.>
 
-This attribute contains an array reference of bytestrings. These blocks can be
-used in L<Bitcoin::Crypto::Script::Tree/from_path>.
+This attribute contains an array reference of bytestrings. It represents a path
+to build a merkle root for a tree. These blocks can be used in
+L<Bitcoin::Crypto::Script::Tree/from_path>.
 
 =head2 METHODS
 

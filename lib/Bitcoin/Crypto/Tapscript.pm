@@ -37,10 +37,13 @@ Bitcoin::Crypto::Tapscript - Bitcoin script subclass for tapscripts
 =head1 DESCRIPTION
 
 This is a L<Bitcoin::Crypto::Script> subclass used for dealing with tapscripts.
+The main difference between scripts and tapscripts is a slightly different set
+of opcodes.
 
 =head1 METHODS
 
 =head2 opcode_class
 
-This method overrides the parent's version and returns L<Bitcoin::Crypto::Tapscript::Opcode>.
+This method overrides the parent's version and returns
+L<Bitcoin::Crypto::Tapscript::Opcode>.
 

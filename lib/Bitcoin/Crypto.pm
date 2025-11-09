@@ -126,7 +126,7 @@ L<Bitcoin::Crypto::Manual> for an overview of the module.
 =head1 SHORTCUT FUNCTIONS
 
 This package exports the following functions when asked for them. These are
-shourtcut functions and will load needed packages and return their names. You
+shortcut functions and will load needed packages and return their names. You
 can then use names of loaded packages to instantiate them however you want.
 It's also possible to load all of them with the C<:all> tag in import. These
 functions can be used as follows:

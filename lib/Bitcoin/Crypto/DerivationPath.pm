@@ -177,7 +177,7 @@ A helper which returns self.
 
 Returns an array reference. Each item in the array is an array reference with
 two values, where the first one is the path key and the second one is a boolean
-indicating whether that key is hardened. The first value will always be within
-the range C<0 .. 2^31 - 1> (unlike L</path>, which has keys larger than that
-for hardened keys).
+indicating whether that key is hardened. The first value of each element will
+always be within the range C<0 .. 2^31 - 1> (unlike L</path>, which has keys
+larger than that for hardened keys).
 

@@ -253,7 +253,7 @@ Creates a new key from given mnemonic and password.
 Note that technically any password is correct and there's no way to tell if it
 was mistaken.
 
-If you need to validate if C<$mnemonic> is a valid mnemonic you should specify
+If you want to validate if C<$mnemonic> is a valid mnemonic you must specify
 C<$lang>, e.g. C<'en'>. It will also get rid of any extra whitespace before /
 after / in between words.
 

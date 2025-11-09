@@ -302,17 +302,17 @@ Returns class instance.
 
 	$name = $map->name()
 
-Returns a human-readabable name of this map.
+Returns a human-readable name of this map.
 
 =head3 need_index
 
-	$bool = $map->need_index;
+	$bool = $map->need_index()
 
 Whether this map requires an index.
 
 =head3 add
 
-	$map = $map->add($field);
+	$map = $map->add($field)
 
 Same as L<Bitcoin::Crypto::PSBT/add_field>, but only accepts a constructed
 field. There is also no need to specify the index, since the map knows its own
@@ -320,7 +320,7 @@ index.
 
 =head3 find
 
-	@fields = $map->find($field_type, $key = undef);
+	@fields = $map->find($field_type, $key = undef)
 
 Similar to L<Bitcoin::Crypto::PSBT/get_all_fields>. Instead of index, accepts
 raw C<$key> data as second argument.

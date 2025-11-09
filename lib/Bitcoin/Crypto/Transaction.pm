@@ -880,7 +880,7 @@ The sighash which should be used for the digest. By default C<SIGHASH_ALL>.
 
 =item * C<taproot_ext_flag>
 
-Taproot extension flag defined by BIP341 (integer). 0 (no extension) by
+Taproot extension flag defined by BIP341 (integer). C<0> (no extension) by
 default.
 
 =item * C<taproot_ext>
@@ -926,8 +926,9 @@ if the UTXOs were not registered.
 Returns the fee rate - the amount of satoshi per virtual byte (a floating point
 value) or undef if C<fee> is undef.
 
-NOTE: since weight of the transaction changes after signing it, it is not
-possible to accurately measure fee rate prior to signing.
+NOTE: since weight of the transaction changes after signing it (due to added
+signature / witness data), it is not possible to accurately measure fee rate
+prior to signing.
 
 =head3 set_rbf
 

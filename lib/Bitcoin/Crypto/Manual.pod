@@ -20,13 +20,13 @@ This module allows you to perform low-level tasks for Bitcoin such as:
 
 =item * serializing, signing and verifying transactions
 
+=item * serializing bitcoin blocks
+
 =back
 
 This module won't help you with:
 
 =over
-
-=item * handling Bitcoin blocks and the blockchain
 
 =item * using any Bitcoin CLI tools / clients
 
@@ -222,7 +222,7 @@ documented near the bottom of the document. The exceptions section may be
 useful to understand which types of exceptions can be thrown when using
 functions or methods from the package and what they mean. It is not meant to be
 a full list of exceptions a function can throw and unblessed errors may still
-be raised ocassionally.
+be raised occasionally.
 
 =head2 Class shortcuts
 

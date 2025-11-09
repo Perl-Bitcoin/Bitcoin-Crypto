@@ -398,7 +398,7 @@ address)
 Optional C<$script_tree> can be passed as L<Bitcoin::Crypto::Script::Tree>
 object. Passing this argument will generate an address that can be spent using
 script path spend as well as key path spend. If this argument is not passed, an
-unspendable script path will be used accord to BIP341.
+unspendable script path will be used according to BIP341.
 
 If the public key was obtained through BIP44 derivation scheme, this method
 will check whether the purpose was C<86> and raise an exception otherwise. If

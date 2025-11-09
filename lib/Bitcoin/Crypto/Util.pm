@@ -546,7 +546,7 @@ part of other, more specialized packages.
 
 =head2 validate_wif
 
-	$bool = validate_wif($str);
+	$is_wif = validate_wif($str)
 
 Ensures Base58 encoded string looks like encoded private key in WIF format.
 Throws an exception if C<$str> is not valid base58.
@@ -638,10 +638,11 @@ number generator like the one used by L<Bytes::Random::Secure>.
 
 =head2 mnemonic_to_seed
 
-	$seed = mnemonic_to_seed($mnemonic, $password);
+	$seed = mnemonic_to_seed($mnemonic, $password = undef);
 
-Transforms the given BIP39 C<$mnemonic> and C<$password> into a valid BIP32
-C<$seed>, which can be fed into L<Bitcoin::Crypto::Key::ExtPrivate/from_seed>.
+Transforms the given BIP39 C<$mnemonic> and an optional C<$password> into a
+valid BIP32 C<$seed>, which can be fed into
+L<Bitcoin::Crypto::Key::ExtPrivate/from_seed>.
 
 C<$seed> is a C<512> bit bytestring (64 characters). C<$mnemonic> should be a
 BIP39 mnemonic, but will not be checked against a dictionary.

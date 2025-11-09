@@ -210,7 +210,7 @@ By default, the value C<0> is used.
 =head3 change
 
 Needs to be a number C<1> (for addresses to be used as change outputs) or C<0>
-(for addresses that are to be used only internally).
+(for addresses that are to be used for receiving from external sources).
 
 By default, the value C<0> is used.
 

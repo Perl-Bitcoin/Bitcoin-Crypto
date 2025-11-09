@@ -88,9 +88,9 @@ automatically to L</preimage>, or throws an exception if there is no preimage.
 
 I<Available in the constructor>.
 
-This boolean flag controls whether legacy (hash256) or taproot (tagged_hash)
-hashing should be used to obtain L</hash> from L</preimage>. Default:
-C<false>.
+This boolean flag controls whether legacy (when false, uses C<hash256>) or
+taproot (when true, uses C<tagged_hash>) hashing should be used to obtain
+L</hash> from L</preimage>. Default: C<false>.
 
 =head3 preimage
 

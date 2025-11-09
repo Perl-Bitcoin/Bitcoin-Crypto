@@ -444,7 +444,7 @@ I<predicate>: C<has_witness>
 
 =head3 new
 
-	$block = $class->new(%args)
+	$input = $class->new(%args)
 
 This is a standard Moo constructor, which can be used to create the object. It
 takes arguments specified in L</Attributes>.

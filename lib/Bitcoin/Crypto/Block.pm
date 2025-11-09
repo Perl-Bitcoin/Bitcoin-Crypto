@@ -502,7 +502,7 @@ I<predicate:> C<has_prev_block_hash>
 =head3 merkle_root
 
 Merkle root hash as binary string (32 bytes). This field serves as a cache that
-be calculated automatically and cleared on change of transactions. Calling
+is calculated automatically and cleared on change of transactions. Calling
 reader of this field repeatedly without adding new transactions via
 L</add_transaction> will not cause the recalculation of the merkle_root.
 
@@ -653,7 +653,7 @@ block header fields, metrics, and transaction summaries.
 This method returns the median time past described in BIP113 (median timestamp
 of previous 11 blocks).
 
-Since this block implementation is as basic as it gets, it will happily
+Since this block implementation can be used without full chain, it will happily
 calculate median time past from less than 11 blocks, if there aren't enough
 blocks chained via L</previous>.
 

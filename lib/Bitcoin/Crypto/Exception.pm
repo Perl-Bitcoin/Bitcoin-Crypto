@@ -367,7 +367,7 @@ Bitcoin::Crypto::Exception - Exception classes for Bitcoin::Crypto
 
 =head1 DESCRIPTION
 
-An exception wrapper class with automatic stringification and standarized
+An exception wrapper class with automatic stringification and standardized
 raising.
 
 Contains inline packages that identify parts that went wrong (like
