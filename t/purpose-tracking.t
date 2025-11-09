@@ -28,9 +28,20 @@ my %expected_serializations = (
 		'zprvAe3TndrapNEpcCLVUU3qE2RVonXrgtnEjmmZjX3LeMqJueDNBBpX9WpkwYYNi2UrjrJifn48Fcqwx4WUBKi1LmGtwu3igEwdyFmM3BaqDko',
 		'zpub6s2pC9PUejo7pgQxaVaqbANEMpNM6MW66zhAXuSxChNHnSYWij8mhK9EnqU2iKrPaDY4vokUVtVvZmTE6RH21AQBfBZe5gyavkKPSYTVnvq'
 	],
+	86 => [
+		'xprv9xwUbWPXxmpn7yxbS9782EmJToxKysXqHheFLvhN7Ki86gPh6rgnEz2xXUKgnmwFcUZuN15uRfvadMKVobw44qVFWmXi4rYq1RCgCcAijTc',
+		'xpub6Bvq11vRo9P5LU34YAe8PNi31qnpPLFgevZr9K6yffF6yUiqeQ12nnMSNm8jPkxtfEyBW5QotKDpvuNx2xgLg4qeZWxrSJaHka4gXtr29BF'
+	],
 );
 
-for my $purpose (qw(44 49 84)) {
+my %expected_purposes = (
+	44 => undef,
+	49 => 49,
+	84 => 84,
+	86 => undef,
+);
+
+for my $purpose (qw(44 49 84 86)) {
 	my $derived = $master_key->derive_key_bip44(purpose => $purpose, get_account => 1);
 
 	subtest "testing derivation for purpose: $purpose" => sub {
@@ -42,11 +53,14 @@ for my $purpose (qw(44 49 84)) {
 		is to_format [base58 => $derived->to_serialized], $serprv, 'serialized prv ok';
 		is to_format [base58 => $derived->get_public_key->to_serialized], $serpub, 'serialized pub ok';
 
-		is btc_extprv->from_serialized([base58 => $serprv])->purpose, $purpose, 'unserialized prv purpose ok';
+		is btc_extprv->from_serialized([base58 => $serprv])->purpose, $expected_purposes{$purpose},
+			'unserialized prv purpose ok';
 		is btc_extprv->from_serialized([base58 => $serprv])->to_serialized, $derived->to_serialized,
 			'unserialized prv ok';
-		is btc_extpub->from_serialized([base58 => $serpub])->purpose, $purpose, 'unserialized pub purpose ok';
-		is btc_extpub->from_serialized([base58 => $serpub])->to_serialized, $derived->get_public_key->to_serialized,
+		is btc_extpub->from_serialized([base58 => $serpub])->purpose, $expected_purposes{$purpose},
+			'unserialized pub purpose ok';
+		is btc_extpub->from_serialized([base58 => $serpub])->to_serialized,
+			$derived->get_public_key->to_serialized,
 			'unserialized pub ok';
 	};
 
@@ -73,6 +87,13 @@ for my $purpose (qw(44 49 84)) {
 		else {
 			ok dies { $first->get_segwit_address };
 		}
+
+		if ($purpose eq 86) {
+			ok lives { $first->get_taproot_address };
+		}
+		else {
+			ok dies { $first->get_taproot_address };
+		}
 	};
 
 	subtest 'testing purpose clearing' => sub {
@@ -82,6 +103,7 @@ for my $purpose (qw(44 49 84)) {
 		ok lives { $first->get_legacy_address };
 		ok lives { $first->get_compat_address };
 		ok lives { $first->get_segwit_address };
+		ok lives { $first->get_taproot_address };
 	};
 }
 

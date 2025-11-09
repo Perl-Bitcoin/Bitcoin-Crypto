@@ -55,8 +55,8 @@ sub _derive_key_partial
 sub _get_network_extkey_version
 {
 	my ($self, $network, $purpose) = @_;
-	$network //= $self->network;
-	$purpose //= $self->purpose;
+	$network = $self->network if @_ < 2;
+	$purpose = $self->purpose if @_ < 3;
 
 	my $name = 'ext';
 	$name .= $self->_is_private ? 'prv' : 'pub';
@@ -134,24 +134,26 @@ sub from_serialized
 		my @found_networks;
 
 		for my $check_purpose (
-			Bitcoin::Crypto::Constants::bip44_purpose,
+			undef,
 			Bitcoin::Crypto::Constants::bip44_compat_purpose,
 			Bitcoin::Crypto::Constants::bip44_segwit_purpose
 			)
 		{
-			$purpose = $check_purpose;
-
 			@found_networks = Bitcoin::Crypto::Network->find(
 				sub {
 					my ($inst) = @_;
-					my $this_version = $class->_get_network_extkey_version($inst, $purpose);
+					my $this_version = $class->_get_network_extkey_version($inst, $check_purpose);
 					return $this_version && $this_version eq $version;
 				}
 			);
+
 			@found_networks = grep { $_ eq $network } @found_networks
 				if defined $network;
 
-			last if @found_networks > 0;
+			if (@found_networks > 0) {
+				$purpose = $check_purpose;
+				last;
+			}
 		}
 
 		if (@found_networks > 1) {
@@ -179,7 +181,7 @@ sub from_serialized
 			parent_fingerprint => $fingerprint,
 			depth => unpack('C', $depth),
 			network => $found_networks[0],
-			purpose => $purpose,
+			(defined $purpose ? (purpose => $purpose) : ()),
 		);
 
 		return $key;

@@ -115,6 +115,9 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- digesting a transaction now returns an instance of Bitcoin::Crypto::Transaction::Digest::Result:
 		- this class stringifies automatically to preimage (which was returned previously)
 		- using it directly will work the same, but checking its identity will behave differently
+	- importing an extended key in the serialized form with standard prefix now assumes no purpose:
+		- BIP86 specifies no special serialization prefix for taproot purpose, so it is shared with legacy
+		- if this is not desired, purpose can be set manually on deserialized keys
 
 3.002 Fri Oct 24, 2025
 	[Added interface]
