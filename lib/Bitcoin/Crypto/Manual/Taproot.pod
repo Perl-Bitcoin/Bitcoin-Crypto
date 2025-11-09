@@ -20,26 +20,35 @@ transactions, which results in lower fees.
 
 =head2 Keys and derivation
 
-Taproot is implemented using the same key classes as before. You can use
-purpose number C<86> or C<Bitcoin::Crypto::Constants::bip44_taproot_purpose> to
+Taproot distinguishes between two types of keys: internal keys and output keys.
+Internal keys are like the regular ECC keypair, but the public key is
+serialized as 32 byte array xonly key (dropping the first byte of regular
+compressed serialization format). Output keys are internal keys that were
+tweaked with a taproot-specific procedure. Bitcoin::Crypto uses the same
+L<Bitcoin::Crypto::Key::Private> and L<Bitcoin::Crypto::Key::Public> instances
+for both internal and output keys. The difference is that output keys are
+marked with C<taproot_output> flag and uses schnorr algorithm for signing and
+verifying.
+
+You can use purpose number C<86> or
+C<Bitcoin::Crypto::Constants::bip44_taproot_purpose> to
 L<BIP44|https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki>-derive
 extended keys in compilance with
 L<BIP86|https://github.com/bitcoin/bips/blob/master/bip-0086.mediawiki>.
-L<Bitcoin::Crypto::Key::Public/get_address> now returns taproot addresses by
-default.
 
 Bitcoin::Crypto's taproot handling should be opaque, so that you don't need to
 manually handle xonly public keys, taproot output keys and schnorr signatures.
-Standard keypair of L<Bitcoin::Crypto::Key::Private> and
-L<Bitcoin::Crypto::Key::Public> should be all you need most of the time.
+Standard keypair should be all you need most of the time.
 
 =head2 Constructing addresses
 
-Method L<Bitcoin::Crypto::Key::Public/get_taproot_address> works like other
-address-generating methods, but can optionally accept an additional argument to
-support spending via a script. Taproot scripts can simultaneously be spendable
-using key path (like C<P2WPKH>) or script path (like C<P2WSH>). If you omit the
-extra argument, coins sent to address will only be spendable with the key path.
+L<Bitcoin::Crypto::Key::Public/get_address> now returns taproot addresses by
+default. Method L<Bitcoin::Crypto::Key::Public/get_taproot_address> works like
+other address-generating methods, but can optionally accept an additional
+argument to support spending via a script. Taproot scripts can simultaneously
+be spendable using key path (like C<P2WPKH>) or script path (like C<P2WSH>). If
+you omit the extra argument, coins sent to address will only be spendable with
+the key path.
 
 To enable script path, the extra argument to the method mentioned above must be
 an instance of L<Bitcoin::Crypto::Script::Tree> (shortcut
@@ -107,12 +116,13 @@ field can be used to store the entire unhashed script tree in base64 format.
 
 =item
 
-Public keys in scripts should be taproot output keys. These are xonly keys
-after taproot tweaking, so they use a different way of serialization. Use
-sequence C<< $pubkey->get_taproot_output_key->get_xonly_key >> to get the
-tweaked output key as a bytestring. Alternatively, to avoid tweaking and use
-the key as-is, call C<< $privkey->set_taproot_output(1) >> before signing and
-use C<< $pubkey->get_xonly_key >> instead.
+Public keys in scripts should be marked as C<taproot_output> keys. These are
+xonly keys, so they use a different way of serialization. Use sequence C<<
+$pubkey->get_taproot_output_key->get_xonly_key >> to get the tweaked output key
+as a bytestring. Alternatively, to avoid tweaking and use the key as-is, call
+C<< $privkey->set_taproot_output(1) >> before signing and use C<<
+$pubkey->get_xonly_key >> instead. This may be useful if you obtain a
+serialized copy of a key that was already tweaked or used for schnorr signatures.
 
 =item
 
