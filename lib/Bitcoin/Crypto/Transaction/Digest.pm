@@ -111,7 +111,9 @@ sub _get_digest_default
 		if ($self->signing_index >= @{$transaction->outputs}) {
 
 			# this should verify with constant digest (without hashing)
-			return Bitcoin::Crypto::Transaction::Digest::Result->new(hash => "\x01" . ("\x00" x 31));
+			return Bitcoin::Crypto::Transaction::Digest::Result->new(
+				hash => scalar reverse ensure_length("\x01", 32),
+			);
 		}
 
 		@{$tx_copy->outputs} = ();
