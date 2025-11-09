@@ -10,7 +10,7 @@ use Types::Common -sigs, -types;
 use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Transaction;
-use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format merkle_root);
+use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 
@@ -327,7 +327,7 @@ sub _build_merkle_root
 		'cannot calculate merkle root for empty block'
 	) unless @txs > 0;
 
-	return scalar reverse merkle_root(\@txs);
+	return scalar reverse Bitcoin::Crypto::Util::merkle_root(\@txs);
 }
 
 signature_for median_time_past => (
