@@ -10,7 +10,7 @@ Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
 my $tx = btc_transaction->new;
 
-# this is the data of the transaction which created the first output we want to spend
+# this is the data of the transaction which created the output we want to spend
 btc_utxo->extract(
 	[
 		hex =>
@@ -47,7 +47,7 @@ __END__
 
 =head1 P2TR transaction example
 
-A simple transaction spending one P2TR inputs with key spend path and produces
+A simple transaction spending one P2TR input with key spend path and produces
 a single P2TR output.
 
 Fee rate is (inaccurately) approximated. To set exact fee rate sign the
