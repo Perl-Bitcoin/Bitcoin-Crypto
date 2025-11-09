@@ -31,8 +31,8 @@ has option 'prev_block_hash' => (
 has field 'merkle_root' => (
 	isa => ByteStr,
 	lazy => 1,
-	predicate => '_has_merkle_root',
-	clearer => '_clear_merkle_root',
+	predicate => -hidden,
+	clearer => -hidden,
 );
 
 has param 'timestamp' => (
