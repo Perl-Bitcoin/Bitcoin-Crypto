@@ -31,7 +31,6 @@ has option 'prev_block_hash' => (
 has field 'merkle_root' => (
 	isa => ByteStr,
 	lazy => 1,
-	builder => '_build_merkle_root',
 	predicate => '_has_merkle_root',
 	clearer => '_clear_merkle_root',
 );
