@@ -83,6 +83,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- public key's get_address method now returns taproot address by default
 	- BIP44 derivation methods now accept purpose 86, known as bip44_taproot_purpose in Bitcoin::Crypto::Constants
 	- standard data push in scripts is now compiled to OP_PUSH pseudo-opcode (was OP_PUSHDATA1)
+	- PSBT check method now also checks if there are any out of range input/output maps
 	- documentation overhaul
 
 	[Fixes]

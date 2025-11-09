@@ -120,5 +120,31 @@ subtest 'should allow creation of a version 2 PSBT' => sub {
 	}, 'no exception ok';
 };
 
+subtest 'should detect out of bonds maps' => sub {
+	my $psbt = btc_psbt->new;
+
+	$psbt->add_field(
+		type => 'PSBT_GLOBAL_UNSIGNED_TX',
+		value => btc_transaction->from_serialized(
+			[
+				hex =>
+					'020000000130c81af2e93bcd18ae3c9147448beaf8f5163374c218f09e8529f5c8cac4e03d0000000000fdffffff025d5e00000000000016001482a3da046a75618b20f446d2c85543619f516e5b69500600000000001600141ba53179d9d11c144a29bddda44cc422c7b59e7200000000'
+			]
+		),
+	);
+
+	# add any input field with out of bounds index
+	$psbt->add_field(
+		type => 'PSBT_IN_SHA256',
+		value => "\x01" x 32,
+		index => 1,
+	);
+
+	like dies {
+		$psbt->check
+	}, qr/input map index 1 out of range/, 'error ok';
+
+};
+
 done_testing;
 

@@ -282,6 +282,8 @@ sub check
 {
 	my ($self) = @_;
 	my $version = $self->version;
+	my $input_count = $self->input_count;
+	my $output_count = $self->output_count;
 
 	my $required_fields = Bitcoin::Crypto::PSBT::FieldType->get_fields_required_in_version($version);
 	foreach my $field_type (@{$required_fields}) {
@@ -291,10 +293,10 @@ sub check
 			@maps = ($self->_get_map($field_type->map_type));
 		}
 		elsif ($field_type->map_type eq Bitcoin::Crypto::Constants::psbt_input_map) {
-			@maps = map { $self->_get_map($field_type->map_type, index => $_) } 0 .. $self->input_count - 1;
+			@maps = map { $self->_get_map($field_type->map_type, index => $_) } 0 .. $input_count - 1;
 		}
 		elsif ($field_type->map_type eq Bitcoin::Crypto::Constants::psbt_output_map) {
-			@maps = map { $self->_get_map($field_type->map_type, index => $_) } 0 .. $self->output_count - 1;
+			@maps = map { $self->_get_map($field_type->map_type, index => $_) } 0 .. $output_count - 1;
 		}
 
 		foreach my $map (@maps) {
@@ -306,6 +308,18 @@ sub check
 	}
 
 	foreach my $map (@{$self->maps}) {
+
+		if ($map->type eq Bitcoin::Crypto::Constants::psbt_input_map) {
+			Bitcoin::Crypto::Exception::PSBT->raise(
+				"PSBT input map index " . $map->index . " out of range"
+			) unless $map->index < $input_count;
+		}
+		elsif ($map->type eq Bitcoin::Crypto::Constants::psbt_output_map) {
+			Bitcoin::Crypto::Exception::PSBT->raise(
+				"PSBT output map index " . $map->index . " out of range"
+			) unless $map->index < $output_count;
+		}
+
 		foreach my $field (@{$map->fields}) {
 			Bitcoin::Crypto::Exception::PSBT->raise(
 				"PSBT field " . $field->type->name . " is not available in version $version"
