@@ -173,13 +173,19 @@ sub to_serialized
 
 signature_for from_serialized => (
 	method => Str,
-	positional => [ByteStr],
+	head => [ByteStr],
+	named => [
+		pos => Maybe [ScalarRef [PositiveOrZeroInt]],
+		{default => undef},
+	],
+	bless => !!0,
 );
 
 sub from_serialized
 {
-	my ($class, $serialized) = @_;
-	my $pos = 0;
+	my ($class, $serialized, $args) = @_;
+	my $partial = !!$args->{pos};
+	my $pos = $partial ? ${$args->{pos}} : 0;
 
 	# optimization - no need to keep checking bytestrings on every level. It
 	# has already been checked.
@@ -227,7 +233,10 @@ sub from_serialized
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'serialized transaction data is corrupted'
-	) if $pos != length $serialized;
+	) if !$partial && $pos != length $serialized;
+
+	${$args->{pos}} = $pos
+		if $partial;
 
 	my $tx = $class->new(
 		version => $version,
@@ -835,9 +844,23 @@ data. Note that this is a no-op in non-segwit transactions.
 
 =head3 from_serialized
 
-	$object = $class->from_serialized($data)
+	$object = $class->from_serialized($data, %params)
 
 Deserializes the bytestring C<$data> into a transaction object.
+
+C<%params> can be any of:
+
+=over
+
+=item * C<pos>
+
+Position for partial string decoding. Optional. If passed, must be a scalar
+reference to an integer value.
+
+This integer will mark the starting position of C<$bytestring> from which to
+start decoding. It will be set to the next byte after end of transaction stream.
+
+=back
 
 Keep in mind it's best to have a full set of UTXOs registered. If they are not,
 an exception may be raised if a function requires full UTXO data. That

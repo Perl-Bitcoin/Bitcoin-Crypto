@@ -197,64 +197,10 @@ sub from_serialized
 	# Parse transactions
 	my @transactions;
 	for my $tx_index (1 .. $tx_count) {
-		Bitcoin::Crypto::Exception::Block->raise(
-			'unexpected end of block data while parsing transactions'
-		) if $pos >= length($serialized);
-
-		my $tx_start = $pos;
-		my $tx_pos = $pos;
-
-		# Version (4 bytes)
-		$tx_pos += 4;
-
-		# Check for witness flag
-		my $witness_flag = 0;
-		if ($tx_pos + 2 <= length($serialized)) {
-			$witness_flag = (substr($serialized, $tx_pos, 2) eq "\x00\x01");
-			$tx_pos += 2 if $witness_flag;
-		}
-
-		# Parse input count and inputs
-		my $input_count = unpack_compactsize $serialized, \$tx_pos;
-		for (1 .. $input_count) {
-			$tx_pos += 32;    # Previous transaction hash
-			$tx_pos += 4;    # Previous transaction index
-
-			my $script_length = unpack_compactsize $serialized, \$tx_pos;
-			$tx_pos += $script_length;    # Script
-			$tx_pos += 4;    # Sequence
-		}
-
-		# Parse output count and outputs
-		my $output_count = unpack_compactsize $serialized, \$tx_pos;
-		for (1 .. $output_count) {
-			$tx_pos += 8;    # Value
-
-			my $script_length = unpack_compactsize $serialized, \$tx_pos;
-			$tx_pos += $script_length;    # Script
-		}
-
-		# Parse witness data if present
-		if ($witness_flag) {
-			for (1 .. $input_count) {
-				my $input_witness_count = unpack_compactsize $serialized, \$tx_pos;
-				for (1 .. $input_witness_count) {
-					my $witness_item_length = unpack_compactsize $serialized, \$tx_pos;
-					$tx_pos += $witness_item_length;
-				}
-			}
-		}
-
-		# Locktime (4 bytes)
-		$tx_pos += 4;
-
-		# Extract and parse transaction
-		my $tx_length = $tx_pos - $tx_start;
-		my $tx_data = substr($serialized, $tx_start, $tx_length);
-		my $tx = Bitcoin::Crypto::Transaction->from_serialized($tx_data);
-
-		$pos = $tx_pos;
-		push @transactions, $tx;
+		push @transactions, Bitcoin::Crypto::Transaction->from_serialized(
+			$serialized,
+			pos => \$pos
+		);
 	}
 
 	Bitcoin::Crypto::Exception::Block->raise(
