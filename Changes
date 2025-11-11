@@ -1,6 +1,9 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
+	[Improvements]
+		- block and transaction deserialization performance has been greatly improved
+		- checking bytestrings in various function inputs has been optimized
 
 4.000 Sun Nov 9, 2025
 	[Public interface changes]

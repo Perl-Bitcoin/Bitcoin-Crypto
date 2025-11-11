@@ -181,6 +181,10 @@ sub from_serialized
 	my ($class, $serialized) = @_;
 	my $pos = 0;
 
+	# optimization - no need to keep checking bytestrings on every level. It
+	# has already been checked.
+	local $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS = !!0;
+
 	my $version = unpack 'V', substr $serialized, $pos, 4;
 	$pos += 4;
 

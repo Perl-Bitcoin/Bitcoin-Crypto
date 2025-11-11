@@ -164,6 +164,10 @@ sub from_serialized
 	my ($class, $serialized) = @_;
 	my $pos = 0;
 
+	# optimization - no need to keep checking bytestrings on every level. It
+	# has already been checked.
+	local $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS = !!0;
+
 	Bitcoin::Crypto::Exception::Block->raise(
 		'serialized block data too short for header'
 	) if length($serialized) < 80;
