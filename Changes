@@ -1,6 +1,8 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
+
+4.001 Wed Nov 12, 2025
 	[Public interface changes]
 	- Bitcoin::Crypto::Transaction:
 		- added block attribute
