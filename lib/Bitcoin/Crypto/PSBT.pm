@@ -400,9 +400,6 @@ PSBT consists of a number of maps: one global, one for each transaction input
 and one for each transaction output. Each map holds a number of fields. Each
 field has a value and can optionally have extra key data.
 
-For a list of PSBT fields, see
-L<BIP174|https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki>.
-
 =head1 INTERFACE
 
 =head2 Attributes
@@ -527,6 +524,275 @@ automatically after deserializing.
 	$text = $object->dump()
 
 Returns a readable description of all the maps in the PSBT.
+
+=head1 FIELD REFERENCE
+
+Just for reference, here is a list of all PSBT fields which are currently
+supported by this module. This list is auto-generated from
+L<Bitcoin::Crypto::PSBT::FieldType/key_data> and
+C<Bitcoin::Crypto::PSBT::FieldType/value_data> (which contain short strings
+with description of field content).
+
+For a list of PSBT fields, see
+L<BIP174|https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki>.
+
+=head2 Global map
+
+=over
+
+=item * PSBT_GLOBAL_UNSIGNED_TX
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Transaction object
+
+=item * PSBT_GLOBAL_XPUB
+
+B<Key data:> Bitcoin::Crypto::Key::ExtPublic object
+
+B<Value data:> Array reference, where the first item is a fingerprint and the second item is Bitcoin::Crypto::DerivationPath
+
+=item * PSBT_GLOBAL_TX_VERSION
+
+B<Key data:> <none>
+
+B<Value data:> 32-bit positive integer value
+
+=item * PSBT_GLOBAL_FALLBACK_LOCKTIME
+
+B<Key data:> <none>
+
+B<Value data:> 32-bit positive integer value
+
+=item * PSBT_GLOBAL_INPUT_COUNT
+
+B<Key data:> <none>
+
+B<Value data:> Positive integer value
+
+=item * PSBT_GLOBAL_OUTPUT_COUNT
+
+B<Key data:> <none>
+
+B<Value data:> Positive integer value
+
+=item * PSBT_GLOBAL_TX_MODIFIABLE
+
+B<Key data:> <none>
+
+B<Value data:> Hash reference with flags: inputs_modifiable, outputs_modifiable, has_sighash_single
+
+=back
+
+=head2 Input map
+
+=over
+
+=item * PSBT_IN_NON_WITNESS_UTXO
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Transaction object
+
+=item * PSBT_IN_WITNESS_UTXO
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Transaction::Output object
+
+=item * PSBT_IN_PARTIAL_SIG
+
+B<Key data:> Bitcoin::Crypto::Key::Public object
+
+B<Value data:> Bytestring value
+
+=item * PSBT_IN_SIGHASH_TYPE
+
+B<Key data:> <none>
+
+B<Value data:> 32-bit positive integer value
+
+=item * PSBT_IN_REDEEM_SCRIPT
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Script object
+
+=item * PSBT_IN_WITNESS_SCRIPT
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Script object
+
+=item * PSBT_IN_BIP32_DERIVATION
+
+B<Key data:> Bitcoin::Crypto::Key::Public object
+
+B<Value data:> Array reference, where the first item is a fingerprint and the second item is Bitcoin::Crypto::DerivationPath
+
+=item * PSBT_IN_FINAL_SCRIPTSIG
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Script object
+
+=item * PSBT_IN_FINAL_SCRIPTWITNESS
+
+B<Key data:> <none>
+
+B<Value data:> Bytestring value
+
+=item * PSBT_IN_POR_COMMITMENT
+
+B<Key data:> <none>
+
+B<Value data:> Bytestring value
+
+=item * PSBT_IN_RIPEMD160
+
+B<Key data:> Bytestring value
+
+B<Value data:> Bytestring value
+
+=item * PSBT_IN_SHA256
+
+B<Key data:> Bytestring value
+
+B<Value data:> Bytestring value
+
+=item * PSBT_IN_HASH160
+
+B<Key data:> Bytestring value
+
+B<Value data:> Bytestring value
+
+=item * PSBT_IN_HASH256
+
+B<Key data:> Bytestring value
+
+B<Value data:> Bytestring value
+
+=item * PSBT_IN_PREVIOUS_TXID
+
+B<Key data:> <none>
+
+B<Value data:> Bytestring value
+
+=item * PSBT_IN_OUTPUT_INDEX
+
+B<Key data:> <none>
+
+B<Value data:> 32-bit positive integer value
+
+=item * PSBT_IN_SEQUENCE
+
+B<Key data:> <none>
+
+B<Value data:> 32-bit positive integer value
+
+=item * PSBT_IN_REQUIRED_TIME_LOCKTIME
+
+B<Key data:> <none>
+
+B<Value data:> 32-bit positive integer value
+
+=item * PSBT_IN_REQUIRED_HEIGHT_LOCKTIME
+
+B<Key data:> <none>
+
+B<Value data:> 32-bit positive integer value
+
+=item * PSBT_IN_TAP_KEY_SIG
+
+B<Key data:> <none>
+
+B<Value data:> Bytestring value
+
+=item * PSBT_IN_TAP_SCRIPT_SIG
+
+B<Key data:> Array reference, where the first item is Bitcoin::Crypto::Key::Public and second element is a leaf hash bytestring
+
+B<Value data:> Bytestring value
+
+=item * PSBT_IN_TAP_LEAF_SCRIPT
+
+B<Key data:> Instance of Bitcoin::Crypto::Transaction::ControlBlock
+
+B<Value data:> Array reference, where the first item is Bitcoin::Crypto::Script and second element is a leaf version number
+
+=item * PSBT_IN_TAP_BIP32_DERIVATION
+
+B<Key data:> Bitcoin::Crypto::Key::Public object
+
+B<Value data:> Array reference, where first item is an array of leaf hashes, second element is a fingerprint and the third element is Bitcoin::Crypto::DerivationPath
+
+=item * PSBT_IN_TAP_INTERNAL_KEY
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Key::Public object
+
+=item * PSBT_IN_TAP_MERKLE_ROOT
+
+B<Key data:> <none>
+
+B<Value data:> Bytestring value
+
+=back
+
+=head2 Output map
+
+=over
+
+=item * PSBT_OUT_REDEEM_SCRIPT
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Script object
+
+=item * PSBT_OUT_WITNESS_SCRIPT
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Script object
+
+=item * PSBT_OUT_BIP32_DERIVATION
+
+B<Key data:> Bitcoin::Crypto::Key::Public object
+
+B<Value data:> Array reference, where the first item is a fingerprint and the second item is Bitcoin::Crypto::DerivationPath
+
+=item * PSBT_OUT_AMOUNT
+
+B<Key data:> <none>
+
+B<Value data:> Math::BigInt object
+
+=item * PSBT_OUT_SCRIPT
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Script object
+
+=item * PSBT_OUT_TAP_INTERNAL_KEY
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Key::Public object
+
+=item * PSBT_OUT_TAP_TREE
+
+B<Key data:> <none>
+
+B<Value data:> Bitcoin::Crypto::Script::Tree instance
+
+=item * PSBT_OUT_TAP_BIP32_DERIVATION
+
+B<Key data:> Bitcoin::Crypto::Key::Public object
+
+B<Value data:> Array reference, where first item is an array of leaf hashes, second element is a fingerprint and the third element is Bitcoin::Crypto::DerivationPath
+
+=back
 
 =head1 EXCEPTIONS
 
