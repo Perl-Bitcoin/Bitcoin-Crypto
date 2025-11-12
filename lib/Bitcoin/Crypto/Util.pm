@@ -411,6 +411,9 @@ sub merkle_root
 {
 	my ($leaves) = @_;
 
+	# avoid checking bytestrings in (possibly very numerous) hash256 calls
+	local $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS = !!0;
+
 	my @parts = map { hash256($_) } @$leaves;
 
 	Bitcoin::Crypto::Exception->raise(
