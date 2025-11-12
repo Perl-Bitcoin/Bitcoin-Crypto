@@ -271,6 +271,10 @@ sub step
 {
 	my ($self) = @_;
 
+	# optimization: a lot of operations may want to check bytestrings here, but
+	# all bytestrings were already checked and accepted
+	local $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS = !!0;
+
 	my $pos = $self->pos;
 
 	return !!0
