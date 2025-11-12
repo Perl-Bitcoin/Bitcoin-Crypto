@@ -158,11 +158,6 @@ P2SH, even if they were mined before the timestamp. If you need the timestamp
 value, you can get it from
 C<Bitcoin::Crypto::Constants::p2sh_timestamp_threshold>.
 
-=item * Coinbase transactions are not supported
-
-To properly validate coinbase transactions some special cases must be
-introduced, which are not implemented right now.
-
 =item * Non-standard transactions may not work as intended
 
 Bitcoin::Crypto may not handle some funky transactions correctly. Most notably,

@@ -9,8 +9,9 @@ use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
 use Scalar::Util qw(blessed);
 
-use Bitcoin::Crypto::Transaction;
+use Bitcoin::Crypto qw(btc_transaction);
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format);
+use Bitcoin::Crypto::Script::Runner;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 
@@ -31,8 +32,7 @@ has option 'prev_block_hash' => (
 has field 'merkle_root' => (
 	isa => ByteStr,
 	lazy => 1,
-	predicate => -hidden,
-	clearer => -hidden,
+	clearer => 1,
 );
 
 has param 'timestamp' => (
@@ -53,9 +53,12 @@ has param 'nonce' => (
 	writer => 1,
 );
 
-has option 'height' => (
+has param 'height' => (
 	isa => PositiveOrZeroInt,
 	writer => 1,
+	lazy => 1,
+	required => 0,
+	clearer => 1,
 );
 
 has option 'previous' => (
@@ -81,6 +84,36 @@ sub has_transactions
 	return @{$self->transactions} > 0;
 }
 
+# need this written manually because height can be lazy-built conditionally
+# (when block version is 2 or above and we have transactions, we can get it
+# from coinbase)
+sub has_height
+{
+	return defined $_[0]->height;
+}
+
+sub _build_height
+{
+	my ($self) = @_;
+
+	return undef
+		unless $self->version >= 2 && $self->has_transactions;
+
+	my $tx = $self->transactions->[0];
+	Bitcoin::Crypto::Exception::Block->raise(
+		'first transaction is not coinbase'
+	) unless $tx->is_coinbase;
+
+	# TODO: check if height is minimally encoded?
+	my $full_script = $tx->inputs->[0]->signature_script->to_serialized;
+	my $size = unpack 'C', substr $full_script, 0, 1;
+	Bitcoin::Crypto::Exception::Block->raise(
+		'invalid height in coinbase transaction'
+	) unless $size && ($size == 3 || $size == 5) && length $full_script > $size;
+
+	return Bitcoin::Crypto::Script::Runner->to_int(substr $full_script, 1, $size)->numify;
+}
+
 signature_for add_transaction => (
 	method => Object,
 	positional => [ArrayRef, {slurpy => !!1}],
@@ -98,13 +131,14 @@ sub add_transaction
 		) unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction');
 	}
 	else {
-		$data = Bitcoin::Crypto::Transaction->new(@$data);
+		$data = btc_transaction->new(@$data);
 	}
 
+	$data->set_block($self);
 	push @{$self->transactions}, $data;
 
 	# Clear cached merkle root if set
-	$self->_clear_merkle_root if $self->_has_merkle_root;
+	$self->clear_merkle_root;
 
 	return $self;
 }
@@ -194,18 +228,22 @@ sub from_serialized
 	# Parse transaction count
 	my $tx_count = unpack_compactsize $serialized, \$pos;
 
-	# Parse transactions
 	my @transactions;
+
+	# Parse transactions
 	for my $tx_index (1 .. $tx_count) {
-		push @transactions, Bitcoin::Crypto::Transaction->from_serialized(
-			$serialized,
-			pos => \$pos
+		push @transactions, btc_transaction->from_serialized(
+			$serialized, pos => \$pos
 		);
 	}
 
 	Bitcoin::Crypto::Exception::Block->raise(
 		'serialized block data is corrupted'
 	) if $pos != length $serialized;
+
+	Bitcoin::Crypto::Exception::Block->raise(
+		'block requires a coinbase transaction'
+	) unless @transactions > 0 && $transactions[0]->is_coinbase;
 
 	my $block_args = {
 		version => $version,
@@ -217,6 +255,17 @@ sub from_serialized
 
 	my $block = $class->new($block_args);
 	@{$block->transactions} = @transactions;
+
+	foreach my $tx (@transactions) {
+		$tx->set_block($block);
+	}
+
+	Bitcoin::Crypto::Exception::Block->trap_into(
+		sub {
+			$transactions[0]->verify;
+		},
+		'failed to verify coinbase transaction'
+	);
 
 	Bitcoin::Crypto::Exception::Block->raise(
 		'serialized block merkle root is incorrect'
@@ -325,10 +374,10 @@ sub weight
 {
 	my ($self) = @_;
 
-	# Block weight = base size * 3 + total size
 	my $base_size = length $self->to_serialized(witness => 0);
 	my $total_size = length $self->to_serialized(witness => 1);
 
+	# non-witness data is 4 times heavier than witness data
 	return $base_size * 3 + $total_size;
 }
 
@@ -432,7 +481,7 @@ required - other block header fields can be omitted.
 
 =head3 version
 
-Block version number. Default: 1.
+Block version number or version bits. Default: 1.
 
 I<writer:> C<set_version>
 
@@ -453,7 +502,10 @@ I<predicate:> C<has_prev_block_hash>
 Merkle root hash as binary string (32 bytes). This field serves as a cache that
 is calculated automatically and cleared on change of transactions. Calling
 reader of this field repeatedly without adding new transactions via
-L</add_transaction> will not cause the recalculation of the merkle_root.
+L</add_transaction> or clearing it with the clearer will not cause the
+recalculation of the merkle_root.
+
+I<clearer:> C<clear_merkle_root>
 
 =head3 timestamp
 
@@ -481,13 +533,17 @@ I<writer:> C<set_nonce>
 
 =head3 height
 
-Optional block height.
+Optional block height. If block version is 2 or above and the block has
+transactions, it will reach to the first (coinbase) transaction to read it when
+accessed (and fail if there is no height in the coinbase transaction).
 
 I<Available in the constructor>.
 
 I<writer:> C<set_height>
 
 I<predicate:> C<has_height>
+
+I<clearer:> C<clear_height>
 
 =head3 previous
 
@@ -533,6 +589,8 @@ raise an exception.
 Adds a transaction to the block. Can accept either a
 L<Bitcoin::Crypto::Transaction> object or arguments to construct one.
 
+Transaction will have its C<block> attribute set to this block.
+
 Returns the block object for method chaining.
 
 =head3 to_serialized
@@ -557,7 +615,11 @@ Returns the serialized block as a binary string.
 
 Creates a block object from serialized Bitcoin block data.
 
-Takes the serialized block data as binary string.
+Takes the serialized block data as binary string. Does some basic validation of
+the block: checks if a coinbase transaction exists and is valid, and if the
+merkle root encoded in the serialized form matches the one calculated from
+transactions (acting like a checksum check). Does not call
+L<Bitcoin::Crypto::Transaction/verify> on the rest of the transactions.
 
 Returns a new block instance.
 
@@ -605,6 +667,13 @@ of previous 11 blocks).
 Since this block implementation can be used without full chain, it will happily
 calculate median time past from less than 11 blocks, if there aren't enough
 blocks chained via L</previous>.
+
+=head1 CAVEATS
+
+Some details of block verification are curretly unimplemented. For example,
+block subsidy is not validated. Note that to validate it, UTXOs for each of the
+block's transactions must be known (to calculate fee) - so validating it will
+only ever be possible in a full blockchain scenario.
 
 =head1 SEE ALSO
 

@@ -145,13 +145,15 @@ subtest 'should verify transactions (P2WPKH)' => sub {
 		height => 807567,
 	);
 
-	ok lives { $tx->verify(block => $block) }, 'input verification ok';
-	ok lives { $tx->verify(block => $block) }, 'input verification ok (second time)';
+	$tx->set_block($block);
+
+	ok lives { $tx->verify }, 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok (second time)';
 
 	# NOTE: try modifying witness signature, see if it still verifies
 	# (segwit transactions are backward compatible, so it would pass without support for segwit)
 	$tx->inputs->[1]->witness->[0] .= "\x01";
-	my $ex = dies { $tx->verify(block => $block) };
+	my $ex = dies { $tx->verify };
 	ok $ex, 'input verification ok after modifying witness';
 	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
 };
@@ -169,13 +171,15 @@ subtest 'should verify transactions (nested P2WPKH)' => sub {
 		height => 807567,
 	);
 
-	ok lives { $tx->verify(block => $block) }, 'input verification ok';
-	ok lives { $tx->verify(block => $block) }, 'input verification ok (second time)';
+	$tx->set_block($block);
+
+	ok lives { $tx->verify }, 'input verification ok';
+	ok lives { $tx->verify }, 'input verification ok (second time)';
 
 	# NOTE: try modifying witness signature, see if it still verifies
 	# (segwit transactions are backward compatible, so it would pass without support for segwit)
 	$tx->inputs->[0]->witness->[1] .= "\x01";
-	my $ex = dies { $tx->verify(block => $block) };
+	my $ex = dies { $tx->verify };
 	ok $ex, 'input verification ok after modifying witness';
 	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
 };

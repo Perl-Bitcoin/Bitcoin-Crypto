@@ -235,8 +235,17 @@ foreach my $case (@cases) {
 			sequence_no => $args->{input_sequence},
 		);
 
+		$transaction->add_output(
+			locking_script => [NULLDATA => 'dummy'],
+			value => 0,
+		);
+
+		# make a var, since block is weak ref
+		my $block = btc_block->new($args->{block});
+		$transaction->set_block($block);
+
 		my $ex = dies {
-			$transaction->verify(block => btc_block->new($args->{block}));
+			$transaction->verify;
 		};
 
 		is !!$ex, !!$exception, 'exception ok';

@@ -3,11 +3,27 @@ Revision history for Perl extension Bitcoin::Crypto.
 {{$NEXT}}
 	[Public interface changes]
 	- Bitcoin::Crypto::Transaction:
+		- added block attribute
+		- added is_coinbase method
 		- added params argument to from_serialized method
+	- Bitcoin::Crypto::Block:
+		- added clearer to merkle_root attribute
+		- added clearer to height attribute
+		- height attribute can now be lazy built from coinbase transaction in version 2 and above blocks
 
-	[Improvements]
+	[Improvements and behavior changes]
 	- block and transaction deserialization performance has been greatly improved
 	- checking bytestrings in various function inputs has been optimized
+	- adding a transaction to a block now sets the block attribute in the transaction
+	- calling update_utxos on a transaction now sets block in utxo if transaction has a block
+	- coinbase transactions are now verified using a simplified procedure:
+		- general format of the coinbase transaction is verified
+		- some details, most notably block subsidy, are currently not verified
+		- verification requires a block to be set in the transaction
+	- deserializing a block now validates the coinbase transaction
+
+	[Deprecations]
+	- passing block through the parameter to verify method is now deprecated in favor of set_block
 
 4.000 Sun Nov 9, 2025
 	[Public interface changes]

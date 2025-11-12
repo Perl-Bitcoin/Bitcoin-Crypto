@@ -30,6 +30,12 @@ has param 'version' => (
 	default => 1,
 );
 
+has option 'block' => (
+	isa => InstanceOf ['Bitcoin::Crypto::Block'],
+	weak_ref => 1,
+	writer => 1,
+);
+
 has field 'inputs' => (
 	isa => ArrayRef [InstanceOf ['Bitcoin::Crypto::Transaction::Input']],
 	default => sub { [] },
@@ -413,10 +419,24 @@ sub update_utxos
 			txid => $self->get_hash,
 			output_index => $output_index,
 			output => $output,
+			($self->has_block ? (block => $self->block) : ()),
 		)->register;
 	}
 
 	return $self;
+}
+
+signature_for is_coinbase => (
+	method => Object,
+	positional => [],
+);
+
+sub is_coinbase
+{
+	my ($self) = @_;
+	my $inputs = $self->inputs;
+
+	return @{$inputs} > 0 && $inputs->[0]->utxo_location->[0] eq ("\x00" x 32);
 }
 
 sub _verify_script_default
@@ -615,6 +635,42 @@ sub verify_script
 	);
 }
 
+sub _verify_coinbase
+{
+	my ($self, $block) = @_;
+
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'coinbase transaction must have one input'
+	) if @{$self->inputs} != 1;
+
+	my $coinbase_data = $self->inputs->[0]->signature_script->to_serialized;
+
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'coinbase data exceeds 100 bytes'
+	) if length $coinbase_data > 100;
+
+	if (!defined $block) {
+		carp 'trying to verify coinbase transaction but block was not set';
+		return;
+	}
+
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'coinbase must be the first transaction in a block'
+	) unless $block->transactions->[0] == $self;
+
+	if ($block->version >= 2) {
+		$block->clear_height;
+		Bitcoin::Crypto::Exception::Transaction->raise(
+			'coinbase transaction of version 2 block should contain height'
+		) unless $block->has_height;
+	}
+
+	# NOTE: most of other coinbase verification (like block reward checking)
+	# should probably be made in a block
+
+	return;
+}
+
 signature_for verify => (
 	method => Object,
 	named => [
@@ -627,17 +683,34 @@ signature_for verify => (
 sub verify
 {
 	my ($self, $args) = @_;
-	my $block = $args->{block};
+
+	if ($args->{block}) {
+		carp 'passing block parameter to verify method is deprecated: call set_block on transaction instead';
+		$self->set_block($args->{block});
+	}
+
+	my $block = $self->block;
+	my $inputs = $self->inputs;
+	my $outputs = $self->outputs;
+
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'transaction has no inputs'
+	) if !@$inputs;
+
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'transaction has no outputs'
+	) if !@$outputs;
+
+	return $self->_verify_coinbase($block)
+		if $self->is_coinbase;
 
 	my $script_runner = Bitcoin::Crypto::Script::Runner->new(
 		transaction => $self,
 	);
 
-	my @inputs = @{$self->inputs};
-
 	# amount checking
-	my $total_in = sum map { $_->utxo->output->value } @inputs;
-	my $total_out = sum map { $_->value } @{$self->outputs};
+	my $total_in = sum map { $_->utxo->output->value } @$inputs;
+	my $total_out = sum map { $_->value } @$outputs;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'output value exceeds input'
@@ -647,7 +720,7 @@ sub verify
 	if (
 		$self->locktime > 0 && any {
 			$_->sequence_no != Bitcoin::Crypto::Constants::max_sequence_no
-		} @inputs
+		} @$inputs
 		)
 	{
 		my $locktime = $self->locktime;
@@ -658,18 +731,18 @@ sub verify
 			) if $locktime > ($is_timestamp ? $block->median_time_past : $block->height);
 		}
 		else {
-			carp 'trying to verify locktime but no fitting block parameter was passed';
+			carp 'trying to verify locktime but block was not set';
 		}
 	}
 
 	# per-input verification
-	foreach my $input_index (0 .. $#inputs) {
+	foreach my $input_index (0 .. $#$inputs) {
 		$self->verify_script($input_index, $script_runner);
 
 		# check sequence (BIP 68)
-		if ($self->version >= 2 && !($inputs[$input_index]->sequence_no & (1 << 31))) {
-			my $sequence = $inputs[$input_index]->sequence_no;
-			my $utxo = $inputs[$input_index]->utxo;
+		if ($self->version >= 2 && !($inputs->[$input_index]->sequence_no & (1 << 31))) {
+			my $sequence = $inputs->[$input_index]->sequence_no;
+			my $utxo = $inputs->[$input_index]->utxo;
 			my $time_based = $sequence & (1 << 22);
 			my $relative_locktime = $sequence & 0x0000ffff;
 			my $has_block = defined $block && ($time_based || $block->has_height);
@@ -686,8 +759,7 @@ sub verify
 				) if $now < $then + $relative_locktime;
 			}
 			else {
-				carp
-					'trying to verify relative locktime but no fitting block parameter was passed or utxo block was set';
+				carp 'trying to verify relative locktime but block or utxo block was not set';
 			}
 		}
 	}
@@ -793,6 +865,17 @@ It's better to use L<add_output> instead of pushing directly to this array.
 Integer containing locktime of the transaction. By default C<0>.
 
 I<Available in the constructor>.
+
+=head3 block
+
+An optional instance of L<Bitcoin::Crypto::Block>. This reference is weakened.
+Block may be required to do some validations when calling L</verify>.
+
+I<Available in the constructor>.
+
+I<writer:> C<set_block>
+
+I<predicate:> C<has_block>
 
 =head2 Methods
 
@@ -1016,11 +1099,22 @@ C<%params> can be any of:
 
 =item * C<block>
 
-Optional instance of L<Bitcoin::Crypto::Block> - used for locktime and sequence
-verification. If it is not passed and the transaction includes these checks, it
-will still verify without an exception but a warning will be issued.
+Optional instance of L<Bitcoin::Crypto::Block> - used for locktime, sequence
+and coinbase verification. If it is not passed and the transaction includes
+these checks, it will still verify without an exception but a warning will be
+issued.
+
+Including this parameter is deprecated - call C<set_block> before verifying instead.
 
 =back
+
+=head3 is_coinbase
+
+	$bool = $object->is_coinbase()
+
+Returns true if this transaction is coinbase: its first input has an empty
+previous transaction hash. Does not check any further - actual validation of
+coinbase is done in L</verify>.
 
 =head3 dump
 

@@ -262,12 +262,13 @@ foreach my $input_index (0 .. $#{$base_data{given}{utxos_spent}}) {
 
 subtest 'should verify signed tx with key path' => sub {
 	my $tx = btc_transaction->from_serialized([hex => $base_data{auxiliary}{fully_signed_tx}]);
-	ok lives { $tx->verify(block => $block_now) }, 'verification ok';
+	$tx->set_block($block_now);
+	ok lives { $tx->verify }, 'verification ok';
 
 	# invalidate the signature of the taproot input
 	substr $tx->inputs->[0]->witness->[0], 15, 1, "\x00";
 
-	my $err = dies { $tx->verify(block => $block_now) };
+	my $err = dies { $tx->verify };
 	like $err, qr/marked as invalid/, 'wrong signature ok';
 };
 

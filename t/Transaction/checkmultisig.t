@@ -66,9 +66,12 @@ subtest 'should verify multisig transactions (P2SH)' => sub {
 		locking_script => [P2SH => '39zAv4u6QBSmUAttAUP6bLvENRMZuNAJaP'],
 	);
 
+	my $block = btc_block->new(height => 602300);
+	$tx->set_block($block);
+
 	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
 	ok lives {
-		$tx->verify(block => btc_block->new(height => 602300))
+		$tx->verify;
 	}, 'input verification ok';
 };
 

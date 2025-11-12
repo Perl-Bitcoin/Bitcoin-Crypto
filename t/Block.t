@@ -1,7 +1,6 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_block btc_transaction);
 use Bitcoin::Crypto::Util qw(to_format);
-use Bitcoin::Crypto::Block;
 
 subtest 'Block Construction' => sub {
 	my $custom_prev_hash = "\x00" x 32;
@@ -12,11 +11,11 @@ subtest 'Block Construction' => sub {
 	my $custom_height = 100;
 
 	ok lives {
-		my $block = Bitcoin::Crypto::Block->new(height => 0);
+		my $block = btc_block->new(height => 0);
 	}, "Block with height 0 created successfully";
 
 	ok lives {
-		my $block = Bitcoin::Crypto::Block->new(
+		my $block = btc_block->new(
 			version => 2,
 			prev_block_hash => $custom_prev_hash,
 			merkle_root => $custom_merkle_root,
@@ -26,18 +25,26 @@ subtest 'Block Construction' => sub {
 			height => $custom_height,
 		);
 	}, "Block with custom parameters created successfully";
+
+	ok lives {
+		my $block = btc_block->new(
+			version => 2,
+			height => 22
+		);
+		is $block->height, 22, 'height ok';
+	}, 'Block with custom set height does not try to recalculate it from coinbase';
 };
 
 subtest 'Error Handling' => sub {
 	my $err = dies {
-		Bitcoin::Crypto::Block->from_serialized([hex => "deadbeef"]);
+		btc_block->from_serialized([hex => "deadbeef"]);
 	};
 
 	is $err->message, 'serialized block data too short for header',
 		'Correct error message for invalid serialized data';
 
 	$err = dies {
-		my $block = Bitcoin::Crypto::Block->new(height => 10);
+		my $block = btc_block->new(height => 10);
 		$block->merkle_root;    # No transactions
 	};
 
@@ -109,8 +116,7 @@ subtest 'Mainnet Block Data Parsing' => sub {
 	);
 
 	for my $block_data (@mainnet_blocks) {
-		my $block = Bitcoin::Crypto::Block->from_serialized([hex => $block_data->{hex}]);
-		$block->set_height($block_data->{height});
+		my $block = btc_block->from_serialized([hex => $block_data->{hex}]);
 
 		is($block->version, $block_data->{version}, 'Correct block version');
 		is($block->height, $block_data->{height}, 'Block height matches expected value');
