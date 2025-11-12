@@ -343,9 +343,9 @@ sub unpack_compactsize
 	# if the first byte is 0xfd, 0xfe or 0xff, then CompactSize contains 2, 4 or 8
 	# bytes respectively
 	my $value = ord substr $stream, $pos++, 1;
-	my $length = 2**($value - 0xfd + 1);
+	if ($value > 0xfc) {
+		my $length = 1 << ($value - 0xfc);
 
-	if ($length > 1) {
 		Bitcoin::Crypto::Exception->raise(
 			"cannot unpack CompactSize: not enough data in stream"
 		) if length $stream < $length;
