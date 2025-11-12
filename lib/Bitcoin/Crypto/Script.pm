@@ -26,7 +26,7 @@ use Bitcoin::Crypto::Script::Recognition;
 use namespace::clean;
 
 has field '_serialized' => (
-	isa => Str,
+	isa => ByteStr,
 	writer => 1,
 	default => '',
 );
@@ -355,9 +355,7 @@ sub to_serialized
 
 signature_for from_serialized => (
 	method => Str,
-	positional => [Any],
-
-	# no need to validate ByteStr, as it will be passed to add_raw
+	positional => [ByteStr],
 );
 
 sub from_serialized
