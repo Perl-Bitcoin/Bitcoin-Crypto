@@ -1404,8 +1404,7 @@ sub _build_opcodes
 
 sub opcodes
 {
-	my ($self) = @_;
-	my $class = ref $self || $self;
+	my ($class) = @_;
 
 	state $maps = {};
 	return $maps->{$class} //= do {
@@ -1414,7 +1413,7 @@ sub opcodes
 			map {
 				my $name = $_;
 				$name =~ s/^_//;
-				$_, $self->new(name => $name, %{$opcodes{$_}})
+				$_, $class->new(name => $name, %{$opcodes{$_}})
 			} keys %opcodes
 		};
 	};
@@ -1422,12 +1421,11 @@ sub opcodes
 
 sub opcodes_reverse
 {
-	my ($self) = @_;
-	my $class = ref $self || $self;
+	my ($class) = @_;
 
 	state $maps = {};
 	return $maps->{$class} //= do {
-		my %codes = %{$self->opcodes};
+		my %codes = %{$class->opcodes};
 		+{map { $codes{$_}{code}, $codes{$_} } grep { $_ !~ /^_/ } keys %codes};
 	};
 }
