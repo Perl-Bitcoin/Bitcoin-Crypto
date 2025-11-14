@@ -11,6 +11,7 @@ use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Helpers qw(ecc);
 use Bitcoin::Crypto::Transaction::Sign;
 use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Transaction::Flags;
 use Moo::Role;
 
 requires qw(
@@ -27,11 +28,14 @@ my %algorithms = (
 			return ecc->sign_digest($key->raw_key, $digest);
 		},
 		verification_method => sub {
-			my ($key, $signature, $digest) = @_;
+			my ($key, $signature, $digest, $flags) = @_;
 
-			# high-S is a standardness rule, not a protocol rule
-			# my $normalized = ecc->normalize_signature($signature);
-			# return !!0 if $normalized ne $signature;
+			# strict DER used to be a standardness rule, but became consensus later on
+			if ($flags->strict_signatures) {
+				my $normalized = ecc->normalize_signature($signature);
+				return !!0 if $normalized ne $signature;
+			}
+
 			return ecc->verify_digest($key->raw_key('public'), $signature, $digest);
 		},
 	},
@@ -92,17 +96,28 @@ sub sign_transaction
 
 signature_for verify_message => (
 	method => Object,
-	positional => [BitcoinDigest, ByteStr],
+	head => [BitcoinDigest, ByteStr],
+	named => [
+		flags => Maybe [InstanceOf ['Bitcoin::Crypto::Transaction::Flags']],
+		{default => undef},
+	],
+	bless => !!0,
 );
 
 sub verify_message
 {
-	my ($self, $digest_result, $signature) = @_;
+	my ($self, $digest_result, $signature, $args) = @_;
 	my $algorithm = $self->taproot_output ? 'schnorr' : 'default';
+	my $flags = $args->{flags} // Bitcoin::Crypto::Transaction::Flags->new;
 
 	my $valid = !!0;
 	try {
-		$valid = $algorithms{$algorithm}{verification_method}->($self, $signature, $digest_result->hash);
+		$valid = $algorithms{$algorithm}{verification_method}->(
+			$self,
+			$signature,
+			$digest_result->hash,
+			$flags,
+		);
 	};
 
 	return $valid;

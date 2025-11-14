@@ -908,7 +908,7 @@ sub _OP_CHECKSIG
 		# 	if !$pubkey->compressed && $runner->transaction->is_native_segwit;
 
 		my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype);
-		my $result = $pubkey->verify_message($preimage, $sig);
+		my $result = $pubkey->verify_message($preimage, $sig, flags => $runner->flags);
 
 		push @$stack, $runner->from_bool($result);
 	};
@@ -957,7 +957,7 @@ sub _OP_CHECKMULTISIG
 			$found = !!0;
 			while (my $raw_pubkey = shift @pubkeys) {
 				my $pubkey = btc_pub->from_serialized($raw_pubkey);
-				$found = $pubkey->verify_message($digest, $sig);
+				$found = $pubkey->verify_message($digest, $sig, flags => $runner->flags);
 				last if $found;
 			}
 
@@ -967,7 +967,7 @@ sub _OP_CHECKMULTISIG
 		# Remove extra unused value from the stack
 		my $unused = pop @$stack;
 		$runner->_script_error('OP_CHECKMULTISIG dummy argument must be empty')
-			if length $unused;
+			if $runner->flags->nulldummy && length $unused;
 
 		my $result = $found && !@signatures;
 		push @$stack, $runner->from_bool($result);
@@ -994,6 +994,9 @@ sub _OP_CHECKLOCKTIMEVERIFY
 	return sub {
 		my $runner = shift;
 		my $transaction = $runner->transaction;
+
+		# NOP if no consensus rule
+		return unless $runner->flags->checklocktimeverify;
 
 		my $stack = $runner->stack;
 		$runner->_stack_error unless @$stack >= 1;
@@ -1027,6 +1030,9 @@ sub _OP_CHECKSEQUENCEVERIFY
 	return sub {
 		my $runner = shift;
 		my $transaction = $runner->transaction;
+
+		# NOP if no consensus rule
+		return unless $runner->flags->checksequenceverify;
 
 		my $stack = $runner->stack;
 		$runner->_stack_error unless @$stack >= 1;

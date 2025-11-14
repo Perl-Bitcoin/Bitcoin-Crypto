@@ -15,6 +15,7 @@ use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(pad_hex);
 use Bitcoin::Crypto::Script::Transaction;
+use Bitcoin::Crypto::Transaction::Flags;
 
 use namespace::clean;
 
@@ -29,8 +30,18 @@ has option 'transaction' => (
 			InstanceOf ['Bitcoin::Crypto::Transaction'],
 			q{Bitcoin::Crypto::Script::Transaction->new(transaction => $_)}
 		),
+	trigger => 1,
 	writer => 1,
 	clearer => 1,
+);
+
+has param 'flags' => (
+	coerce => (InstanceOf ['Bitcoin::Crypto::Transaction::Flags'])
+		->plus_coercions(
+			Undef, q{Bitcoin::Crypto::Transaction::Flags->new}
+		),
+	writer => 1,
+	default => undef,
 );
 
 has field 'stack' => (
@@ -65,6 +76,13 @@ has field '_valid' => (
 	predicate => 1,
 	clearer => 1,
 );
+
+sub _trigger_transaction
+{
+	my ($self) = @_;
+
+	$self->transaction->set_runner($self);
+}
 
 sub _stack_error
 {
@@ -232,6 +250,9 @@ sub start
 	try {
 		Bitcoin::Crypto::Exception::ScriptCompilation->trap_into(
 			sub {
+				die 'cannot run tapscript without taproot flag'
+					if $self->is_tapscript && !$self->flags->taproot;
+
 				$self->compile;
 			}
 		);
@@ -578,6 +599,12 @@ but some opcodes will refuse to function without it.
 I<predicate:> C<has_transaction>
 
 I<writer:> C<set_transaction>
+
+=head3 flags
+
+An instance of L<Bitcoin::Crypto::Transaction::Flags>. If not passed, full set
+of consensus flags will be assumed (same as calling
+L<Bitcoin::Crypto::Transaction::Flags/new> with no arguments).
 
 =head3 script
 

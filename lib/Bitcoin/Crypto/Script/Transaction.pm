@@ -12,6 +12,18 @@ use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
 
+# must be set via a trigger
+has field 'runner' => (
+	isa => InstanceOf ['Bitcoin::Crypto::Script::Runner'],
+	writer => 1,
+	weak_ref => 1,
+	handles => [
+		qw(
+			flags
+		),
+	],
+);
+
 has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],
 	handles => [
@@ -64,6 +76,7 @@ sub get_digest
 	my $annex = $self->taproot_annex;
 
 	return $self->transaction->get_digest(
+		flags => $self->flags,
 		signing_index => $self->input_index,
 		signing_subscript => $subscript,
 		taproot_ext_flag => $self->taproot_ext_flag,
@@ -104,14 +117,18 @@ sub is_native_segwit
 {
 	my ($self) = @_;
 
-	return $self->this_input->utxo->output->locking_script->is_native_segwit;
+	return
+		$self->flags->segwit
+		&& $self->this_input->utxo->output->locking_script->is_native_segwit;
 }
 
 sub is_taproot
 {
 	my ($self) = @_;
 
-	return $self->this_input->utxo->output->locking_script->is_taproot;
+	return
+		$self->flags->taproot
+		&& $self->this_input->utxo->output->locking_script->is_taproot;
 }
 
 1;

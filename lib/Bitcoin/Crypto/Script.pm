@@ -296,6 +296,18 @@ sub push_bytes
 	return $self;
 }
 
+signature_for push_number => (
+	method => Object,
+	positional => [Int | Str | InstanceOf ['Math::BigInt']],
+);
+
+sub push_number
+{
+	my ($self, $number) = @_;
+
+	return $self->push_bytes(Bitcoin::Crypto::Script::Runner->from_int($number));
+}
+
 sub push
 {
 	goto \&push_bytes;
@@ -675,6 +687,14 @@ Note that no data longer than 520 bytes can be pushed onto the stack in one
 operation, but this method will not check for that.
 
 Returns the object instance for chaining.
+
+=head3 push_number
+
+	$script_object = $object->push_number($int)
+
+Same as C<push_bytes>, but C<$int> will be treated as a script number and turned
+into a byte representation first. Useful if you have a non-trivial number that
+needs to be pushed onto a stack.
 
 =head3 to_serialized
 

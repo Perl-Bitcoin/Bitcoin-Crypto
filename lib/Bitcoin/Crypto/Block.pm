@@ -8,6 +8,7 @@ use Moo;
 use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
 use Scalar::Util qw(blessed);
+use Try::Tiny;
 
 use Bitcoin::Crypto qw(btc_transaction);
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format);
@@ -54,7 +55,7 @@ has param 'nonce' => (
 );
 
 has param 'height' => (
-	isa => PositiveOrZeroInt,
+	isa => Maybe [PositiveOrZeroInt],
 	writer => 1,
 	lazy => 1,
 	required => 0,
@@ -70,11 +71,6 @@ has option 'previous' => (
 has field 'transactions' => (
 	isa => ArrayRef [InstanceOf ['Bitcoin::Crypto::Transaction']],
 	default => sub { [] },
-);
-
-signature_for has_transactions => (
-	method => Object,
-	positional => [],
 );
 
 sub has_transactions
@@ -96,8 +92,7 @@ sub _build_height
 {
 	my ($self) = @_;
 
-	return undef
-		unless $self->version >= 2 && $self->has_transactions;
+	return undef unless $self->has_transactions;
 
 	my $tx = $self->transactions->[0];
 	Bitcoin::Crypto::Exception::Block->raise(
@@ -111,7 +106,14 @@ sub _build_height
 		'invalid height in coinbase transaction'
 	) unless $size && ($size == 3 || $size == 5) && length $full_script > $size;
 
-	return Bitcoin::Crypto::Script::Runner->to_int(substr $full_script, 1, $size)->numify;
+	my $result;
+	try {
+		$result = Bitcoin::Crypto::Script::Runner
+			->to_int(substr $full_script, 1, $size)
+			->numify;
+	};
+
+	return $result;
 }
 
 signature_for add_transaction => (
@@ -260,13 +262,6 @@ sub from_serialized
 		$tx->set_block($block);
 	}
 
-	Bitcoin::Crypto::Exception::Block->trap_into(
-		sub {
-			$transactions[0]->verify;
-		},
-		'failed to verify coinbase transaction'
-	);
-
 	Bitcoin::Crypto::Exception::Block->raise(
 		'serialized block merkle root is incorrect'
 	) if $block->merkle_root ne $merkle_root;
@@ -379,6 +374,38 @@ sub weight
 
 	# non-witness data is 4 times heavier than witness data
 	return $base_size * 3 + $total_size;
+}
+
+signature_for verify => (
+	method => Object,
+	named => [
+	],
+	bless => !!0,
+);
+
+# TODO: placeholder for actual block verification method. Not very usable and
+# not documented yet.
+sub verify
+{
+	my ($self, $args) = @_;
+
+	# TODO: version 2 blocks with no coinbase height are only invalid if version 2
+	# blocks are super-majority. There should be a consensus class to track that
+	if ($self->version >= 2) {
+		$self->clear_height;
+		Bitcoin::Crypto::Exception::Block->raise(
+			'coinbase transaction of version 2 block should contain height'
+		) unless $self->has_height;
+	}
+
+	# TODO: to verify:
+	# - block version
+	# - block hex vs difficulty
+	# - each transaction
+	# - block subsidy
+	# - probably more
+	#
+	# these verifications only make sense in full chain context though
 }
 
 signature_for dump => (
@@ -533,9 +560,8 @@ I<writer:> C<set_nonce>
 
 =head3 height
 
-Optional block height. If block version is 2 or above and the block has
-transactions, it will reach to the first (coinbase) transaction to read it when
-accessed (and fail if there is no height in the coinbase transaction).
+Optional block height. If the block has transactions, it will reach to the
+first (coinbase) transaction and attempt to read it from it.
 
 I<Available in the constructor>.
 
@@ -616,10 +642,9 @@ Returns the serialized block as a binary string.
 Creates a block object from serialized Bitcoin block data.
 
 Takes the serialized block data as binary string. Does some basic validation of
-the block: checks if a coinbase transaction exists and is valid, and if the
-merkle root encoded in the serialized form matches the one calculated from
-transactions (acting like a checksum check). Does not call
-L<Bitcoin::Crypto::Transaction/verify> on the rest of the transactions.
+the block: checks if a coinbase transaction exists, and if the merkle root
+encoded in the serialized form matches the one calculated from transactions
+(acting like a checksum check).
 
 Returns a new block instance.
 
@@ -650,13 +675,6 @@ Returns the size of the serialized block in bytes.
 Returns the block weight in weight units (WU).
 Formula: base_size * 3 + total_size.
 
-=head3 dump
-
-	$string = $object->dump()
-
-Returns a human-readable string representation of the block, including all
-block header fields, metrics, and transaction summaries.
-
 =head3 median_time_past
 
 	$mtp = $object->median_time_past()
@@ -667,6 +685,13 @@ of previous 11 blocks).
 Since this block implementation can be used without full chain, it will happily
 calculate median time past from less than 11 blocks, if there aren't enough
 blocks chained via L</previous>.
+
+=head3 dump
+
+	$string = $object->dump()
+
+Returns a human-readable string representation of the block, including all
+block header fields, metrics, and transaction summaries.
 
 =head1 CAVEATS
 

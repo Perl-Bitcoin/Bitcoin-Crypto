@@ -342,10 +342,22 @@ Returns a 32-byte bytestring containing the xonly key for this public key.
 
 =head3 verify_message
 
-	$signature_valid = $object->verify_message($message, $signature)
+	$signature_valid = $object->verify_message($message, $signature, %params)
 
 Verifies C<$signature> against digest of C<$message> (digesting it with double
 sha256) using public key.
+
+C<%params> can be any of:
+
+=over
+
+=item * C<flags>
+
+An instance of L<Bitcoin::Crypto::Transaction::Flags>. If not passed, full set
+of consensus flags will be assumed (same as calling
+L<Bitcoin::Crypto::Transaction::Flags/new> with no arguments).
+
+=back
 
 Returns boolean.
 

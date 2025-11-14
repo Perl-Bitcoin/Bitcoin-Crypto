@@ -142,8 +142,10 @@ subtest 'should correctly handle extra SIGHASH_SINGLE inputs' => sub {
 		]
 	);
 
+	my $flags = Bitcoin::Crypto::Transaction::Flags->new(strict_signatures => !!0);
+
 	ok lives {
-		$tx->verify;
+		$tx->verify(flags => $flags);
 	}, 'this transaction verified ok';
 };
 

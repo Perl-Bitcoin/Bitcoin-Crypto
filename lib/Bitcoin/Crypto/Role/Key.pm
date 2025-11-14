@@ -39,12 +39,12 @@ sub _validate_key
 	my $is_private = get_key_type $entropy;
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(
-		'trying to create key from unknown key data'
-	) unless $is_private == $self->_is_private;
-
-	Bitcoin::Crypto::Exception::KeyCreate->raise(
 		'invalid entropy data passed to key creation method'
 	) unless defined $is_private;
+
+	Bitcoin::Crypto::Exception::KeyCreate->raise(
+		'trying to create key from unknown key data'
+	) unless $is_private == $self->_is_private;
 
 	if ($is_private) {
 		Bitcoin::Crypto::Exception::KeyCreate->raise(

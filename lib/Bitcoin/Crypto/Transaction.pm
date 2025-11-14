@@ -22,6 +22,7 @@ use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Common;
 use Bitcoin::Crypto::Script::Tree;
 use Bitcoin::Crypto::Transaction::ControlBlock;
+use Bitcoin::Crypto::Transaction::Flags;
 
 use namespace::clean;
 
@@ -463,7 +464,7 @@ sub _verify_script_default
 		'locking script'
 	);
 
-	if ($locking_script->has_type && $locking_script->type eq 'P2SH') {
+	if ($script_runner->flags->p2sh && $locking_script->has_type && $locking_script->type eq 'P2SH') {
 		my $redeem_script = btc_script->from_serialized(pop @$stack);
 
 		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
@@ -475,7 +476,8 @@ sub _verify_script_default
 			'redeem script'
 		);
 
-		if ($redeem_script->is_native_segwit && !$redeem_script->is_taproot) {
+		my $type = $redeem_script->type // '';
+		if ($script_runner->flags->segwit && ($type eq 'P2WPKH' || $type eq 'P2WSH')) {
 			$self->_verify_script_segwit($input, $script_runner, $redeem_script);
 		}
 	}
@@ -499,6 +501,10 @@ sub _verify_script_segwit
 	}
 	elsif ($locking_script->type eq 'P2WSH') {
 		$actual_locking_script = Bitcoin::Crypto::Script::Common->new(WSH => $hash);
+	}
+	else {
+		# not a segwit version 0 output
+		return;
 	}
 
 	# execute previous output
@@ -607,11 +613,6 @@ sub _verify_script_taproot
 	);
 }
 
-signature_for verify_script => (
-	method => Object,
-	positional => [PositiveOrZeroInt, InstanceOf ['Bitcoin::Crypto::Script::Runner']],
-);
-
 sub verify_script
 {
 	my ($self, $input_index, $script_runner) = @_;
@@ -623,9 +624,9 @@ sub verify_script
 	# run bitcoin script
 	my $procedure = '_verify_script_default';
 	$procedure = '_verify_script_segwit'
-		if $utxo->output->locking_script->is_native_segwit;
+		if $script_runner->flags->segwit && $utxo->output->locking_script->is_native_segwit;
 	$procedure = '_verify_script_taproot'
-		if $utxo->output->locking_script->is_taproot;
+		if $script_runner->flags->taproot && $utxo->output->locking_script->is_taproot;
 
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
@@ -637,7 +638,8 @@ sub verify_script
 
 sub _verify_coinbase
 {
-	my ($self, $block) = @_;
+	my ($self, $script_runner) = @_;
+	my $block = $self->block;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'coinbase transaction must have one input'
@@ -658,15 +660,8 @@ sub _verify_coinbase
 		'coinbase must be the first transaction in a block'
 	) unless $block->transactions->[0] == $self;
 
-	if ($block->version >= 2) {
-		$block->clear_height;
-		Bitcoin::Crypto::Exception::Transaction->raise(
-			'coinbase transaction of version 2 block should contain height'
-		) unless $block->has_height;
-	}
-
 	# NOTE: most of other coinbase verification (like block reward checking)
-	# should probably be made in a block
+	# will be done in a block
 
 	return;
 }
@@ -675,6 +670,8 @@ signature_for verify => (
 	method => Object,
 	named => [
 		block => Maybe [InstanceOf ['Bitcoin::Crypto::Block']],
+		{default => undef},
+		flags => Maybe [InstanceOf ['Bitcoin::Crypto::Transaction::Flags']],
 		{default => undef},
 	],
 	bless => !!0,
@@ -701,12 +698,13 @@ sub verify
 		'transaction has no outputs'
 	) if !@$outputs;
 
-	return $self->_verify_coinbase($block)
-		if $self->is_coinbase;
-
 	my $script_runner = Bitcoin::Crypto::Script::Runner->new(
 		transaction => $self,
+		flags => $args->{flags},
 	);
+
+	return $self->_verify_coinbase($script_runner)
+		if $self->is_coinbase;
 
 	# amount checking
 	my $total_in = sum map { $_->utxo->output->value } @$inputs;
@@ -763,6 +761,13 @@ sub verify
 			}
 		}
 	}
+
+	# TODO: check if coinbase transaction within 100 blocks is spent in any input
+
+	# TODO: check outputs
+	# - do they have non-zero values (other than OP_RETURN)?
+	# - do OP_RETURN scripts keep data limit
+	# - do they have valid script
 
 	return;
 }
@@ -1004,6 +1009,12 @@ Taproot annex defined by BIP341 as a bytestring. No annex by default.
 Caution: BIP341 warns to not use annex until the meaning of this field is
 defined by a softfork.
 
+=item * C<flags>
+
+An instance of L<Bitcoin::Crypto::Transaction::Flags>. If not passed, full set
+of consensus flags will be assumed (same as calling
+L<Bitcoin::Crypto::Transaction::Flags/new> with no arguments).
+
 =back
 
 Note that digest is implemented as a persistent object associated with the
@@ -1096,6 +1107,12 @@ See L<Bitcoin::Crypto::Manual::Transactions/Current known problems with transact
 C<%params> can be any of:
 
 =over
+
+=item * C<flags>
+
+An instance of L<Bitcoin::Crypto::Transaction::Flags>. If not passed, full set
+of consensus flags will be assumed (same as calling
+L<Bitcoin::Crypto::Transaction::Flags/new> with no arguments).
 
 =item * C<block>
 
