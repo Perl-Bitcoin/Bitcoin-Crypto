@@ -1,6 +1,8 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
+
+4.002 Fri Nov 14, 2025
 	[Public interface changes]
 	- Bitcoin::Crypto::Key::Public:
 		- added params argument to verify_message method
