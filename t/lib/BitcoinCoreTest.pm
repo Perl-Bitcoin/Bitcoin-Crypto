@@ -10,6 +10,26 @@ use JSON::MaybeXS qw(decode_json);
 use Bitcoin::Crypto qw(btc_transaction btc_utxo);
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Script::Runner;
+use Bitcoin::Crypto::Transaction::Flags;
+
+sub get_flags
+{
+	my ($string) = @_;
+
+	state $core_to_perl = {
+		P2SH => 'p2sh',
+		DERSIG => 'strict_signatures',
+		CHECKLOCKTIMEVERIFY => 'checklocktimeverify',
+		CHECKSEQUENCEVERIFY => 'checksequenceverify',
+		NULLDUMMY => 'nulldummy',
+		WITNESS => 'segwit',
+		TAPROOT => 'taproot',
+	};
+
+	my %flags = map { $core_to_perl->{$_} => !!1 } split /,/, $string;
+
+	return Bitcoin::Crypto::Transaction::Flags->new_empty(%flags);
+}
 
 sub test_validation
 {
@@ -46,6 +66,7 @@ sub test_validation
 			}
 
 			$script_runner->set_transaction($tx);
+			$script_runner->set_flags(get_flags $case->{flags});
 			my $index = $case->{index};
 			my $input = $tx->inputs->[$index];
 
