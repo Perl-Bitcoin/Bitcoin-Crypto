@@ -606,6 +606,8 @@ An instance of L<Bitcoin::Crypto::Transaction::Flags>. If not passed, full set
 of consensus flags will be assumed (same as calling
 L<Bitcoin::Crypto::Transaction::Flags/new> with no arguments).
 
+I<writer:> C<set_flags>
+
 =head3 script
 
 The current script being executed. Will be set automatically in L</start>.

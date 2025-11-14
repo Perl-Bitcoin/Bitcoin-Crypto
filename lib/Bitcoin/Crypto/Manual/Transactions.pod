@@ -13,12 +13,13 @@ transactions using Bitcoin::Crypto. For API documentation, see the link above.
 
 First and foremost, understand that in its nature Bitcoin::Crypto transaction
 system is B<incomplete>. A full reimplementation would not only be very hard to
-achieve but also very likely insecure (see
+achieve but also very likely insecure to be used as a null node (see
 L<https://bitcointalk.org/index.php?topic=260595.0>). In addition, it would be
-very ineffective to verify the entire blockchain using Perl + XS code. Instead,
-we focus on support for standard transaction types (see below) under today's
-consensus rules (without much regard to transactions' backward compatibility
-quirks). Keep L<Bitcoin::Crypto::Manual/DISCLAIMER> in mind.
+rather ineffective to verify the entire blockchain using Perl + XS code. We
+focus on support for standard transaction types (see below) under most recent
+consensus rules. While this status may change in the future, it's good to be
+realistic about capabilities of this module in real-life scenarios. Keep
+L<Bitcoin::Crypto::Manual/DISCLAIMER> in mind.
 
 =head2 How transactions work and how we handle the outputs
 
@@ -81,7 +82,6 @@ Bitcoin::Crypto currently has no way of validating transactions based on
 policies. L<Bitcoin::Crypto::Transaction/verify> only checks protocol rules, so
 that old or special transactions will verify successfully. However, it should
 always generate addresses and transactions which are in line with the standard.
-For example, it will always generate non-malleable signatures.
 
 =head2 Which types of transactions are supported?
 
@@ -138,8 +138,8 @@ transactions before broadcasting them to the network.
 =head2 Current known problems with transactions
 
 Some problems are listed below. They are not considered critical to
-Bitcoin::Crypto operation, since it is not trying to be capable of running a
-full node (able to 100% reproduce validation rules of Bitcoin Core).
+Bitcoin::Crypto operation, since it is not currently trying to be capable of
+running a full node (able to 100% reproduce validation rules of Bitcoin Core).
 
 Contributions sorting out any of those are welcome!
 
@@ -148,15 +148,6 @@ Contributions sorting out any of those are welcome!
 =item * Transaction malleability is not fully solved
 
 Some details like enforcing minimal push opcodes are not implemented.
-
-=item * P2SH timestamp threshold is not checked
-
-BIP16 provides a timestamp value which sets a block time from which a certain
-script contents should be treated as standard P2SH transactions. This is not
-currently checked at all - all scripts which look like P2SH are treated as
-P2SH, even if they were mined before the timestamp. If you need the timestamp
-value, you can get it from
-C<Bitcoin::Crypto::Constants::p2sh_timestamp_threshold>.
 
 =item * Non-standard transactions may not work as intended
 
