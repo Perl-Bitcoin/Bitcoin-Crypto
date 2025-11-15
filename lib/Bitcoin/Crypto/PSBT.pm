@@ -530,7 +530,7 @@ Returns a readable description of all the maps in the PSBT.
 Just for reference, here is a list of all PSBT fields which are currently
 supported by this module. This list is auto-generated from
 L<Bitcoin::Crypto::PSBT::FieldType/key_data> and
-C<Bitcoin::Crypto::PSBT::FieldType/value_data> (which contain short strings
+L<Bitcoin::Crypto::PSBT::FieldType/value_data> (which contain short strings
 with description of field content).
 
 For a list of PSBT fields, see
