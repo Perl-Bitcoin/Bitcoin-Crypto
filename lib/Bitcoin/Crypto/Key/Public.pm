@@ -268,9 +268,8 @@ I<clearer:> C<clear_purpose>
 
 =head3 taproot_output
 
-Boolean value indicating if this key was obtained through taproot tweaking.
-Taproot output keys are used to sign and verify schnorr signatures in P2TR
-outputs. Default: C<false>
+Boolean value indicating if this key was obtained through taproot tweaking or
+should be used with Schnorr signatures. Default: C<false>
 
 I<writer:> C<set_taproot_output>
 
