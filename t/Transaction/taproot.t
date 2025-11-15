@@ -5,8 +5,7 @@ use Bitcoin::Crypto::Util qw(to_format);
 use lib 't/lib';
 use TransactionStore;
 
-# partial taproot support test script
-# (testing support for P2TR creation and recognition)
+# testing support for P2TR creation and recognition
 
 subtest 'should allow creation of P2TR outputs' => sub {
 	my $tx = btc_transaction->new;

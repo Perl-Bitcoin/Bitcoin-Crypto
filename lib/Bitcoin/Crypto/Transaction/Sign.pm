@@ -298,7 +298,7 @@ sub _sign_P2TR
 		),
 	);
 
-	# truncate sighash from signature to save 1 byte (required)
+	# truncate sighash from signature to save 1 byte (required by spec)
 	if ($self->sighash == Bitcoin::Crypto::Constants::sighash_default) {
 		$signature = substr $signature, 0, -1;
 	}
