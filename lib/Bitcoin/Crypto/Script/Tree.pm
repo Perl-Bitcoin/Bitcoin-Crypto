@@ -6,6 +6,7 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
+use List::Util qw(first);
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
@@ -125,30 +126,15 @@ sub _tree_paths_action
 	return (\%paths, $action);
 }
 
-sub _find_leaf_action
-{
-	my ($self, $id) = @_;
-
-	my $leaf;
-	my $action = sub {
-		return if defined $leaf;
-
-		my ($node) = @_;
-
-		$leaf = $node
-			if defined $node->{id} && $node->{id} == $id;
-	};
-
-	return (\$leaf, $action);
-}
-
 sub _build_tree_cache
 {
 	my ($self) = @_;
 
 	my @leaves;
+	my ($paths, $paths_action) = $self->_tree_paths_action;
+
 	my $root = $self->_traverse(
-		undef,
+		$paths_action,
 		sub {
 			my $leaf = shift;
 			push @leaves, $leaf;
@@ -157,6 +143,7 @@ sub _build_tree_cache
 
 	return {
 		leaves => \@leaves,
+		paths => $paths,
 		root => $root,
 	};
 }
@@ -200,11 +187,8 @@ signature_for get_tree_paths => (
 sub get_tree_paths
 {
 	my ($self) = @_;
-	my ($paths, $action) = $self->_tree_paths_action;
 
-	my $result = $self->_traverse($action);
-
-	return $paths;
+	return $self->_tree_cache->{paths};
 }
 
 signature_for from_path => (
@@ -238,23 +222,20 @@ signature_for get_control_block => (
 sub get_control_block
 {
 	my ($self, $leaf_id, $pubkey) = @_;
+	my $cache = $self->_tree_cache;
 
-	my ($paths_ref, $paths_action) = $self->_tree_paths_action;
-	my ($leaf_ref, $leaf_action) = $self->_find_leaf_action($leaf_id);
-
-	my $root = $self->_traverse($paths_action, $leaf_action);
-
+	my $leaf = first { defined $_->{id} && $_->{id} == $leaf_id } @{$cache->{leaves}};
 	Bitcoin::Crypto::Exception::ScriptTree->raise(
 		"no such block with id=$leaf_id"
-	) unless defined $$leaf_ref;
+	) unless defined $leaf;
 
-	my $tapkey = $pubkey->get_taproot_output_key($root->{hash});
+	my $tapkey = $pubkey->get_taproot_output_key($cache->{root}{hash});
 	my $parity = has_even_y($tapkey);
 
 	return Bitcoin::Crypto::Transaction::ControlBlock->new(
-		control_byte => ${$leaf_ref}->{leaf_version} | !$parity,
+		control_byte => $leaf->{leaf_version} | !$parity,
 		public_key => $pubkey,
-		script_blocks => $paths_ref->{$leaf_id} // [],
+		script_blocks => $cache->{paths}{$leaf_id} // [],
 	);
 }
 
