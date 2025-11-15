@@ -75,9 +75,7 @@ sub witness_program
 		(Bitcoin::Crypto::Constants::taproot_witness_version) => sub {
 			my ($self, $params) = @_;
 
-			$self = $self->get_taproot_output_key($params->{tweak_suffix})
-				unless $self->taproot_output;
-
+			$self = $self->get_taproot_output_key($params->{tweak_suffix});
 			return $self->get_xonly_key;
 		},
 	};
@@ -331,8 +329,9 @@ can be passed.
 
 	$pub = $object->get_taproot_output_key($tweak_suffix = undef)
 
-Returns a new public key instance that represents an output taproot key.
-Optional C<$tweak_suffix> can be passed as bytestring.
+Returns a new public key instance that represents an output taproot key, or
+this key if it is marked as L</taproot_output>. Optional C<$tweak_suffix> can
+be passed as bytestring.
 
 =head3 get_xonly_key
 

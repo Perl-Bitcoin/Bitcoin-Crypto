@@ -64,6 +64,8 @@ sub get_taproot_output_key
 {
 	my ($self, $tweak_suffix) = @_;
 
+	return $self if $self->taproot_output;
+
 	my $new_key;
 	if ($self->_is_private) {
 		my $internal = $self->raw_key('private');
