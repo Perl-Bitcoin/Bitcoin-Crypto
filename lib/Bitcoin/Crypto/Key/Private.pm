@@ -315,7 +315,15 @@ can look like this (taken from C<ex/tx/multisig_redeem.pl> example):
 =item * C<sighash>
 
 The sighash which should be used for the signature. By default C<SIGHASH_ALL>
-is used.
+is used for pre-taproot outputs and C<SIGHASH_DEFAULT> for taproot
+outputs.
+
+=item * C<script_tree>
+
+L<Bitcoin::Crypto::Script::Tree> instance for use in taproot. Same script tree
+must be passed as used in generation of the address to correctly tweak the key.
+If the key was already tweaked (L</get_taproot_output_key>), this parameter can
+be skipped, as no double-tweaking will happen.
 
 =back
 
