@@ -272,7 +272,8 @@ only works for standard script types, if your script is non-standard then you
 will have to sign manually.
 
 For taproot, this signs using key path spending. Spending with script path
-needs a custom solution using L</sign_message>.
+needs a custom solution using L</sign_message>. C<script_tree> parameter can be
+passed if taproot output had a script path.
 
 Note that the module will let you sign any transaction with any private key.
 You have to manually run L<Bitcoin::Crypto::Transaction/verify> to ensure you
