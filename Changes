@@ -1,6 +1,11 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
+	[Public interface changes]
+	- Bitcoin::Crypto::Script::Tree:
+		- added get_tapleaf_script method
+		- added get_tapleaf_version method
+
 	[Improvements and behavior changes]
 	- get_taproot_output_key yields the same key if called on a taproot_output key
 

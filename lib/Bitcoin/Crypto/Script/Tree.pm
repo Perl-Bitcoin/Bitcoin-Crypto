@@ -160,6 +160,30 @@ sub get_merkle_root
 	return $self->_tree_cache->{root}{hash};
 }
 
+sub _get_tapleaf
+{
+	my ($self, $leaf_id) = @_;
+
+	my $leaf = first { exists $_->{id} && $_->{id} == $leaf_id } @{$self->_tree_cache->{leaves}};
+	Bitcoin::Crypto::Exception::ScriptTree->raise(
+		"no such block with id=$leaf_id"
+	) unless defined $leaf;
+
+	return $leaf;
+}
+
+signature_for get_tapleaf_script => (
+	method => Object,
+	positional => [Int],
+);
+
+sub get_tapleaf_script
+{
+	my ($self, $leaf_id) = @_;
+
+	return $self->_get_tapleaf($leaf_id)->{script};
+}
+
 signature_for get_tapleaf_hash => (
 	method => Object,
 	positional => [Int],
@@ -169,14 +193,19 @@ sub get_tapleaf_hash
 {
 	my ($self, $leaf_id) = @_;
 
-	my @leaves = grep { exists $_->{id} && $_->{id} == $leaf_id } @{$self->_tree_cache->{leaves}};
-	my $leaf = shift @leaves;
+	return $self->_get_tapleaf($leaf_id)->{hash};
+}
 
-	Bitcoin::Crypto::Exception::ScriptTree->raise(
-		"no such block with id=$leaf_id"
-	) unless defined $leaf;
+signature_for get_tapleaf_version => (
+	method => Object,
+	positional => [Int],
+);
 
-	return $leaf->{hash};
+sub get_tapleaf_version
+{
+	my ($self, $leaf_id) = @_;
+
+	return $self->_get_tapleaf($leaf_id)->{leaf_version};
 }
 
 signature_for get_tree_paths => (
@@ -224,16 +253,12 @@ sub get_control_block
 	my ($self, $leaf_id, $pubkey) = @_;
 	my $cache = $self->_tree_cache;
 
-	my $leaf = first { defined $_->{id} && $_->{id} == $leaf_id } @{$cache->{leaves}};
-	Bitcoin::Crypto::Exception::ScriptTree->raise(
-		"no such block with id=$leaf_id"
-	) unless defined $leaf;
-
+	my $leaf_version = $self->get_tapleaf_version($leaf_id);
 	my $tapkey = $pubkey->get_taproot_output_key($cache->{root}{hash});
 	my $parity = has_even_y($tapkey);
 
 	return Bitcoin::Crypto::Transaction::ControlBlock->new(
-		control_byte => $leaf->{leaf_version} | !$parity,
+		control_byte => $leaf_version | !$parity,
 		public_key => $pubkey,
 		script_blocks => $cache->{paths}{$leaf_id} // [],
 	);
@@ -365,6 +390,20 @@ could look like this:
 
 Calculates a merkle root of the script tree. Returns a bytestring which is the
 root hash of the tree.
+
+=head3 get_tapleaf_script
+
+	$script = $tree->get_tapleaf_script($leaf_id)
+
+Returns a tapleaf script of a leaf with given C<$leaf_id>. If such leaf does
+not exist, an exception is thrown. Returns a script instance.
+
+=head3 get_tapleaf_version
+
+	$int = $tree->get_tapleaf_version($leaf_id)
+
+Returns a tapleaf version of a leaf with given C<$leaf_id>. If such leaf does
+not exist, an exception is thrown. Returns an integer.
 
 =head3 get_tapleaf_hash
 
