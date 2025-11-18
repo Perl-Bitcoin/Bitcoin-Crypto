@@ -45,12 +45,12 @@ has param 'flags' => (
 );
 
 has field 'stack' => (
-	isa => ArrayRef [Str],
+	isa => ArrayRef [ByteStr],
 	writer => -hidden,
 );
 
 has field 'alt_stack' => (
-	isa => ArrayRef [Str],
+	isa => ArrayRef [ByteStr],
 	writer => -hidden,
 );
 
@@ -298,9 +298,11 @@ sub step
 
 	my $pos = $self->pos;
 
+	# execution not started
 	return !!0
 		unless defined $pos;
 
+	# out of operations
 	return !!0
 		unless $pos < @{$self->operations};
 

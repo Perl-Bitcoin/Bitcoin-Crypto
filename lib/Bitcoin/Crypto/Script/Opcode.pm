@@ -41,6 +41,11 @@ has param 'pushes' => (
 	default => 0,
 );
 
+has param 'sigop' => (
+	isa => Bool,
+	default => 0,
+);
+
 # args for coderef are:
 # - Bitcoin::Crypto::Script::Runner instance
 # - Bitcoin::Crypto::Script::Opcode instance
@@ -1348,21 +1353,25 @@ sub _build_opcodes
 		OP_CHECKSIG => {
 			code => 0xac,
 			needs_transaction => !!1,
+			sigop => !!1,
 			runner => $class->_OP_CHECKSIG,
 		},
 		OP_CHECKSIGVERIFY => {
 			code => 0xad,
 			needs_transaction => !!1,
+			sigop => !!1,
 			runner => $class->_OP_CHECKSIGVERIFY
 		},
 		OP_CHECKMULTISIG => {
 			code => 0xae,
 			needs_transaction => !!1,
+			sigop => !!1,
 			runner => $class->_OP_CHECKMULTISIG,
 		},
 		OP_CHECKMULTISIGVERIFY => {
 			code => 0xaf,
 			needs_transaction => !!1,
+			sigop => !!1,
 			runner => $class->_OP_CHECKMULTISIGVERIFY
 		},
 		OP_CHECKLOCKTIMEVERIFY => {

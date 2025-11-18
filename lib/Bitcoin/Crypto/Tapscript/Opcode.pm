@@ -133,11 +133,14 @@ sub _build_opcodes
 	my ($class) = @_;
 	my %parent_opcodes = $class->SUPER::_build_opcodes;
 
+	# NOTE: multisig no longer is a sigop and no longer requires transaction
+
 	my %opcodes = (
 		%parent_opcodes,
 		OP_CHECKSIG => {
 			code => 0xac,
 			needs_transaction => !!1,
+			sigop => !!1,
 			runner => $class->_OP_CHECKSIG,
 		},
 		OP_CHECKMULTISIG => {
@@ -145,9 +148,18 @@ sub _build_opcodes
 			needs_transaction => !!1,
 			runner => $class->_OP_CHECKMULTISIG,
 		},
+		OP_CHECKMULTISIG => {
+			code => 0xae,
+			runner => $class->_OP_CHECKMULTISIG,
+		},
+		OP_CHECKMULTISIGVERIFY => {
+			code => 0xae,
+			runner => $class->_OP_CHECKMULTISIGVERIFY,
+		},
 		OP_CHECKSIGADD => {
 			code => 0xba,
 			needs_transaction => !!1,
+			sigop => !!1,
 			runner => $class->_OP_CHECKSIGADD,
 		},
 	);

@@ -772,6 +772,48 @@ sub verify
 	return;
 }
 
+signature_for sign => (
+	method => Object,
+	positional => [HashRef, {slurpy => !!1}],
+);
+
+sub sign
+{
+	my ($self, $args) = @_;
+	$args->{transaction} = $self;
+
+	Bitcoin::Crypto::Exception::Sign->raise(
+		'signing_index is required'
+	) unless defined $args->{signing_index};
+
+	my $input = $self->inputs->[$args->{signing_index}];
+
+	Bitcoin::Crypto::Exception::Sign->raise(
+		'no such input'
+	) unless defined $input;
+
+	my $type = $input->utxo->output->locking_script->type // '';
+
+	state $known_types = {map { $_ => 1 } qw(P2PKH P2SH P2WPKH P2WSH P2TR)};
+
+	my $class;
+	if ($type eq 'P2SH' && $args->{compat}) {
+		$class = $args->{script} ? 'CompatP2WSH' : 'CompatP2WPKH';
+	}
+	elsif ($known_types->{$type}) {
+		$class = $type;
+	}
+	else {
+		$class = 'CustomLegacy';
+	}
+
+	say $class;
+	$class = "Bitcoin::Crypto::Transaction::Signer::$class";
+
+	eval "require $class; 1" or die $@;
+	return $class->new($args);
+}
+
 signature_for dump => (
 	method => Object,
 	positional => [],

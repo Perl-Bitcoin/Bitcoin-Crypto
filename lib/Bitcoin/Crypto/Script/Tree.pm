@@ -22,6 +22,7 @@ has param 'tree' => (
 
 has field '_tree_cache' => (
 	lazy => 1,
+	clearer => -public,
 );
 
 # this is flat traversal algorithm that avoids deep recursion warnings in deep

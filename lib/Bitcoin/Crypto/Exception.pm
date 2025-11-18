@@ -26,7 +26,10 @@ has field 'caller' => (
 	default => sub {
 		for my $call_level (1 .. 20) {
 			my ($package, $file, $line) = caller $call_level;
-			if (defined $package && $package !~ /^(Bitcoin::Crypto|Try::Tiny|Type::Coercion)/) {
+			my $package_ok = defined $package && $package !~ /^(Bitcoin::Crypto|Try::Tiny|Type::Coercion)/;
+			my $file_ok = defined $file && $file !~ /\(eval \d+\)/;
+
+			if ($package_ok && $file_ok) {
 				return [$package, $file, $line];
 			}
 		}

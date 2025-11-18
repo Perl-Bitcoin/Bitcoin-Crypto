@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 use Bitcoin::Crypto qw(btc_psbt btc_transaction btc_utxo btc_prv btc_script_tree btc_tapscript);
-use Bitcoin::Crypto::Util qw(to_format get_taproot_ext);
+use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Network;
 
 Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
@@ -20,16 +20,17 @@ my $psbt = btc_psbt->from_serialized(
 my $prev_tx = $psbt->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value;
 $prev_tx->update_utxos;
 
-# get tree from psbt, mark the leaf we're spending with an id
+# get tree from psbt, mark the leaf we're spending with an id, and clear tree
+# cache (required after manual changes to tree structure)
 my $tree = $psbt->get_field('PSBT_OUT_TAP_TREE', 0)->value;
 $tree->tree->[0]{id} = 0;
+$tree->clear_tree_cache;
 
 # get public key from psbt
 my $public_key = $psbt->get_field('PSBT_OUT_TAP_INTERNAL_KEY', 0)->value;
 
 my $tx = btc_transaction->new;
 
-# die to_format [hex => $psbt->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value->get_hash];
 # input must point to the transaction output above - transaction ID and output number
 $tx->add_input(
 	utxo => [$prev_tx->get_hash, 0],
@@ -46,49 +47,30 @@ $tx->add_output(
 my $wanted_fee_rate = 2;
 $tx->outputs->[0]->set_value($tx->fee - int($tx->virtual_size * $wanted_fee_rate));
 
-# manual signing (since the transaction is custom):
+# semi-manual signing (since the transaction is custom):
 # - signing with two private keys to satisfy 2 out of 3 transaction
-# - private keys must be in reverse order than the order of keys in
-#   OP_CHECKSIGADD calls
-# - private keys must be taproot output keys
-# - leaving one empty vector for the one signature we don't use (second item)
-# - signing with SIGHASH_DEFAULT, so it does not need to be added to the
-#   signature manually (as 65th byte)
-# - subscript is the whole script, because there are no OP_CODESEPARATORs
-# - ext_flag is 1, and ext is generated as per BIP342
-# - both signatures can use the same digest
-# - adding serialized script and control block as the last two witness items to
-#   mark script path spend
+# - leaving one empty signature for the one signature we don't use (second item)
+# - signing with SIGHASH_DEFAULT, so it does not need to be passed explicitly
 # - not adding annex, since it has no meaning yet (can lead to funds loss)
 
 my $private_key_1 = btc_prv->from_wif('L2eKy3kX5DYnw7B1sXpEs2gd9xK5PSkiiBS1YSFaHvYyn1M9rsJJ');
 my $private_key_3 = btc_prv->from_wif('L2zrD2aQRgGHzJpX7TB7qYhzibFqitH3NyvZUJUzqfHaLmxyBvm5');
-my $script = $tree->tree->[0]{script};
 
+# we want to use these keys for schnorr signatures, so we mark them as taproot outputs
 $private_key_1->set_taproot_output(!!1);
 $private_key_3->set_taproot_output(!!1);
 
-my $digest = $tx->get_digest(
-	signing_index => 0,
-	signing_subscript => $script->to_serialized,
-	taproot_ext_flag => 1,
-	taproot_ext => get_taproot_ext(
-		1,
+# use sign to build a witness semi-manually
+$tx
+	->sign(
+		signing_index => 0,
 		script_tree => $tree,
 		leaf_id => 0,
-		codesep_pos => undef
-	),
-);
-
-$tx->inputs->[0]->set_witness(
-	[
-		$private_key_3->sign_message($digest),
-		'',
-		$private_key_1->sign_message($digest),
-		$script->to_serialized,
-		$tree->get_control_block(0, $public_key)->to_serialized,
-	]
-);
+		public_key => $public_key,
+	)
+	->add_signature($private_key_1)
+	->add_signature('')
+	->add_signature($private_key_3);
 
 # verify the correctness of the transaction. Throws an exception on failure
 $tx->verify;
@@ -108,8 +90,7 @@ We choose the first script in the tree, which uses new C<OP_CHECKSIGADD> opcode
 to implement a 2 out of 3 multisig script. Taproot has old C<OP_CHECKMULTISIG>
 opcode disabled.
 
-This example shows how to manually sign a custom taproot transaction, which can
-be extended to most other custom transactions.
+This example shows how to sign a custom taproot transaction.
 
 Fee rate is (inaccurately) approximated. To set exact fee rate sign the
 transaction, calculate fee based on its virtual size and then sign again
