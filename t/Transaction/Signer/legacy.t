@@ -70,7 +70,12 @@ $tx
 	->sign(
 		signing_index => 1,
 	)
-	->add_signature($priv1, sighash => Bitcoin::Crypto::Constants::sighash_none);
+	->add_signature(
+		[
+			hex =>
+			'3045022100f6a085140f873b867d91835a711256e41738e2ab2a17f2a857313ef3766158d20220406d5cefad0e689e186017d8dcb12e065ff53fcac8bb00a8a3f51ee41c9f76da02'
+		]
+	);
 
 # P2SH output
 $tx
