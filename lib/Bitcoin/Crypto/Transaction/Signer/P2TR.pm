@@ -135,8 +135,7 @@ sub _get_signature
 	);
 	my $pubkey = $privkey->get_public_key;
 
-	# taproot opcodes simplify things - last element on stack will always be a
-	# public key when sigop is encountered
+	# taproot opcodes simplify things - no need to handle multisig
 	my $script_pubkey = $runner->stack->[-1];
 	Bitcoin::Crypto::Exception::Sign->raise(
 		'bad private key for public key encountered in script sigop at position ' . $runner->pos
@@ -155,6 +154,13 @@ sub _get_signature
 	}
 
 	return $signature;
+}
+
+sub add_multisignature
+{
+	Bitcoin::Crypto::Exception::Sign->raise(
+		'taproot transactions do not support multisignatures'
+	);
 }
 
 1;

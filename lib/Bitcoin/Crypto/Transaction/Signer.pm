@@ -162,6 +162,51 @@ sub add_signature
 	return $self;
 }
 
+signature_for add_multisignature => (
+	method => Object,
+	positional => [
+		ArrayRef [
+			Tuple [
+				ByteStr | InstanceOf ['Bitcoin::Crypto::Key::Private'],
+				Slurpy [
+					Dict [
+						sighash => Optional [PositiveOrZeroInt],
+					]
+				],
+			]
+		],
+		{slurpy => !!1}
+	],
+);
+
+sub add_multisignature
+{
+	my ($self, $keys) = @_;
+	my $runner = $self->_find_next_sigop;
+
+	# reverse the key order, so they can be passed in the order of occurence in
+	# the script
+	foreach my $key (reverse @$keys) {
+		my ($privkey_or_signature, %args) = @$key;
+		my $signature;
+
+		if (!ref $privkey_or_signature) {
+			$signature = $privkey_or_signature;
+		}
+		else {
+			$signature = $self->_get_signature($privkey_or_signature, \%args);
+		}
+
+		$self->add_bytes($signature);
+	}
+
+	# add mandatory nulldummy element
+	$self->add_bytes('');
+
+	$runner->step;
+	return $self;
+}
+
 signature_for finalize => (
 	method => Object,
 	positional => [],

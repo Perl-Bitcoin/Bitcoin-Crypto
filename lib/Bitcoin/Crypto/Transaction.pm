@@ -807,7 +807,6 @@ sub sign
 		$class = 'CustomLegacy';
 	}
 
-	say $class;
 	$class = "Bitcoin::Crypto::Transaction::Signer::$class";
 
 	eval "require $class; 1" or die $@;

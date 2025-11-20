@@ -7,6 +7,7 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 use Types::Common -types, -sigs;
+use List::Util qw(any);
 
 use Bitcoin::Crypto qw(btc_script);
 use Bitcoin::Crypto::Exception;
@@ -28,14 +29,26 @@ sub _get_signature
 {
 	my ($self, $privkey, $args) = @_;
 	my $runner = $self->_runner;
+	my $op = $runner->operations->[$runner->pos][0];
 
 	my $pubkey = $privkey->get_public_key;
 
-	# TODO: MULTISIG
-	my $script_pubkey = $runner->stack->[-1];
-	Bitcoin::Crypto::Exception::Sign->raise(
-		'bad private key for public key encountered in script sigop at position ' . $runner->pos
-	) unless $script_pubkey eq $pubkey->to_serialized;
+	if ($op->name =~ /^OP_CHECKMULTISIG/) {
+		my $stack = $runner->stack;
+		my $pubkey_count = $runner->to_int($stack->[-1] // "\x00");
+		my @pubkeys = @{$stack}[-1 - $pubkey_count .. -2];
+
+		my $pubkey_serialized = $pubkey->to_serialized;
+		Bitcoin::Crypto::Exception::Sign->raise(
+			'bad private key for public keys encountered in script multisigop at position ' . $runner->pos
+		) unless any { $_ eq $pubkey_serialized } @pubkeys;
+	}
+	else {
+		my $script_pubkey = $runner->stack->[-1];
+		Bitcoin::Crypto::Exception::Sign->raise(
+			'bad private key for public key encountered in script sigop at position ' . $runner->pos
+		) unless $script_pubkey eq $pubkey->to_serialized;
+	}
 
 	my $digest_obj = $self->transaction->get_digest_object(
 		signing_index => $self->signing_index,
