@@ -68,10 +68,20 @@ my $utxo3 = btc_utxo->new(
 	},
 );
 
+my $utxo4 = btc_utxo->new(
+	txid => "\x01" x 32,
+	output_index => 3,
+	output => {
+		locking_script => [P2TR => $pub1->get_taproot_address($tree)],
+		value => 1000
+	},
+);
+
 my $tx = btc_transaction->new;
 
 $tx->add_input(utxo => $utxo1);
 $tx->add_input(utxo => $utxo2);
+$tx->add_input(utxo => $utxo3);
 $tx->add_input(utxo => $utxo3);
 
 $tx->add_output(
@@ -89,10 +99,18 @@ $tx
 		sighash => Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay
 	);
 
-# script path #0
+# key path with tree
 $tx
 	->sign(
 		signing_index => 1,
+		script_tree => $tree,
+	)
+	->add_signature($priv1);
+
+# script path #0
+$tx
+	->sign(
+		signing_index => 2,
 		leaf_id => 0,
 		script_tree => $tree,
 		public_key => $pub1,
@@ -103,7 +121,7 @@ $tx
 # script path #1
 $tx
 	->sign(
-		signing_index => 2,
+		signing_index => 3,
 		leaf_id => 1,
 		script_tree => $tree,
 		public_key => $pub1,
