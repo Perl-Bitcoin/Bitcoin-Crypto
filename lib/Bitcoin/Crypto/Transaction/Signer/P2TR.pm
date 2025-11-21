@@ -156,7 +156,7 @@ sub _get_signature
 	return $signature;
 }
 
-sub add_multisignature
+sub finalize_multisignature
 {
 	Bitcoin::Crypto::Exception::Sign->raise(
 		'taproot transactions do not support multisignatures'
