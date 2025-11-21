@@ -75,7 +75,9 @@ subtest 'should sign/verify simple script path spend case' => sub {
 		script_tree => $tree,
 		leaf_id => 0,
 		public_key => $pub,
-	)->add_number(8);
+		)
+		->add_number(8)
+		->finalize;
 
 	is [map { to_format [hex => $_] } @{$tx->inputs->[1]->witness}], [
 		'08',
@@ -136,7 +138,9 @@ subtest 'should sign/verify script path spend case with signature' => sub {
 		script_tree => $tree,
 		leaf_id => 0,
 		public_key => $pub,
-	)->add_signature($script_prv, sighash => Bitcoin::Crypto::Constants::sighash_all);
+		)
+		->add_signature($script_prv, sighash => Bitcoin::Crypto::Constants::sighash_all)
+		->finalize;
 
 	is [map { to_format [hex => $_] } @{$tx->inputs->[0]->witness}], [
 		'01769105cbcbdcaaee5e58cd201ba3152477fda31410df8b91b4aee2c4864c7700615efb425e002f146a39ca0a4f2924566762d9213bd33f825fad83977fba7f01',
@@ -206,7 +210,9 @@ subtest 'should sign/verify script path spend case with tree' => sub {
 		script_tree => $tree,
 		leaf_id => 0,
 		public_key => $pub,
-	)->add_number(3);
+		)
+		->add_number(3)
+		->finalize;
 
 	is [map { to_format [hex => $_] } @{$tx->inputs->[0]->witness}], [
 		'03',

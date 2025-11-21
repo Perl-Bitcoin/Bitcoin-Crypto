@@ -54,7 +54,8 @@ $tx
 		signing_index => 0,
 		compat => !!1,
 	)
-	->add_signature($priv2, sighash => Bitcoin::Crypto::Constants::sighash_single);
+	->add_signature($priv2, sighash => Bitcoin::Crypto::Constants::sighash_single)
+	->finalize;
 
 # P2SH(P2WSH) output
 $tx
@@ -64,7 +65,8 @@ $tx
 		compat => !!1,
 	)
 	->add_signature('')
-	->add_signature($priv2, sighash => Bitcoin::Crypto::Constants::sighash_all);
+	->add_signature($priv2, sighash => Bitcoin::Crypto::Constants::sighash_all)
+	->finalize;
 
 ok lives { $tx->verify }, 'transaction verification ok';
 

@@ -57,7 +57,8 @@ $tx
 			'3045022100df91dadbe6557f765d99ca594f89cb5c5a6b3a27aa6aa98bc79258695ae6c39e0220409f1517012e76d95805564e600a6d32f626da5182886d985a26b1b0b483705581'
 		]
 	)
-	->finalize_multisignature;
+	->finalize_multisignature
+	->finalize;
 
 # compat output
 $tx
@@ -76,7 +77,8 @@ $tx
 		$priv1,
 		sighash => Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay
 	)
-	->finalize_multisignature;
+	->finalize_multisignature
+	->finalize;
 
 ok lives { $tx->verify }, 'transaction verification ok';
 

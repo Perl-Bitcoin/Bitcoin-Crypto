@@ -97,7 +97,8 @@ $tx
 	->add_signature(
 		$priv1,
 		sighash => Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay
-	);
+	)
+	->finalize;
 
 # key path with tree
 $tx
@@ -105,7 +106,8 @@ $tx
 		signing_index => 1,
 		script_tree => $tree,
 	)
-	->add_signature($priv1);
+	->add_signature($priv1)
+	->finalize;
 
 # script path #0
 $tx
@@ -116,7 +118,8 @@ $tx
 		public_key => $pub1,
 	)
 	->add_signature($priv1->get_taproot_output_key, sighash => Bitcoin::Crypto::Constants::sighash_all)
-	->add_signature('');
+	->add_signature('')
+	->finalize;
 
 # script path #1
 $tx
@@ -127,7 +130,8 @@ $tx
 		public_key => $pub1,
 	)
 	->add_signature('')
-	->add_signature($priv2->get_taproot_output_key);
+	->add_signature($priv2->get_taproot_output_key)
+	->finalize;
 
 ok lives { $tx->verify }, 'transaction verification ok';
 

@@ -55,7 +55,8 @@ $tx
 			'30440220353362c57931db260ea62aa98718d5f01e9512b0443a5fc01dd54322adb9cc9e022001cb0d83f2e5c5bf390cdd524181abf1af7c5bc10babd74477c36ed23b15ef4702'
 		]
 	)
-	->finalize_multisignature;
+	->finalize_multisignature
+	->finalize;
 
 # P2SH output
 $tx
@@ -70,7 +71,8 @@ $tx
 		]
 	)
 	->add_signature($priv1, sighash => Bitcoin::Crypto::Constants::sighash_single)
-	->finalize_multisignature;
+	->finalize_multisignature
+	->finalize;
 
 ok lives { $tx->verify }, 'transaction verification ok';
 

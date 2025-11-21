@@ -63,7 +63,8 @@ $tx
 	->sign(
 		signing_index => 0,
 	)
-	->add_signature($priv2, sighash => Bitcoin::Crypto::Constants::sighash_single);
+	->add_signature($priv2, sighash => Bitcoin::Crypto::Constants::sighash_single)
+	->finalize;
 
 # custom script (not P2SH)
 $tx
@@ -75,7 +76,8 @@ $tx
 			hex =>
 			'3045022100f6a085140f873b867d91835a711256e41738e2ab2a17f2a857313ef3766158d20220406d5cefad0e689e186017d8dcb12e065ff53fcac8bb00a8a3f51ee41c9f76da02'
 		]
-	);
+	)
+	->finalize;
 
 # P2SH output
 $tx
@@ -84,7 +86,8 @@ $tx
 		script => $script,
 	)
 	->add_signature('')
-	->add_signature($priv2, sighash => Bitcoin::Crypto::Constants::sighash_none);
+	->add_signature($priv2, sighash => Bitcoin::Crypto::Constants::sighash_none)
+	->finalize;
 
 ok lives { $tx->verify }, 'transaction verification ok';
 

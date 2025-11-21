@@ -109,14 +109,6 @@ sub BUILD
 	$self->_initialize;
 }
 
-sub DEMOLISH
-{
-	my ($self, $global_des) = @_;
-
-	return if $global_des;
-	$self->finalize;
-}
-
 signature_for add_bytes => (
 	method => Object,
 	positional => [ByteStr],
