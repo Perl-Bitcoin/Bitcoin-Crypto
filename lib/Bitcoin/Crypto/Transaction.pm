@@ -64,6 +64,12 @@ with qw(
 	Bitcoin::Crypto::Role::ShallowClone
 );
 
+after clone => sub {
+	my ($self) = @_;
+
+	$self->clear_digest_object;
+};
+
 signature_for add_input => (
 	method => Object,
 	positional => [ArrayRef, {slurpy => !!1}],
