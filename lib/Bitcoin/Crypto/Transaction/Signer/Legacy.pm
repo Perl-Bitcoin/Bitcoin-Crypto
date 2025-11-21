@@ -50,10 +50,8 @@ sub _get_signature
 		) unless $script_pubkey eq $pubkey->to_serialized;
 	}
 
-	my $digest_obj = $self->transaction->get_digest_object(
-		signing_index => $self->signing_index,
-		signing_subscript => $runner->subscript,
-		(defined $args->{sighash} ? (sighash => $args->{sighash}) : ()),
+	my $digest_obj = $runner->transaction->get_digest_object(
+		sighash => $args->{sighash},
 	);
 
 	return $privkey->sign_message($digest_obj->get_digest)

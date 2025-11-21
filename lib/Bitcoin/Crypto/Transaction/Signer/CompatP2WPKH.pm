@@ -45,9 +45,7 @@ sub add_signature
 
 	my $pubkey = $privkey->get_public_key;
 	$self->set_script(Bitcoin::Crypto::Script::Common->new(PKH => $pubkey->get_hash));
-
-	# need to do this early so that input will be recognized as segwit
-	$self->_replace_signature($pubkey->witness_program);
+	$self->set_witness_program($pubkey->witness_program);
 
 	$self->add_bytes($pubkey->to_serialized);
 	$self->SUPER::add_signature($privkey, $args);

@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Types::Common -types;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
@@ -64,26 +64,28 @@ has option 'sigop_budget' => (
 	writer => -hidden,
 );
 
-signature_for get_digest => (
-	method => Object,
-	positional => [ByteStr, Maybe [PositiveOrZeroInt], Maybe [ByteStr], {default => undef}],
-);
-
-sub get_digest
+sub get_digest_object
 {
-	my ($self, $subscript, $sighash, $ext) = @_;
+	my ($self, %args) = @_;
 
 	my $annex = $self->taproot_annex;
 
-	return $self->transaction->get_digest(
+	return $self->transaction->get_digest_object(
 		flags => $self->flags,
 		signing_index => $self->input_index,
-		signing_subscript => $subscript,
+		signing_subscript => $self->runner->subscript,
 		taproot_ext_flag => $self->taproot_ext_flag,
 		(defined $annex ? (taproot_annex => $annex) : ()),
-		(defined $sighash ? (sighash => $sighash) : ()),
-		(defined $ext ? (taproot_ext => $ext) : ()),
+		(defined $args{sighash} ? (sighash => $args{sighash}) : ()),
+		(defined $args{taproot_ext} ? (taproot_ext => $args{taproot_ext}) : ()),
 	);
+}
+
+sub get_digest
+{
+	my $self = shift;
+
+	return $self->get_digest_object(@_)->get_digest;
 }
 
 sub this_input

@@ -90,7 +90,11 @@ sub _OP_CHECKSIG
 			);
 		}
 
-		my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype, $ext);
+		my $preimage = $runner->transaction->get_digest(
+			sighash => $hashtype,
+			taproot_ext => $ext
+		);
+
 		my $result =
 			$known_pubkey_type ? $pubkey->verify_message($preimage, $sig, flags => $runner->flags) : !!1;
 

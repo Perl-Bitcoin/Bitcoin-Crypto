@@ -44,6 +44,11 @@ has extended 'script' => (
 	init_arg => undef,
 );
 
+sub _multisigop
+{
+	return !!0;
+}
+
 sub _build_script
 {
 	my ($self) = @_;
@@ -85,7 +90,7 @@ sub _get_taproot_ext
 {
 	my ($self, $codesep_pos) = @_;
 
-	return () unless $self->script_spend;
+	return undef unless $self->script_spend;
 
 	my $flag = $self->taproot_ext_flag;
 	my $ext = get_taproot_ext(
@@ -95,10 +100,7 @@ sub _get_taproot_ext
 		codesep_pos => $codesep_pos,
 	);
 
-	return (
-		taproot_ext_flag => $flag,
-		taproot_ext => $ext,
-	);
+	return $ext;
 }
 
 sub _find_next_sigop
@@ -141,11 +143,9 @@ sub _get_signature
 		'bad private key for public key encountered in script sigop at position ' . $runner->pos
 	) unless $script_pubkey eq $pubkey->get_xonly_key;
 
-	my $digest_obj = $self->transaction->get_digest_object(
-		signing_index => $self->signing_index,
-		signing_subscript => $runner->subscript,
-		(defined $args->{sighash} ? (sighash => $args->{sighash}) : ()),
-		$self->_get_taproot_ext($runner->codeseparator),
+	my $digest_obj = $runner->transaction->get_digest_object(
+		sighash => $args->{sighash},
+		taproot_ext => $self->_get_taproot_ext($runner->codeseparator),
 	);
 
 	my $signature = $privkey->sign_message($digest_obj->get_digest);

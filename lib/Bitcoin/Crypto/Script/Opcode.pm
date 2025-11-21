@@ -912,7 +912,7 @@ sub _OP_CHECKSIG
 		# $runner->_script_error('SegWit validation requires compressed public key')
 		# 	if !$pubkey->compressed && $runner->transaction->is_native_segwit;
 
-		my $preimage = $runner->transaction->get_digest($runner->subscript, $hashtype);
+		my $preimage = $runner->transaction->get_digest(sighash => $hashtype);
 		my $result = $pubkey->verify_message($preimage, $sig, flags => $runner->flags);
 
 		push @$stack, $runner->from_bool($result);
@@ -938,7 +938,6 @@ sub _OP_CHECKMULTISIG
 
 	return sub {
 		my $runner = shift;
-
 		my $stack = $runner->stack;
 
 		$runner->_stack_error unless @$stack >= 1;
@@ -956,12 +955,12 @@ sub _OP_CHECKMULTISIG
 		$runner->_stack_error unless $signatures_num > 0 && @$stack >= $signatures_num;
 		my @signatures = splice @$stack, -$signatures_num;
 
-		my $subscript = $runner->subscript;
 		my $found;
+		my %digests;
 		while (my $sig = shift @signatures) {
-			my $hashtype = substr $sig, -1, 1, '';
+			my $hashtype = unpack 'C', substr $sig, -1, 1, '';
+			my $digest = $digests{$hashtype} //= $runner->transaction->get_digest(sighash => $hashtype);
 
-			my $digest = $runner->transaction->get_digest($subscript, unpack 'C', $hashtype);
 			$found = !!0;
 			while (my $raw_pubkey = shift @pubkeys) {
 				my $pubkey = btc_pub->from_serialized($raw_pubkey);

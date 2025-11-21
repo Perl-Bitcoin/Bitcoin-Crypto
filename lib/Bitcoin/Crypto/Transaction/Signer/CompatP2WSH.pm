@@ -23,8 +23,7 @@ sub _initialize
 	# do not use add_bytes (not part of this script)
 	push @{$self->_signature}, $self->script->to_serialized;
 
-	# need to do this early so that input will be recognized as segwit
-	$self->_replace_signature($self->script->witness_program);
+	$self->set_witness_program($self->script->witness_program);
 }
 
 1;
