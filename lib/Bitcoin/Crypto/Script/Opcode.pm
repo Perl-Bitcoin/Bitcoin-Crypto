@@ -940,8 +940,8 @@ sub _OP_CHECKMULTISIG
 		my $runner = shift;
 
 		my $stack = $runner->stack;
-		$runner->_stack_error unless @$stack >= 1;
 
+		$runner->_stack_error unless @$stack >= 1;
 		my $pubkeys_num = $runner->to_int(pop @$stack);
 		$runner->_stack_error unless $pubkeys_num > 0 && @$stack >= $pubkeys_num;
 		my @pubkeys = splice @$stack, -$pubkeys_num;
@@ -951,6 +951,7 @@ sub _OP_CHECKMULTISIG
 		# $runner->_script_error('SegWit validation requires all public keys to be compressed')
 		# 	if $runner->transaction->is_native_segwit && notall { get_public_key_compressed($_) } @pubkeys;
 
+		$runner->_stack_error unless @$stack >= 1;
 		my $signatures_num = $runner->to_int(pop @$stack);
 		$runner->_stack_error unless $signatures_num > 0 && @$stack >= $signatures_num;
 		my @signatures = splice @$stack, -$signatures_num;
