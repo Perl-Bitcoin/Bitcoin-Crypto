@@ -13,7 +13,7 @@ my $prv = btc_prv->from_serialized("\x12" x 32);
 subtest 'should checksig a non-standard transaction' => sub {
 	$tx = btc_transaction->new;
 
-	btc_utxo->new(
+	my $utxo = btc_utxo->new(
 		txid => [hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'],
 		output_index => 0,
 		output => {
@@ -22,11 +22,9 @@ subtest 'should checksig a non-standard transaction' => sub {
 				->add('OP_BOOLAND'),
 			value => 1_00000000,
 		},
-	)->register;
-
-	$tx->add_input(
-		utxo => [[hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'], 0],
 	);
+
+	$tx->add_input(utxo => $utxo);
 
 	$tx->add_output(
 		value => 1_00000000,
@@ -67,6 +65,47 @@ subtest 'should not allow input value smaller than output' => sub {
 	my $ex = dies { $tx->verify };
 	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
 	like $ex, qr/value exceeds input/, 'error message ok';
+};
+
+subtest 'should require an extra element in CHECKMULTISIG to be present' => sub {
+	$tx = btc_transaction->new;
+
+	my $utxo = btc_utxo->new(
+		txid => [hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'],
+		output_index => 0,
+		output => {
+			locking_script => btc_script->new
+				->push_number(1)
+				->push_bytes($prv->get_public_key->to_serialized)
+				->push_number(1)
+				->add('OP_CHECKMULTISIG'),
+			value => 1,
+		},
+	);
+
+	$tx->add_input(
+		utxo => $utxo,
+	);
+
+	$tx->add_output(
+		value => 1,
+		locking_script => [
+			P2PKH => $prv->get_public_key->get_legacy_address,
+		],
+	);
+
+	# Manual signing
+	my $input = $tx->inputs->[0];
+	my $digest = $tx->get_digest(
+		signing_index => 0,
+		signing_subscript => $input->utxo->output->locking_script->to_serialized,
+	);
+	my $signature = $prv->sign_message($digest);
+	$signature .= pack 'C', Bitcoin::Crypto::Constants::sighash_all;
+	$input->signature_script
+		->push_bytes($signature);
+
+	ok dies { $tx->verify }, 'input verification ok';
 };
 
 subtest 'should serialize and deserialize mixed segwit txs' => sub {

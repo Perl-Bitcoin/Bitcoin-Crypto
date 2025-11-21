@@ -970,6 +970,7 @@ sub _OP_CHECKMULTISIG
 		}
 
 		# Remove extra unused value from the stack
+		$runner->_stack_error unless @$stack >= 1;
 		my $unused = pop @$stack;
 		$runner->_script_error('OP_CHECKMULTISIG dummy argument must be empty')
 			if $runner->flags->nulldummy && length $unused;
