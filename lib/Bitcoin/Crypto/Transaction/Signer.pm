@@ -194,13 +194,6 @@ sub finalize
 {
 	my ($self) = @_;
 
-	my $runner = $self->_runner;
-	1 while $runner->step;
-
-	Bitcoin::Crypto::Exception::Sign->raise(
-		'bad signature - script yielded failure'
-	) unless $runner->success;
-
 	$self->_finalize;
 
 	# no $self returned anymore - this object is done
