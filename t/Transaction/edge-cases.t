@@ -188,7 +188,9 @@ subtest 'should correctly handle extra SIGHASH_SINGLE inputs' => sub {
 	}, 'this transaction verified ok';
 };
 
-subtest 'should not verify segwit transactions with uncompressed public keys (P2WSH)' => sub {
+# this is considered a policy, "not be relayed or mined by default" - so the
+# validation should pass if a block contains such transaction already
+subtest 'should verify segwit transactions with uncompressed public keys (P2WSH)' => sub {
 	$prv->set_compressed(0);
 	my $other_prv = btc_prv->from_serialized("\x13" x 32);
 
@@ -223,9 +225,7 @@ subtest 'should not verify segwit transactions with uncompressed public keys (P2
 
 	$other_prv->sign_transaction($tx, redeem_script => $redeem_script, signing_index => 0, multisig => [1, 1]);
 
-	my $ex = dies { $tx->verify };
-	isa_ok $ex, 'Bitcoin::Crypto::Exception::TransactionScript';
-	like $ex, qr/compressed/, 'error string ok';
+	ok lives { $tx->verify }, 'verification ok';
 };
 
 subtest 'should not allow to create transactions using incorrect network addresses' => sub {

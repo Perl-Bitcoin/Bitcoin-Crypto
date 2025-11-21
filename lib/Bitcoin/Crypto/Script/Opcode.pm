@@ -946,8 +946,10 @@ sub _OP_CHECKMULTISIG
 		$runner->_stack_error unless $pubkeys_num > 0 && @$stack >= $pubkeys_num;
 		my @pubkeys = splice @$stack, -$pubkeys_num;
 
-		$runner->_script_error('SegWit validation requires all public keys to be compressed')
-			if $runner->transaction->is_native_segwit && notall { get_public_key_compressed($_) } @pubkeys;
+		# this is only a policy:
+		# https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#restrictions-on-public-key-type
+		# $runner->_script_error('SegWit validation requires all public keys to be compressed')
+		# 	if $runner->transaction->is_native_segwit && notall { get_public_key_compressed($_) } @pubkeys;
 
 		my $signatures_num = $runner->to_int(pop @$stack);
 		$runner->_stack_error unless $signatures_num > 0 && @$stack >= $signatures_num;

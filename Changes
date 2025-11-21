@@ -11,6 +11,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	[Fixes]
 	- get_taproot_output_key yields the same key if called on a taproot_output key
 	- OP_CHECKMULTISIG now correctly fails without the dangling stack element
+	- OP_CHECKMULTISIG now correctly allows uncompressed public keys in segwit (like OP_CHECKSIG)
 
 4.002 Fri Nov 14, 2025
 	[Public interface changes]
