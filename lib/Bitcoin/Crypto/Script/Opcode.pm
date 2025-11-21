@@ -977,8 +977,9 @@ sub _OP_CHECKMULTISIG
 		$runner->_script_error('OP_CHECKMULTISIG dummy argument must be empty')
 			if $runner->flags->nulldummy && length $unused;
 
-		my $result = $found && !@signatures;
-		push @$stack, $runner->from_bool($result);
+		# checking is correct if we have no more signatures to check and the
+		# last one was found correctly
+		push @$stack, $runner->from_bool($found && !@signatures);
 	};
 }
 
