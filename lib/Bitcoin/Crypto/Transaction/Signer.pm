@@ -77,6 +77,16 @@ sub _find_next_sigop
 	return $runner;
 }
 
+sub _multisigop
+{
+	my ($self) = @_;
+
+	my $runner = $self->_runner;
+	my $op = $runner->operations->[$runner->pos];
+
+	return $op && $op->[0]->name =~ /OP_CHECKMULTISIG/;
+}
+
 sub _get_signature
 {
 	die 'unimplemented';
@@ -157,53 +167,29 @@ sub add_signature
 	}
 
 	$self->add_bytes($signature);
-	$runner->step;
+	$runner->step
+		unless $self->_multisigop;
 
 	return $self;
 }
 
-signature_for add_multisignature => (
+signature_for finalize_multisignature => (
 	method => Object,
-	positional => [
-		ArrayRef [
-			Tuple [
-				ByteStr | InstanceOf ['Bitcoin::Crypto::Key::Private'],
-				Slurpy [
-					Dict [
-						sighash => Optional [PositiveOrZeroInt],
-					]
-				],
-			]
-		],
-		{slurpy => !!1}
-	],
+	positional => [],
 );
 
-sub add_multisignature
+sub finalize_multisignature
 {
-	my ($self, $keys) = @_;
-	my $runner = $self->_find_next_sigop;
+	my ($self) = @_;
 
-	# reverse the key order, so they can be passed in the order of occurence in
-	# the script
-	foreach my $key (reverse @$keys) {
-		my ($privkey_or_signature, %args) = @$key;
-		my $signature;
-
-		if (!ref $privkey_or_signature) {
-			$signature = $privkey_or_signature;
-		}
-		else {
-			$signature = $self->_get_signature($privkey_or_signature, \%args);
-		}
-
-		$self->add_bytes($signature);
-	}
+	Bitcoin::Crypto::Exception::Sign->raise(
+		'not on multisignature opcode'
+	) unless $self->_multisigop;
 
 	# add mandatory nulldummy element
 	$self->add_bytes('');
+	$self->_runner->step;
 
-	$runner->step;
 	return $self;
 }
 

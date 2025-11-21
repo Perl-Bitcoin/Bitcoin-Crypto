@@ -48,15 +48,14 @@ $tx
 	->sign(
 		signing_index => 0,
 	)
-	->add_multisignature(
+	->add_signature($priv2)
+	->add_signature(
 		[
-			[
-				hex =>
-				'30440220353362c57931db260ea62aa98718d5f01e9512b0443a5fc01dd54322adb9cc9e022001cb0d83f2e5c5bf390cdd524181abf1af7c5bc10babd74477c36ed23b15ef4702'
-			]
-		],
-		[$priv2],
-	);
+			hex =>
+			'30440220353362c57931db260ea62aa98718d5f01e9512b0443a5fc01dd54322adb9cc9e022001cb0d83f2e5c5bf390cdd524181abf1af7c5bc10babd74477c36ed23b15ef4702'
+		]
+	)
+	->finalize_multisignature;
 
 # P2SH output
 $tx
@@ -64,15 +63,14 @@ $tx
 		signing_index => 1,
 		script => $script,
 	)
-	->add_multisignature(
-		[$priv1, sighash => Bitcoin::Crypto::Constants::sighash_single],
+	->add_signature(
 		[
-			[
-				hex =>
-				'304402206ef02f993aa36743f2e38261e73721e8ea61eee68c9789b5b13321f3f22bb15a02203064f3d456d11a0181505a524aa9c3f639d87878daaab1177db9039a57309a3d01'
-			]
+			hex =>
+			'304402206ef02f993aa36743f2e38261e73721e8ea61eee68c9789b5b13321f3f22bb15a02203064f3d456d11a0181505a524aa9c3f639d87878daaab1177db9039a57309a3d01'
 		]
-	);
+	)
+	->add_signature($priv1, sighash => Bitcoin::Crypto::Constants::sighash_single)
+	->finalize_multisignature;
 
 ok lives { $tx->verify }, 'transaction verification ok';
 
