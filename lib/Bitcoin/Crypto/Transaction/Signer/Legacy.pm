@@ -29,11 +29,9 @@ sub _get_signature
 {
 	my ($self, $privkey, $args) = @_;
 	my $runner = $self->_runner;
-	my $op = $runner->operations->[$runner->pos][0];
-
 	my $pubkey = $privkey->get_public_key;
 
-	if ($op->name =~ /^OP_CHECKMULTISIG/) {
+	if ($self->_multisigop) {
 		my $stack = $runner->stack;
 		my $pubkey_count = $runner->to_int($stack->[-1] // "\x00");
 		my @pubkeys = @{$stack}[-1 - $pubkey_count .. -2];
