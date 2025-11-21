@@ -352,7 +352,10 @@ sub dump
 	if ($self->has_witness) {
 		push @result, 'witness: ';
 		foreach my $witness (@{$self->witness}) {
-			push @result, to_format [hex => $witness];
+			my $hex_el = to_format [hex => $witness];
+			$hex_el = '<empty>' unless length $hex_el;
+
+			push @result, $hex_el;
 		}
 	}
 
