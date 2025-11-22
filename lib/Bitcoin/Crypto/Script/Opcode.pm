@@ -36,7 +36,7 @@ has param 'needs_transaction' => (
 	default => 0,
 );
 
-has param 'pushes' => (
+has param 'pushop' => (
 	isa => Bool,
 	default => 0,
 );
@@ -1081,22 +1081,22 @@ sub _build_opcodes
 	my %opcodes = (
 		OP_0 => {
 			code => 0x00,
-			pushes => !!1,
+			pushop => !!1,
 			runner => $class->_OP_NUM(0),
 		},
 		OP_PUSHDATA1 => {
 			code => 0x4c,
-			pushes => !!1,
+			pushop => !!1,
 			runner => $class->_OP_PUSHDATA,
 		},
 		OP_PUSHDATA2 => {
 			code => 0x4d,
-			pushes => !!1,
+			pushop => !!1,
 			runner => $class->_OP_PUSHDATA,
 		},
 		OP_PUSHDATA4 => {
 			code => 0x4e,
-			pushes => !!1,
+			pushop => !!1,
 			runner => $class->_OP_PUSHDATA,
 		},
 		OP_1NEGATE => {
@@ -1394,7 +1394,7 @@ sub _build_opcodes
 		$opcodes{"OP_PUSH$num"} = {
 			name => 'OP_PUSH',
 			code => $num,
-			pushes => !!1,
+			pushop => !!1,
 			runner => $class->_OP_PUSHDATA,
 		};
 	}
@@ -1402,7 +1402,7 @@ sub _build_opcodes
 	for my $num (1 .. 16) {
 		$opcodes{"OP_$num"} = {
 			code => 0x50 + $num,
-			pushes => !!1,
+			pushop => !!1,
 			runner => $class->_OP_NUM($num),
 		};
 	}

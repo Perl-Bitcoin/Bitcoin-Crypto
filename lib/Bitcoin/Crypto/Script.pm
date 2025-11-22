@@ -208,7 +208,7 @@ sub is_pushes_only
 	my ($self) = @_;
 
 	foreach my $op (@{$self->operations}) {
-		return !!0 unless $op->[0]->pushes;
+		return !!0 unless $op->[0]->pushop;
 	}
 
 	return !!1;
