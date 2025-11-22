@@ -153,7 +153,8 @@ signature_for add_signature => (
 	method => Object,
 	head => [ByteStr | InstanceOf ['Bitcoin::Crypto::Key::Private']],
 	named => [
-		sighash => Optional [PositiveOrZeroInt],
+		sighash => Maybe [PositiveOrZeroInt],
+		{default => undef},
 	],
 	bless => !!0,
 );
