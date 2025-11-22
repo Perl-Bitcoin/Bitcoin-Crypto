@@ -31,20 +31,27 @@ sub get_flags
 	return Bitcoin::Crypto::Transaction::Flags->new_empty(%flags);
 }
 
+sub get_file_data
+{
+	my ($case_name) = @_;
+
+	local $/;
+
+	my $file_location = $ENV{RELEASE_TESTS_DATA}
+		or die 'no RELEASE_TESTS_DATA environmental variable was specified';
+
+	my $file = "$file_location/$case_name.json";
+	open my $fh, '<', $file
+		or die "$case_name test requires file $file";
+
+	return decode_json(readline $fh);
+}
+
 sub test_validation
 {
 	my ($case_name, $single_case_ind) = @_;
 
-	my $data = do {
-		local $/;
-
-		my $file_location = $ENV{RELEASE_TESTS_DATA} // 'xt/data';
-		my $file = "$file_location/$case_name.json";
-		open my $fh, '<', $file
-			or skip_all "$case_name test requires file $file";
-
-		decode_json(readline $fh);
-	};
+	my $data = get_file_data($case_name);
 
 	my $script_runner = Bitcoin::Crypto::Script::Runner->new;
 	foreach my $case_ind (0 .. $#$data)

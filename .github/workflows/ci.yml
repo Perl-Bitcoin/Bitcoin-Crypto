@@ -30,6 +30,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Clone test data repo
+      run: |
+        git clone https://github.com/Perl-Bitcoin/test-data.git test-data
+
     - name: Set up perl
       uses: shogo82148/actions-setup-perl@v1
       with:
@@ -63,10 +67,12 @@ jobs:
       if:  ${{ failure() && startsWith( matrix.runner, 'macos-') }}
       run: |
          cat  /Users/runner/.cpanm/work/*/build.log
+
     - name: Run tests
       env:
         AUTHOR_TESTING: 1
         RELEASE_TESTING: 1
+        RELEASE_TESTS_DATA: test-data
       run: |
         prove -l -r t xt
 
