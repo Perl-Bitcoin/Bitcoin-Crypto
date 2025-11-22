@@ -16,26 +16,7 @@ use Bitcoin::Crypto::Types -types;
 use namespace::clean;
 
 extends 'Bitcoin::Crypto::Transaction::Signer::CustomLegacy';
-
-signature_for add_signature => (
-	method => Object,
-	head => [InstanceOf ['Bitcoin::Crypto::Key::Private']],
-	named => [
-		sighash => Maybe [PositiveOrZeroInt],
-		{default => undef},
-	],
-	bless => !!0,
-);
-
-sub add_signature
-{
-	my ($self, $privkey, $args) = @_;
-
-	$self->add_bytes($privkey->get_public_key->to_serialized);
-	$self->SUPER::add_signature($privkey, $args);
-
-	return $self;
-}
+with 'Bitcoin::Crypto::Transaction::Signer::Role::KeyHash';
 
 1;
 

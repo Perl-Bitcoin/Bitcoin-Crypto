@@ -122,8 +122,6 @@ sub _initialize
 		my $control_block = $self->script_tree->get_control_block($self->leaf_id, $self->public_key);
 		push @{$self->_signature}, $control_block->to_serialized, $self->script->to_serialized;
 	}
-
-	$self->SUPER::_initialize;
 }
 
 sub _get_signature

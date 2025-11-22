@@ -23,6 +23,8 @@ has extended 'script' => (
 	init_arg => undef,
 );
 
+with 'Bitcoin::Crypto::Transaction::Signer::Role::KeyHash';
+
 sub _build_script
 {
 	my ($self) = @_;
@@ -32,26 +34,6 @@ sub _build_script
 	my ($version, $pkh) = @{$runner->stack};
 
 	return Bitcoin::Crypto::Script::Common->new(PKH => $pkh);
-}
-
-signature_for add_signature => (
-	method => Object,
-	head => [InstanceOf ['Bitcoin::Crypto::Key::Private']],
-	named => [
-		sighash => Maybe [PositiveOrZeroInt],
-		{default => undef},
-	],
-	bless => !!0,
-);
-
-sub add_signature
-{
-	my ($self, $privkey, $args) = @_;
-
-	$self->add_bytes($privkey->get_public_key->to_serialized);
-	$self->SUPER::add_signature($privkey, $args);
-
-	return $self;
 }
 
 1;
