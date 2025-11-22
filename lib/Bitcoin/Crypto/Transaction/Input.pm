@@ -63,50 +63,6 @@ sub _nested_script
 	return $real_script;
 }
 
-# script code for segwit digests (see script_base)
-sub _script_code
-{
-	my ($self) = @_;
-	my $utxo = $self->utxo;
-
-	my $locking_script = $utxo->output->locking_script;
-	my $program;
-	my %types = (
-		P2TR => sub {
-
-			# get taproot key from P2TR (ignore the first two OPs - version and push)
-			my $pubkey = substr $locking_script->to_serialized, 2;
-			$program = Bitcoin::Crypto::Script::Common->new(P2TR => $pubkey);
-		},
-		P2WPKH => sub {
-
-			# get script hash from P2WPKH (ignore the first two OPs - version and push)
-			my $hash = substr $locking_script->to_serialized, 2;
-			$program = Bitcoin::Crypto::Script::Common->new(PKH => $hash);
-		},
-		P2WSH => sub {
-
-			# TODO: this is not complete, as it does not take OP_CODESEPARATORs into account
-			# NOTE: Transaction::Digest sets witness to signing_subscript
-			$program = btc_script->from_serialized(($self->witness // [''])->[-1]);
-		},
-	);
-
-	my $type = $utxo->output->locking_script->type;
-
-	if ($type eq 'P2SH') {
-
-		# nested - nothing should get here without checking if nested script is native segwit
-		my $nested = $self->_nested_script;
-		$type = $nested->type;
-
-		$locking_script = $nested;
-	}
-
-	$types{$type}->();
-	return $program;
-}
-
 sub _build_utxo
 {
 	my ($self) = @_;
@@ -297,17 +253,43 @@ sub serialized_witness
 	return $serialized;
 }
 
-signature_for script_base => (
-	method => Object,
-	positional => [],
-);
-
 sub script_base
 {
 	my ($self) = @_;
 
 	if ($self->is_segwit) {
-		return $self->_script_code;
+		my $utxo = $self->utxo;
+
+		my $locking_script = $utxo->output->locking_script;
+		my $program;
+		my %types = (
+			P2WPKH => sub {
+
+				# get script hash from P2WPKH (ignore the first two OPs - version and push)
+				my $hash = substr $locking_script->to_serialized, 2;
+				$program = Bitcoin::Crypto::Script::Common->new(PKH => $hash);
+			},
+			P2WSH => sub {
+
+				# NOTE: Transaction::Digest sets witness to signing_subscript,
+				# which takes OP_CODESEPARATORs into account
+				$program = btc_script->from_serialized(($self->witness // [''])->[-1]);
+			},
+		);
+
+		my $type = $utxo->output->locking_script->type;
+
+		if ($type eq 'P2SH') {
+
+			# nested - nothing should get here without checking if nested script is native segwit
+			my $nested = $self->_nested_script;
+			$type = $nested->type;
+
+			$locking_script = $nested;
+		}
+
+		$types{$type}->();
+		return $program;
 	}
 	else {
 		return $self->utxo->output->locking_script;
@@ -516,12 +498,6 @@ Returns true if this input references a taproot output.
 
 Returns a bytestring with prevout data ready to be encoded in places like
 digest preimages. Mostly used internally.
-
-=head3 script_base
-
-	$script = $object->script_base()
-
-Returns a base script for the digest. Mostly used internally.
 
 =head3 dump
 

@@ -5,6 +5,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Script::Tree:
 		- added get_tapleaf_script method
 		- added get_tapleaf_version method
+	- Bitcoin::Crypto::Transaction::Input:
+		- method script_base is now internal use only, as it depends on other parts to deliver correct results
 
 	[Improvements and behavior changes]
 
