@@ -122,6 +122,42 @@ sub BUILD
 	$self->_initialize;
 }
 
+sub new_impl
+{
+	my ($class, $transaction, $args) = @_;
+
+	$args->{transaction} = $transaction;
+	Bitcoin::Crypto::Exception::Sign->raise(
+		'signing_index is required'
+	) unless defined $args->{signing_index};
+
+	my $input = $transaction->inputs->[$args->{signing_index}];
+
+	Bitcoin::Crypto::Exception::Sign->raise(
+		'no such input'
+	) unless defined $input;
+
+	my $type = $input->utxo->output->locking_script->type // '';
+
+	state $known_types = {map { $_ => 1 } qw(P2PKH P2SH P2WPKH P2WSH P2TR)};
+
+	my $impl_class;
+	if ($type eq 'P2SH' && $args->{compat}) {
+		$impl_class = $args->{script} ? 'CompatP2WSH' : 'CompatP2WPKH';
+	}
+	elsif ($known_types->{$type}) {
+		$impl_class = $type;
+	}
+	else {
+		$impl_class = 'CustomLegacy';
+	}
+
+	$impl_class = "Bitcoin::Crypto::Transaction::Signer::$impl_class";
+
+	eval "require $impl_class; 1" or die $@;
+	return $impl_class->new($args);
+}
+
 signature_for add_bytes => (
 	method => Object,
 	positional => [ByteStr],
