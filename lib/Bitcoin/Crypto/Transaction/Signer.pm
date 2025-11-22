@@ -59,22 +59,35 @@ sub _find_next_sigop
 
 	my $runner = $self->_runner;
 	my $ops = $runner->operations;
-	while ('finding sigop') {
-		my $pos = $runner->pos;
+	Bitcoin::Crypto::Exception::Sign->trap_into(
+		sub {
+			while ('finding sigop') {
+				my $pos = $runner->pos;
 
-		if ($pos > $#$ops) {
-			Bitcoin::Crypto::Exception::Sign->raise(
-				'could not find a sigop'
-			) if $error;
+				if ($pos > $#$ops) {
+					die 'could not find a sigop' if $error;
+					last;
+				}
 
-			last;
-		}
-
-		last if $ops->[$pos][0]->sigop;
-		$runner->step;
-	}
+				last if $ops->[$pos][0]->sigop;
+				$runner->step;
+			}
+		},
+		'finding next sigop failed'
+	);
 
 	return $runner;
+}
+
+sub _step_over_sigop
+{
+	my ($self) = @_;
+	Bitcoin::Crypto::Exception::Sign->trap_into(
+		sub {
+			$self->_runner->step;
+		},
+		'stepping over sigop failed'
+	);
 }
 
 sub _multisigop
@@ -159,7 +172,7 @@ sub add_signature
 	}
 
 	$self->add_bytes($signature);
-	$runner->step
+	$self->_step_over_sigop
 		unless $self->_multisigop;
 
 	return $self;
@@ -180,7 +193,7 @@ sub finalize_multisignature
 
 	# add mandatory nulldummy element
 	$self->add_bytes('');
-	$self->_runner->step;
+	$self->_step_over_sigop;
 
 	return $self;
 }
