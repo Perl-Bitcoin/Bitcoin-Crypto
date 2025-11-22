@@ -16,7 +16,7 @@ use Bitcoin::Crypto::Util qw(get_taproot_ext);
 
 use namespace::clean;
 
-extends 'Bitcoin::Crypto::Transaction::Signer::Segwit';
+extends 'Bitcoin::Crypto::Transaction::Signer::Taproot';
 
 has option 'script_tree' => (
 	coerce => BitcoinScriptTree,
@@ -43,11 +43,6 @@ has extended 'script' => (
 	lazy => 1,
 	init_arg => undef,
 );
-
-sub _multisigop
-{
-	return !!0;
-}
 
 sub _build_script
 {
@@ -152,13 +147,6 @@ sub _get_signature
 	}
 
 	return $signature;
-}
-
-sub finalize_multisignature
-{
-	Bitcoin::Crypto::Exception::Sign->raise(
-		'taproot transactions do not support multisignatures'
-	);
 }
 
 1;
