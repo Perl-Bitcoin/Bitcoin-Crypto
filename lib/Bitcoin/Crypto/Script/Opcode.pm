@@ -7,7 +7,6 @@ use warnings;
 use Moo;
 use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
-use List::Util qw(notall);
 
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
@@ -17,8 +16,7 @@ use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Helpers qw(ecc);
-use Bitcoin::Crypto::Util qw(hash160 hash256 get_public_key_compressed lift_x);
+use Bitcoin::Crypto::Util qw(hash160 hash256 get_public_key_compressed);
 use Bitcoin::Crypto::Transaction::Input;
 
 use namespace::clean;
