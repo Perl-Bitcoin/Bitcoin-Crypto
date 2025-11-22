@@ -9,7 +9,7 @@ use Try::Tiny;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Helpers qw(ecc);
-use Bitcoin::Crypto::Transaction::Sign;
+use Bitcoin::Crypto::Transaction::AutoSigner;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Transaction::Flags;
 use Moo::Role;
@@ -88,7 +88,7 @@ sub sign_transaction
 
 	$args->{transaction} = $transaction;
 	$args->{key} = $self;
-	my $signer = Bitcoin::Crypto::Transaction::Sign->new($args);
+	my $signer = Bitcoin::Crypto::Transaction::AutoSigner->new($args);
 	$signer->sign;
 
 	return;
