@@ -19,6 +19,15 @@ use namespace::clean;
 
 extends 'Bitcoin::Crypto::Script::Opcode';
 
+sub _compile_OP_SUCCESS
+{
+	my ($class) = @_;
+
+	return sub {
+		Bitcoin::Crypto::Exception::ScriptSuccess->raise('OP_SUCCESS encountered');
+	};
+}
+
 sub _OP_CHECKSIG
 {
 	my ($class) = @_;
@@ -177,11 +186,7 @@ sub _build_opcodes
 
 		$opcodes{"OP_SUCCESS$succ"} = {
 			code => $succ,
-			on_compilation => sub {
-				my ($runner, $opcode) = @_;
-
-				Bitcoin::Crypto::Exception::ScriptSuccess->raise('OP_SUCCESS encountered');
-			},
+			on_compilation => $class->_compile_OP_SUCCESS,
 		};
 	}
 

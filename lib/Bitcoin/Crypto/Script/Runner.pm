@@ -358,117 +358,17 @@ sub compile
 {
 	my ($self) = @_;
 	my $opcode_class = $self->script->opcode_class;
-	my $serialized = $self->script->to_serialized;
 	my @ops;
-
-	my $data_push = sub {
-		my ($size) = @_;
-
-		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-			'no PUSHDATA size in the script'
-		) unless defined $size;
-
-		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-			'not enough bytes of data in the script'
-		) if length $serialized < $size;
-
-		return substr $serialized, 0, $size, '';
-	};
+	my @debug_ops;
 
 	my %context = (
-		op_if => undef,
-		op_else => undef,
-		previous_context => undef,
+		serialized => $self->script->to_serialized,
+		position => 0,
 	);
-
-	my %special_ops = (
-		OP_PUSH => sub {
-			my ($op) = @_;
-			my $size = $op->[0]->code;
-
-			push @$op, $data_push->($size);
-			$op->[1] .= $op->[2];
-		},
-		OP_PUSHDATA1 => sub {
-			my ($op) = @_;
-			my $raw_size = substr $serialized, 0, 1, '';
-			my $size = unpack 'C', $raw_size;
-
-			push @$op, $data_push->($size);
-			$op->[1] .= $raw_size . $op->[2];
-		},
-		OP_PUSHDATA2 => sub {
-			my ($op) = @_;
-			my $raw_size = substr $serialized, 0, 2, '';
-			my $size = unpack 'v', $raw_size;
-
-			push @$op, $data_push->($size);
-			$op->[1] .= $raw_size . $op->[2];
-		},
-		OP_PUSHDATA4 => sub {
-			my ($op) = @_;
-			my $raw_size = substr $serialized, 0, 4, '';
-			my $size = unpack 'V', $raw_size;
-
-			push @$op, $data_push->($size);
-			$op->[1] .= $raw_size . $op->[2];
-		},
-		OP_IF => sub {
-			my ($op) = @_;
-
-			if ($context{op_if}) {
-				%context = (
-					previous_context => {%context},
-				);
-			}
-			$context{op_if} = $op;
-		},
-		OP_ELSE => sub {
-			my ($op, $pos) = @_;
-
-			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-				'OP_ELSE found but no previous OP_IF or OP_NOTIF'
-			) if !$context{op_if};
-
-			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-				'multiple OP_ELSE for a single OP_IF'
-			) if @{$context{op_if}} > 2;
-
-			$context{op_else} = $op;
-
-			push @{$context{op_if}}, $pos;
-		},
-		OP_ENDIF => sub {
-			my ($op, $pos) = @_;
-
-			Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-				'OP_ENDIF found but no previous OP_IF or OP_NOTIF'
-			) if !$context{op_if};
-
-			push @{$context{op_if}}, undef
-				if @{$context{op_if}} == 2;
-			push @{$context{op_if}}, $pos;
-
-			if ($context{op_else}) {
-				push @{$context{op_else}}, $pos;
-			}
-
-			if ($context{previous_context}) {
-				%context = %{$context{previous_context}};
-			}
-			else {
-				%context = ();
-			}
-		},
-	);
-
-	$special_ops{OP_NOTIF} = $special_ops{OP_IF};
-	my @debug_ops;
-	my $position = 0;
 
 	try {
-		while (length $serialized) {
-			my $this_byte = substr $serialized, 0, 1, '';
+		while (length $context{serialized}) {
+			my $this_byte = substr $context{serialized}, 0, 1, '';
 			my $opcode;
 			my @to_push;
 
@@ -486,26 +386,22 @@ sub compile
 			unshift @to_push, $opcode;
 
 			if ($opcode->has_on_compilation) {
-				$opcode->on_compilation->($self, $opcode);
-			}
-
-			if (exists $special_ops{$opcode->name}) {
-				$special_ops{$opcode->name}->(\@to_push, $position);
+				$opcode->on_compilation->($self, \@to_push, \%context);
 			}
 
 			push @ops, \@to_push;
-			$position += 1;
+			$context{position} += 1;
 		}
 
 		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
 			'some OP_IFs were not closed'
-		) if $context{op_if};
+		) if $context{branch};
 	}
 	catch {
 		my $ex = $_;
 		if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::ScriptCompilation')) {
 			$ex->set_script(\@debug_ops);
-			$ex->set_error_position($position);
+			$ex->set_error_position($context{position});
 		}
 
 		die $ex;

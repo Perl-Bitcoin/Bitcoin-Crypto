@@ -46,7 +46,8 @@ has param 'sigop' => (
 
 # args for coderef are:
 # - Bitcoin::Crypto::Script::Runner instance
-# - Bitcoin::Crypto::Script::Opcode instance
+# - Compiled opcode (array from compile method in Runner)
+# - Compilation context (hashref)
 has option 'on_compilation' => (
 	isa => CodeRef,
 );
@@ -69,14 +70,154 @@ sub _verify_stack
 	}
 }
 
-sub _OP_NUM
+sub __compile_data_push
+{
+	my ($class, $context, $size) = @_;
+
+	Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+		'no PUSHDATA size in the script'
+	) unless defined $size;
+
+	Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+		'not enough bytes of data in the script'
+	) if length $context->{serialized} < $size;
+
+	return substr $context->{serialized}, 0, $size, '';
+}
+
+sub _compile_OP_NUM
 {
 	my ($class, $num) = @_;
 
 	return sub {
-		my $runner = shift;
+		my ($runner, $op, $context) = @_;
 
-		push @{$runner->stack}, $num == 0 ? '' : $runner->from_int($num);
+		push @$op, $num == 0 ? '' : $runner->from_int($num);
+	};
+}
+
+sub _compile_OP_PUSH
+{
+	my ($class, $size) = @_;
+
+	return sub {
+		my ($runner, $op, $context) = @_;
+
+		push @$op, $class->__compile_data_push($context, $size);
+		$op->[1] .= $op->[2];
+	};
+}
+
+sub _compile_OP_PUSHDATA
+{
+	my ($class, $length) = @_;
+
+	state $formats = {
+		1 => 'C',
+		2 => 'v',
+		4 => 'V',
+	};
+
+	my $format = $formats->{$length}
+		// die 'bad pushdata length';
+
+	return sub {
+		my ($runner, $op, $context) = @_;
+
+		my $raw_size = substr $context->{serialized}, 0, $length, '';
+		my $size = unpack $format, $raw_size;
+
+		push @$op, $class->__compile_data_push($context, $size);
+		$op->[1] .= $op->[2];
+	};
+}
+
+sub _compile_OP_IF
+{
+	my ($class) = @_;
+
+	return sub {
+		my ($runner, $op, $context) = @_;
+
+		if ($context->{branch}{if}) {
+			my $prev = {%{$context->{branch}}};
+			$context->{branch} = {
+				previous => $prev,
+			};
+		}
+
+		$context->{branch}{if} = $op;
+	};
+}
+
+sub _compile_OP_ELSE
+{
+	my ($class) = @_;
+
+	return sub {
+		my ($runner, $op, $context) = @_;
+
+		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+			'OP_ELSE found but no previous OP_IF or OP_NOTIF'
+		) if !$context->{branch}{if};
+
+		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+			'multiple OP_ELSE for a single OP_IF'
+		) if @{$context->{branch}{if}} > 2;
+
+		$context->{branch}{else} = $op;
+
+		push @{$context->{branch}{if}}, $context->{position};
+	};
+}
+
+sub _compile_OP_ENDIF
+{
+	my ($class) = @_;
+
+	return sub {
+		my ($runner, $op, $context) = @_;
+
+		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+			'OP_ENDIF found but no previous OP_IF or OP_NOTIF'
+		) if !$context->{branch}{if};
+
+		push @{$context->{branch}{if}}, undef
+			if @{$context->{branch}{if}} == 2;
+		push @{$context->{branch}{if}}, $context->{position};
+
+		if ($context->{branch}{else}) {
+			push @{$context->{branch}{else}}, $context->{position};
+		}
+
+		if ($context->{branch}{previous}) {
+			$context->{branch} = $context->{branch}{previous};
+		}
+		else {
+			delete $context->{branch};
+		}
+	};
+}
+
+sub _compile_OP_VERIF
+{
+	my ($class) = @_;
+
+	return sub {
+		my ($runner, $op, $context) = @_;
+
+		$runner->_invalid_script;
+	};
+}
+
+sub _OP_NUM
+{
+	my ($class) = @_;
+
+	return sub {
+		my ($runner, $num) = @_;
+
+		push @{$runner->stack}, $num;
 		$class->_verify_stack($runner);
 	};
 }
@@ -1080,21 +1221,25 @@ sub _build_opcodes
 		OP_0 => {
 			code => 0x00,
 			pushop => !!1,
-			runner => $class->_OP_NUM(0),
+			on_compilation => $class->_compile_OP_NUM(0),
+			runner => $class->_OP_NUM,
 		},
 		OP_PUSHDATA1 => {
 			code => 0x4c,
 			pushop => !!1,
+			on_compilation => $class->_compile_OP_PUSHDATA(1),
 			runner => $class->_OP_PUSHDATA,
 		},
 		OP_PUSHDATA2 => {
 			code => 0x4d,
 			pushop => !!1,
+			on_compilation => $class->_compile_OP_PUSHDATA(2),
 			runner => $class->_OP_PUSHDATA,
 		},
 		OP_PUSHDATA4 => {
 			code => 0x4e,
 			pushop => !!1,
+			on_compilation => $class->_compile_OP_PUSHDATA(4),
 			runner => $class->_OP_PUSHDATA,
 		},
 		OP_1NEGATE => {
@@ -1115,32 +1260,30 @@ sub _build_opcodes
 		},
 		OP_IF => {
 			code => 0x63,
+			on_compilation => $class->_compile_OP_IF,
 			runner => $class->_OP_IF,
 		},
 		OP_NOTIF => {
 			code => 0x64,
+			on_compilation => $class->_compile_OP_IF,
 			runner => $class->_OP_IF(!!1),
 		},
 		OP_VERIF => {
 			code => 0x65,
-			on_compilation => sub {
-				my ($runner, $opcode) = @_;
-				$runner->_invalid_script;
-			},
+			on_compilation => $class->_compile_OP_VERIF,
 		},
 		OP_VERNOTIF => {
 			code => 0x66,
-			on_compilation => sub {
-				my ($runner, $opcode) = @_;
-				$runner->_invalid_script;
-			},
+			on_compilation => $class->_compile_OP_VERIF,
 		},
 		OP_ELSE => {
 			code => 0x67,
+			on_compilation => $class->_compile_OP_ELSE,
 			runner => $class->_OP_ELSE,
 		},
 		OP_ENDIF => {
 			code => 0x68,
+			on_compilation => $class->_compile_OP_ENDIF,
 			runner => $class->_OP_ENDIF,
 		},
 		OP_VERIFY => {
@@ -1393,6 +1536,7 @@ sub _build_opcodes
 			name => 'OP_PUSH',
 			code => $num,
 			pushop => !!1,
+			on_compilation => $class->_compile_OP_PUSH($num),
 			runner => $class->_OP_PUSHDATA,
 		};
 	}
@@ -1401,7 +1545,8 @@ sub _build_opcodes
 		$opcodes{"OP_$num"} = {
 			code => 0x50 + $num,
 			pushop => !!1,
-			runner => $class->_OP_NUM($num),
+			on_compilation => $class->_compile_OP_NUM($num),
+			runner => $class->_OP_NUM,
 		};
 	}
 
