@@ -9,11 +9,25 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- method script_base is now internal use only, as it depends on other parts to deliver correct results
 
 	[Improvements and behavior changes]
+	- subscript generation now correctly deletes signatures (FindAndDelete)
+	- future segwit versions are now recognized as UNKNOWN_SEGWIT script types
+	- Script's is_native_segwit method will now return true for future segwit versions
+	- OP_1NEGATE is now correctly recognized as a pushop
+	- push_bytes in Scripts will now include OP_1NEGATE for value 0x81
 
 	[Fixes]
 	- get_taproot_output_key yields the same key if called on a taproot_output key
 	- OP_CHECKMULTISIG now correctly fails without the dangling stack element
 	- OP_CHECKMULTISIG now correctly allows uncompressed public keys in segwit (like OP_CHECKSIG)
+	- OP_CHECKMULTISIG now uses the correct order of evaluating its arguments
+	- OP_CHECKMULTISIG now correctly handles empty signatures and public keys
+	- OP_CHECKLOCKTIMEVERIFY and OP_CHECKSEQUENCEVERIFY now correctly do not remove their argument from stack
+	- coinbase transactions now check if they have at least 2 bytes of coinbase input data
+	- transactions now check if value of any output is greater than max_money constant
+	- transactions now check if any input is duplicated
+	- disabling strict_signatures flag now causes non-strictly encoded signatures to validate
+	- transaction is now only considered coinbase if it has a single coinbase input
+	- verifying numbers on script stack is now correctly based on bytelength and not numeric value
 
 4.002 Fri Nov 14, 2025
 	[Public interface changes]

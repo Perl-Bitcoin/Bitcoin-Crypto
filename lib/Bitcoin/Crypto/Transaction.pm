@@ -9,7 +9,7 @@ use Mooish::AttributeBuilder -standard;
 use Types::Common -sigs, -types;
 use Scalar::Util qw(blessed);
 use Carp qw(carp);
-use List::Util qw(sum any);
+use List::Util qw(sum any uniqstr);
 
 use Bitcoin::Crypto qw(btc_pub btc_script btc_tapscript btc_script_tree btc_utxo);
 use Bitcoin::Crypto::Constants;
@@ -444,7 +444,7 @@ sub is_coinbase
 	my ($self) = @_;
 	my $inputs = $self->inputs;
 
-	return @{$inputs} > 0 && $inputs->[0]->utxo_location->[0] eq ("\x00" x 32);
+	return @{$inputs} == 1 && $inputs->[0]->utxo_location->[0] eq ("\x00" x 32);
 }
 
 sub _verify_script_default
@@ -454,38 +454,49 @@ sub _verify_script_default
 
 	Bitcoin::Crypto::Exception::TransactionScript->raise(
 		'signature script must only contain push opcodes'
-	) unless $input->signature_script->is_pushes_only;
+	) if $script_runner->flags->signature_pushes_only && !$input->signature_script->is_pushes_only;
 
 	# execute input to get initial stack
 	$script_runner->execute($input->signature_script);
-	my $stack = $script_runner->stack;
+	my @stack = @{$script_runner->stack};
+	my @locking_stack;
+	my $redeem_script;
+
+	if ($script_runner->flags->p2sh && $locking_script->has_type && $locking_script->type eq 'P2SH') {
+		$redeem_script = pop @stack;
+		@locking_stack = ($redeem_script)
+			if defined $redeem_script;
+	}
+	else {
+		@locking_stack = @stack;
+	}
 
 	# execute previous output
-	# NOTE: shallow copy of the stack
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
-			$script_runner->execute($locking_script, [@$stack]);
+			$script_runner->execute($locking_script, \@locking_stack);
 			die 'execution yielded failure'
 				unless $script_runner->success;
 		},
 		'locking script'
 	);
 
-	if ($script_runner->flags->p2sh && $locking_script->has_type && $locking_script->type eq 'P2SH') {
-		my $redeem_script = btc_script->from_serialized(pop @$stack);
-
-		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
-			sub {
-				$script_runner->execute($redeem_script, $stack);
-				die 'execution yielded failure'
-					unless $script_runner->success;
-			},
-			'redeem script'
-		);
+	if (defined $redeem_script) {
+		$redeem_script = btc_script->from_serialized($redeem_script);
 
 		my $type = $redeem_script->type // '';
 		if ($script_runner->flags->segwit && ($type eq 'P2WPKH' || $type eq 'P2WSH')) {
 			$self->_verify_script_segwit($input, $script_runner, $redeem_script);
+		}
+		else {
+			Bitcoin::Crypto::Exception::TransactionScript->trap_into(
+				sub {
+					$script_runner->execute($redeem_script, \@stack);
+					die 'execution yielded failure'
+						unless $script_runner->success;
+				},
+				'redeem script'
+			);
 		}
 	}
 }
@@ -498,39 +509,47 @@ sub _verify_script_segwit
 		unless $compat_script || $input->signature_script->is_empty;
 
 	# use shallow copy of witness as initial stack
-	my $stack = [@{$input->witness // []}];
+	my @stack = @{$input->witness // []};
+	my $redeem_script;
+	my @locking_stack;
 
 	my $locking_script = $compat_script // $input->utxo->output->locking_script;
 	my $hash = substr $locking_script->to_serialized, 2;
 	my $actual_locking_script;
 	if ($locking_script->type eq 'P2WPKH') {
 		$actual_locking_script = Bitcoin::Crypto::Script::Common->new(PKH => $hash);
+		@locking_stack = @stack;
 	}
 	elsif ($locking_script->type eq 'P2WSH') {
 		$actual_locking_script = Bitcoin::Crypto::Script::Common->new(WSH => $hash);
+		$redeem_script = pop @stack;
+		@locking_stack = ($redeem_script) if defined $redeem_script;
 	}
 	else {
-		# not a segwit version 0 output
+		# not a known segwit version 0 output
+
+		die 'unknown witness v0 program' if $locking_script->segwit_version == 0;
+		die 'unknown witness program' if $script_runner->flags->known_witness;
 		return;
 	}
 
-	# execute previous output
-	# NOTE: shallow copy of the stack
+	# execute locking script
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
-			$script_runner->execute($actual_locking_script, [@$stack]);
+			$script_runner->execute($actual_locking_script, \@locking_stack);
 			die 'execution yielded failure'
 				unless $script_runner->success;
 		},
 		'segwit locking script'
 	);
 
-	if ($locking_script->type eq 'P2WSH') {
-		my $redeem_script = btc_script->from_serialized(pop @$stack);
+	# execute redeem script
+	if (defined $redeem_script) {
+		$redeem_script = btc_script->from_serialized($redeem_script);
 
 		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 			sub {
-				$script_runner->execute($redeem_script, $stack);
+				$script_runner->execute($redeem_script, \@stack);
 				die 'execution yielded failure'
 					unless $script_runner->success;
 			},
@@ -655,8 +674,8 @@ sub _verify_coinbase
 	my $coinbase_data = $self->inputs->[0]->signature_script->to_serialized;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
-		'coinbase data exceeds 100 bytes'
-	) if length $coinbase_data > 100;
+		'coinbase data not between 2 and 100 bytes'
+	) if length $coinbase_data < 2 || length $coinbase_data > 100;
 
 	if (!defined $block) {
 		carp 'trying to verify coinbase transaction but block was not set';
@@ -710,13 +729,23 @@ sub verify
 		flags => $args->{flags},
 	);
 
+	# check output values
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'output value is out of range'
+	) if any { $_->value > Bitcoin::Crypto::Constants::max_money } @$outputs;
+
+	# use special procedure if coinbase
 	return $self->_verify_coinbase($script_runner)
 		if $self->is_coinbase;
+
+	# duplicate inputs
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'transaction has duplicate inputs'
+	) if @$inputs != uniqstr map { $_->utxo->txid . $_->utxo->output_index } @$inputs;
 
 	# amount checking
 	my $total_in = sum map { $_->utxo->output->value } @$inputs;
 	my $total_out = sum map { $_->value } @$outputs;
-
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'output value exceeds input'
 	) if $total_in < $total_out;

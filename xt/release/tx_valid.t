@@ -9,7 +9,7 @@ BEGIN {
 use lib 't/lib';
 use BitcoinCoreTest;
 
-BitcoinCoreTest::test_validation('taproot');
+BitcoinCoreTest::test_tx('tx_valid', !!1);
 
 done_testing;
 

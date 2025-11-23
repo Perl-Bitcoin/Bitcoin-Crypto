@@ -30,6 +30,7 @@ our @EXPORT_OK = qw(
 	carp_once
 	parse_formatdesc
 	ecc
+	standard_push
 );
 
 our @CARP_NOT;
@@ -108,6 +109,49 @@ sub ecc
 	}
 
 	return $secp //= Bitcoin::Secp256k1->new;
+}
+
+sub standard_push
+{
+	my ($opcode_name, $bytes) = @_;
+
+	# standard push is not checked for opcodes that push constant data
+	return !!1 if !$opcode_name || $opcode_name =~ /OP_\d/;
+
+	my $bytelen = length $bytes;
+	if ($bytelen == 0) {
+
+		# empty vectors are only pushed by OP_0
+		return !!0;
+	}
+	elsif ($bytelen == 1) {
+		my $ord = ord $bytes;
+
+		# anything up to 0x10 (excluding 0x00) and 0x81 has a special push
+		# opcode
+		return ($ord == 0x00 || $ord > 0x10)
+			&& $ord != 0x81;
+	}
+	elsif ($bytelen <= 75) {
+
+		# byte lengths from 1 to 75 use OP_PUSH
+		return $opcode_name eq 'OP_PUSH';
+	}
+	elsif ($bytelen < (1 << 8)) {
+
+		# byte lengths fitting on 1 byte use OP_PUSHDATA1
+		return $opcode_name eq 'OP_PUSHDATA1';
+	}
+	elsif ($bytelen < (1 << 16)) {
+
+		# byte lengths fitting on 2 bytes use OP_PUSHDATA2
+		return $opcode_name eq 'OP_PUSHDATA2';
+	}
+	else {
+
+		# any other push uses OP_PUSHDATA4
+		return $opcode_name eq 'OP_PUSHDATA4';
+	}
 }
 
 1;

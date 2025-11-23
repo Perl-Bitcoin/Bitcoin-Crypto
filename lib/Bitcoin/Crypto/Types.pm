@@ -104,7 +104,7 @@ my $bytestrlen = __PACKAGE__->add_type(
 
 my $scripttype = __PACKAGE__->add_type(
 	name => 'ScriptType',
-	parent => Enum->of(qw(P2PK P2PKH P2SH P2MS P2WPKH P2WSH P2TR NULLDATA))
+	parent => Enum->of(qw(P2PK P2PKH P2SH P2MS P2WPKH P2WSH P2TR UNKNOWN_SEGWIT NULLDATA))
 );
 
 my $scriptdesc = __PACKAGE__->add_type(

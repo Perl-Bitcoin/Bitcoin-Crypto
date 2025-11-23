@@ -73,7 +73,7 @@ sub get_digest_object
 	return $self->transaction->get_digest_object(
 		flags => $self->flags,
 		signing_index => $self->input_index,
-		signing_subscript => $self->runner->subscript,
+		signing_subscript => $self->runner->subscript($args{signatures}),
 		taproot_ext_flag => $self->taproot_ext_flag,
 		(defined $annex ? (taproot_annex => $annex) : ()),
 		(defined $args{sighash} ? (sighash => $args{sighash}) : ()),

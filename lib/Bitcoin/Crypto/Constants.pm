@@ -29,6 +29,7 @@ use constant {
 	bip44_taproot_purpose => 86,
 
 	units_per_coin => 100_000_000,
+	max_money => '2100000000000000',
 
 	locktime_height_threshold => 500_000_000,
 	max_sequence_no => 0xffffffff,

@@ -33,6 +33,12 @@ has field 'address' => (
 	clearer => 1,
 );
 
+has field 'segwit_version' => (
+	predicate => 1,
+	writer => 1,
+	clearer => 1,
+);
+
 has field '_blueprints' => (
 	builder => 1,
 );
@@ -77,23 +83,30 @@ sub _build_blueprints
 
 		[
 			P2WPKH => [
-				'OP_0',
+				['segwit_version', 0],
 				['address', 20],
 			],
 		],
 
 		[
 			P2WSH => [
-				'OP_0',
+				['segwit_version', 0],
 				['address', 32],
 			]
 		],
 
 		[
 			P2TR => [
-				'OP_1',
+				['segwit_version', 1],
 				['address', 32],
 			]
+		],
+
+		[
+			'UNKNOWN_SEGWIT' => [
+				['segwit_version', 0 .. 16],
+				['data', 2 .. 40],
+			],
 		],
 
 		[
@@ -155,7 +168,7 @@ sub _check_blueprint
 			return !!0 unless chr($opcode->code) eq substr $this_script, $pos, 1;
 			return $self->_check_blueprint($pos, @more_parts);
 		}
-		elsif ($kind eq 'op_n') {
+		elsif ($kind eq 'op_n' || $kind eq 'segwit_version') {
 			my $opcode;
 			try {
 				$opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_code(ord substr $this_script, $pos, 1);
@@ -164,6 +177,9 @@ sub _check_blueprint
 			return !!0 unless $opcode;
 			return !!0 unless $opcode->name =~ /\AOP_(\d+)\z/;
 			return !!0 unless any { $_ == $1 } @vars;
+
+			$self->set_segwit_version($1)
+				if $kind eq 'segwit_version';
 			return $self->_check_blueprint($pos + 1, @more_parts);
 		}
 		else {
@@ -178,8 +194,9 @@ sub check
 	foreach my $variant (@{$self->_blueprints}) {
 		my ($type, $blueprint) = @{$variant};
 
-		# clear address if it was set by previous check
+		# clear data set by previous check
 		$self->clear_address;
+		$self->clear_segwit_version;
 		if ($self->_check_blueprint(0, @{$blueprint})) {
 			$self->set_type($type);
 			last;
@@ -203,6 +220,14 @@ sub get_address
 
 	$self->check;
 	return $self->address;
+}
+
+sub get_segwit_version
+{
+	my ($self) = @_;
+
+	$self->check;
+	return $self->segwit_version;
 }
 
 1;

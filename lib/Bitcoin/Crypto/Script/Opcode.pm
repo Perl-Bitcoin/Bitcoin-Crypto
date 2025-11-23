@@ -11,12 +11,15 @@ use Types::Common -sigs, -types;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 use Crypt::Digest::SHA1 qw(sha1);
+use List::Util qw(notall);
+use Try::Tiny;
 
 use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(hash160 hash256 get_public_key_compressed);
+use Bitcoin::Crypto::Helpers qw(standard_push);
 use Bitcoin::Crypto::Transaction::Input;
 
 use namespace::clean;
@@ -128,7 +131,7 @@ sub _compile_OP_PUSHDATA
 		my $size = unpack $format, $raw_size;
 
 		push @$op, $class->__compile_data_push($context, $size);
-		$op->[1] .= $op->[2];
+		$op->[1] .= $raw_size . $op->[2];
 	};
 }
 
@@ -210,21 +213,9 @@ sub _compile_OP_VERIF
 	};
 }
 
-sub _OP_NUM
-{
-	my ($class) = @_;
-
-	return sub {
-		my ($runner, $num) = @_;
-
-		push @{$runner->stack}, $num;
-		$class->_verify_stack($runner);
-	};
-}
-
 sub _OP_PUSHDATA
 {
-	my ($class) = @_;
+	my ($class, $opcode_name) = @_;
 
 	return sub {
 		my ($runner, $bytes) = @_;
@@ -232,19 +223,10 @@ sub _OP_PUSHDATA
 		$runner->_invalid_script('maximum stack element size exceeded')
 			if length $bytes > Bitcoin::Crypto::Constants::script_max_element_size;
 
+		$runner->_invalid_script("push opcode for data is not minimal in $opcode_name")
+			if $runner->flags->minimaldata && !standard_push($opcode_name, $bytes);
+
 		push @{$runner->stack}, $bytes;
-		$class->_verify_stack($runner);
-	};
-}
-
-sub _OP_1NEGATE
-{
-	my ($class) = @_;
-
-	return sub {
-		my $runner = shift;
-
-		push @{$runner->stack}, $runner->from_int(-1);
 		$class->_verify_stack($runner);
 	};
 }
@@ -287,15 +269,15 @@ sub _OP_IF
 
 		$runner->_stack_error unless @$stack >= 1;
 		my $value = pop @$stack;
-		$value = $runner->is_tapscript ? $runner->to_minimal_bool($value) : $runner->to_bool($value);
+
+		my $minimalif = $runner->is_tapscript
+			|| ($runner->has_transaction && $runner->transaction->is_native_segwit && $runner->flags->minimalif);
+		$value = $minimalif ? $runner->to_minimal_bool($value) : $runner->to_bool($value);
 		$runner->_invalid_script unless defined $value;
+
 		$value = !$value if $inverted;
 
-		if ($value) {
-
-			# continue execution
-		}
-		else {
+		if (!$value) {
 			if (defined $else_pos) {
 				$runner->_set_pos($else_pos);
 			}
@@ -1042,17 +1024,25 @@ sub _OP_CHECKSIG
 
 		my $raw_pubkey = pop @$stack;
 		my $sig = pop @$stack;
+		my $sig_orig = $sig;
 
 		my $hashtype = unpack 'C', substr $sig, -1, 1, '';
-		my $pubkey = btc_pub->from_serialized($raw_pubkey);
 
-		# this is only a policy:
-		# https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#restrictions-on-public-key-type
-		# $runner->_script_error('SegWit validation requires compressed public key')
-		# 	if !$pubkey->compressed && $runner->transaction->is_native_segwit;
+		$runner->_script_error('public keys must be compressed')
+			if $runner->flags->compressed_pubkeys
+			&& $runner->transaction->is_native_segwit
+			&& !get_public_key_compressed($raw_pubkey);
 
-		my $preimage = $runner->transaction->get_digest(sighash => $hashtype);
-		my $result = $pubkey->verify_message($preimage, $sig, flags => $runner->flags);
+		my $pubkey = try { btc_pub->from_serialized($raw_pubkey) };
+
+		my $preimage = $runner->transaction->get_digest(
+			signatures => [$sig_orig],
+			sighash => $hashtype,
+		);
+		my $result = $pubkey ? $pubkey->verify_message($preimage, $sig, flags => $runner->flags) : !!0;
+
+		$runner->_script_error('signature verification failed')
+			if !$result && $runner->flags->nullfail && $sig ne '';
 
 		push @$stack, $runner->from_bool($result);
 	};
@@ -1084,31 +1074,16 @@ sub _OP_CHECKMULTISIG
 		$runner->_stack_error unless $pubkeys_num > 0 && @$stack >= $pubkeys_num;
 		my @pubkeys = splice @$stack, -$pubkeys_num;
 
-		# this is only a policy:
-		# https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#restrictions-on-public-key-type
-		# $runner->_script_error('SegWit validation requires all public keys to be compressed')
-		# 	if $runner->transaction->is_native_segwit && notall { get_public_key_compressed($_) } @pubkeys;
+		$runner->_script_error('public keys must be compressed')
+			if $runner->flags->compressed_pubkeys
+			&& $runner->transaction->is_native_segwit
+			&& notall { get_public_key_compressed($_) } @pubkeys;
 
 		$runner->_stack_error unless @$stack >= 1;
 		my $signatures_num = $runner->to_int(pop @$stack);
 		$runner->_stack_error unless $signatures_num > 0 && @$stack >= $signatures_num;
 		my @signatures = splice @$stack, -$signatures_num;
-
-		my $found;
-		my %digests;
-		while (my $sig = shift @signatures) {
-			my $hashtype = unpack 'C', substr $sig, -1, 1, '';
-			my $digest = $digests{$hashtype} //= $runner->transaction->get_digest(sighash => $hashtype);
-
-			$found = !!0;
-			while (my $raw_pubkey = shift @pubkeys) {
-				my $pubkey = btc_pub->from_serialized($raw_pubkey);
-				$found = $pubkey->verify_message($digest, $sig, flags => $runner->flags);
-				last if $found;
-			}
-
-			last if !$found;
-		}
+		my @signatures_left = @signatures;
 
 		# Remove extra unused value from the stack
 		$runner->_stack_error unless @$stack >= 1;
@@ -1116,9 +1091,32 @@ sub _OP_CHECKMULTISIG
 		$runner->_script_error('OP_CHECKMULTISIG dummy argument must be empty')
 			if $runner->flags->nulldummy && length $unused;
 
+		my $found;
+		my %digests;
+		while (defined(my $sig = pop @signatures_left)) {
+			my $hashtype = unpack 'C', substr $sig, -1, 1, '';
+			my $digest = $digests{$hashtype // ''} //= $runner->transaction->get_digest(
+				signatures => [@signatures],
+				sighash => $hashtype,
+			);
+
+			$found = !!0;
+			while (defined(my $raw_pubkey = pop @pubkeys)) {
+				my $pubkey = try { btc_pub->from_serialized($raw_pubkey) };
+				$found = $pubkey ? $pubkey->verify_message($digest, $sig, flags => $runner->flags) : !!0;
+				last if $found;
+			}
+
+			last if !$found;
+		}
+
 		# checking is correct if we have no more signatures to check and the
 		# last one was found correctly
-		push @$stack, $runner->from_bool($found && !@signatures);
+		my $result = $found && !@signatures_left;
+		$runner->_script_error('signature verification failed')
+			if !$result && $runner->flags->nullfail && notall { $_ eq '' } @signatures;
+
+		push @$stack, $runner->from_bool($result);
 	};
 }
 
@@ -1166,8 +1164,6 @@ sub _OP_CHECKLOCKTIMEVERIFY
 
 		$runner->_invalid_script
 			if $transaction->this_input->sequence_no == Bitcoin::Crypto::Constants::max_sequence_no;
-
-		pop @$stack;
 	};
 }
 
@@ -1208,8 +1204,6 @@ sub _OP_CHECKSEQUENCEVERIFY
 			$runner->_invalid_script
 				if ($c1 & 0x0000ffff) > ($c2 & 0x0000ffff);
 		}
-
-		pop @$stack;
 	};
 }
 
@@ -1222,29 +1216,31 @@ sub _build_opcodes
 			code => 0x00,
 			pushop => !!1,
 			on_compilation => $class->_compile_OP_NUM(0),
-			runner => $class->_OP_NUM,
+			runner => $class->_OP_PUSHDATA,
 		},
 		OP_PUSHDATA1 => {
 			code => 0x4c,
 			pushop => !!1,
 			on_compilation => $class->_compile_OP_PUSHDATA(1),
-			runner => $class->_OP_PUSHDATA,
+			runner => $class->_OP_PUSHDATA('OP_PUSHDATA1'),
 		},
 		OP_PUSHDATA2 => {
 			code => 0x4d,
 			pushop => !!1,
 			on_compilation => $class->_compile_OP_PUSHDATA(2),
-			runner => $class->_OP_PUSHDATA,
+			runner => $class->_OP_PUSHDATA('OP_PUSHDATA2'),
 		},
 		OP_PUSHDATA4 => {
 			code => 0x4e,
 			pushop => !!1,
 			on_compilation => $class->_compile_OP_PUSHDATA(4),
-			runner => $class->_OP_PUSHDATA,
+			runner => $class->_OP_PUSHDATA('OP_PUSHDATA4'),
 		},
 		OP_1NEGATE => {
 			code => 0x4f,
-			runner => $class->_OP_1NEGATE,
+			pushop => !!1,
+			on_compilation => $class->_compile_OP_NUM(-1),
+			runner => $class->_OP_PUSHDATA,
 		},
 		OP_RESERVED => {
 			code => 0x50,
@@ -1537,7 +1533,7 @@ sub _build_opcodes
 			code => $num,
 			pushop => !!1,
 			on_compilation => $class->_compile_OP_PUSH($num),
-			runner => $class->_OP_PUSHDATA,
+			runner => $class->_OP_PUSHDATA('OP_PUSH'),
 		};
 	}
 
@@ -1546,7 +1542,7 @@ sub _build_opcodes
 			code => 0x50 + $num,
 			pushop => !!1,
 			on_compilation => $class->_compile_OP_NUM($num),
-			runner => $class->_OP_NUM,
+			runner => $class->_OP_PUSHDATA,
 		};
 	}
 

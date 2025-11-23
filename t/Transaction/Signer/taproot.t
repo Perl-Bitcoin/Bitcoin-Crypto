@@ -82,7 +82,7 @@ my $tx = btc_transaction->new;
 $tx->add_input(utxo => $utxo1);
 $tx->add_input(utxo => $utxo2);
 $tx->add_input(utxo => $utxo3);
-$tx->add_input(utxo => $utxo3);
+$tx->add_input(utxo => $utxo4);
 
 $tx->add_output(
 	locking_script => [P2PKH => $pub2->get_legacy_address],

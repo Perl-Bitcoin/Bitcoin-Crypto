@@ -17,6 +17,12 @@ has param 'p2sh' => (
 	writer => 1,
 );
 
+has param 'signature_pushes_only' => (
+	coerce => Bool,
+	default => 1,
+	writer => 1,
+);
+
 # BIP65
 has param 'checklocktimeverify' => (
 	coerce => Bool,
@@ -59,18 +65,81 @@ has param 'taproot' => (
 	writer => 1,
 );
 
+# optional standardness rules below
+
+# segwit only
+has param 'minimalif' => (
+	coerce => Bool,
+	default => 0,
+	writer => 1,
+);
+
+# segwit only
+has param 'compressed_pubkeys' => (
+	coerce => Bool,
+	default => 0,
+	writer => 1,
+);
+
+has param 'minimaldata' => (
+	coerce => Bool,
+	default => 0,
+	writer => 1,
+);
+
+has param 'nullfail' => (
+	coerce => Bool,
+	default => 0,
+	writer => 1,
+);
+
+has param 'cleanstack' => (
+	coerce => Bool,
+	default => 0,
+	writer => 1,
+);
+
+has param 'const_script' => (
+	coerce => Bool,
+	default => 0,
+	writer => 1,
+);
+
+has param 'known_witness' => (
+	coerce => Bool,
+	default => 0,
+	writer => 1,
+);
+
 sub new_empty
 {
 	my ($self, %args) = @_;
 
 	return $self->new(
 		p2sh => !!0,
+		signature_pushes_only => !!0,
 		checklocktimeverify => !!0,
 		strict_signatures => !!0,
 		checksequenceverify => !!0,
 		segwit => !!0,
 		nulldummy => !!0,
 		taproot => !!0,
+		%args,
+	);
+}
+
+sub new_full
+{
+	my ($self, %args) = @_;
+
+	return $self->new(
+		minimalif => !!1,
+		compressed_pubkeys => !!1,
+		minimaldata => !!1,
+		nullfail => !!1,
+		cleanstack => !!1,
+		const_script => !!1,
+		known_witness => !!1,
 		%args,
 	);
 }

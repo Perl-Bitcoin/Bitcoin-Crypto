@@ -31,32 +31,21 @@ has field '_serialized' => (
 	default => '',
 );
 
-has field 'type' => (
-	isa => Maybe [ScriptType],
-	lazy => 1,
-);
-
-has field '_address' => (
-	isa => Maybe [ByteStr],
+has field '_recognition' => (
+	isa => InstanceOf ['Bitcoin::Crypto::Script::Recognition'],
 	lazy => 1,
 );
 
 with qw(Bitcoin::Crypto::Role::Network);
 
-sub _build_type
+sub _build_recognition
 {
 	my ($self) = @_;
 
 	my $rec = Bitcoin::Crypto::Script::Recognition->new(script => $self);
-	return $rec->get_type;
-}
+	$rec->check;
 
-sub _build_address
-{
-	my ($self) = @_;
-
-	my $rec = Bitcoin::Crypto::Script::Recognition->new(script => $self);
-	return $rec->get_address;
+	return $rec;
 }
 
 sub _build
@@ -198,6 +187,18 @@ sub BUILD
 	}
 }
 
+signature_for type => (
+	method => Object,
+	positional => [],
+);
+
+sub type
+{
+	my ($self) = @_;
+
+	return $self->_recognition->type;
+}
+
 signature_for is_pushes_only => (
 	method => Object,
 	positional => [],
@@ -264,6 +265,9 @@ sub push_bytes
 	elsif ($len == 1 && ord($bytes) <= 0x10) {
 		$self->add_operation('OP_' . ord($bytes));
 	}
+	elsif ($len == 1 && ord($bytes) == 0x81) {
+		$self->add_operation('OP_1NEGATE');
+	}
 	elsif ($len <= 75) {
 		$self
 			->add_raw(pack 'C', $len)
@@ -313,6 +317,18 @@ sub push
 	goto \&push_bytes;
 }
 
+signature_for segwit_version => (
+	method => Object,
+	positional => [],
+);
+
+sub segwit_version
+{
+	my ($self) = @_;
+
+	return $self->_recognition->segwit_version;
+}
+
 # this can only detect native segwit in this context, as P2SH outputs are
 # indistinguishable from any other P2SH
 signature_for is_native_segwit => (
@@ -323,11 +339,8 @@ signature_for is_native_segwit => (
 sub is_native_segwit
 {
 	my ($self) = @_;
-	my @segwit_types = qw(P2WPKH P2WSH P2TR);
 
-	my $script_type = $self->type // '';
-
-	return any { $script_type eq $_ } @segwit_types;
+	return defined $self->segwit_version;
 }
 
 signature_for is_taproot => (
@@ -493,7 +506,7 @@ signature_for get_address => (
 sub get_address
 {
 	my ($self) = @_;
-	my $address = $self->_address;
+	my $address = $self->_recognition->address;
 
 	return undef
 		unless $self->has_type && defined $address;

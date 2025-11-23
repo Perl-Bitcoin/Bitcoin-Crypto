@@ -13,7 +13,7 @@ use List::Util qw(any);
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Helpers qw(pad_hex);
+use Bitcoin::Crypto::Helpers qw(pad_hex standard_push);
 use Bitcoin::Crypto::Script::Transaction;
 use Bitcoin::Crypto::Transaction::Flags;
 
@@ -123,8 +123,8 @@ sub to_int
 	$value->bneg if $negative;
 
 	# too big vector cannot be interpreted as a number - see CScriptNum
-	die "script numeric value $value out of range"
-		if abs($value) > 2**($max_bytes * 8 - 1) - 1;
+	die "script numeric value $value cannot be interpreted as a number"
+		if length $bytes > $max_bytes;
 
 	return $value;
 }
@@ -325,12 +325,14 @@ sub step
 
 signature_for subscript => (
 	method => Object,
-	positional => [],
+	positional => [Maybe [ArrayRef [ByteStr]], {default => undef}],
 );
 
 sub subscript
 {
-	my ($self) = @_;
+	my ($self, $sigs) = @_;
+	$sigs = [grep { length($_ // '') } @{$sigs // []}];
+
 	my $start = ($self->codeseparator // -1) + 1;
 	my @operations = @{$self->operations};
 
@@ -338,13 +340,21 @@ sub subscript
 
 	my $result = '';
 	foreach my $operation (@operations[$start .. $#operations]) {
-		my ($op, $raw_op) = @$operation;
-		next if !$witness && $op->name eq 'OP_CODESEPARATOR';
+		my ($op, $raw_op, $pushop_data) = @$operation;
+
+		if (!$witness) {
+			next if $op->name eq 'OP_CODESEPARATOR';
+			next if $op->pushop && (any { $pushop_data eq $_ } @{$sigs}) && standard_push($op->name, $pushop_data);
+		}
+
 		$result .= $raw_op;
 	}
 
-	# NOTE: signature is not removed from the subscript for non-witness, since
-	# runner doesn't know what it is
+	if (!$witness && $self->flags->const_script) {
+		my $orig = $self->script->to_serialized;
+		$self->_invalid_script('script is not constant')
+			if $result ne $orig;
+	}
 
 	return $result;
 }
@@ -425,7 +435,13 @@ sub success
 	return !!0 if !$stack;
 	return !!0 if !$stack->[-1];
 	return !!0 if !$self->to_bool($stack->[-1]);
-	return !!0 if $self->is_tapscript && @$stack > 1;
+
+	# TODO: check altstack?
+	if (@$stack > 1) {
+		my $segwit = $self->has_transaction && $self->transaction->is_native_segwit;
+		return !!0 if $segwit || $self->is_tapscript || $self->flags->cleanstack;
+	}
+
 	return !!1;
 }
 
