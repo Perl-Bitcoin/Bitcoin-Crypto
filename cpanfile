@@ -1,5 +1,5 @@
 on 'test' => sub {
-	requires 'Test2::V0' => '0';
+	requires 'Test2::V0' => '0.000139';
 };
 
 requires 'Math::BigInt' => '1.999831';
