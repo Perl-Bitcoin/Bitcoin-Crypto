@@ -103,7 +103,7 @@ sub ecc
 	# define an arbitrary number of times a single secp256k1 context can be
 	# used. Create a new context after that. This gives an increased security
 	# according to libsecp256k1 documentation.
-	if ($used_times++ > 20) {
+	if ($used_times++ > 100) {
 		$secp = undef;
 		$used_times = 0;
 	}
