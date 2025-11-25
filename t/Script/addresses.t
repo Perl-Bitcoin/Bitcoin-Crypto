@@ -11,7 +11,7 @@ my @data = (
 		serialized => '00',
 		'script' => sub {
 			shift
-				->push_bytes("\x00");
+				->add_operation('OP_0')
 		},
 	},
 	{

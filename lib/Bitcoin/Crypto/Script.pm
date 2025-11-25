@@ -262,7 +262,7 @@ sub push_bytes
 	if ($len == 0) {
 		$self->add_operation('OP_0');
 	}
-	elsif ($len == 1 && ord($bytes) <= 0x10) {
+	elsif ($len == 1 && ord($bytes) <= 0x10 && ord($bytes) != 0) {
 		$self->add_operation('OP_' . ord($bytes));
 	}
 	elsif ($len == 1 && ord($bytes) == 0x81) {
