@@ -137,6 +137,8 @@ sub from_int
 		$value = Math::BigInt->new($value);
 	}
 
+	return '' if $value == 0;
+
 	my $negative = $value < 0;
 	$value->babs if $negative;
 

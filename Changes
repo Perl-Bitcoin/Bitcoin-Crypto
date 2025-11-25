@@ -29,6 +29,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- transaction is now only considered coinbase if it has a single coinbase input
 	- verifying numbers on script stack is now correctly based on bytelength and not numeric value
 	- pushing byte \x00 to a script is now done by adding \x0100 instead of OP_0, which adds an empty vector
+	- pushing number 0 to a script stack is now done by adding an empty vector
 
 4.002 Fri Nov 14, 2025
 	[Public interface changes]
