@@ -71,7 +71,7 @@ subtest 'should verify multisig transactions (P2SH)' => sub {
 
 	is to_format [hex => $tx->get_hash], $expected_txid, 'txid ok';
 	ok lives {
-		$tx->verify;
+		$tx->verify();
 	}, 'input verification ok';
 };
 

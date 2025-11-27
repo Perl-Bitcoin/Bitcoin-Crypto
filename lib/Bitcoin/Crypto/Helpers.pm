@@ -31,6 +31,9 @@ our @EXPORT_OK = qw(
 	parse_formatdesc
 	ecc
 	standard_push
+	check_strict_public_key
+	check_strict_der_signature
+	make_strict_der_signature
 );
 
 our @CARP_NOT;
@@ -152,6 +155,121 @@ sub standard_push
 		# any other push uses OP_PUSHDATA4
 		return $opcode_name eq 'OP_PUSHDATA4';
 	}
+}
+
+sub check_strict_public_key
+{
+	my ($pubkey) = @_;
+
+	my $len = length($pubkey);
+	my $byte = substr($pubkey, 0, 1);
+
+	return !!1 if $len == 65 && $byte eq "\x04";
+	return !!1 if $len == 33 && ($byte eq "\x03" || $byte eq "\x02");
+
+	return !!0;
+}
+
+# translated to Perl from:
+# https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki#der-encoding-reference
+sub check_strict_der_signature
+{
+	my ($signature) = @_;
+
+	# NOTE: increment by 1 to take (stripped earlier) sighash into account
+	# without changing the algorithm
+	my $len = length($signature) + 1;
+
+	return !!0
+		if $len < 9 || $len > 73;
+
+	return !!0
+		if substr($signature, 0, 1) ne "\x30";
+
+	return !!0
+		if unpack('C', substr $signature, 1, 1) != $len - 3;
+
+	my $r_len = unpack 'C', substr $signature, 3, 1;
+
+	return !!0
+		if $r_len + 5 >= $len;
+
+	my $s_len = unpack 'C', substr $signature, 5 + $r_len, 1;
+
+	return !!0
+		if $r_len + $s_len + 7 != $len;
+
+	for my $item ([$r_len, 2], [$s_len, $r_len + 4]) {
+		return !!0
+			if substr($signature, $item->[1], 1) ne "\x02";
+
+		return !!0
+			if $item->[0] == 0;
+
+		return !!0
+			if unpack('C', substr $signature, $item->[1] + 2, 1) & 0x80;
+
+		return !!0
+			if $item->[0] > 1 && substr($signature, $item->[1] + 2, 1) eq "\x00"
+			&& !(unpack('C', substr $signature, $item->[1] + 3, 1) & 0x80);
+	}
+
+	return !!1;
+}
+
+# this does not fix low s, just strict encoding
+sub make_strict_der_signature
+{
+	my ($signature) = @_;
+	return '' unless length $signature;
+
+	# https://bitcoin.stackexchange.com/questions/92680/what-are-the-der-signature-and-sec-format
+	# also:
+	# - ignore any trailing data
+	# - fix negative r and s
+
+	my $pos = 0;
+	my $compound = substr $signature, $pos++, 1;
+	my $total_len = unpack 'C', substr $signature, $pos++, 1;
+	my $int1 = substr $signature, $pos++, 1;
+	my $r_len = unpack 'C', substr $signature, $pos++, 1;
+	my $r = substr $signature, $pos, $r_len;
+	$pos += $r_len;
+	my $int2 = substr $signature, $pos++, 1;
+	my $s_len = unpack 'C', substr $signature, $pos++, 1;
+	my $s = substr $signature, $pos, $s_len;
+	$pos += $s_len;
+
+	# remove padding
+	$r = substr($r, 1)
+		while unpack('C', $r) == 0;
+	$s = substr($s, 1)
+		while unpack('C', $s) == 0;
+
+	# top bit may be 1, so prepend with zero to avoid being interpreted as
+	# negative
+	$r = "\x00$r"
+		if unpack('C', $r) & 0x80;
+	$s = "\x00$s"
+		if unpack('C', $s) & 0x80;
+
+	# adjust lengths
+	$total_len -= $r_len + $s_len;
+	$r_len = length $r;
+	$s_len = length $s;
+	$total_len += $r_len + $s_len;
+
+	# return extracted strict signature
+	return join '',
+		$compound,
+		pack('C', $total_len),
+		$int1,
+		pack('C', $r_len),
+		$r,
+		$int2,
+		pack('C', $s_len),
+		$s,
+		;
 }
 
 1;

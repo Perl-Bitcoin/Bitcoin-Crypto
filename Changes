@@ -5,31 +5,61 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Script::Tree:
 		- added get_tapleaf_script method
 		- added get_tapleaf_version method
+	- Bitcoin::Crypto::Transaction:
+		- added had_witness_flag attribute
 	- Bitcoin::Crypto::Transaction::Input:
 		- method script_base is now internal use only, as it depends on other parts to deliver correct results
+	- Bitcoin::Crypto::Transaction::Flags:
+		- added new_full method
+		- renamed strict_signatures flag to der_signatures
+		- added strict_sigantures method
+		- added signature_pushes_only flag
+		- added minimalif flag
+		- added compressed_pubkeys flag
+		- added strict_encoding flag
+		- added low_s_signatures flag
+		- added minimaldata flag
+		- added nullfail flag
+		- added cleanstack flag
+		- added const_script flag
+		- added known_witness flag
+		- added illegal_upgradeable_nops flag
+	- Bitcoin::Crypto::Types:
+		- added TransactionFlags type
 
 	[Improvements and behavior changes]
 	- subscript generation now correctly deletes signatures (FindAndDelete)
 	- future segwit versions are now recognized as UNKNOWN_SEGWIT script types
 	- Script's is_native_segwit method will now return true for future segwit versions
-	- OP_1NEGATE is now correctly recognized as a pushop
 	- push_bytes in Scripts will now include OP_1NEGATE for value 0x81
+	- flags can now be passed to verify function as a hashref
 
 	[Fixes]
 	- get_taproot_output_key yields the same key if called on a taproot_output key
+	- has_witness method in inputs now only yields true if there is at least one element in the witness stack
+	- OP_1NEGATE is now correctly recognized as a pushop
 	- OP_CHECKMULTISIG now correctly fails without the dangling stack element
 	- OP_CHECKMULTISIG now correctly allows uncompressed public keys in segwit (like OP_CHECKSIG)
 	- OP_CHECKMULTISIG now uses the correct order of evaluating its arguments
 	- OP_CHECKMULTISIG now correctly handles empty signatures and public keys
+	- OP_CHECKMULTISIG now allows zero pubkeys or signatures
+	- OP_CHECKMULTISIG now disallows more than 20 pubkeys or more signatures than pubkeys
+	- OP_CHECKMULTISIG now exits early if the number of signatures left to check is greater than pubkeys
 	- OP_CHECKLOCKTIMEVERIFY and OP_CHECKSEQUENCEVERIFY now correctly do not remove their argument from stack
 	- coinbase transactions now check if they have at least 2 bytes of coinbase input data
 	- transactions now check if value of any output is greater than max_money constant
 	- transactions now check if any input is duplicated
-	- disabling strict_signatures flag now causes non-strictly encoded signatures to validate
-	- transaction is now only considered coinbase if it has a single coinbase input
+	- disabling der_signatures flag now causes non-strictly encoded signatures to validate
+	- detecting coinbase transaction is now stricter
 	- verifying numbers on script stack is now correctly based on bytelength and not numeric value
 	- pushing byte \x00 to a script is now done by adding \x0100 instead of OP_0, which adds an empty vector
 	- pushing number 0 to a script stack is now done by adding an empty vector
+	- non-segwit inputs containing witness data now fail script validation
+	- p2sh inputs now check for only push opcodes signature, regardless of signature_pushes_only flag
+	- multiple OP_ELSE are now handled correctly
+	- 520 byte limit on script element size is now correctly checked on script compilation
+	- 10000 byte script size limit is now enforced
+	- 201 non-push opcode limit is now enforced
 
 4.002 Fri Nov 14, 2025
 	[Public interface changes]

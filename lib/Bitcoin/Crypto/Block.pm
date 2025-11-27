@@ -403,6 +403,7 @@ sub verify
 	# - block hex vs difficulty
 	# - each transaction
 	# - block subsidy
+	# - BIP141 commitment structure in coinbase transaction
 	# - probably more
 	#
 	# these verifications only make sense in full chain context though

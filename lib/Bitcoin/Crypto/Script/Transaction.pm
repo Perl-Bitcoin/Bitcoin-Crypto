@@ -52,17 +52,32 @@ has param 'taproot_annex' => (
 	coerce => ByteStr,
 	writer => 1,
 	required => 0,
+	clearer => -hidden,
 );
 
 has option 'script_tree' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script::Tree'],
 	writer => 1,
+	clearer => -hidden,
 );
 
 has option 'sigop_budget' => (
 	isa => Int,
 	writer => -hidden,
+	clearer => -hidden,
 );
+
+sub _clear
+{
+	my ($self) = @_;
+
+	# IMPORTANT: all data but input_index MUST be cleared here (clear or set
+	# default)
+	$self->set_taproot_ext_flag(0);
+	$self->_clear_taproot_annex;
+	$self->_clear_script_tree;
+	$self->_clear_sigop_budget;
+}
 
 sub get_digest_object
 {
@@ -113,6 +128,15 @@ sub reduce_sigop_budget
 	$budget -= 50;
 	$self->_set_sigop_budget($budget);
 	return $budget >= 0;
+}
+
+sub is_segwit
+{
+	my ($self) = @_;
+
+	return
+		$self->flags->segwit
+		&& $self->this_input->is_segwit;
 }
 
 sub is_native_segwit

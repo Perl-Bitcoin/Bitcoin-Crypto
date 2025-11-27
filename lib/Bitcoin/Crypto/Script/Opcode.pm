@@ -11,15 +11,15 @@ use Types::Common -sigs, -types;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 use Crypt::Digest::SHA1 qw(sha1);
-use List::Util qw(notall);
+use List::Util qw(notall none);
 use Try::Tiny;
 
 use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Util qw(hash160 hash256 get_public_key_compressed);
-use Bitcoin::Crypto::Helpers qw(standard_push);
+use Bitcoin::Crypto::Util qw(hash160 hash256);
+use Bitcoin::Crypto::Helpers qw(standard_push check_strict_public_key check_strict_der_signature);
 use Bitcoin::Crypto::Transaction::Input;
 
 use namespace::clean;
@@ -83,9 +83,10 @@ sub __compile_data_push
 
 	Bitcoin::Crypto::Exception::ScriptSyntax->raise(
 		'not enough bytes of data in the script'
-	) if length $context->{serialized} < $size;
+	) if $context->{size} - $context->{offset} < $size;
 
-	return substr $context->{serialized}, 0, $size, '';
+	$context->{offset} += $size;
+	return substr $context->{serialized}, $context->{offset} - $size, $size;
 }
 
 sub _compile_OP_NUM
@@ -127,8 +128,9 @@ sub _compile_OP_PUSHDATA
 	return sub {
 		my ($runner, $op, $context) = @_;
 
-		my $raw_size = substr $context->{serialized}, 0, $length, '';
+		my $raw_size = substr $context->{serialized}, $context->{offset}, $length;
 		my $size = unpack $format, $raw_size;
+		$context->{offset} += $length;
 
 		push @$op, $class->__compile_data_push($context, $size);
 		$op->[1] .= $raw_size . $op->[2];
@@ -150,6 +152,7 @@ sub _compile_OP_IF
 		}
 
 		$context->{branch}{if} = $op;
+		$context->{branch}{execution_chain} = [$op];
 	};
 }
 
@@ -164,13 +167,12 @@ sub _compile_OP_ELSE
 			'OP_ELSE found but no previous OP_IF or OP_NOTIF'
 		) if !$context->{branch}{if};
 
-		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-			'multiple OP_ELSE for a single OP_IF'
-		) if @{$context->{branch}{if}} > 2;
+		# set up jump point for previous else
+		my $chain = $context->{branch}{execution_chain};
+		push @{$chain->[-1]}, $context->{position};
 
-		$context->{branch}{else} = $op;
-
-		push @{$context->{branch}{if}}, $context->{position};
+		# save else for later
+		push @{$chain}, $op;
 	};
 }
 
@@ -185,13 +187,9 @@ sub _compile_OP_ENDIF
 			'OP_ENDIF found but no previous OP_IF or OP_NOTIF'
 		) if !$context->{branch}{if};
 
-		push @{$context->{branch}{if}}, undef
-			if @{$context->{branch}{if}} == 2;
-		push @{$context->{branch}{if}}, $context->{position};
-
-		if ($context->{branch}{else}) {
-			push @{$context->{branch}{else}}, $context->{position};
-		}
+		# set up jump point for last execution element (if or else)
+		my $chain = $context->{branch}{execution_chain};
+		push @{$chain->[-1]}, $context->{position};
 
 		if ($context->{branch}{previous}) {
 			$context->{branch} = $context->{branch}{previous};
@@ -220,9 +218,6 @@ sub _OP_PUSHDATA
 	return sub {
 		my ($runner, $bytes) = @_;
 
-		$runner->_invalid_script('maximum stack element size exceeded')
-			if length $bytes > Bitcoin::Crypto::Constants::script_max_element_size;
-
 		$runner->_invalid_script("push opcode for data is not minimal in $opcode_name")
 			if $runner->flags->minimaldata && !standard_push($opcode_name, $bytes);
 
@@ -249,6 +244,18 @@ sub _OP_NOP
 	return sub { };
 }
 
+sub _OP_NOP_UPGRADEABLE
+{
+	my ($class) = @_;
+
+	return sub {
+		my $runner = shift;
+
+		$runner->_invalid_script
+			if $runner->flags->illegal_upgradeable_nops;
+	};
+}
+
 sub _OP_VER
 {
 	my ($class) = @_;
@@ -264,27 +271,22 @@ sub _OP_IF
 	my ($class, $inverted) = @_;
 
 	return sub {
-		my ($runner, $else_pos, $endif_pos) = @_;
+		my ($runner, $next_else_or_endif) = @_;
 		my $stack = $runner->stack;
 
 		$runner->_stack_error unless @$stack >= 1;
 		my $value = pop @$stack;
 
 		my $minimalif = $runner->is_tapscript
-			|| ($runner->has_transaction && $runner->transaction->is_native_segwit && $runner->flags->minimalif);
+			|| ($runner->has_transaction && $runner->transaction->is_segwit && $runner->flags->minimalif);
+
 		$value = $minimalif ? $runner->to_minimal_bool($value) : $runner->to_bool($value);
 		$runner->_invalid_script unless defined $value;
 
 		$value = !$value if $inverted;
 
-		if (!$value) {
-			if (defined $else_pos) {
-				$runner->_set_pos($else_pos);
-			}
-			else {
-				$runner->_set_pos($endif_pos);
-			}
-		}
+		$runner->_set_pos($next_else_or_endif)
+			unless $value;
 	}
 }
 
@@ -294,9 +296,9 @@ sub _OP_ELSE
 	my ($class) = @_;
 
 	return sub {
-		my ($runner, $endif_pos) = @_;
+		my ($runner, $next_else_or_endif) = @_;
 
-		$runner->_set_pos($endif_pos);
+		$runner->_set_pos($next_else_or_endif);
 	};
 }
 
@@ -1027,13 +1029,34 @@ sub _OP_CHECKSIG
 		my $sig_orig = $sig;
 
 		my $hashtype = unpack 'C', substr $sig, -1, 1, '';
+		state $allowed_sighash = [
+			Bitcoin::Crypto::Constants::sighash_all,
+			Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+			Bitcoin::Crypto::Constants::sighash_single,
+			Bitcoin::Crypto::Constants::sighash_single | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+			Bitcoin::Crypto::Constants::sighash_none,
+			Bitcoin::Crypto::Constants::sighash_none | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+		];
+
+		if (defined $hashtype) {
+			$runner->_invalid_script('bad sighash')
+				if $runner->flags->strict_encoding
+				&& none { $hashtype == $_ } @$allowed_sighash;
+
+			$runner->_invalid_script('non-strict DER signature')
+				if $runner->flags->strict_signatures
+				&& !check_strict_der_signature($sig);
+		}
+
+		$runner->_invalid_script('non-strict pubkey')
+			if $runner->flags->strict_encoding && !check_strict_public_key($raw_pubkey);
+
+		my $pubkey = try { btc_pub->from_serialized($raw_pubkey) };
 
 		$runner->_script_error('public keys must be compressed')
 			if $runner->flags->compressed_pubkeys
-			&& $runner->transaction->is_native_segwit
-			&& !get_public_key_compressed($raw_pubkey);
-
-		my $pubkey = try { btc_pub->from_serialized($raw_pubkey) };
+			&& $runner->transaction->is_segwit
+			&& $pubkey && !$pubkey->compressed;
 
 		my $preimage = $runner->transaction->get_digest(
 			signatures => [$sig_orig],
@@ -1071,18 +1094,18 @@ sub _OP_CHECKMULTISIG
 
 		$runner->_stack_error unless @$stack >= 1;
 		my $pubkeys_num = $runner->to_int(pop @$stack);
-		$runner->_stack_error unless $pubkeys_num > 0 && @$stack >= $pubkeys_num;
-		my @pubkeys = splice @$stack, -$pubkeys_num;
-
-		$runner->_script_error('public keys must be compressed')
-			if $runner->flags->compressed_pubkeys
-			&& $runner->transaction->is_native_segwit
-			&& notall { get_public_key_compressed($_) } @pubkeys;
+		$runner->_stack_error unless @$stack >= $pubkeys_num;
+		$runner->_script_error('OP_CHECKMULTISIG maximum number of public keys exceeded')
+			if $pubkeys_num > Bitcoin::Crypto::Constants::script_max_multisig_pubkeys;
+		$runner->_increment_opcode_count($pubkeys_num);
+		my @pubkeys = $pubkeys_num ? splice @$stack, -$pubkeys_num : ();
 
 		$runner->_stack_error unless @$stack >= 1;
 		my $signatures_num = $runner->to_int(pop @$stack);
-		$runner->_stack_error unless $signatures_num > 0 && @$stack >= $signatures_num;
-		my @signatures = splice @$stack, -$signatures_num;
+		$runner->_stack_error unless @$stack >= $signatures_num;
+		$runner->_script_error('OP_CHECKMULTISIG number of signatures exceeds the number of public keys')
+			if $signatures_num > $pubkeys_num;
+		my @signatures = $signatures_num ? splice @$stack, -$signatures_num : ();
 		my @signatures_left = @signatures;
 
 		# Remove extra unused value from the stack
@@ -1091,10 +1114,31 @@ sub _OP_CHECKMULTISIG
 		$runner->_script_error('OP_CHECKMULTISIG dummy argument must be empty')
 			if $runner->flags->nulldummy && length $unused;
 
-		my $found;
+		my $compressed_pubkeys = $runner->flags->compressed_pubkeys && $runner->transaction->is_segwit;
+		my $found = !!1;
 		my %digests;
 		while (defined(my $sig = pop @signatures_left)) {
 			my $hashtype = unpack 'C', substr $sig, -1, 1, '';
+
+			state $allowed_sighash = [
+				Bitcoin::Crypto::Constants::sighash_all,
+				Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+				Bitcoin::Crypto::Constants::sighash_single,
+				Bitcoin::Crypto::Constants::sighash_single | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+				Bitcoin::Crypto::Constants::sighash_none,
+				Bitcoin::Crypto::Constants::sighash_none | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+			];
+
+			if (defined $hashtype) {
+				$runner->_invalid_script('bad sighash')
+					if $runner->flags->strict_encoding
+					&& none { $hashtype == $_ } @$allowed_sighash;
+
+				$runner->_invalid_script('non-strict DER signature')
+					if $runner->flags->strict_signatures
+					&& !check_strict_der_signature($sig);
+			}
+
 			my $digest = $digests{$hashtype // ''} //= $runner->transaction->get_digest(
 				signatures => [@signatures],
 				sighash => $hashtype,
@@ -1102,9 +1146,16 @@ sub _OP_CHECKMULTISIG
 
 			$found = !!0;
 			while (defined(my $raw_pubkey = pop @pubkeys)) {
+				$runner->_invalid_script('non-strict pubkey')
+					if $runner->flags->strict_encoding && !check_strict_public_key($raw_pubkey);
+
 				my $pubkey = try { btc_pub->from_serialized($raw_pubkey) };
+
+				$runner->_script_error('public keys must be compressed')
+					if $compressed_pubkeys && $pubkey && !$pubkey->compressed;
+
 				$found = $pubkey ? $pubkey->verify_message($digest, $sig, flags => $runner->flags) : !!0;
-				last if $found;
+				last if $found || @signatures_left + 1 > @pubkeys;
 			}
 
 			last if !$found;
@@ -1244,6 +1295,9 @@ sub _build_opcodes
 		},
 		OP_RESERVED => {
 			code => 0x50,
+
+			# NOTE: all opcodes up to OP_16 are considered pushops
+			pushop => !!1,
 			runner => $class->_OP_RESERVED,
 		},
 		OP_NOP => {
@@ -1549,7 +1603,7 @@ sub _build_opcodes
 	for my $num (1, 4 .. 10) {
 		$opcodes{"OP_NOP$num"} = {
 			code => 0xaf + $num,
-			runner => $class->_OP_NOP,
+			runner => $class->_OP_NOP_UPGRADEABLE,
 		};
 	}
 

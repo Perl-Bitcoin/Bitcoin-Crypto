@@ -147,6 +147,16 @@ $digest->coercion->add_type_coercions(
 	},
 );
 
+my $transaction_flags = __PACKAGE__->add_type(
+	name => 'TransactionFlags',
+	parent => InstanceOf->of('Bitcoin::Crypto::Transaction::Flags'),
+);
+
+$transaction_flags->coercion->add_type_coercions(
+	HashRef, q{ require Bitcoin::Crypto::Transaction::Flags; Bitcoin::Crypto::Transaction::Flags->new(%$_) },
+	Undef, q{ require Bitcoin::Crypto::Transaction::Flags; Bitcoin::Crypto::Transaction::Flags->new },
+);
+
 my $psbt_map_type = __PACKAGE__->add_type(
 	name => 'PSBTMapType',
 	parent => Enum->of(
@@ -257,6 +267,7 @@ Bitcoin::Crypto::Types - Bitcoin-specific data types
 		IntMaxBits
 		SatoshiAmount
 		DerivationPath
+		TransactionFlags
 	);
 
 	use Bitcoin::Crypto::Types -types;
@@ -341,6 +352,23 @@ from an integer or from a string.
 
 An instance of L<Bitcoin::Crypto::DerivationPath>. Can be coerced from a string
 or a class consuming C<Bitcoin::Crypto::Role::WithDerivationPath>.
+
+=head2 TransactionFlags
+
+An instance of L<Bitcoin::Crypto::Transaction::Flags>. Can be coerced from:
+
+=over
+
+=item * Undef
+
+Same as calling L<Bitcoin::Crypto::Transaction::Flags/new> with no arguments.
+
+=item * HashRef
+
+Same as calling L<Bitcoin::Crypto::Transaction::Flags/new> with arguments
+specified in the hashref.
+
+=back
 
 =head1 SEE ALSO
 

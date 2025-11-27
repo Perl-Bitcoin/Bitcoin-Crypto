@@ -5,6 +5,9 @@ use Bitcoin::Crypto::Transaction::Flags;
 use lib 't/lib';
 use TransactionStore;
 
+my $p2sh_p2ms =
+	'02000000024dcae1b1f8de0acabbe0f92ff985016e7fdfb468afebcc5eb6f01b40af67b80900000000fdfd0000483045022100b04730bfdaf5ef3f1e2038474fec6abe67e989cb15c69b4dadc0769f07e5245202202ef218548bf8caa3682a808f0c6f6da48ed203fe052ab036e03b332da7e35a31014730440220450a66c8f29e50dc53f883cf8a372cb06c49be8ee2a04276d7befd982c252e8702204353835fcfae1a561f50212fa69ef117c66e14d9d513f7057e2884b86174f130014c69522103c0e8a0663fe1c4d6c6ff91421498dfc443af470494ccf02949fd1a9931e403db210307cc351c1c63b02229807c6177d0ac1bd2345dac305cce870ab7b51ef2c964ef2103147c2a372e4bc2893c7367b9b9c8cdc7aca7f154fa83899525912ab2547793a953aeffffffff3e2b2087982c6c5f1d8214f3af4d8d82931937cad33ee950d72737dfbdd6c86f01000000fdfd000047304402202334e2cb865e290eb4cf2e49e4abf7ea9adbc66177ac8ea7abf373f45240522902203c335e1875adc1c62beabf4f413efdcc4fb917fee7d711f4e65c208537d578db01483045022100eb5aec400cd9833666a61af852072e6d83d32e47465e15efb2261232c788f875022045fef9acea44e51bef226cca4edb39d3e8d87fc124ba2d42f4d0e800b9535a14014c69522102851bdb1b3bbbe3d58cb0ddc949a71cb743b6a27730d0af3b45e6acb01ccc97472102b70942697c82cd560293df146e61002777c222a75bd0320176366f4b61eec61921027336b42972aa0abe1b6d2ecb0d37ea8489b9535940336077d1a2d5c21657df2153aeffffffff02729638000000000017a914d22da5b4190f2f834d6228d9bcbcf5fbf83080fe87553a2600000000001976a914723707ed5fc05e6acfbc8eabb89679813296230d88ac00000000';
+
 my $p2sh_p2wpkh =
 	'02000000000101f36d649153edbd05024632ee5301d85b2e6cbaeb4c87dd27588486e91d3a71e60100000017160014c188c6f016e332b74ed1cd9459111f53b581ecf2fdffffff0284d80100000000001600142fc521f81034f6937a0fe29488f630e2952d5a69931ddd030000000017a914fc85c6aa880c616db537a873607f610256285d7d87024730440220797c7518dcae53312f47327c79a261ee51e70fa063a17f15da0db35b61ce14ce022064ace894fb017e515578250b76834981d8aba80b7a37a2cbefca57cd84a0b9e70121023634e479b58c58cb8cc1650684729c5c58765b245a4844aee2e39bca4da3f3f900000000';
 
@@ -24,27 +27,31 @@ subtest 'checking new_empty' => sub {
 	ok !$flags->nulldummy, 'nulldummy ok';
 };
 
+subtest 'checking new_full' => sub {
+	my $flags = Bitcoin::Crypto::Transaction::Flags->new_full(nullfail => !!0);
+
+	ok !$flags->nullfail, 'nullfail ok';
+	ok $flags->cleanstack, 'cleanstack ok';
+};
+
 subtest 'checking p2sh' => sub {
 	my $flags = Bitcoin::Crypto::Transaction::Flags->new(p2sh => !!0);
-	my $tx = btc_transaction->from_serialized([hex => $p2sh_p2wpkh]);
+	my $tx = btc_transaction->from_serialized([hex => $p2sh_p2ms]);
 
 	# modify signature script to test ignoring p2sh
 	$tx->inputs->[0]->set_signature_script(
 		btc_script->new
 			->push([hex => 'deadbeef'])
-			->push([hex => '0014c188c6f016e332b74ed1cd9459111f53b581ecf2'])
+			->push(
+				[
+					hex =>
+					'522103c0e8a0663fe1c4d6c6ff91421498dfc443af470494ccf02949fd1a9931e403db210307cc351c1c63b02229807c6177d0ac1bd2345dac305cce870ab7b51ef2c964ef2103147c2a372e4bc2893c7367b9b9c8cdc7aca7f154fa83899525912ab2547793a953ae '
+				]
+			)
 	);
 
 	ok dies { $tx->verify }, 'checking with all flags ok';
 	ok lives { $tx->verify(flags => $flags) }, 'checking with disabled p2sh ok';
-};
-
-subtest 'checking strict_signatures' => sub {
-	my $flags = Bitcoin::Crypto::Transaction::Flags->new(strict_signatures => !!0);
-	my $tx = btc_transaction->from_serialized([hex => $p2pk_low_s_sig]);
-
-	ok dies { $tx->verify }, 'checking with all flags ok';
-	ok lives { $tx->verify(flags => $flags) }, 'checking with disabled strict signatures ok';
 };
 
 subtest 'checking nulldummy' => sub {
@@ -142,6 +149,14 @@ subtest 'checking taproot' => sub {
 
 	ok dies { $tx->verify }, 'checking with all flags ok';
 	ok lives { $tx->verify(flags => $flags) }, 'checking with disabled taproot ok';
+};
+
+subtest 'checking low_s_signatures' => sub {
+	my $flags = Bitcoin::Crypto::Transaction::Flags->new(low_s_signatures => !!1);
+	my $tx = btc_transaction->from_serialized([hex => $p2pk_low_s_sig]);
+
+	ok lives { $tx->verify }, 'checking with all flags ok';
+	ok dies { $tx->verify(flags => $flags) }, 'checking with enabled low s signatures ok';
 };
 
 done_testing;

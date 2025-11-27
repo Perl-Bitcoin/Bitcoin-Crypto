@@ -11,7 +11,7 @@ my @data = (
 		serialized => '00',
 		'script' => sub {
 			shift
-				->add_operation('OP_0')
+				->add_operation('OP_0');
 		},
 	},
 	{

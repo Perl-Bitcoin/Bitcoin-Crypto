@@ -77,6 +77,11 @@ has field '_valid' => (
 	clearer => 1,
 );
 
+has field '_opcode_count' => (
+	isa => Int,
+	writer => 1,
+);
+
 sub _trigger_transaction
 {
 	my ($self) = @_;
@@ -109,6 +114,10 @@ sub to_int
 	my ($self, $bytes, $max_bytes) = @_;
 	$max_bytes //= 4;
 
+	# too big vector cannot be interpreted as a number - see CScriptNum
+	die 'script numeric value too big to be interpreted as a number'
+		if length $bytes > $max_bytes;
+
 	return 0 if !length $bytes;
 
 	my $negative = !!0;
@@ -122,9 +131,8 @@ sub to_int
 	my $value = Math::BigInt->from_bytes(scalar reverse $bytes);
 	$value->bneg if $negative;
 
-	# too big vector cannot be interpreted as a number - see CScriptNum
-	die "script numeric value $value cannot be interpreted as a number"
-		if length $bytes > $max_bytes;
+	die 'number is not minimally encoded'
+		if ref $self && $self->flags->minimaldata && $bytes ne $self->from_int($value);
 
 	return $value;
 }
@@ -164,6 +172,7 @@ sub from_int
 sub to_bool
 {
 	my ($self, $bytes) = @_;
+	$bytes //= '';
 
 	my $len = length $bytes;
 	return !!0 if $len == 0;
@@ -176,6 +185,7 @@ sub to_bool
 sub to_minimal_bool
 {
 	my ($self, $bytes) = @_;
+	$bytes //= '';
 
 	return undef unless $bytes eq "\x01" or $bytes eq '';
 	return length $bytes == 1;
@@ -203,6 +213,19 @@ sub _register_codeseparator
 
 	$self->_set_codeseparator($self->pos);
 	return;
+}
+
+sub _increment_opcode_count
+{
+	my ($self, $number) = @_;
+	$number = $number->numify
+		if blessed $number && $number->isa('Math::BigInt');
+
+	$self->_set_opcode_count($self->_opcode_count + $number);
+
+	$self->_script_error('script non-push opcode count exceeded')
+		if !$self->is_tapscript
+		&& $self->_opcode_count > Bitcoin::Crypto::Constants::script_max_opcodes;
 }
 
 signature_for stack_serialized => (
@@ -246,22 +269,18 @@ sub start
 	$self->set_script($script);
 	$self->_set_alt_stack([]);
 	$self->_set_pos(0);
+	$self->_set_opcode_count(0);
 	$self->_clear_codeseparator;
 	$self->_clear_valid;
 
 	try {
-		Bitcoin::Crypto::Exception::ScriptCompilation->trap_into(
-			sub {
-				die 'cannot run tapscript without taproot flag'
-					if $self->is_tapscript && !$self->flags->taproot;
+		$self->compile;
 
-				$self->compile;
-			}
-		);
-
+		# NOTE: this code must be placed exactly here, because OP_SUCCESSes in
+		# compilation should cause these checks to NOT run
 		Bitcoin::Crypto::Exception::ScriptPush->trap_into(
 			sub {
-				die 'maximum initial stack element size exceeded'
+				die 'maximum initial stack element count exceeded'
 					if $self->is_tapscript && @$initial_stack > Bitcoin::Crypto::Constants::script_max_stack_elements;
 				die 'maximum initial stack element size exceeded'
 					if any { length $_ > Bitcoin::Crypto::Constants::script_max_element_size } @$initial_stack;
@@ -370,55 +389,81 @@ sub compile
 {
 	my ($self) = @_;
 	my $opcode_class = $self->script->opcode_class;
+	my $is_tapscript = $self->is_tapscript;
 	my @ops;
 	my @debug_ops;
+	my $non_push_opcodes = 0;
 
+	my $raw_script = $self->script->to_serialized;
 	my %context = (
-		serialized => $self->script->to_serialized,
+		serialized => $raw_script,
 		position => 0,
+		offset => 0,
+		size => length $raw_script,
 	);
 
-	try {
-		while (length $context{serialized}) {
-			my $this_byte = substr $context{serialized}, 0, 1, '';
-			my $opcode;
-			my @to_push;
+	Bitcoin::Crypto::Exception::ScriptCompilation->trap_into(
+		sub {
+			die 'cannot run tapscript without taproot flag'
+				if $is_tapscript && !$self->flags->taproot;
+
+			die 'script size exceeded'
+				if !$is_tapscript
+				&& $context{size} > Bitcoin::Crypto::Constants::script_max_size;
 
 			try {
-				$opcode = $opcode_class->get_opcode_by_code(ord $this_byte);
-				push @to_push, $this_byte;
+				while ($context{offset} < $context{size}) {
+					my $this_byte = substr $context{serialized}, $context{offset}++, 1;
+					my $opcode;
+					my @to_push;
+
+					# push this byte as debug op - pop it later if we can get
+					# it as real opcode
+					push @debug_ops, unpack 'H*', $this_byte;
+
+					$opcode = $opcode_class->get_opcode_by_code(ord $this_byte);
+					push @to_push, $this_byte;
+
+					splice @debug_ops, -1, 1, $opcode->name;
+					unshift @to_push, $opcode;
+
+					if ($opcode->has_on_compilation) {
+						$opcode->on_compilation->($self, \@to_push, \%context);
+					}
+
+					push @ops, \@to_push;
+					$context{position} += 1;
+				}
+
+				Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+					'some OP_IFs were not closed'
+				) if $context{branch};
 			}
 			catch {
-				my $err = $_;
-				push @debug_ops, unpack 'H*', $this_byte;
-				die $err;
+				my $ex = $_;
+				if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::ScriptCompilation')) {
+					$ex->set_script(\@debug_ops);
+					$ex->set_error_position($context{position});
+				}
+
+				die $ex;
 			};
 
-			push @debug_ops, $opcode->name;
-			unshift @to_push, $opcode;
+			foreach my $op (@ops) {
+				if ($op->[0]->pushop) {
+					my $size = length $op->[2];
 
-			if ($opcode->has_on_compilation) {
-				$opcode->on_compilation->($self, \@to_push, \%context);
+					die 'maximum stack element size exceeded'
+						if defined $size && $size > Bitcoin::Crypto::Constants::script_max_element_size;
+				}
+				else {
+					++$non_push_opcodes;
+				}
 			}
-
-			push @ops, \@to_push;
-			$context{position} += 1;
 		}
+	);
 
-		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-			'some OP_IFs were not closed'
-		) if $context{branch};
-	}
-	catch {
-		my $ex = $_;
-		if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::ScriptCompilation')) {
-			$ex->set_script(\@debug_ops);
-			$ex->set_error_position($context{position});
-		}
-
-		die $ex;
-	};
-
+	$self->_increment_opcode_count($non_push_opcodes);
 	$self->_set_operations(\@ops);
 }
 

@@ -252,7 +252,7 @@ my %types = (
 				if notall { $_->signature_script->is_empty } @{$tx->inputs};
 
 			die 'must be in non-witness format'
-				if any { $_->has_witness } @{$tx->inputs};
+				if $tx->had_witness_flag || any { $_->has_witness } @{$tx->inputs};
 		},
 		version_status => {
 			0 => REQUIRED,

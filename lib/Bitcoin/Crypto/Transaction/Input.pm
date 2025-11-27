@@ -40,14 +40,22 @@ has param 'sequence_no' => (
 	default => Bitcoin::Crypto::Constants::max_sequence_no,
 );
 
-has option 'witness' => (
+has param 'witness' => (
 	coerce => ArrayRef [ByteStr],
 	writer => 1,
+	default => sub { [] },
 );
 
 with qw(
 	Bitcoin::Crypto::Role::ShallowClone
 );
+
+sub has_witness
+{
+	my ($self) = @_;
+
+	return @{$self->witness} > 0;
+}
 
 sub _nested_script
 {
@@ -75,7 +83,7 @@ around BUILDARGS => sub {
 	my %hash_params = @params;
 	my $utxo = delete $hash_params{utxo};
 
-	if ($utxo) {
+	if (defined $utxo) {
 		if (blessed $utxo && $utxo->isa('Bitcoin::Crypto::Transaction::UTXO')) {
 			return {
 				%hash_params,
@@ -242,7 +250,7 @@ sub serialized_witness
 	my ($self) = @_;
 	my $serialized = '';
 
-	my @witness = $self->has_witness ? @{$self->witness} : ();
+	my @witness = @{$self->witness};
 
 	$serialized .= pack_compactsize(scalar @witness);
 	foreach my $witness_item (@witness) {

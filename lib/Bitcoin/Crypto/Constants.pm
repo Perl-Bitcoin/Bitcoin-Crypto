@@ -42,6 +42,9 @@ use constant {
 
 	script_max_stack_elements => 1000,
 	script_max_element_size => 520,
+	script_max_opcodes => 201,
+	script_max_size => 10_000,
+	script_max_multisig_pubkeys => 20,
 	tapscript_leaf_version => 0xc0,
 
 	p2sh_timestamp_threshold => 1333238400,
@@ -53,6 +56,9 @@ use constant {
 	psbt_input_map => 'in',
 	psbt_output_map => 'out',
 };
+
+# These constants need to be ()-prototyped subs because they are refs
+sub null_utxo () { [pack('x32'), 0xffffffff] }
 
 # These constants are environment-specific and internal only
 use constant {

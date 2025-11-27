@@ -31,7 +31,7 @@ has param 'checklocktimeverify' => (
 );
 
 # BIP66
-has param 'strict_signatures' => (
+has param 'der_signatures' => (
 	coerce => Bool,
 	default => 1,
 	writer => 1,
@@ -81,6 +81,18 @@ has param 'compressed_pubkeys' => (
 	writer => 1,
 );
 
+has param 'strict_encoding' => (
+	coerce => Bool,
+	default => 0,
+	writer => 1,
+);
+
+has param 'low_s_signatures' => (
+	coerce => Bool,
+	default => 0,
+	writer => 1,
+);
+
 has param 'minimaldata' => (
 	coerce => Bool,
 	default => 0,
@@ -111,6 +123,12 @@ has param 'known_witness' => (
 	writer => 1,
 );
 
+has param 'illegal_upgradeable_nops' => (
+	coerce => Bool,
+	default => 0,
+	writer => 1,
+);
+
 sub new_empty
 {
 	my ($self, %args) = @_;
@@ -119,7 +137,7 @@ sub new_empty
 		p2sh => !!0,
 		signature_pushes_only => !!0,
 		checklocktimeverify => !!0,
-		strict_signatures => !!0,
+		der_signatures => !!0,
 		checksequenceverify => !!0,
 		segwit => !!0,
 		nulldummy => !!0,
@@ -135,13 +153,25 @@ sub new_full
 	return $self->new(
 		minimalif => !!1,
 		compressed_pubkeys => !!1,
+		strict_encoding => !!1,
+		low_s_signatures => !!1,
 		minimaldata => !!1,
 		nullfail => !!1,
 		cleanstack => !!1,
 		const_script => !!1,
 		known_witness => !!1,
+		illegal_upgradeable_nops => !!1,
 		%args,
 	);
+}
+
+sub strict_signatures
+{
+	my ($self) = @_;
+
+	return $self->der_signatures
+		|| $self->low_s_signatures
+		|| $self->strict_encoding;
 }
 
 1;

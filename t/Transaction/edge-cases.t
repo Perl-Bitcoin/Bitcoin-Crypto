@@ -261,5 +261,14 @@ subtest 'should correctly verify a transaction with unexecuted codeseparator' =>
 	ok lives { $tx->verify }, 'transaction verification should succeed';
 };
 
+subtest 'should serialize tx into the witness form, if it was deserialized with empty witness data' => sub {
+	my $original_form =
+		'01000000000101ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000ffffffff0100000000000000000e6a0c7769746e65737320746573740000000000';
+	$tx = btc_transaction->from_serialized([hex => $original_form]);
+	ok $tx->had_witness_flag, 'witness flag ok';
+
+	is to_format [hex => $tx->to_serialized(witness => !!1)], $original_form, 'serialized ok';
+};
+
 done_testing;
 

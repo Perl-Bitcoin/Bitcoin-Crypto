@@ -145,18 +145,10 @@ Contributions sorting out any of those are welcome!
 
 =over
 
-=item * Transaction malleability is not fully solved
+=item * Sigop limit for pre-taproot transactions is not checked
 
-Some details like enforcing minimal push opcodes are not implemented.
-
-=item * Non-standard transactions may not work as intended
-
-Bitcoin::Crypto may not handle some funky transactions correctly. Most notably,
-it does not delete the signature from the script before using it for digesting
-(known as C<FindAndDelete> in Bitcoin Core). In addition, its
-C<OP_CODESEPARATOR> handling is not well-tested and any non-standard
-transaction will require you to manually provide a script for digesting (as
-C<signing_subscript>) and do manual insertion of the signature.
+Before taproot, limit of signature operations was defined for a block, not for
+a transaction. We currently do not check that.
 
 =back
 

@@ -53,6 +53,13 @@ has param 'locktime' => (
 	default => 0,
 );
 
+# used to mark whether the transaction was serialized with witness data, even
+# if no actual witness data was present (it was empty)
+has param 'had_witness_flag' => (
+	isa => Bool,
+	default => !!0,
+);
+
 has field '_digest_object' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction::Digest'],
 	lazy => sub {
@@ -159,10 +166,11 @@ sub to_serialized
 	# Process inputs
 	my @inputs = @{$self->inputs};
 
-	my $with_witness = $args->{witness} && any { $_->has_witness } @inputs;
-	if ($with_witness) {
-		$serialized .= "\x00\x01";
-	}
+	my $with_witness = $args->{witness}
+		&& ($self->had_witness_flag || any { $_->has_witness } @inputs);
+
+	$serialized .= "\x00\x01"
+		if $with_witness;
 
 	$serialized .= pack_compactsize(scalar @inputs);
 	foreach my $input (@inputs) {
@@ -255,6 +263,7 @@ sub from_serialized
 	my $tx = $class->new(
 		version => $version,
 		locktime => $locktime,
+		had_witness_flag => $witness_flag,
 	);
 
 	@{$tx->inputs} = @inputs;
@@ -265,14 +274,42 @@ sub from_serialized
 
 signature_for get_hash => (
 	method => Object,
-	positional => [],
+	named => [
+		witness => Bool,
+		{default => 0},
+	],
+	bless => !!0,
 );
 
 sub get_hash
 {
+	my ($self, $args) = @_;
+
+	return scalar reverse hash256($self->to_serialized(%$args));
+}
+
+signature_for txid => (
+	method => Object,
+	positional => [],
+);
+
+sub txid
+{
 	my ($self) = @_;
 
-	return scalar reverse hash256($self->to_serialized(witness => 0));
+	return $self->get_hash(witness => 0);
+}
+
+signature_for wtxid => (
+	method => Object,
+	positional => [],
+);
+
+sub wtxid
+{
+	my ($self) = @_;
+
+	return $self->get_hash(witness => 1);
 }
 
 signature_for get_digest => (
@@ -444,7 +481,11 @@ sub is_coinbase
 	my ($self) = @_;
 	my $inputs = $self->inputs;
 
-	return @{$inputs} == 1 && $inputs->[0]->utxo_location->[0] eq ("\x00" x 32);
+	return !!0 unless @{$inputs} == 1;
+
+	my $null_prevout = Bitcoin::Crypto::Constants::null_utxo;
+	my $utxo_prevout = $inputs->[0]->utxo_location;
+	return $null_prevout->[0] eq $utxo_prevout->[0] && $null_prevout->[1] == $utxo_prevout->[1];
 }
 
 sub _verify_script_default
@@ -452,9 +493,12 @@ sub _verify_script_default
 	my ($self, $input, $script_runner) = @_;
 	my $locking_script = $input->utxo->output->locking_script;
 
+	my $is_p2sh = $script_runner->flags->p2sh && ($locking_script->type // '') eq 'P2SH';
+	my $is_pushes_only = $is_p2sh || $script_runner->flags->signature_pushes_only;
+
 	Bitcoin::Crypto::Exception::TransactionScript->raise(
 		'signature script must only contain push opcodes'
-	) if $script_runner->flags->signature_pushes_only && !$input->signature_script->is_pushes_only;
+	) if $is_pushes_only && !$input->signature_script->is_pushes_only;
 
 	# execute input to get initial stack
 	$script_runner->execute($input->signature_script);
@@ -462,7 +506,7 @@ sub _verify_script_default
 	my @locking_stack;
 	my $redeem_script;
 
-	if ($script_runner->flags->p2sh && $locking_script->has_type && $locking_script->type eq 'P2SH') {
+	if ($is_p2sh) {
 		$redeem_script = pop @stack;
 		@locking_stack = ($redeem_script)
 			if defined $redeem_script;
@@ -642,6 +686,7 @@ sub _verify_script_taproot
 sub verify_script
 {
 	my ($self, $input_index, $script_runner) = @_;
+	$script_runner->transaction->_clear;
 	$script_runner->transaction->set_input_index($input_index);
 
 	my $input = $self->inputs->[$input_index];
@@ -656,6 +701,9 @@ sub verify_script
 
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
+			die 'witness in non-witness input'
+				if !$input->is_segwit && $input->has_witness;
+
 			$self->$procedure($input, $script_runner);
 		},
 		"transaction input $input_index verification has failed"
@@ -697,7 +745,7 @@ signature_for verify => (
 	named => [
 		block => Maybe [InstanceOf ['Bitcoin::Crypto::Block']],
 		{default => undef},
-		flags => Maybe [InstanceOf ['Bitcoin::Crypto::Transaction::Flags']],
+		flags => TransactionFlags,
 		{default => undef},
 	],
 	bless => !!0,
