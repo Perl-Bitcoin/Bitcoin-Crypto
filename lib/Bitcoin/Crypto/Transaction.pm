@@ -18,6 +18,7 @@ use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Transaction::Digest;
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format lift_x has_even_y);
+use Bitcoin::Crypto::Helpers qw(die_no_trace);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Common;
 use Bitcoin::Crypto::Script::Tree;
@@ -519,7 +520,7 @@ sub _verify_script_default
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
 			$script_runner->execute($locking_script, \@locking_stack);
-			die 'execution yielded failure'
+			die_no_trace 'execution yielded failure'
 				unless $script_runner->success;
 		},
 		'locking script'
@@ -536,7 +537,7 @@ sub _verify_script_default
 			Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 				sub {
 					$script_runner->execute($redeem_script, \@stack);
-					die 'execution yielded failure'
+					die_no_trace 'execution yielded failure'
 						unless $script_runner->success;
 				},
 				'redeem script'
@@ -549,7 +550,7 @@ sub _verify_script_segwit
 {
 	my ($self, $input, $script_runner, $compat_script) = @_;
 
-	die 'signature script is not empty in segwit input'
+	die_no_trace 'signature script is not empty in segwit input'
 		unless $compat_script || $input->signature_script->is_empty;
 
 	# use shallow copy of witness as initial stack
@@ -572,8 +573,8 @@ sub _verify_script_segwit
 	else {
 		# not a known segwit version 0 output
 
-		die 'unknown witness v0 program' if $locking_script->segwit_version == 0;
-		die 'unknown witness program' if $script_runner->flags->known_witness;
+		die_no_trace 'unknown witness v0 program' if $locking_script->segwit_version == 0;
+		die_no_trace 'unknown witness program' if $script_runner->flags->known_witness;
 		return;
 	}
 
@@ -581,7 +582,7 @@ sub _verify_script_segwit
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
 			$script_runner->execute($actual_locking_script, \@locking_stack);
-			die 'execution yielded failure'
+			die_no_trace 'execution yielded failure'
 				unless $script_runner->success;
 		},
 		'segwit locking script'
@@ -594,7 +595,7 @@ sub _verify_script_segwit
 		Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 			sub {
 				$script_runner->execute($redeem_script, \@stack);
-				die 'execution yielded failure'
+				die_no_trace 'execution yielded failure'
 					unless $script_runner->success;
 			},
 			'segwit redeem script'
@@ -606,7 +607,7 @@ sub _verify_script_taproot
 {
 	my ($self, $input, $script_runner) = @_;
 
-	die 'signature script is not empty in taproot input'
+	die_no_trace 'signature script is not empty in taproot input'
 		unless $input->signature_script->is_empty;
 
 	my $locking_script = $input->utxo->output->locking_script;
@@ -617,7 +618,7 @@ sub _verify_script_taproot
 
 	# consensus rules from https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#script-validation-rules
 
-	die 'witness stack has 0 elements'
+	die_no_trace 'witness stack has 0 elements'
 		unless @witness_stack;
 
 	# remove the annex from the witness stack - annex first byte is 0x50
@@ -666,7 +667,7 @@ sub _verify_script_taproot
 
 		my $tweaked = $control_block->public_key->get_taproot_output_key($tree->get_merkle_root);
 		my $expected_parity = !has_even_y($tweaked);
-		die 'invalid public key or control block'
+		die_no_trace 'invalid public key or control block'
 			unless $tweaked->get_xonly_key eq $pubkey
 			&& $expected_parity == ($control_block->control_byte & 1);
 	}
@@ -676,7 +677,7 @@ sub _verify_script_taproot
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
 			$script_runner->execute($script, \@witness_stack);
-			die 'execution yielded failure'
+			die_no_trace 'execution yielded failure'
 				unless $script_runner->success;
 		},
 		'taproot script'
@@ -701,7 +702,7 @@ sub verify_script
 
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
-			die 'witness in non-witness input'
+			die_no_trace 'witness in non-witness input'
 				if !$input->is_segwit && $input->has_witness;
 
 			$self->$procedure($input, $script_runner);

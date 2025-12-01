@@ -11,6 +11,7 @@ use Types::Common -types;
 use Bitcoin::Crypto qw(btc_script);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Helpers qw(die_no_trace);
 use Bitcoin::Crypto::Types -types;
 
 use namespace::clean;
@@ -99,7 +100,7 @@ sub _sign_P2MS
 {
 	my ($self, $signature) = @_;
 
-	die 'trying to sign payout from P2MS but no multisig was specified'
+	die_no_trace 'trying to sign payout from P2MS but no multisig was specified'
 		unless $self->has_multisig;
 
 	my ($this_signature, $total_signatures) = @{$self->multisig};
@@ -196,11 +197,11 @@ sub sign
 
 	Bitcoin::Crypto::Exception::Sign->trap_into(
 		sub {
-			die 'no such input' if !$self->input;
+			die_no_trace 'no such input' if !$self->input;
 
 			my $utxo = $self->input->utxo->output;
 
-			die 'cannot automatically sign a non-standard locking script'
+			die_no_trace 'cannot automatically sign a non-standard locking script'
 				if !$utxo->is_standard;
 
 			$self->_sign_script($utxo->locking_script);

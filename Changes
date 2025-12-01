@@ -33,6 +33,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Script's is_native_segwit method will now return true for future segwit versions
 	- push_bytes in Scripts will now include OP_1NEGATE for value 0x81
 	- flags can now be passed to verify function as a hashref
+	- most error messages no longer contain double error position
 
 	[Fixes]
 	- get_taproot_output_key yields the same key if called on a taproot_output key

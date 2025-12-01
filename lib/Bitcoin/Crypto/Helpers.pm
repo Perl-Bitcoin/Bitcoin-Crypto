@@ -34,6 +34,7 @@ our @EXPORT_OK = qw(
 	check_strict_public_key
 	check_strict_der_signature
 	make_strict_der_signature
+	die_no_trace
 );
 
 our @CARP_NOT;
@@ -270,6 +271,11 @@ sub make_strict_der_signature
 		pack('C', $s_len),
 		$s,
 		;
+}
+
+sub die_no_trace
+{
+	die $_[0] . "\n";
 }
 
 1;

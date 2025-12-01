@@ -19,7 +19,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(hash160 hash256);
-use Bitcoin::Crypto::Helpers qw(standard_push check_strict_public_key check_strict_der_signature);
+use Bitcoin::Crypto::Helpers qw(standard_push check_strict_public_key check_strict_der_signature die_no_trace);
 use Bitcoin::Crypto::Transaction::Input;
 
 use namespace::clean;
@@ -1627,7 +1627,7 @@ sub execute
 {
 	my ($self, @args) = @_;
 
-	die $self->name . ' is not implemented'
+	die_no_trace $self->name . ' is not implemented'
 		unless $self->implemented;
 
 	return $self->runner->(@args);

@@ -11,6 +11,7 @@ use Types::Common -sigs, -types;
 use List::Util qw(none);
 use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Util qw(lift_x get_taproot_ext);
+use Bitcoin::Crypto::Helpers qw(die_no_trace);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
@@ -87,7 +88,7 @@ sub _OP_CHECKSIG
 
 		if ($ext_flag == 1) {
 
-			die 'no script_tree in script transaction object'
+			die_no_trace 'no script_tree in script transaction object'
 				unless $runner->transaction->has_script_tree;
 
 			# leaf for this script must be defined with id 0 to get a proper hash

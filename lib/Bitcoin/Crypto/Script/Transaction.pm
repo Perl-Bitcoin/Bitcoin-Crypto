@@ -8,6 +8,7 @@ use Mooish::AttributeBuilder -standard;
 use Types::Common -types;
 
 use Bitcoin::Crypto::Types -types;
+use Bitcoin::Crypto::Helpers qw(die_no_trace);
 use Bitcoin::Crypto::Exception;
 
 use namespace::clean;
@@ -121,7 +122,7 @@ sub reduce_sigop_budget
 {
 	my ($self) = @_;
 
-	die 'no sigop budget defined for the transaction object'
+	die_no_trace 'no sigop budget defined for the transaction object'
 		unless $self->has_sigop_budget;
 
 	my $budget = $self->sigop_budget;

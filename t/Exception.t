@@ -1,5 +1,6 @@
 use Test2::V0;
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Helpers qw(die_no_trace);
 
 subtest 'test exception throwing' => sub {
 	isa_ok dies {
@@ -67,6 +68,16 @@ subtest 'test exception trapping' => sub {
 
 	isa_ok($err, 'Bitcoin::Crypto::Exception');
 	note($err);
+};
+
+# there should be no die error position when die_no_trace is used (and no
+# newline either)
+subtest 'test exception trapping and die_no_trace' => sub {
+	like dies {
+		Bitcoin::Crypto::Exception->trap_into(
+			sub { die_no_trace 'test test test'; }
+		);
+	}, qr{test test test \(raised at};
 };
 
 done_testing;

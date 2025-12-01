@@ -12,7 +12,7 @@ use Carp qw(carp);
 use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Constants;
-use Bitcoin::Crypto::Helpers qw(ensure_length ecc);
+use Bitcoin::Crypto::Helpers qw(ensure_length ecc die_no_trace);
 use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
@@ -137,7 +137,7 @@ sub _derive_key_partial
 	Bitcoin::Crypto::Exception::KeyDerive->trap_into(
 		sub {
 			$key = ecc->add_private_key($key, $tweak);
-			die 'verification failed' unless ecc->verify_private_key($key);
+			die_no_trace 'verification failed' unless ecc->verify_private_key($key);
 		},
 		"key $child_num in sequence was found invalid"
 	);

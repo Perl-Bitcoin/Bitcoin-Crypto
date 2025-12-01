@@ -9,7 +9,7 @@ use Type::Coercion;
 use Types::Common -types;
 
 # make sure Math::BigInt is properly loaded - this module loads it
-use Bitcoin::Crypto::Helpers;
+use Bitcoin::Crypto::Helpers qw(die_no_trace);
 use Bitcoin::Crypto::Constants;
 
 our $CHECK_BYTESTRINGS = !!1;
@@ -190,7 +190,9 @@ __PACKAGE__->add_type(
 			if Bitcoin::Crypto::Constants::ivsize * 8 == $bits;
 
 		# can't handle
-		die 'IntMaxBits only handles up to ' . (Bitcoin::Crypto::Constants::ivsize * 8) . ' bits on this system'
+		die_no_trace 'IntMaxBits only handles up to '
+			. (Bitcoin::Crypto::Constants::ivsize * 8)
+			. ' bits on this system'
 			if Bitcoin::Crypto::Constants::ivsize * 8 < $bits;
 
 		my $limit = 1 << $bits;

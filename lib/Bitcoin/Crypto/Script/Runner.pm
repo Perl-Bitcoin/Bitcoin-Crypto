@@ -13,7 +13,7 @@ use List::Util qw(any);
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Helpers qw(pad_hex standard_push);
+use Bitcoin::Crypto::Helpers qw(pad_hex standard_push die_no_trace);
 use Bitcoin::Crypto::Script::Transaction;
 use Bitcoin::Crypto::Transaction::Flags;
 
@@ -91,7 +91,7 @@ sub _trigger_transaction
 
 sub _stack_error
 {
-	die 'stack error';
+	die_no_trace 'stack error';
 }
 
 sub _invalid_script
@@ -115,7 +115,7 @@ sub to_int
 	$max_bytes //= 4;
 
 	# too big vector cannot be interpreted as a number - see CScriptNum
-	die 'script numeric value too big to be interpreted as a number'
+	die_no_trace 'script numeric value too big to be interpreted as a number'
 		if length $bytes > $max_bytes;
 
 	return 0 if !length $bytes;
@@ -131,7 +131,7 @@ sub to_int
 	my $value = Math::BigInt->from_bytes(scalar reverse $bytes);
 	$value->bneg if $negative;
 
-	die 'number is not minimally encoded'
+	die_no_trace 'number is not minimally encoded'
 		if ref $self && $self->flags->minimaldata && $bytes ne $self->from_int($value);
 
 	return $value;
@@ -280,9 +280,9 @@ sub start
 		# compilation should cause these checks to NOT run
 		Bitcoin::Crypto::Exception::ScriptPush->trap_into(
 			sub {
-				die 'maximum initial stack element count exceeded'
+				die_no_trace 'maximum initial stack element count exceeded'
 					if $self->is_tapscript && @$initial_stack > Bitcoin::Crypto::Constants::script_max_stack_elements;
-				die 'maximum initial stack element size exceeded'
+				die_no_trace 'maximum initial stack element size exceeded'
 					if any { length $_ > Bitcoin::Crypto::Constants::script_max_element_size } @$initial_stack;
 
 				$self->_set_stack($initial_stack);
@@ -404,10 +404,10 @@ sub compile
 
 	Bitcoin::Crypto::Exception::ScriptCompilation->trap_into(
 		sub {
-			die 'cannot run tapscript without taproot flag'
+			die_no_trace 'cannot run tapscript without taproot flag'
 				if $is_tapscript && !$self->flags->taproot;
 
-			die 'script size exceeded'
+			die_no_trace 'script size exceeded'
 				if !$is_tapscript
 				&& $context{size} > Bitcoin::Crypto::Constants::script_max_size;
 
@@ -453,7 +453,7 @@ sub compile
 				if ($op->[0]->pushop) {
 					my $size = length $op->[2];
 
-					die 'maximum stack element size exceeded'
+					die_no_trace 'maximum stack element size exceeded'
 						if defined $size && $size > Bitcoin::Crypto::Constants::script_max_element_size;
 				}
 				else {

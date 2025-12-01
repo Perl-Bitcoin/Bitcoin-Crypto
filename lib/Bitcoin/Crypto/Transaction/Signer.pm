@@ -14,6 +14,7 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Runner;
 use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Helpers qw(die_no_trace);
 
 use namespace::clean;
 
@@ -65,7 +66,7 @@ sub _find_next_sigop
 				my $pos = $runner->pos;
 
 				if ($pos > $#$ops) {
-					die 'could not find a sigop' if $error;
+					die_no_trace 'could not find a sigop' if $error;
 					last;
 				}
 

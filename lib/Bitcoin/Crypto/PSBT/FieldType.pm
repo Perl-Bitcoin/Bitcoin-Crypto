@@ -14,7 +14,7 @@ use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize lift_x);
-use Bitcoin::Crypto::Helpers qw(ensure_length);    # loads Math::BigInt
+use Bitcoin::Crypto::Helpers qw(ensure_length die_no_trace);    # loads Math::BigInt
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Transaction::ControlBlock;
 use Bitcoin::Crypto::DerivationPath;
@@ -248,10 +248,10 @@ my %types = (
 		validator => sub {
 			my ($tx) = @_;
 
-			die 'must not have signatures'
+			die_no_trace 'must not have signatures'
 				if notall { $_->signature_script->is_empty } @{$tx->inputs};
 
-			die 'must be in non-witness format'
+			die_no_trace 'must be in non-witness format'
 				if $tx->had_witness_flag || any { $_->has_witness } @{$tx->inputs};
 		},
 		version_status => {
@@ -531,7 +531,8 @@ my %types = (
 		%uint_32bitLE_serializers,
 		validator => sub {
 			my ($value) = @_;
-			die 'must be greather than or equal to ' . Bitcoin::Crypto::Constants::locktime_height_threshold
+			die_no_trace 'must be greather than or equal to '
+				. Bitcoin::Crypto::Constants::locktime_height_threshold
 				if $value < Bitcoin::Crypto::Constants::locktime_height_threshold;
 		},
 		version_status => {
@@ -544,7 +545,7 @@ my %types = (
 		%uint_32bitLE_serializers,
 		validator => sub {
 			my ($value) = @_;
-			die 'must be less than ' . Bitcoin::Crypto::Constants::locktime_height_threshold
+			die_no_trace 'must be less than ' . Bitcoin::Crypto::Constants::locktime_height_threshold
 				unless $value < Bitcoin::Crypto::Constants::locktime_height_threshold;
 		},
 		version_status => {
@@ -558,7 +559,7 @@ my %types = (
 		validator => sub {
 			my ($value) = @_;
 			state $validator = ByteStrLen [64] | ByteStrLen [65];
-			die 'invalid signature length'
+			die_no_trace 'invalid signature length'
 				unless $validator->check($value);
 		},
 		version_status => {
@@ -579,7 +580,7 @@ my %types = (
 		},
 		key_deserializer => sub {
 			my $val = shift;
-			die 'invalid length'
+			die_no_trace 'invalid length'
 				unless length $val == 64;
 
 			my $leaf_hash = substr $val, 32, 32;
@@ -593,7 +594,7 @@ my %types = (
 		validator => sub {
 			my ($key, $value) = @_;
 			state $validator = ByteStrLen [64] | ByteStrLen [65];
-			die 'invalid signature length'
+			die_no_trace 'invalid signature length'
 				unless $validator->check($value);
 		},
 		version_status => {
@@ -669,7 +670,7 @@ my %types = (
 		validator => sub {
 			my ($value) = @_;
 			state $validator = ByteStrLen [32];
-			die 'invalid merkle root length'
+			die_no_trace 'invalid merkle root length'
 				unless $validator->check($value);
 		},
 		version_status => {
@@ -761,7 +762,7 @@ my %types = (
 			my $action = sub {
 				my ($value, $depth) = @_;
 
-				die 'tree must have all its leaves unhashed'
+				die_no_trace 'tree must have all its leaves unhashed'
 					unless defined $value->{script};
 
 				my $serialized = $value->{script}->to_serialized;

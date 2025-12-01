@@ -77,7 +77,9 @@ sub trap_into
 			}
 		}
 
-		$class->raise($prefix ? "$prefix: $ex" : "$ex");
+		my $ex_string = "$ex";
+		chomp $ex_string;    # remove \n from die_no_trace
+		$class->raise($prefix ? "$prefix: $ex_string" : $ex_string);
 	};
 
 	return $ret;
