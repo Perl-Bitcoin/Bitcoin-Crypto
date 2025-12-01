@@ -211,6 +211,42 @@ sub _compile_OP_VERIF
 	};
 }
 
+sub __checksig
+{
+	my ($runner, $sig, $hashtype, $raw_pubkey, $preimage) = @_;
+
+	state $allowed_sighash = [
+		Bitcoin::Crypto::Constants::sighash_all,
+		Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+		Bitcoin::Crypto::Constants::sighash_single,
+		Bitcoin::Crypto::Constants::sighash_single | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+		Bitcoin::Crypto::Constants::sighash_none,
+		Bitcoin::Crypto::Constants::sighash_none | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+	];
+
+	if (defined $hashtype) {
+		$runner->_invalid_script('bad sighash')
+			if $runner->flags->strict_encoding
+			&& none { $hashtype == $_ } @$allowed_sighash;
+
+		$runner->_invalid_script('non-strict DER signature')
+			if $runner->flags->strict_signatures
+			&& !check_strict_der_signature($sig);
+	}
+
+	$runner->_invalid_script('non-strict pubkey')
+		if $runner->flags->strict_encoding && !check_strict_public_key($raw_pubkey);
+
+	my $pubkey = try { btc_pub->from_serialized($raw_pubkey) };
+
+	$runner->_script_error('public keys must be compressed')
+		if $runner->flags->compressed_pubkeys
+		&& $runner->transaction->is_segwit
+		&& $pubkey && !$pubkey->compressed;
+
+	return $pubkey ? $pubkey->verify_message($preimage, $sig, flags => $runner->flags) : !!0;
+}
+
 sub _OP_PUSHDATA
 {
 	my ($class, $opcode_name) = @_;
@@ -1029,40 +1065,13 @@ sub _OP_CHECKSIG
 		my $sig_orig = $sig;
 
 		my $hashtype = unpack 'C', substr $sig, -1, 1, '';
-		state $allowed_sighash = [
-			Bitcoin::Crypto::Constants::sighash_all,
-			Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-			Bitcoin::Crypto::Constants::sighash_single,
-			Bitcoin::Crypto::Constants::sighash_single | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-			Bitcoin::Crypto::Constants::sighash_none,
-			Bitcoin::Crypto::Constants::sighash_none | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-		];
-
-		if (defined $hashtype) {
-			$runner->_invalid_script('bad sighash')
-				if $runner->flags->strict_encoding
-				&& none { $hashtype == $_ } @$allowed_sighash;
-
-			$runner->_invalid_script('non-strict DER signature')
-				if $runner->flags->strict_signatures
-				&& !check_strict_der_signature($sig);
-		}
-
-		$runner->_invalid_script('non-strict pubkey')
-			if $runner->flags->strict_encoding && !check_strict_public_key($raw_pubkey);
-
-		my $pubkey = try { btc_pub->from_serialized($raw_pubkey) };
-
-		$runner->_script_error('public keys must be compressed')
-			if $runner->flags->compressed_pubkeys
-			&& $runner->transaction->is_segwit
-			&& $pubkey && !$pubkey->compressed;
 
 		my $preimage = $runner->transaction->get_digest(
 			signatures => [$sig_orig],
 			sighash => $hashtype,
 		);
-		my $result = $pubkey ? $pubkey->verify_message($preimage, $sig, flags => $runner->flags) : !!0;
+
+		my $result = __checksig($runner, $sig, $hashtype, $raw_pubkey, $preimage);
 
 		$runner->_script_error('signature verification failed')
 			if !$result && $runner->flags->nullfail && $sig ne '';
@@ -1114,47 +1123,19 @@ sub _OP_CHECKMULTISIG
 		$runner->_script_error('OP_CHECKMULTISIG dummy argument must be empty')
 			if $runner->flags->nulldummy && length $unused;
 
-		my $compressed_pubkeys = $runner->flags->compressed_pubkeys && $runner->transaction->is_segwit;
 		my $found = !!1;
 		my %digests;
 		while (defined(my $sig = pop @signatures_left)) {
 			my $hashtype = unpack 'C', substr $sig, -1, 1, '';
 
-			state $allowed_sighash = [
-				Bitcoin::Crypto::Constants::sighash_all,
-				Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-				Bitcoin::Crypto::Constants::sighash_single,
-				Bitcoin::Crypto::Constants::sighash_single | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-				Bitcoin::Crypto::Constants::sighash_none,
-				Bitcoin::Crypto::Constants::sighash_none | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-			];
-
-			if (defined $hashtype) {
-				$runner->_invalid_script('bad sighash')
-					if $runner->flags->strict_encoding
-					&& none { $hashtype == $_ } @$allowed_sighash;
-
-				$runner->_invalid_script('non-strict DER signature')
-					if $runner->flags->strict_signatures
-					&& !check_strict_der_signature($sig);
-			}
-
-			my $digest = $digests{$hashtype // ''} //= $runner->transaction->get_digest(
+			my $preimage = $digests{$hashtype // ''} //= $runner->transaction->get_digest(
 				signatures => [@signatures],
 				sighash => $hashtype,
 			);
 
 			$found = !!0;
 			while (defined(my $raw_pubkey = pop @pubkeys)) {
-				$runner->_invalid_script('non-strict pubkey')
-					if $runner->flags->strict_encoding && !check_strict_public_key($raw_pubkey);
-
-				my $pubkey = try { btc_pub->from_serialized($raw_pubkey) };
-
-				$runner->_script_error('public keys must be compressed')
-					if $compressed_pubkeys && $pubkey && !$pubkey->compressed;
-
-				$found = $pubkey ? $pubkey->verify_message($digest, $sig, flags => $runner->flags) : !!0;
+				$found = __checksig($runner, $sig, $hashtype, $raw_pubkey, $preimage);
 				last if $found || @signatures_left + 1 > @pubkeys;
 			}
 
