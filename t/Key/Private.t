@@ -5,6 +5,7 @@ use Encode qw(encode);
 use Bitcoin::Crypto qw(btc_prv);
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Secret;
 
 # silence warnings
 local $SIG{__WARN__} = sub { };
@@ -134,6 +135,13 @@ subtest 'should generate taproot output keys consistently for both private and p
 	is to_format [hex => $even_y_prv->get_taproot_output_key->get_public_key->to_serialized],
 		to_format [hex => $even_y_prv->get_public_key->get_taproot_output_key->to_serialized],
 		'even key ok';
+};
+
+subtest 'buffer should be secret' => sub {
+	my $random_prv = btc_prv->from_serialized([hex => '010203']);
+	isa_ok $random_prv->key_instance, 'Bitcoin::Crypto::Secret';
+	isa_ok $random_prv->key_instance->{'s'}, 'Crypt::SecretBuffer'
+		if $Bitcoin::Crypto::Secret::USE_SECRET_BUFFER;
 };
 
 done_testing;
