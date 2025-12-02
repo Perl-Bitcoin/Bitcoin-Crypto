@@ -4,11 +4,7 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
-
-use namespace::clean;
+use Mooish::Base -standard;
 
 # BIP16
 has param 'p2sh' => (

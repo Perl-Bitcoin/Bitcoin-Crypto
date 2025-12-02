@@ -4,9 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 use Scalar::Util qw(blessed);
 use Try::Tiny;
 
@@ -16,8 +15,6 @@ use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Script::Common;
-
-use namespace::clean;
 
 has param 'utxo_location' => (
 	coerce => Tuple [ByteStr, PositiveOrZeroInt],

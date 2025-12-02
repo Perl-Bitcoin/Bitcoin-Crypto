@@ -4,7 +4,7 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo::Role;
+use Mooish::Base -standard, -role;
 
 requires qw(get_derivation_path);
 

@@ -4,16 +4,13 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 
 use Bitcoin::Crypto::PSBT::FieldType;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
-
-use namespace::clean;
 
 has field 'map' => (
 	isa => InstanceOf ['Bitcoin::Crypto::PSBT::Map'],

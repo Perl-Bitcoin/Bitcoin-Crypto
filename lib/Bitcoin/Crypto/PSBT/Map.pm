@@ -4,17 +4,14 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 use List::Util qw(any);
 
 use Bitcoin::Crypto::PSBT::Field;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
-
-use namespace::clean;
 
 has param 'type' => (
 	isa => PSBTMapType,

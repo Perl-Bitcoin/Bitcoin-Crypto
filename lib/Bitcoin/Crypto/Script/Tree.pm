@@ -3,17 +3,15 @@ package Bitcoin::Crypto::Script::Tree;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+
+use Mooish::Base -standard;
+use Types::Common -sigs;
 use List::Util qw(first);
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(tagged_hash pack_compactsize has_even_y);
 use Bitcoin::Crypto::Transaction::ControlBlock;
-
-use namespace::clean;
 
 # recursive structure - a binary tree
 has param 'tree' => (

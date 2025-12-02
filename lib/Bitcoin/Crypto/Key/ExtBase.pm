@@ -3,10 +3,10 @@ package Bitcoin::Crypto::Key::ExtBase;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
+
+use Mooish::Base -standard;
 use Scalar::Util qw(blessed);
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Types::Common -sigs;
 use Carp qw(carp);
 use List::Util qw(none);
 
@@ -18,8 +18,6 @@ use Bitcoin::Crypto::Util qw(hash160 to_format);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 has param 'depth' => (
 	isa => IntMaxBits [8],

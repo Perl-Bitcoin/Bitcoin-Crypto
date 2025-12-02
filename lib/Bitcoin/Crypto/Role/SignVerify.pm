@@ -3,8 +3,8 @@ package Bitcoin::Crypto::Role::SignVerify;
 use v5.10;
 use strict;
 use warnings;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard, -role;
+use Types::Common -sigs;
 use Try::Tiny;
 
 use Bitcoin::Crypto::Types -types;
@@ -12,7 +12,6 @@ use Bitcoin::Crypto::Helpers qw(ecc make_strict_der_signature);
 use Bitcoin::Crypto::Transaction::AutoSigner;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Transaction::Flags;
-use Moo::Role;
 
 requires qw(
 	raw_key

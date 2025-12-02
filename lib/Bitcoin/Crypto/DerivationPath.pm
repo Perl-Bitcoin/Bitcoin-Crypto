@@ -4,14 +4,11 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 has param 'private' => (
 	isa => Bool,

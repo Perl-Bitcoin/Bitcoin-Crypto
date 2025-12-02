@@ -4,11 +4,10 @@ use v5.10;
 use strict;
 use warnings;
 
-use Types::Common -types, -sigs;
+use Mooish::Base -standard, -role;
+use Types::Common -sigs;
 
 use Bitcoin::Crypto::Types -types;
-
-use Moo::Role;
 
 requires qw(
 	add_signature

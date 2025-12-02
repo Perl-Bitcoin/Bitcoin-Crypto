@@ -3,9 +3,9 @@ package Bitcoin::Crypto::Key::Public;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+
+use Mooish::Base -standard;
+use Types::Common -sigs;
 use Carp qw(carp);
 
 use Bitcoin::Crypto::Script;
@@ -15,8 +15,6 @@ use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed);
 use Bitcoin::Crypto::Helpers qw(ecc);
-
-use namespace::clean;
 
 extends qw(Bitcoin::Crypto::Key::Base);
 

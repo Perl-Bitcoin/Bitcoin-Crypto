@@ -36,6 +36,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- most error messages no longer contain double error position
 	- errors reported by script execution should now do a better job at pinpointing the issue
 	- added disabled script opcodes
+	- module can now take advantage of various XS modules that speed up Moo
 
 	[Fixes]
 	- get_taproot_output_key yields the same key if called on a taproot_output key

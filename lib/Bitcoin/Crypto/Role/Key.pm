@@ -3,16 +3,15 @@ package Bitcoin::Crypto::Role::Key;
 use v5.10;
 use strict;
 use warnings;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+
+use Mooish::Base -standard, -role;
+use Types::Common -sigs;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length ecc);
 use Bitcoin::Crypto::Exception;
-
-use Moo::Role;
 
 has param 'key_instance' => (
 	isa => ByteStr,

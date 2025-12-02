@@ -4,9 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 use List::Util qw(any notall);
 
 use Bitcoin::Crypto qw(btc_extpub btc_pub btc_transaction btc_script btc_tapscript btc_script_tree);
@@ -18,8 +17,6 @@ use Bitcoin::Crypto::Helpers qw(ensure_length die_no_trace);    # loads Math::Bi
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Transaction::ControlBlock;
 use Bitcoin::Crypto::DerivationPath;
-
-use namespace::clean;
 
 use constant {
 	REQUIRED => 'required',

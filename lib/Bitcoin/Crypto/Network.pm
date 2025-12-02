@@ -4,14 +4,11 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
-
-use namespace::clean;
 
 my %networks;
 my $default_network;

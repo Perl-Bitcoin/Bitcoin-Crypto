@@ -3,12 +3,12 @@ package Bitcoin::Crypto::Script;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
+
+use Mooish::Base -standard;
 use Crypt::Digest::SHA256 qw(sha256);
-use Mooish::AttributeBuilder -standard;
 use Scalar::Util qw(blessed);
 use List::Util qw(any);
-use Types::Common -sigs, -types;
+use Types::Common -sigs;
 use Carp qw(carp);
 
 use Bitcoin::Crypto::Constants;
@@ -22,8 +22,6 @@ use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
 use Bitcoin::Crypto::Script::Common;
 use Bitcoin::Crypto::Script::Recognition;
-
-use namespace::clean;
 
 has field '_serialized' => (
 	isa => ByteStr,

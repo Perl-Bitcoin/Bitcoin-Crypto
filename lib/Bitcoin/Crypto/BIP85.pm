@@ -3,9 +3,9 @@ package Bitcoin::Crypto::BIP85;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+
+use Mooish::Base -standard;
+use Types::Common -sigs;
 use List::Util qw(all);
 use Crypt::Mac::HMAC qw(hmac);
 use Crypt::Digest::SHAKE;
@@ -14,8 +14,6 @@ use Bitcoin::Crypto qw(btc_prv btc_extprv);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(mnemonic_from_entropy);
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 has param 'key' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Key::ExtPrivate'],

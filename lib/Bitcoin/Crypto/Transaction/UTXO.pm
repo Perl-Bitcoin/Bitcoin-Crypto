@@ -4,17 +4,14 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 
 use Bitcoin::Crypto::Transaction;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 my %utxos;
 my $loader;

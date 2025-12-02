@@ -4,15 +4,11 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -types;
+use Mooish::Base -standard;
 use List::Util qw(any);
 use Try::Tiny;
 
 use Bitcoin::Crypto::Script::Opcode;
-
-use namespace::clean;
 
 has param 'script' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script'],

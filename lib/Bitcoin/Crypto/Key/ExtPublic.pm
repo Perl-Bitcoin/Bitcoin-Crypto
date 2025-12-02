@@ -3,16 +3,15 @@ package Bitcoin::Crypto::Key::ExtPublic;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
+
+use Mooish::Base -standard;
 use Crypt::Mac::HMAC qw(hmac);
-use Types::Common -sigs, -types;
+use Types::Common -sigs;
 
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(ensure_length ecc);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::BIP44;
-
-use namespace::clean;
 
 extends qw(Bitcoin::Crypto::Key::ExtBase);
 

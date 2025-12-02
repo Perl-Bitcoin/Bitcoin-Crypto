@@ -4,15 +4,11 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -types;
+use Mooish::Base -standard;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(hash256 tagged_hash);
-
-use namespace::clean;
 
 use overload
 	q{""} => "as_string",

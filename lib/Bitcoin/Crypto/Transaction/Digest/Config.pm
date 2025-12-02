@@ -4,13 +4,9 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -types;
+use Mooish::Base -standard;
 
 use Bitcoin::Crypto::Types -types;
-
-use namespace::clean;
 
 has param 'signing_index' => (
 	isa => PositiveOrZeroInt,

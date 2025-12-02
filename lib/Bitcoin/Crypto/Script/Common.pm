@@ -5,12 +5,11 @@ use strict;
 use warnings;
 
 use Types::Common -sigs, -types;
+use namespace::autoclean;
 
 use Bitcoin::Crypto qw(btc_script btc_tapscript);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 sub _make_PKH
 {

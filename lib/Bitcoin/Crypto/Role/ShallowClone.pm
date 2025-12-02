@@ -4,8 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
-use Types::Common -sigs, -types;
-use Moo::Role;
+use Mooish::Base -standard, -role;
+use Types::Common -sigs;
 
 signature_for clone => (
 	method => Object,

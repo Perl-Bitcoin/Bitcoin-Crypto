@@ -4,16 +4,13 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 has param 'value' => (
 	writer => 1,

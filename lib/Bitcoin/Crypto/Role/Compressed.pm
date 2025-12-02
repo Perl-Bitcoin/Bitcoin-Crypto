@@ -3,12 +3,11 @@ package Bitcoin::Crypto::Role::Compressed;
 use v5.10;
 use strict;
 use warnings;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+
+use Mooish::Base -standard, -role;
+use Types::Common -sigs;
 
 use Carp qw(carp);
-
-use Moo::Role;
 
 has param 'compressed' => (
 	coerce => Bool,

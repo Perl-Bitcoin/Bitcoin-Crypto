@@ -4,15 +4,12 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -types, -sigs;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 
 use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(lift_x);
-
-use namespace::clean;
 
 has param 'control_byte' => (
 	isa => IntMaxBits [8],

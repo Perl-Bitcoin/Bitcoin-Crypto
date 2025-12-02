@@ -3,10 +3,11 @@ package Bitcoin::Crypto::Key::ExtPrivate;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
+
+use Mooish::Base -standard;
 use Crypt::Mac::HMAC qw(hmac);
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy);
-use Types::Common -sigs, -types;
+use Types::Common -sigs;
 use Carp qw(carp);
 
 use Bitcoin::Crypto::BIP44;
@@ -16,8 +17,6 @@ use Bitcoin::Crypto::Helpers qw(ensure_length ecc die_no_trace);
 use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 extends qw(Bitcoin::Crypto::Key::ExtBase);
 

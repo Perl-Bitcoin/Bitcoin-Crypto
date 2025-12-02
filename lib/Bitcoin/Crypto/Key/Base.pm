@@ -3,16 +3,14 @@ package Bitcoin::Crypto::Key::Base;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+
+use Mooish::Base -standard;
+use Types::Common -sigs;
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(to_format tagged_hash lift_x has_even_y);
 use Bitcoin::Crypto::Helpers qw(ecc);
-
-use namespace::clean;
 
 has param 'taproot_output' => (
 	isa => Bool,

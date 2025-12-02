@@ -4,9 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 use Scalar::Util qw(blessed);
 use Try::Tiny;
 
@@ -15,8 +14,6 @@ use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_form
 use Bitcoin::Crypto::Script::Runner;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 # Block header fields
 has param 'version' => (

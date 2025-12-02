@@ -3,9 +3,9 @@ package Bitcoin::Crypto::BIP44;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+
+use Mooish::Base -standard;
+use Types::Common -sigs;
 
 use Scalar::Util qw(blessed);
 
@@ -13,8 +13,6 @@ use Bitcoin::Crypto::DerivationPath;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 sub _get_network_constant
 {

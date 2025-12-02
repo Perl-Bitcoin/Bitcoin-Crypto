@@ -4,9 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
@@ -21,8 +20,6 @@ use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(hash160 hash256);
 use Bitcoin::Crypto::Helpers qw(standard_push check_strict_public_key check_strict_der_signature die_no_trace);
 use Bitcoin::Crypto::Transaction::Input;
-
-use namespace::clean;
 
 has param 'name' => (
 	isa => Str,

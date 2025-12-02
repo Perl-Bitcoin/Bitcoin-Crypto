@@ -4,9 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 
 use List::Util qw(none);
 use Bitcoin::Crypto qw(btc_pub);
@@ -15,8 +14,6 @@ use Bitcoin::Crypto::Helpers qw(die_no_trace);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
-
-use namespace::clean;
 
 extends 'Bitcoin::Crypto::Script::Opcode';
 

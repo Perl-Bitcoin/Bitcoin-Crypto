@@ -4,13 +4,9 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Standard -types;
+use Mooish::Base -standard;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
-
-use namespace::clean;
 
 use overload
 	q{""} => "as_string",
@@ -250,9 +246,7 @@ sub as_string
 
 	package Bitcoin::Crypto::Exception::ScriptCompilation;
 
-	use Moo;
-	use Mooish::AttributeBuilder -standard;
-	use Types::Common -types;
+	use Mooish::Base -standard;
 
 	extends 'Bitcoin::Crypto::Exception';
 

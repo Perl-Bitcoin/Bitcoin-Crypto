@@ -4,9 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -types, -sigs;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 use Carp qw(croak);
 
 use Bitcoin::Crypto::Exception;
@@ -15,8 +14,6 @@ use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Runner;
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Helpers qw(die_no_trace);
-
-use namespace::clean;
 
 has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],

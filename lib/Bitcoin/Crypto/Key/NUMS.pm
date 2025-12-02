@@ -4,9 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 use Crypt::PRNG qw(random_bytes);
 use Crypt::Digest::SHA256 qw(sha256);
 
@@ -15,8 +14,6 @@ use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(lift_x);
 use Bitcoin::Crypto::Helpers qw(ecc);
 use Bitcoin::Crypto::Constants;
-
-use namespace::clean;
 
 # 32 random bytes can overflow ecc, but the changes of that are extremely low
 has param 'tweak' => (

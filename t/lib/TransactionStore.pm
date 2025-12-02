@@ -4,9 +4,6 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-
 use Bitcoin::Crypto qw(btc_utxo btc_script);
 use Bitcoin::Crypto::Util qw(to_format);
 

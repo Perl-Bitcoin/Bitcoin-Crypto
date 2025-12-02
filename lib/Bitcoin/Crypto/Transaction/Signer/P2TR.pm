@@ -4,17 +4,13 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -types, -sigs;
+use Mooish::Base -standard;
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Runner;
 use Bitcoin::Crypto::Util qw(get_taproot_ext);
-
-use namespace::clean;
 
 extends 'Bitcoin::Crypto::Transaction::Signer::Taproot';
 

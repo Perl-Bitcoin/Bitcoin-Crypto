@@ -4,9 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 use List::Util qw(any);
 use Scalar::Util qw(blessed);
 
@@ -16,8 +15,6 @@ use Bitcoin::Crypto::PSBT::FieldType;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 has field 'maps' => (
 	isa => ArrayRef [InstanceOf ['Bitcoin::Crypto::PSBT::Map']],

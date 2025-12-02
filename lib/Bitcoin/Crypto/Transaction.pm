@@ -4,9 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+use Mooish::Base -standard;
+use Types::Common -sigs;
 use Scalar::Util qw(blessed);
 use Carp qw(carp);
 use List::Util qw(sum any uniqstr);
@@ -25,8 +24,6 @@ use Bitcoin::Crypto::Script::Tree;
 use Bitcoin::Crypto::Transaction::ControlBlock;
 use Bitcoin::Crypto::Transaction::Flags;
 use Bitcoin::Crypto::Transaction::Signer;
-
-use namespace::clean;
 
 has param 'version' => (
 	isa => IntMaxBits [32],

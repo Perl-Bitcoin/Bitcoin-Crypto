@@ -4,9 +4,7 @@ use v5.10;
 use strict;
 use warnings;
 
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -types;
+use Mooish::Base -standard;
 
 use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
@@ -17,8 +15,6 @@ use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Transaction::Digest::Config;
 use Bitcoin::Crypto::Transaction::Digest::Result;
 use Bitcoin::Crypto::Transaction::Flags;
-
-use namespace::clean;
 
 has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],

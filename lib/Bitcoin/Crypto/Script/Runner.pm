@@ -3,9 +3,9 @@ package Bitcoin::Crypto::Script::Runner;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -sigs, -types;
+
+use Mooish::Base -standard;
+use Types::Common -sigs;
 
 use Try::Tiny;
 use Scalar::Util qw(blessed);
@@ -16,8 +16,6 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(pad_hex standard_push die_no_trace);
 use Bitcoin::Crypto::Script::Transaction;
 use Bitcoin::Crypto::Transaction::Flags;
-
-use namespace::clean;
 
 has field 'script' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script'],

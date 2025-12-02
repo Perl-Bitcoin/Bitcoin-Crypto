@@ -3,15 +3,12 @@ package Bitcoin::Crypto::Script::Transaction;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
-use Mooish::AttributeBuilder -standard;
-use Types::Common -types;
+
+use Mooish::Base -standard;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Helpers qw(die_no_trace);
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 # must be set via a trigger
 has field 'runner' => (

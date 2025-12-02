@@ -3,9 +3,10 @@ package Bitcoin::Crypto::Key::Private;
 use v5.10;
 use strict;
 use warnings;
-use Moo;
+
+use Mooish::Base -standard;
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy entropy_to_bip39_mnemonic);
-use Types::Common -sigs, -types;
+use Types::Common -sigs;
 use List::Util qw(none);
 
 use Bitcoin::Crypto::Key::Public;
@@ -15,8 +16,6 @@ use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Util qw(validate_wif);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Exception;
-
-use namespace::clean;
 
 extends qw(Bitcoin::Crypto::Key::Base);
 
