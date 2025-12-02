@@ -34,6 +34,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- push_bytes in Scripts will now include OP_1NEGATE for value 0x81
 	- flags can now be passed to verify function as a hashref
 	- most error messages no longer contain double error position
+	- errors reported by script execution should now do a better job at pinpointing the issue
+	- added disabled script opcodes
 
 	[Fixes]
 	- get_taproot_output_key yields the same key if called on a taproot_output key

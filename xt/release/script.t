@@ -1,6 +1,5 @@
 # HARNESS-DURATION-LONG
 use Test2::V0;
-use Try::Tiny;
 use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto qw(btc_transaction btc_utxo btc_script btc_script_tree);
@@ -56,6 +55,8 @@ foreach my $case_ind (0 .. $#actual_data)
 			note $comment;
 		}
 
+		note "Signature: $signature_raw"
+			if length $signature_raw;
 		note "Script: $script_raw";
 
 		my $amount = 0;
@@ -96,33 +97,21 @@ foreach my $case_ind (0 .. $#actual_data)
 
 		my $tx = btc_transaction->new;
 
-		try {
-			@{$source_tx->outputs} = ();
-			$source_tx->add_output(
-				locking_script => script_from_readable($script_raw),
-				value => $amount,
-			);
+		@{$source_tx->outputs} = ();
+		$source_tx->add_output(
+			locking_script => script_from_readable($script_raw),
+			value => $amount,
+		);
 
-			$tx->add_input(
-				utxo => btc_utxo->new(
-					txid => $source_tx->get_hash,
-					output_index => 0,
-					output => $source_tx->outputs->[0],
-				),
-				signature_script => script_from_readable($signature_raw),
-				witness => \@witness,
-			);
-		}
-		catch {
-			my $e = $_;
-
-			if (blessed $e && $e->isa('Bitcoin::Crypto::Exception::ScriptOpcode')) {
-				my $msg = $e->message;
-
-				skip_all "$msg" if $msg =~ /unknown opcode/;
-			}
-			die $e;
-		};
+		$tx->add_input(
+			utxo => btc_utxo->new(
+				txid => $source_tx->get_hash,
+				output_index => 0,
+				output => $source_tx->outputs->[0],
+			),
+			signature_script => script_from_readable($signature_raw),
+			witness => \@witness,
+		);
 
 		$tx->add_output(
 			locking_script => '',

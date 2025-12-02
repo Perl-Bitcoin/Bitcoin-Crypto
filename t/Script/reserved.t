@@ -37,6 +37,81 @@ my @cases = (
 	},
 
 	{
+		ops => [qw(OP_CAT)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_SUBSTR)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_LEFT)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_RIGHT)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_INVERT)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_AND)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_OR)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_XOR)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_2MUL)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_2DIV)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_MUL)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_DIV)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_MOD)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_LSHIFT)],
+		compilation_exception => 1,
+	},
+
+	{
+		ops => [qw(OP_RSHIFT)],
+		compilation_exception => 1,
+	},
+
+	{
 		ops => [qw(OP_NOP1)],
 	},
 

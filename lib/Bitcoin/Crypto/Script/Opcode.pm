@@ -207,7 +207,18 @@ sub _compile_OP_VERIF
 	return sub {
 		my ($runner, $op, $context) = @_;
 
-		$runner->_invalid_script;
+		$runner->_invalid_script('OP_VERIF encountered');
+	};
+}
+
+sub _compile_disabled
+{
+	my ($class) = @_;
+
+	return sub {
+		my ($runner, $op, $context) = @_;
+
+		$runner->_invalid_script($op->[0]->name . ' is disabled');
 	};
 }
 
@@ -287,7 +298,7 @@ sub _OP_NOP_UPGRADEABLE
 	return sub {
 		my $runner = shift;
 
-		$runner->_invalid_script
+		$runner->_invalid_script('upgradeable NOP encountered')
 			if $runner->flags->illegal_upgradeable_nops;
 	};
 }
@@ -317,7 +328,7 @@ sub _OP_IF
 			|| ($runner->has_transaction && $runner->transaction->is_segwit && $runner->flags->minimalif);
 
 		$value = $minimalif ? $runner->to_minimal_bool($value) : $runner->to_bool($value);
-		$runner->_invalid_script unless defined $value;
+		$runner->_invalid_script('OP_IF argument is not minimal') unless defined $value;
 
 		$value = !$value if $inverted;
 
@@ -1073,7 +1084,7 @@ sub _OP_CHECKSIG
 
 		my $result = __checksig($runner, $sig, $hashtype, $raw_pubkey, $preimage);
 
-		$runner->_script_error('signature verification failed')
+		$runner->_script_error('non-empty signature verification failed')
 			if !$result && $runner->flags->nullfail && $sig ne '';
 
 		push @$stack, $runner->from_bool($result);
@@ -1145,7 +1156,7 @@ sub _OP_CHECKMULTISIG
 		# checking is correct if we have no more signatures to check and the
 		# last one was found correctly
 		my $result = $found && !@signatures_left;
-		$runner->_script_error('signature verification failed')
+		$runner->_script_error('non-empty signature verification failed')
 			if !$result && $runner->flags->nullfail && notall { $_ eq '' } @signatures;
 
 		push @$stack, $runner->from_bool($result);
@@ -1182,19 +1193,19 @@ sub _OP_CHECKLOCKTIMEVERIFY
 		my $c1 = $runner->to_int($stack->[-1], 5);
 		my $c2 = $runner->transaction->locktime;
 
-		$runner->_invalid_script
+		$runner->_invalid_script('negative number')
 			if $c1 < 0;
 
 		my $c1_is_height = $c1 < Bitcoin::Crypto::Constants::locktime_height_threshold;
 		my $c2_is_height = $c2 < Bitcoin::Crypto::Constants::locktime_height_threshold;
 
-		$runner->_invalid_script
+		$runner->_invalid_script('type mismatch')
 			unless !!$c1_is_height == !!$c2_is_height;
 
 		$runner->_invalid_script
 			if $c1 > $c2;
 
-		$runner->_invalid_script
+		$runner->_invalid_script('maximum sequence in input')
 			if $transaction->this_input->sequence_no == Bitcoin::Crypto::Constants::max_sequence_no;
 	};
 }
@@ -1215,22 +1226,22 @@ sub _OP_CHECKSEQUENCEVERIFY
 
 		my $c1 = $runner->to_int($stack->[-1], 5);
 
-		$runner->_invalid_script
+		$runner->_invalid_script('negative number')
 			if $c1 < 0;
 
 		if (!($c1 & (1 << 31))) {
-			$runner->_invalid_script
+			$runner->_invalid_script('bad transaction version')
 				if $transaction->version < 2;
 
 			my $c2 = $transaction->this_input->sequence_no;
 
-			$runner->_invalid_script
+			$runner->_invalid_script("no mask in input's sequence")
 				if $c2 & (1 << 31);
 
 			my $c1_is_time = $c1 & (1 << 22);
 			my $c2_is_time = $c2 & (1 << 22);
 
-			$runner->_invalid_script
+			$runner->_invalid_script('type mismatch')
 				if !!$c1_is_time ne !!$c2_is_time;
 
 			$runner->_invalid_script
@@ -1401,9 +1412,41 @@ sub _build_opcodes
 			code => 0x7d,
 			runner => $class->_OP_TUCK,
 		},
+		OP_CAT => {
+			code => 0x7e,
+			on_compilation => $class->_compile_disabled,
+		},
+		OP_SUBSTR => {
+			code => 0x7f,
+			on_compilation => $class->_compile_disabled,
+		},
+		OP_LEFT => {
+			code => 0x80,
+			on_compilation => $class->_compile_disabled,
+		},
+		OP_RIGHT => {
+			code => 0x81,
+			on_compilation => $class->_compile_disabled,
+		},
 		OP_SIZE => {
 			code => 0x82,
 			runner => $class->_OP_SIZE,
+		},
+		OP_INVERT => {
+			code => 0x83,
+			on_compilation => $class->_compile_disabled,
+		},
+		OP_AND => {
+			code => 0x84,
+			on_compilation => $class->_compile_disabled,
+		},
+		OP_OR => {
+			code => 0x85,
+			on_compilation => $class->_compile_disabled,
+		},
+		OP_XOR => {
+			code => 0x86,
+			on_compilation => $class->_compile_disabled,
 		},
 		OP_EQUAL => {
 			code => 0x87,
@@ -1429,6 +1472,14 @@ sub _build_opcodes
 			code => 0x8c,
 			runner => $class->_OP_1SUB,
 		},
+		OP_2MUL => {
+			code => 0x8d,
+			on_compilation => $class->_compile_disabled,
+		},
+		OP_2DIV => {
+			code => 0x8e,
+			on_compilation => $class->_compile_disabled,
+		},
 		OP_NEGATE => {
 			code => 0x8f,
 			runner => $class->_OP_NEGATE,
@@ -1452,6 +1503,26 @@ sub _build_opcodes
 		OP_SUB => {
 			code => 0x94,
 			runner => $class->_OP_SUB,
+		},
+		OP_MUL => {
+			code => 0x95,
+			on_compilation => $class->_compile_disabled,
+		},
+		OP_DIV => {
+			code => 0x96,
+			on_compilation => $class->_compile_disabled,
+		},
+		OP_MOD => {
+			code => 0x97,
+			on_compilation => $class->_compile_disabled,
+		},
+		OP_LSHIFT => {
+			code => 0x98,
+			on_compilation => $class->_compile_disabled,
+		},
+		OP_RSHIFT => {
+			code => 0x99,
+			on_compilation => $class->_compile_disabled,
 		},
 		OP_BOOLAND => {
 			code => 0x9a,
