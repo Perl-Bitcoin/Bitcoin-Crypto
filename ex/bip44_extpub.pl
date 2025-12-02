@@ -4,7 +4,7 @@ use warnings;
 
 use Bitcoin::Crypto qw(btc_extprv btc_extpub);
 use Bitcoin::Crypto::Util qw(to_format);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:bip44);
 use Getopt::Long;
 use Pod::Usage;
 
@@ -20,16 +20,16 @@ my $extpub;
 if ($generate) {
 	my $purpose;
 
-	$purpose = Bitcoin::Crypto::Constants::bip44_purpose
+	$purpose = BIP44_PURPOSE
 		if $generate eq 'legacy';
 
-	$purpose = Bitcoin::Crypto::Constants::bip44_compat_purpose
+	$purpose = BIP44_COMPAT_PURPOSE
 		if $generate eq 'compat';
 
-	$purpose = Bitcoin::Crypto::Constants::bip44_segwit_purpose
+	$purpose = BIP44_SEGWIT_PURPOSE
 		if $generate eq 'segwit';
 
-	$purpose = Bitcoin::Crypto::Constants::bip44_taproot_purpose
+	$purpose = BIP44_TAPROOT_PURPOSE
 		if $generate eq 'taproot';
 
 	die "unknown generate argument: $generate"

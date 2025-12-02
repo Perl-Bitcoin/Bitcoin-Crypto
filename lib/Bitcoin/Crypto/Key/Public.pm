@@ -12,7 +12,7 @@ use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:bip44 :witness);
 use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed);
 use Bitcoin::Crypto::Helpers qw(ecc);
 
@@ -67,10 +67,10 @@ signature_for witness_program => (
 sub witness_program
 {
 	state $data_sources = {
-		(Bitcoin::Crypto::Constants::segwit_witness_version) => sub {
+		(SEGWIT_WITNESS_VERSION) => sub {
 			return shift->get_hash;
 		},
-		(Bitcoin::Crypto::Constants::taproot_witness_version) => sub {
+		(TAPROOT_WITNESS_VERSION) => sub {
 			my ($self, $params) = @_;
 
 			$self = $self->get_taproot_output_key($params->{tweak_suffix});
@@ -103,7 +103,7 @@ sub get_legacy_address
 
 	Bitcoin::Crypto::Exception::AddressGenerate->raise(
 		'legacy addresses can only be created with BIP44 in legacy (BIP44) mode'
-	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_purpose);
+	) unless $self->has_purpose(BIP44_PURPOSE);
 
 	my $pkh = $self->network->p2pkh_byte . $self->get_hash;
 	return encode_base58check($pkh);
@@ -125,7 +125,7 @@ sub get_compat_address
 
 	Bitcoin::Crypto::Exception::AddressGenerate->raise(
 		'compat addresses can only be created with BIP44 in compat (BIP49) mode'
-	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_compat_purpose);
+	) unless $self->has_purpose(BIP44_COMPAT_PURPOSE);
 
 	return $self->witness_program->get_legacy_address;
 }
@@ -146,7 +146,7 @@ sub get_segwit_address
 
 	Bitcoin::Crypto::Exception::AddressGenerate->raise(
 		'segwit addresses can only be created with BIP44 in segwit (BIP84) mode'
-	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_segwit_purpose);
+	) unless $self->has_purpose(BIP44_SEGWIT_PURPOSE);
 
 	Bitcoin::Crypto::Exception::AddressGenerate->raise(
 		'segwit addresses must not be generated with uncompressed keys to avoid potential fund loss'
@@ -171,10 +171,10 @@ sub get_taproot_address
 
 	Bitcoin::Crypto::Exception::AddressGenerate->raise(
 		'taproot addresses can only be created with BIP44 in taproot (BIP86) mode'
-	) unless $self->has_purpose(Bitcoin::Crypto::Constants::bip44_taproot_purpose);
+	) unless $self->has_purpose(BIP44_TAPROOT_PURPOSE);
 
 	my $taproot_program = $self->witness_program(
-		Bitcoin::Crypto::Constants::taproot_witness_version,
+		TAPROOT_WITNESS_VERSION,
 		defined $script_tree ? {tweak_suffix => $script_tree->get_merkle_root} : {}
 	);
 
@@ -191,16 +191,16 @@ sub get_address
 	my ($self) = @_;
 
 	return $self->get_taproot_address
-		if $self->has_purpose(Bitcoin::Crypto::Constants::bip44_taproot_purpose);
+		if $self->has_purpose(BIP44_TAPROOT_PURPOSE);
 
 	return $self->get_segwit_address
-		if $self->has_purpose(Bitcoin::Crypto::Constants::bip44_segwit_purpose);
+		if $self->has_purpose(BIP44_SEGWIT_PURPOSE);
 
 	return $self->get_compat_address
-		if $self->has_purpose(Bitcoin::Crypto::Constants::bip44_compat_purpose);
+		if $self->has_purpose(BIP44_COMPAT_PURPOSE);
 
 	return $self->get_legacy_address
-		if $self->has_purpose(Bitcoin::Crypto::Constants::bip44_purpose);
+		if $self->has_purpose(BIP44_PURPOSE);
 
 	return $self->get_taproot_address
 		if $self->network->supports_segwit;

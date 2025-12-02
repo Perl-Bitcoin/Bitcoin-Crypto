@@ -14,6 +14,7 @@ use Bitcoin::Crypto::Helpers qw(die_no_trace);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
+use Bitcoin::Crypto::Constants qw(:sighash);
 
 extends 'Bitcoin::Crypto::Script::Opcode';
 
@@ -65,12 +66,12 @@ sub _OP_CHECKSIG
 		else {
 			$hashtype = length $sig == 65 ? unpack('C', substr $sig, -1, 1, '') : undef;
 			state $allowed_sighash = [
-				Bitcoin::Crypto::Constants::sighash_all,
-				Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-				Bitcoin::Crypto::Constants::sighash_single,
-				Bitcoin::Crypto::Constants::sighash_single | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-				Bitcoin::Crypto::Constants::sighash_none,
-				Bitcoin::Crypto::Constants::sighash_none | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+				SIGHASH_ALL,
+				SIGHASH_ALL | SIGHASH_ANYONECANPAY,
+				SIGHASH_SINGLE,
+				SIGHASH_SINGLE | SIGHASH_ANYONECANPAY,
+				SIGHASH_NONE,
+				SIGHASH_NONE | SIGHASH_ANYONECANPAY,
 			];
 
 			$runner->_invalid_script('bad sighash')

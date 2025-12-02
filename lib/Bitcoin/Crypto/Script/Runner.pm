@@ -16,6 +16,7 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(pad_hex standard_push die_no_trace);
 use Bitcoin::Crypto::Script::Transaction;
 use Bitcoin::Crypto::Transaction::Flags;
+use Bitcoin::Crypto::Constants qw(:script);
 
 has field 'script' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script'],
@@ -223,7 +224,7 @@ sub _increment_opcode_count
 
 	$self->_script_error('script non-push opcode count exceeded')
 		if !$self->is_tapscript
-		&& $self->_opcode_count > Bitcoin::Crypto::Constants::script_max_opcodes;
+		&& $self->_opcode_count > SCRIPT_MAX_OPCODES;
 }
 
 signature_for stack_serialized => (
@@ -279,9 +280,9 @@ sub start
 		Bitcoin::Crypto::Exception::ScriptPush->trap_into(
 			sub {
 				die_no_trace 'maximum initial stack element count exceeded'
-					if $self->is_tapscript && @$initial_stack > Bitcoin::Crypto::Constants::script_max_stack_elements;
+					if $self->is_tapscript && @$initial_stack > SCRIPT_MAX_STACK_ELEMENTS;
 				die_no_trace 'maximum initial stack element size exceeded'
-					if any { length $_ > Bitcoin::Crypto::Constants::script_max_element_size } @$initial_stack;
+					if any { length $_ > SCRIPT_MAX_ELEMENT_SIZE } @$initial_stack;
 
 				$self->_set_stack($initial_stack);
 			}
@@ -407,7 +408,7 @@ sub compile
 
 			die_no_trace 'script size exceeded'
 				if !$is_tapscript
-				&& $context{size} > Bitcoin::Crypto::Constants::script_max_size;
+				&& $context{size} > SCRIPT_MAX_SIZE;
 
 			try {
 				while ($context{offset} < $context{size}) {
@@ -452,7 +453,7 @@ sub compile
 					my $size = length $op->[2];
 
 					die_no_trace 'maximum stack element size exceeded'
-						if defined $size && $size > Bitcoin::Crypto::Constants::script_max_element_size;
+						if defined $size && $size > SCRIPT_MAX_ELEMENT_SIZE;
 				}
 				else {
 					++$non_push_opcodes;

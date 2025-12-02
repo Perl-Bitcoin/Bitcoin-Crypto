@@ -3,7 +3,7 @@
 use Test2::V0;
 use Encode qw(encode);
 use Bitcoin::Crypto qw(btc_prv);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:key);
 use Bitcoin::Crypto::Util qw(to_format);
 
 # silence warnings
@@ -97,11 +97,11 @@ subtest 'should validate key length' => sub {
 
 	is(
 		length btc_prv->from_serialized([hex => $short_key])->to_serialized,
-		Bitcoin::Crypto::Constants::key_max_length, 'Short key length OK'
+		KEY_MAX_LENGTH, 'Short key length OK'
 	);
 	is(
 		length btc_prv->from_serialized([hex => $longer_key])->to_serialized,
-		Bitcoin::Crypto::Constants::key_max_length, 'Longer key length OK'
+		KEY_MAX_LENGTH, 'Longer key length OK'
 	);
 
 	isa_ok dies {

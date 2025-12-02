@@ -7,7 +7,7 @@ use warnings;
 use Mooish::Base -standard;
 
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:sighash);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Runner;
 use Bitcoin::Crypto::Util qw(get_taproot_ext);
@@ -138,7 +138,7 @@ sub _get_signature
 	);
 
 	my $signature = $privkey->sign_message($digest_obj->get_digest);
-	if ($digest_obj->sighash != Bitcoin::Crypto::Constants::sighash_default) {
+	if ($digest_obj->sighash != SIGHASH_DEFAULT) {
 		$signature .= pack 'C', $digest_obj->sighash;
 	}
 

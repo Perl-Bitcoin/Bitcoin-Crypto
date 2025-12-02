@@ -293,7 +293,7 @@ Optional C<id> is used to identify the leaf in the tree, which is used in
 methods like L</get_control_block>.
 
 Currently, C<leaf_version> must be equal to
-C<Bitcoin::Crypto::Constants::tapscript_leaf_version>, since other versions are
+C<TAPSCRIPT_LEAF_VERSION> constant, since other versions are
 reserved for future use.
 
 If the leaf is prehashed or not known, it can be represented as this structure
@@ -327,18 +327,18 @@ Example structure:
 	[
 		{
 			id => 0,
-			leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+			leaf_version => TAPSCRIPT_LEAF_VERSION,
 			script => [hex => '2071981521ad9fc9036687364118fb6ccd2035b96a423c59c5430e98310a11abe2ac']
 		},
 		[
 			{
 				id => 1,
-				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => [hex => '20d5094d2dbe9b76e2c245a2b89b6006888952e2faa6a149ae318d69e520617748ac']
 			},
 			{
 				id => 2,
-				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => [hex => '20c440b462ad48c7a77f94cd4532d8f2119dcebbd7c9764557e62726419b08ad4cac']
 			}
 		]
@@ -352,7 +352,7 @@ disclosing information about a script:
 		{hash => [hex => 'f154e8e8e17c31d3462d7132589ed29353c6fafdb884c5a6e04ea938834f0d9d']},
 		[
 			{
-				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => [hex => '20d5094d2dbe9b76e2c245a2b89b6006888952e2faa6a149ae318d69e520617748ac']
 			},
 			{hash => [hex => 'd7485025fceb78b9ed667db36ed8b8dc7b1f0b307ac167fa516fe4352b9f4ef7']},

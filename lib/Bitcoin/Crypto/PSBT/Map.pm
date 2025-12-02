@@ -11,7 +11,7 @@ use List::Util qw(any);
 use Bitcoin::Crypto::PSBT::Field;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:psbt);
 
 has param 'type' => (
 	isa => PSBTMapType,
@@ -44,9 +44,9 @@ sub name
 {
 	my ($self) = @_;
 	my %dispatch = (
-		Bitcoin::Crypto::Constants::psbt_global_map => 'Global',
-		Bitcoin::Crypto::Constants::psbt_input_map => 'Input',
-		Bitcoin::Crypto::Constants::psbt_output_map => 'Output',
+		(PSBT_GLOBAL_MAP) => 'Global',
+		(PSBT_INPUT_MAP) => 'Input',
+		(PSBT_OUTPUT_MAP) => 'Output',
 	);
 
 	my $name = $dispatch{$self->type};
@@ -68,8 +68,8 @@ sub need_index
 	my $type = $self->type;
 
 	return any { $type eq $_ }
-		Bitcoin::Crypto::Constants::psbt_input_map,
-		Bitcoin::Crypto::Constants::psbt_output_map,
+		PSBT_INPUT_MAP,
+		PSBT_OUTPUT_MAP,
 		;
 }
 
@@ -176,7 +176,7 @@ sub from_serialized
 	);
 
 	while ($pos < length $serialized) {
-		if (substr($serialized, $pos, 1) eq Bitcoin::Crypto::Constants::psbt_separator) {
+		if (substr($serialized, $pos, 1) eq PSBT_SEPARATOR) {
 			$pos += 1;
 			last;
 		}
@@ -215,7 +215,7 @@ sub to_serialized
 	}
 
 	my @sorted = map { $encoded{$_} } sort keys %encoded;
-	return join('', @sorted) . Bitcoin::Crypto::Constants::psbt_separator;
+	return join('', @sorted) . PSBT_SEPARATOR;
 }
 
 signature_for dump => (
@@ -272,7 +272,7 @@ This is a helper class which holds a number of PSBT fields in a single namespace
 =head3 type
 
 B<Required in the constructor>. The type of the map. Must be one of the
-C<psbt_*_map> constants defined in C<Bitcoin::Crypto::Constants>.
+C<psbt_*_map> constants defined in L<Bitcoin::Crypto::Constants>.
 
 =head3 index
 

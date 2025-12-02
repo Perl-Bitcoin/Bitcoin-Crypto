@@ -8,7 +8,7 @@ use Mooish::Base -standard, -role;
 use Types::Common -sigs;
 
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:key);
 use Bitcoin::Crypto::Util qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length ecc);
 use Bitcoin::Crypto::Exception;
@@ -48,7 +48,7 @@ sub _validate_key
 	if ($is_private) {
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
 			'private key is not valid'
-		) unless ecc->verify_private_key(ensure_length $entropy, Bitcoin::Crypto::Constants::key_max_length);
+		) unless ecc->verify_private_key(ensure_length $entropy, KEY_MAX_LENGTH);
 	}
 	else {
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
@@ -84,7 +84,7 @@ signature_for raw_key => (
 sub __full_private
 {
 	my ($self, $key) = @_;
-	return ensure_length $key, Bitcoin::Crypto::Constants::key_max_length;
+	return ensure_length $key, KEY_MAX_LENGTH;
 }
 
 sub __private_to_public

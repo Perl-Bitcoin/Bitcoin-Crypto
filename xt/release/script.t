@@ -5,6 +5,7 @@ use Scalar::Util qw(blessed);
 use Bitcoin::Crypto qw(btc_transaction btc_utxo btc_script btc_script_tree);
 use Bitcoin::Crypto::Key::NUMS;
 use Bitcoin::Crypto::Script::Runner;
+use Bitcoin::Crypto::Constants qw(:transaction :coin :script);
 
 use lib 't/lib';
 use BitcoinCoreTest;
@@ -31,7 +32,7 @@ foreach my $item (@$data) {
 
 my $source_tx = btc_transaction->new;
 $source_tx->add_input(
-	utxo => Bitcoin::Crypto::Constants::null_utxo,
+	utxo => NULL_UTXO,
 	signature_script => btc_script->from_serialized("\x00\x00"),
 );
 
@@ -61,7 +62,7 @@ foreach my $case_ind (0 .. $#actual_data)
 
 		my $amount = 0;
 		if (@witness) {
-			$amount = int(pop(@witness) * Bitcoin::Crypto::Constants::units_per_coin);
+			$amount = int(pop(@witness) * UNITS_PER_COIN);
 
 			if ($taproot) {
 				my $block = pop @witness;
@@ -82,7 +83,7 @@ foreach my $case_ind (0 .. $#actual_data)
 				tree => [
 					{
 						id => 0,
-						leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+						leaf_version => TAPSCRIPT_LEAF_VERSION,
 						script => $tapscript,
 					}
 				]

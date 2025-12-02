@@ -1,6 +1,6 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_prv btc_script btc_transaction btc_utxo);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:sighash);
 
 my $priv1 = btc_prv->from_serialized("\x01" x 32);
 my $priv2 = btc_prv->from_serialized("\x02" x 32);
@@ -54,7 +54,7 @@ $tx
 		signing_index => 0,
 		compat => !!1,
 	)
-	->add_signature($priv2, sighash => Bitcoin::Crypto::Constants::sighash_single)
+	->add_signature($priv2, sighash => SIGHASH_SINGLE)
 	->finalize;
 
 # P2SH(P2WSH) output
@@ -65,7 +65,7 @@ $tx
 		compat => !!1,
 	)
 	->add_signature('')
-	->add_signature($priv2, sighash => Bitcoin::Crypto::Constants::sighash_all)
+	->add_signature($priv2, sighash => SIGHASH_ALL)
 	->finalize;
 
 ok lives { $tx->verify }, 'transaction verification ok';

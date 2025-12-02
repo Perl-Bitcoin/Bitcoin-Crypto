@@ -121,7 +121,7 @@ possible, but you may sometimes bump into issues with these objects when doing
 value calculations. Refer to L<Math::BigInt> documentation when required.
 
 If you need to calculate full coin value, you may use
-C<Bitcoin::Crypto::Constants::units_per_coin> constant.
+C<UNITS_PER_COIN> constant.
 
 =head2 Transaction examples
 

@@ -152,18 +152,18 @@ including running the script step by step, stopping after each opcode.
 		tree => [
 			{
 				id => 0,
-				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => $script1,
 			},
 			[
 				{
 					id => 1,
-					leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+					leaf_version => TAPSCRIPT_LEAF_VERSION,
 					script => $script2,
 				},
 				{
 					id => 2,
-					leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+					leaf_version => TAPSCRIPT_LEAF_VERSION,
 					script => $script3,
 				},
 			]

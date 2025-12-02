@@ -6,6 +6,7 @@ use Bitcoin::Crypto qw(btc_transaction btc_utxo btc_prv btc_script_tree btc_taps
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Key::NUMS;
 use Bitcoin::Crypto::Network;
+use Bitcoin::Crypto::Constants qw(:script);
 
 Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_default;
 
@@ -32,7 +33,7 @@ my $tree = btc_script_tree->new(
 
 		# spend with signatures, functionally the same as 2-out-of-3 multisig
 		{
-			leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+			leaf_version => TAPSCRIPT_LEAF_VERSION,
 			script => btc_tapscript->new
 				->add('OP_0')
 				->push([hex => '06ae261166310f1b1f2a12a984cf3e04244e0b577995432e155b2af27eb75822'])
@@ -47,7 +48,7 @@ my $tree = btc_script_tree->new(
 
 		# spend with lucky number 13
 		{
-			leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+			leaf_version => TAPSCRIPT_LEAF_VERSION,
 			script => btc_tapscript->new
 				->add('OP_13')
 				->add('OP_NUMEQUAL')
@@ -121,4 +122,7 @@ transaction, calculate fee based on its virtual size and then sign again
 
 This code was used to produce testnet transaction:
 L<https://mempool.space/testnet4/tx/36feb985660ec0a3c874952b8dd0b7f4b3d39399f0b506f3dc72b9f6e7f81d80>
+
+Note that since it uses a freshly-generated NUMS key on every run, the
+generated transaction id will vary.
 

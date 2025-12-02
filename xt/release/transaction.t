@@ -2,7 +2,7 @@
 use Test2::V0;
 
 use Bitcoin::Crypto qw(btc_transaction btc_utxo);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:coin);
 
 use lib 't/lib';
 use BitcoinCoreTest;
@@ -59,7 +59,7 @@ sub test_tx
 					output_index => $index,
 					output => {
 						locking_script => script_from_readable($script),
-						value => $amount // Bitcoin::Crypto::Constants::max_money,
+						value => $amount // MAX_MONEY,
 					},
 				)->register;
 			}

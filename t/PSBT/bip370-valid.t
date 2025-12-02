@@ -3,6 +3,7 @@ use List::Util qw(first);
 use Bitcoin::Crypto qw(btc_psbt);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Network;
+use Bitcoin::Crypto::Constants qw(:transaction);
 
 # get rid of non-bitcoin networks which make it hard to run these tests
 foreach my $network_id (Bitcoin::Crypto::Network->find(sub { shift->id !~ m{^bitcoin} })) {
@@ -66,7 +67,7 @@ my @cases = (
 			my $psbt = shift;
 			is $psbt->input_count, 1, 'input count ok';
 
-			is $psbt->get_field('PSBT_IN_SEQUENCE', 0)->value, Bitcoin::Crypto::Constants::max_sequence_no - 1,
+			is $psbt->get_field('PSBT_IN_SEQUENCE', 0)->value, MAX_SEQUENCE_NO - 1,
 				'sequence ok';
 		},
 	],

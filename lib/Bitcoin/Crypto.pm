@@ -97,7 +97,7 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 
 	use Bitcoin::Crypto qw(btc_extprv);
 	use Bitcoin::Crypto::Util qw(generate_mnemonic to_format);
-	use Bitcoin::Crypto::Constants;
+	use Bitcoin::Crypto::Constants qw(:bip44);
 
 	# extended keys are used for mnemonic generation and key derivation
 	my $mnemonic = generate_mnemonic;
@@ -105,7 +105,7 @@ Bitcoin::Crypto - Bitcoin cryptography in Perl
 
 	my $master_key = btc_extprv->from_mnemonic($mnemonic);
 	my $derived_key = $master_key->derive_key_bip44(
-		purpose => Bitcoin::Crypto::Constants::bip44_taproot_purpose,
+		purpose => BIP44_TAPROOT_PURPOSE,
 		index => 0,
 	);
 

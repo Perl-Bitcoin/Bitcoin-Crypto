@@ -11,7 +11,7 @@ use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Util qw(hash256 pack_compactsize);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:sighash);
 use Bitcoin::Crypto::Transaction::Digest::Config;
 use Bitcoin::Crypto::Transaction::Digest::Result;
 use Bitcoin::Crypto::Transaction::Flags;
@@ -74,10 +74,10 @@ sub _get_digest_default
 {
 	my ($self) = @_;
 
-	$self->_default_sighash(Bitcoin::Crypto::Constants::sighash_all);
+	$self->_default_sighash(SIGHASH_ALL);
 
 	my $sighash_type = $self->sighash & 31;
-	my $anyonecanpay = $self->sighash & Bitcoin::Crypto::Constants::sighash_anyonecanpay;
+	my $anyonecanpay = $self->sighash & SIGHASH_ANYONECANPAY;
 
 	my $transaction = $self->transaction;
 	my $tx_copy = $transaction->clone;
@@ -103,14 +103,14 @@ sub _get_digest_default
 	}
 
 	# Handle sighashes
-	if ($sighash_type == Bitcoin::Crypto::Constants::sighash_none) {
+	if ($sighash_type == SIGHASH_NONE) {
 		@{$tx_copy->outputs} = ();
 		foreach my $input (@{$tx_copy->inputs}) {
 			$input->set_sequence_no(0)
 				unless $input == $this_input;
 		}
 	}
-	elsif ($sighash_type == Bitcoin::Crypto::Constants::sighash_single) {
+	elsif ($sighash_type == SIGHASH_SINGLE) {
 		if ($self->signing_index >= @{$transaction->outputs}) {
 
 			# this should verify with constant digest (without hashing)
@@ -150,18 +150,18 @@ sub _get_digest_segwit
 {
 	my ($self) = @_;
 
-	$self->_default_sighash(Bitcoin::Crypto::Constants::sighash_all);
+	$self->_default_sighash(SIGHASH_ALL);
 
 	my $sighash_type = $self->sighash & 31;
-	my $anyonecanpay = $self->sighash & Bitcoin::Crypto::Constants::sighash_anyonecanpay;
+	my $anyonecanpay = $self->sighash & SIGHASH_ANYONECANPAY;
 
 	my $transaction = $self->transaction->clone;
 	my $this_input = $transaction->inputs->[$self->signing_index]->clone;
 	$transaction->inputs->[$self->signing_index] = $this_input;
 
 	my $empty_hash = "\x00" x 32;
-	my $single = $sighash_type == Bitcoin::Crypto::Constants::sighash_single;
-	my $none = $sighash_type == Bitcoin::Crypto::Constants::sighash_none;
+	my $single = $sighash_type == SIGHASH_SINGLE;
+	my $none = $sighash_type == SIGHASH_NONE;
 
 	if ($self->signing_subscript) {
 
@@ -240,10 +240,10 @@ sub _get_digest_taproot
 {
 	my ($self) = @_;
 
-	$self->_default_sighash(Bitcoin::Crypto::Constants::sighash_default);
+	$self->_default_sighash(SIGHASH_DEFAULT);
 
 	my $sighash_type = $self->sighash & 3;
-	my $anyonecanpay = $self->sighash & Bitcoin::Crypto::Constants::sighash_anyonecanpay;
+	my $anyonecanpay = $self->sighash & SIGHASH_ANYONECANPAY;
 
 	my $transaction = $self->transaction->clone;
 	my $this_input = $transaction->inputs->[$self->signing_index]->clone;
@@ -251,10 +251,10 @@ sub _get_digest_taproot
 	my $annex = $self->taproot_annex;
 	my $ext_flag = $self->taproot_ext_flag;
 
-	my $all = $sighash_type == Bitcoin::Crypto::Constants::sighash_all
-		|| $sighash_type == Bitcoin::Crypto::Constants::sighash_default;
-	my $single = $sighash_type == Bitcoin::Crypto::Constants::sighash_single;
-	my $none = $sighash_type == Bitcoin::Crypto::Constants::sighash_none;
+	my $all = $sighash_type == SIGHASH_ALL
+		|| $sighash_type == SIGHASH_DEFAULT;
+	my $single = $sighash_type == SIGHASH_SINGLE;
+	my $none = $sighash_type == SIGHASH_NONE;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		"can't digest taproot transaction with unknown SIGHASH"

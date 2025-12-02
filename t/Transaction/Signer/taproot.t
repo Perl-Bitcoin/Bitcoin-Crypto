@@ -1,6 +1,6 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_prv btc_tapscript btc_script_tree btc_transaction btc_utxo);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:script :sighash);
 
 my $priv1 = btc_prv->from_serialized("\x01" x 32);
 my $priv2 = btc_prv->from_serialized("\x02" x 32);
@@ -25,17 +25,17 @@ my $tree = btc_script_tree->new(
 		[
 			{
 				id => 0,
-				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => $script,
 			},
 			{
 				id => 1,
-				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => $script,
 			},
 		],
 		{
-			leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+			leaf_version => TAPSCRIPT_LEAF_VERSION,
 			script => $script,
 		}
 	],
@@ -96,7 +96,7 @@ $tx
 	)
 	->add_signature(
 		$priv1,
-		sighash => Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay
+		sighash => SIGHASH_ALL | SIGHASH_ANYONECANPAY
 	)
 	->finalize;
 
@@ -117,7 +117,7 @@ $tx
 		script_tree => $tree,
 		public_key => $pub1,
 	)
-	->add_signature($priv1->get_taproot_output_key, sighash => Bitcoin::Crypto::Constants::sighash_all)
+	->add_signature($priv1->get_taproot_output_key, sighash => SIGHASH_ALL)
 	->add_signature('')
 	->finalize;
 

@@ -11,10 +11,9 @@ use List::Util qw(any);
 use Types::Common -sigs;
 use Carp qw(carp);
 
-use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit get_hrp);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:witness);
 use Bitcoin::Crypto::Util qw(hash160 hash256 get_address_type to_format);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
@@ -445,7 +444,7 @@ sub witness_program
 
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
 	$program
-		->add_operation('OP_' . Bitcoin::Crypto::Constants::segwit_witness_version)
+		->add_operation('OP_' . SEGWIT_WITNESS_VERSION)
 		->push_bytes(sha256($self->to_serialized));
 
 	return $program;
@@ -518,8 +517,8 @@ sub get_address
 
 		my $version = pack 'C',
 			$self->is_taproot
-			? Bitcoin::Crypto::Constants::taproot_witness_version
-			: Bitcoin::Crypto::Constants::segwit_witness_version;
+			? TAPROOT_WITNESS_VERSION
+			: SEGWIT_WITNESS_VERSION;
 
 		return encode_segwit($self->network->segwit_hrp, $version . $address);
 	}

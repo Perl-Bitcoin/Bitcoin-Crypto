@@ -10,7 +10,7 @@ use Scalar::Util qw(blessed);
 use Try::Tiny;
 
 use Bitcoin::Crypto qw(btc_script btc_utxo);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:transaction);
 use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
@@ -34,7 +34,7 @@ has param 'signature_script' => (
 has param 'sequence_no' => (
 	isa => IntMaxBits [32],
 	writer => 1,
-	default => Bitcoin::Crypto::Constants::max_sequence_no,
+	default => MAX_SEQUENCE_NO,
 );
 
 has param 'witness' => (

@@ -10,7 +10,7 @@ use Types::Common -types;
 
 # make sure Math::BigInt is properly loaded - this module loads it
 use Bitcoin::Crypto::Helpers qw(die_no_trace);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:bip44 :psbt);
 
 our $CHECK_BYTESTRINGS = !!1;
 
@@ -18,10 +18,10 @@ __PACKAGE__->add_type(
 	name => 'BIP44Purpose',
 	parent => Maybe [
 		Enum->of(
-			Bitcoin::Crypto::Constants::bip44_purpose,
-			Bitcoin::Crypto::Constants::bip44_compat_purpose,
-			Bitcoin::Crypto::Constants::bip44_segwit_purpose,
-			Bitcoin::Crypto::Constants::bip44_taproot_purpose,
+			BIP44_PURPOSE,
+			BIP44_COMPAT_PURPOSE,
+			BIP44_SEGWIT_PURPOSE,
+			BIP44_TAPROOT_PURPOSE,
 		)
 	],
 );
@@ -160,9 +160,9 @@ $transaction_flags->coercion->add_type_coercions(
 my $psbt_map_type = __PACKAGE__->add_type(
 	name => 'PSBTMapType',
 	parent => Enum->of(
-		Bitcoin::Crypto::Constants::psbt_global_map,
-		Bitcoin::Crypto::Constants::psbt_input_map,
-		Bitcoin::Crypto::Constants::psbt_output_map,
+		PSBT_GLOBAL_MAP,
+		PSBT_INPUT_MAP,
+		PSBT_OUTPUT_MAP,
 	),
 );
 

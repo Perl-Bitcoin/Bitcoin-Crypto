@@ -2,7 +2,7 @@ use Test2::V0;
 use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_prv btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:sighash);
 
 use lib 't/lib';
 use TransactionStore;
@@ -35,7 +35,7 @@ subtest 'should checksig a non-standard transaction' => sub {
 
 	# Manual signing
 	my $input = $tx->inputs->[0];
-	my $sighash = Bitcoin::Crypto::Constants::sighash_none;
+	my $sighash = SIGHASH_NONE;
 	my $digest = $tx->get_digest(
 		signing_index => 0,
 		signing_subscript => $input->utxo->output->locking_script->to_serialized,
@@ -101,7 +101,7 @@ subtest 'should require an extra element in CHECKMULTISIG to be present' => sub 
 		signing_subscript => $input->utxo->output->locking_script->to_serialized,
 	);
 	my $signature = $prv->sign_message($digest);
-	$signature .= pack 'C', Bitcoin::Crypto::Constants::sighash_all;
+	$signature .= pack 'C', SIGHASH_ALL;
 	$input->signature_script
 		->push_bytes($signature);
 

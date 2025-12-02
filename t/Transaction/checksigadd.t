@@ -1,6 +1,7 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_pub btc_transaction btc_tapscript btc_script_tree);
 use Bitcoin::Crypto::Util qw(to_format lift_x);
+use Bitcoin::Crypto::Constants qw(:script);
 use Encode qw(encode);
 
 use utf8;
@@ -28,7 +29,7 @@ my $tree = btc_script_tree->new(
 	tree => [
 		{
 			id => 0,
-			leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+			leaf_version => TAPSCRIPT_LEAF_VERSION,
 			script => $script,
 		}
 	]

@@ -14,7 +14,7 @@ use List::Util qw(notall none);
 use Try::Tiny;
 
 use Bitcoin::Crypto qw(btc_pub);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:script :sighash :transaction);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(hash160 hash256);
@@ -65,7 +65,7 @@ sub _verify_stack
 	my $class = shift;
 	my $runner = shift;
 
-	if (@{$runner->stack} + @{$runner->alt_stack} > Bitcoin::Crypto::Constants::script_max_stack_elements) {
+	if (@{$runner->stack} + @{$runner->alt_stack} > SCRIPT_MAX_STACK_ELEMENTS) {
 		$runner->_invalid_script('maximum stack size exceeded');
 	}
 }
@@ -224,12 +224,12 @@ sub __checksig
 	my ($runner, $sig, $hashtype, $raw_pubkey, $preimage) = @_;
 
 	state $allowed_sighash = [
-		Bitcoin::Crypto::Constants::sighash_all,
-		Bitcoin::Crypto::Constants::sighash_all | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-		Bitcoin::Crypto::Constants::sighash_single,
-		Bitcoin::Crypto::Constants::sighash_single | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
-		Bitcoin::Crypto::Constants::sighash_none,
-		Bitcoin::Crypto::Constants::sighash_none | Bitcoin::Crypto::Constants::sighash_anyonecanpay,
+		SIGHASH_ALL,
+		SIGHASH_ALL | SIGHASH_ANYONECANPAY,
+		SIGHASH_SINGLE,
+		SIGHASH_SINGLE | SIGHASH_ANYONECANPAY,
+		SIGHASH_NONE,
+		SIGHASH_NONE | SIGHASH_ANYONECANPAY,
 	];
 
 	if (defined $hashtype) {
@@ -1113,7 +1113,7 @@ sub _OP_CHECKMULTISIG
 		my $pubkeys_num = $runner->to_int(pop @$stack);
 		$runner->_stack_error unless @$stack >= $pubkeys_num;
 		$runner->_script_error('OP_CHECKMULTISIG maximum number of public keys exceeded')
-			if $pubkeys_num > Bitcoin::Crypto::Constants::script_max_multisig_pubkeys;
+			if $pubkeys_num > SCRIPT_MAX_MULTISIG_PUBKEYS;
 		$runner->_increment_opcode_count($pubkeys_num);
 		my @pubkeys = $pubkeys_num ? splice @$stack, -$pubkeys_num : ();
 
@@ -1193,8 +1193,8 @@ sub _OP_CHECKLOCKTIMEVERIFY
 		$runner->_invalid_script('negative number')
 			if $c1 < 0;
 
-		my $c1_is_height = $c1 < Bitcoin::Crypto::Constants::locktime_height_threshold;
-		my $c2_is_height = $c2 < Bitcoin::Crypto::Constants::locktime_height_threshold;
+		my $c1_is_height = $c1 < LOCKTIME_HEIGHT_THRESHOLD;
+		my $c2_is_height = $c2 < LOCKTIME_HEIGHT_THRESHOLD;
 
 		$runner->_invalid_script('type mismatch')
 			unless !!$c1_is_height == !!$c2_is_height;
@@ -1203,7 +1203,7 @@ sub _OP_CHECKLOCKTIMEVERIFY
 			if $c1 > $c2;
 
 		$runner->_invalid_script('maximum sequence in input')
-			if $transaction->this_input->sequence_no == Bitcoin::Crypto::Constants::max_sequence_no;
+			if $transaction->this_input->sequence_no == MAX_SEQUENCE_NO;
 	};
 }
 

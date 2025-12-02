@@ -2,6 +2,7 @@ use Test2::V0;
 use Bitcoin::Secp256k1;
 use Bitcoin::Crypto qw(btc_prv btc_pub btc_transaction btc_script_tree btc_tapscript);
 use Bitcoin::Crypto::Util qw(lift_x to_format);
+use Bitcoin::Crypto::Constants qw(:sighash :script);
 
 use lib 't/lib';
 use TransactionStore;
@@ -32,7 +33,7 @@ subtest 'should sign/verify key path spend case' => sub {
 		'transaction hash ok';
 
 	# try signing
-	$prv->sign_transaction($tx, signing_index => 0, sighash => Bitcoin::Crypto::Constants::sighash_all);
+	$prv->sign_transaction($tx, signing_index => 0, sighash => SIGHASH_ALL);
 	is [map { to_format [hex => $_] } @{$tx->inputs->[0]->witness}], [
 		'b693a0797b24bae12ed0516a2f5ba765618dca89b75e498ba5b745b71644362298a45ca39230d10a02ee6290a91cebf9839600f7e35158a447ea182ea0e022ae01'
 		],
@@ -48,7 +49,7 @@ subtest 'should sign/verify simple script path spend case' => sub {
 		tree => [
 			{
 				id => 0,
-				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => $script,
 			}
 		]
@@ -110,7 +111,7 @@ subtest 'should sign/verify script path spend case with signature' => sub {
 		tree => [
 			{
 				id => 0,
-				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => btc_tapscript->new
 					->push($script_prv->get_public_key->get_xonly_key)
 					->add('OP_CHECKSIG'),
@@ -139,7 +140,7 @@ subtest 'should sign/verify script path spend case with signature' => sub {
 		leaf_id => 0,
 		public_key => $pub,
 		)
-		->add_signature($script_prv, sighash => Bitcoin::Crypto::Constants::sighash_all)
+		->add_signature($script_prv, sighash => SIGHASH_ALL)
 		->finalize;
 
 	is [map { to_format [hex => $_] } @{$tx->inputs->[0]->witness}], [
@@ -164,27 +165,27 @@ subtest 'should sign/verify script path spend case with tree' => sub {
 				[
 					[
 						{
-							leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+							leaf_version => TAPSCRIPT_LEAF_VERSION,
 							script => btc_tapscript->from_serialized([hex => '5187']),
 						},
 						{
-							leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+							leaf_version => TAPSCRIPT_LEAF_VERSION,
 							script => btc_tapscript->from_serialized([hex => '5287']),
 						}
 					],
 					{
 						id => 0,
-						leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+						leaf_version => TAPSCRIPT_LEAF_VERSION,
 						script => $script,
 					}
 				],
 				{
-					leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+					leaf_version => TAPSCRIPT_LEAF_VERSION,
 					script => btc_tapscript->from_serialized([hex => '5487']),
 				}
 			],
 			{
-				leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => btc_tapscript->from_serialized([hex => '5587']),
 			}
 		]

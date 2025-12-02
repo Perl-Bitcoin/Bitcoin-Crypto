@@ -15,7 +15,7 @@ use Scalar::Util qw(blessed);
 use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Helpers qw(parse_formatdesc ecc);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:key :witness);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 
@@ -56,11 +56,11 @@ sub validate_wif
 	my $byte_wif = Bitcoin::Crypto::Base58::decode_base58check($wif);
 
 	my $last_byte = substr $byte_wif, -1;
-	if (length $byte_wif == Bitcoin::Crypto::Constants::key_max_length + 2) {
-		return $last_byte eq Bitcoin::Crypto::Constants::wif_compressed_byte;
+	if (length $byte_wif == KEY_MAX_LENGTH + 2) {
+		return $last_byte eq WIF_COMPRESSED_BYTE;
 	}
 	else {
-		return length $byte_wif == Bitcoin::Crypto::Constants::key_max_length + 1;
+		return length $byte_wif == KEY_MAX_LENGTH + 1;
 	}
 }
 
@@ -75,7 +75,7 @@ sub validate_segwit
 	my $version = unpack 'C', $program;
 	Bitcoin::Crypto::Exception::SegwitProgram->raise(
 		'incorrect witness program version ' . ($version // '[null]')
-	) unless defined $version && $version >= 0 && $version <= Bitcoin::Crypto::Constants::max_witness_version;
+	) unless defined $version && $version >= 0 && $version <= MAX_WITNESS_VERSION;
 
 	$program = substr $program, 1;
 
@@ -132,14 +132,14 @@ sub get_address_type
 			my $version = ord substr $data, 0, 1, '';
 
 			$type = 'P2TR'
-				if $version == Bitcoin::Crypto::Constants::taproot_witness_version
+				if $version == TAPROOT_WITNESS_VERSION
 				&& length $data == 32;
 
 			return if $type;
 
 			Bitcoin::Crypto::Exception::SegwitProgram->raise(
 				"invalid segwit address of version $version"
-			) unless $version == Bitcoin::Crypto::Constants::segwit_witness_version;
+			) unless $version == SEGWIT_WITNESS_VERSION;
 
 			$type = 'P2WPKH' if length $data == 20;
 			$type = 'P2WSH' if length $data == 32;
@@ -195,7 +195,7 @@ sub get_key_type
 
 	return 0 if defined get_public_key_compressed($entropy);
 	return 1
-		if length $entropy <= Bitcoin::Crypto::Constants::key_max_length;
+		if length $entropy <= KEY_MAX_LENGTH;
 	return undef;
 }
 
@@ -207,7 +207,7 @@ sub get_public_key_compressed
 {
 	my ($entropy) = @_;
 
-	my $curve_size = Bitcoin::Crypto::Constants::key_max_length;
+	my $curve_size = KEY_MAX_LENGTH;
 	my $octet = substr $entropy, 0, 1;
 
 	my $has_unc_oc = $octet eq "\x04" || $octet eq "\x06" || $octet eq "\x07";

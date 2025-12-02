@@ -1,6 +1,6 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_prv btc_tapscript btc_script_tree btc_transaction btc_utxo);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:script);
 
 my $priv1 = btc_prv->from_serialized("\x01" x 32);
 my $priv2 = btc_prv->from_serialized("\x02" x 32);
@@ -20,12 +20,12 @@ my $tree = btc_script_tree->new(
 	tree => [
 		{
 			id => 0,
-			leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+			leaf_version => TAPSCRIPT_LEAF_VERSION,
 			script => $script,
 		},
 		{
 			id => 1,
-			leaf_version => Bitcoin::Crypto::Constants::tapscript_leaf_version,
+			leaf_version => TAPSCRIPT_LEAF_VERSION,
 			script => $script,
 		},
 	],

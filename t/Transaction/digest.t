@@ -1,7 +1,7 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_script btc_transaction btc_utxo);
 use Bitcoin::Crypto::Util qw(to_format);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:sighash);
 
 use lib 't/lib';
 use TransactionStore;
@@ -67,7 +67,7 @@ subtest 'should digest transactions - legacy' => sub {
 			'0100000003ae8fe99eac2ced7681fdd2aedd25a83ff88fbed347571a2d7cb54aeb85a883f4010000001976a91415c055fa681fef5f8d342fc63b730648120679b388acffffffff5704be9a882060ac36f96e204553e92d37c78f831d84dce32832f4c0b919e5940000000000000000005704be9a882060ac36f96e204553e92d37c78f831d84dce32832f4c0b919e594010000000000000000000000000002000000';
 
 		is to_format [
-			hex => $tx->get_digest(signing_index => 0, sighash => Bitcoin::Crypto::Constants::sighash_none)
+			hex => $tx->get_digest(signing_index => 0, sighash => SIGHASH_NONE)
 			],
 			$expected, 'digest ok';
 	};
@@ -77,7 +77,7 @@ subtest 'should digest transactions - legacy' => sub {
 			'0100000003ae8fe99eac2ced7681fdd2aedd25a83ff88fbed347571a2d7cb54aeb85a883f40100000000000000005704be9a882060ac36f96e204553e92d37c78f831d84dce32832f4c0b919e594000000001976a9147df526887e47d6af7e89b35f8304dd2cf7519b3c88acffffffff5704be9a882060ac36f96e204553e92d37c78f831d84dce32832f4c0b919e59401000000000000000002ffffffffffffffff00a3738402000000001976a914ddcb7fedaacc18da645a2d7ffdabbc24880e288a88ac0000000003000000';
 
 		is to_format [
-			hex => $tx->get_digest(signing_index => 1, sighash => Bitcoin::Crypto::Constants::sighash_single)
+			hex => $tx->get_digest(signing_index => 1, sighash => SIGHASH_SINGLE)
 			],
 			$expected, 'digest ok';
 	};
@@ -89,8 +89,7 @@ subtest 'should digest transactions - legacy' => sub {
 		is to_format [
 			hex => $tx->get_digest(
 				signing_index => 1,
-				sighash => Bitcoin::Crypto::Constants::sighash_all |
-					Bitcoin::Crypto::Constants::sighash_anyonecanpay
+				sighash => SIGHASH_ALL | SIGHASH_ANYONECANPAY
 			)
 			],
 			$expected, 'digest ok';
@@ -137,7 +136,7 @@ subtest 'should digest transactions - native segwit' => sub {
 					hex =>
 						'21026dccc749adc2a9d0d89497ac511f760f45c47dc5ed9cf352a58ac706453880aeadab210255a9626aebf5e29c0e6538428ba0d1dcf6ca98ffdf086aa8ced5e0d0215ea465ac'
 				],
-				sighash => Bitcoin::Crypto::Constants::sighash_single
+				sighash => SIGHASH_SINGLE
 			)
 			],
 			$expected1, 'digest ok (first checksig)';
@@ -150,7 +149,7 @@ subtest 'should digest transactions - native segwit' => sub {
 				signing_index => 1,
 				signing_subscript =>
 					[hex => '210255a9626aebf5e29c0e6538428ba0d1dcf6ca98ffdf086aa8ced5e0d0215ea465ac'],
-				sighash => Bitcoin::Crypto::Constants::sighash_single
+				sighash => SIGHASH_SINGLE
 			)
 			],
 			$expected2, 'digest ok (second checksig)';
@@ -177,8 +176,7 @@ subtest 'should digest transactions - native segwit' => sub {
 				signing_index => 0,
 				signing_subscript =>
 					[hex => '0063ab68210392972e2eb617b2388771abe27235fd5ac44af8e61693261550447a4c3e39da98ac'],
-				sighash => Bitcoin::Crypto::Constants::sighash_single |
-					Bitcoin::Crypto::Constants::sighash_anyonecanpay
+				sighash => SIGHASH_SINGLE | SIGHASH_ANYONECANPAY
 			)
 			],
 			$expected1, 'digest ok (index 0)';
@@ -191,8 +189,7 @@ subtest 'should digest transactions - native segwit' => sub {
 				signing_index => 1,
 				signing_subscript =>
 					[hex => '68210392972e2eb617b2388771abe27235fd5ac44af8e61693261550447a4c3e39da98ac'],
-				sighash => Bitcoin::Crypto::Constants::sighash_single |
-					Bitcoin::Crypto::Constants::sighash_anyonecanpay
+				sighash => SIGHASH_SINGLE | SIGHASH_ANYONECANPAY
 			)
 			],
 			$expected2, 'digest ok (index 1)';
@@ -242,21 +239,21 @@ subtest 'should digest transactions - compat segwit' => sub {
 	subtest 'should digest P2MS-P2SH(P2WSH) with SIGHASH_ALL' => sub {
 		my $expected =
 			'0100000074afdc312af5183c4198a40ca3c1a275b485496dd3929bca388c4b5e31f7aaa03bb13029ce7b1f559ef5e747fcac439f1455a2ec7c5f09b72290795e7066504436641869ca081e70f394c6948e8af409e18b619df2ed74aa106c1ca29787b96e01000000cf56210307b8ae49ac90a048e9b53357a2354b3334e9c8bee813ecb98e99a7e07e8c3ba32103b28f0c28bfab54554ae8c658ac5c3e0ce6e79ad336331f78c428dd43eea8449b21034b8113d703413d57761b8b9781957b8c0ac1dfe69f492580ca4195f50376ba4a21033400f6afecb833092a9a21cfdf1ed1376e58c5d1f47de74683123987e967a8f42103a6d48b1131e94ba04d9737d61acdaa1322008af9602b3b14862c07a1789aac162102d8b661b0b3302ee2f162b09e07a55ad5dfbe673a9f01d9f0c19617681024306b56aeb168de3a00000000ffffffffbc4d309071414bed932f98832b27b4d76dad7e6c1346f487a8fdbb8eb90307cc0000000001000000';
-		is to_format [hex => $tx->get_digest(@args, sighash => Bitcoin::Crypto::Constants::sighash_all)],
+		is to_format [hex => $tx->get_digest(@args, sighash => SIGHASH_ALL)],
 			$expected, 'digest ok';
 	};
 
 	subtest 'should digest P2MS-P2SH(P2WSH) with SIGHASH_SINGLE' => sub {
 		my $expected =
 			'0100000074afdc312af5183c4198a40ca3c1a275b485496dd3929bca388c4b5e31f7aaa0000000000000000000000000000000000000000000000000000000000000000036641869ca081e70f394c6948e8af409e18b619df2ed74aa106c1ca29787b96e01000000cf56210307b8ae49ac90a048e9b53357a2354b3334e9c8bee813ecb98e99a7e07e8c3ba32103b28f0c28bfab54554ae8c658ac5c3e0ce6e79ad336331f78c428dd43eea8449b21034b8113d703413d57761b8b9781957b8c0ac1dfe69f492580ca4195f50376ba4a21033400f6afecb833092a9a21cfdf1ed1376e58c5d1f47de74683123987e967a8f42103a6d48b1131e94ba04d9737d61acdaa1322008af9602b3b14862c07a1789aac162102d8b661b0b3302ee2f162b09e07a55ad5dfbe673a9f01d9f0c19617681024306b56aeb168de3a00000000ffffffff9efe0c13a6b16c14a41b04ebe6a63f419bdacb2f8705b494a43063ca3cd4f7080000000003000000';
-		is to_format [hex => $tx->get_digest(@args, sighash => Bitcoin::Crypto::Constants::sighash_single)],
+		is to_format [hex => $tx->get_digest(@args, sighash => SIGHASH_SINGLE)],
 			$expected, 'digest ok';
 	};
 
 	subtest 'should digest P2MS-P2SH(P2WSH) with SIGHASH_NONE' => sub {
 		my $expected =
 			'0100000074afdc312af5183c4198a40ca3c1a275b485496dd3929bca388c4b5e31f7aaa0000000000000000000000000000000000000000000000000000000000000000036641869ca081e70f394c6948e8af409e18b619df2ed74aa106c1ca29787b96e01000000cf56210307b8ae49ac90a048e9b53357a2354b3334e9c8bee813ecb98e99a7e07e8c3ba32103b28f0c28bfab54554ae8c658ac5c3e0ce6e79ad336331f78c428dd43eea8449b21034b8113d703413d57761b8b9781957b8c0ac1dfe69f492580ca4195f50376ba4a21033400f6afecb833092a9a21cfdf1ed1376e58c5d1f47de74683123987e967a8f42103a6d48b1131e94ba04d9737d61acdaa1322008af9602b3b14862c07a1789aac162102d8b661b0b3302ee2f162b09e07a55ad5dfbe673a9f01d9f0c19617681024306b56aeb168de3a00000000ffffffff00000000000000000000000000000000000000000000000000000000000000000000000002000000';
-		is to_format [hex => $tx->get_digest(@args, sighash => Bitcoin::Crypto::Constants::sighash_none)],
+		is to_format [hex => $tx->get_digest(@args, sighash => SIGHASH_NONE)],
 			$expected, 'digest ok';
 	};
 
@@ -266,8 +263,7 @@ subtest 'should digest transactions - compat segwit' => sub {
 		is to_format [
 			hex => $tx->get_digest(
 				@args,
-				sighash => Bitcoin::Crypto::Constants::sighash_all |
-					Bitcoin::Crypto::Constants::sighash_anyonecanpay
+				sighash => SIGHASH_ALL | SIGHASH_ANYONECANPAY
 			)
 			],
 			$expected, 'digest ok';
@@ -279,8 +275,7 @@ subtest 'should digest transactions - compat segwit' => sub {
 		is to_format [
 			hex => $tx->get_digest(
 				@args,
-				sighash => Bitcoin::Crypto::Constants::sighash_single |
-					Bitcoin::Crypto::Constants::sighash_anyonecanpay
+				sighash => SIGHASH_SINGLE | SIGHASH_ANYONECANPAY
 			)
 			],
 			$expected, 'digest ok';
@@ -292,8 +287,7 @@ subtest 'should digest transactions - compat segwit' => sub {
 		is to_format [
 			hex => $tx->get_digest(
 				@args,
-				sighash => Bitcoin::Crypto::Constants::sighash_none |
-					Bitcoin::Crypto::Constants::sighash_anyonecanpay
+				sighash => SIGHASH_NONE | SIGHASH_ANYONECANPAY
 			)
 			],
 			$expected, 'digest ok';

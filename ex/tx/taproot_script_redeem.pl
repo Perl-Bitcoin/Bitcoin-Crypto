@@ -70,7 +70,8 @@ $tx
 	)
 	->add_signature($private_key_1)
 	->add_signature('')
-	->add_signature($private_key_3);
+	->add_signature($private_key_3)
+	->finalize;
 
 # verify the correctness of the transaction. Throws an exception on failure
 $tx->verify;

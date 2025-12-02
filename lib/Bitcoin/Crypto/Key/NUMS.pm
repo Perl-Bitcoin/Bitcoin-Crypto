@@ -13,7 +13,7 @@ use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util qw(lift_x);
 use Bitcoin::Crypto::Helpers qw(ecc);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:curve);
 
 # 32 random bytes can overflow ecc, but the changes of that are extremely low
 has param 'tweak' => (
@@ -30,7 +30,7 @@ sub get_public_key
 {
 	my ($self) = @_;
 
-	state $nums_base = lift_x sha256 Bitcoin::Crypto::Constants::curve_generator;
+	state $nums_base = lift_x sha256 CURVE_GENERATOR;
 	return btc_pub->from_serialized(ecc->add_public_key($nums_base, $self->tweak));
 }
 

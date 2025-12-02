@@ -11,7 +11,7 @@ use Carp qw(carp);
 use List::Util qw(sum any uniqstr);
 
 use Bitcoin::Crypto qw(btc_pub btc_script btc_tapscript btc_script_tree btc_utxo);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:script :transaction :coin);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
@@ -387,7 +387,7 @@ sub set_rbf
 	# rules according to BIP125
 	# https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
 	if (!$self->has_rbf) {
-		$self->inputs->[0]->set_sequence_no(Bitcoin::Crypto::Constants::rbf_sequence_no_threshold);
+		$self->inputs->[0]->set_sequence_no(RBF_SEQUENCE_NO_THRESHOLD);
 	}
 
 	return $self;
@@ -404,7 +404,7 @@ sub has_rbf
 
 	foreach my $input (@{$self->inputs}) {
 		return !!1
-			if $input->sequence_no <= Bitcoin::Crypto::Constants::rbf_sequence_no_threshold;
+			if $input->sequence_no <= RBF_SEQUENCE_NO_THRESHOLD;
 	}
 
 	return !!0;
@@ -481,7 +481,7 @@ sub is_coinbase
 
 	return !!0 unless @{$inputs} == 1;
 
-	my $null_prevout = Bitcoin::Crypto::Constants::null_utxo;
+	my $null_prevout = NULL_UTXO;
 	my $utxo_prevout = $inputs->[0]->utxo_location;
 	return $null_prevout->[0] eq $utxo_prevout->[0] && $null_prevout->[1] == $utxo_prevout->[1];
 }
@@ -639,7 +639,7 @@ sub _verify_script_taproot
 		my $raw_script = pop @witness_stack;
 
 		my $leaf_version = $control_block->get_leaf_version;
-		if ($leaf_version == Bitcoin::Crypto::Constants::tapscript_leaf_version) {
+		if ($leaf_version == TAPSCRIPT_LEAF_VERSION) {
 			$script = btc_tapscript->from_serialized($raw_script);
 			$script_runner->transaction->set_taproot_ext_flag(1);
 		}
@@ -778,7 +778,7 @@ sub verify
 	# check output values
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'output value is out of range'
-	) if any { $_->value > Bitcoin::Crypto::Constants::max_money } @$outputs;
+	) if any { $_->value > MAX_MONEY } @$outputs;
 
 	# use special procedure if coinbase
 	return $self->_verify_coinbase($script_runner)
@@ -799,12 +799,12 @@ sub verify
 	# locktime checking
 	if (
 		$self->locktime > 0 && any {
-			$_->sequence_no != Bitcoin::Crypto::Constants::max_sequence_no
+			$_->sequence_no != MAX_SEQUENCE_NO
 		} @$inputs
 		)
 	{
 		my $locktime = $self->locktime;
-		my $is_timestamp = $locktime >= Bitcoin::Crypto::Constants::locktime_height_threshold;
+		my $is_timestamp = $locktime >= LOCKTIME_HEIGHT_THRESHOLD;
 		if (defined $block && ($is_timestamp || $block->has_height)) {
 			Bitcoin::Crypto::Exception::Transaction->raise(
 				'locktime was not satisfied'

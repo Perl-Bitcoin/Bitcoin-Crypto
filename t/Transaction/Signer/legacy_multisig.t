@@ -1,6 +1,6 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_prv btc_script btc_transaction btc_utxo);
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:sighash);
 
 my $priv1 = btc_prv->from_serialized("\x01" x 32);
 my $priv2 = btc_prv->from_serialized("\x02" x 32);
@@ -70,7 +70,7 @@ $tx
 			'304402206ef02f993aa36743f2e38261e73721e8ea61eee68c9789b5b13321f3f22bb15a02203064f3d456d11a0181505a524aa9c3f639d87878daaab1177db9039a57309a3d01'
 		]
 	)
-	->add_signature($priv1, sighash => Bitcoin::Crypto::Constants::sighash_single)
+	->add_signature($priv1, sighash => SIGHASH_SINGLE)
 	->finalize_multisignature
 	->finalize;
 

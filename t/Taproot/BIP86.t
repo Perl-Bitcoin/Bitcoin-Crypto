@@ -1,6 +1,7 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_extprv);
 use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Constants qw(:bip44);
 
 # Data from:
 # https://github.com/bitcoin/bips/blob/master/bip-0086.mediawiki#test-vectors
@@ -8,7 +9,7 @@ use Bitcoin::Crypto::Util qw(to_format);
 my @cases = (
 	{
 		bip44 => {
-			purpose => Bitcoin::Crypto::Constants::bip44_taproot_purpose,
+			purpose => BIP44_TAPROOT_PURPOSE,
 			get_account => 1,
 		},
 		xprv =>
@@ -18,7 +19,7 @@ my @cases = (
 	},
 	{
 		bip44 => {
-			purpose => Bitcoin::Crypto::Constants::bip44_taproot_purpose,
+			purpose => BIP44_TAPROOT_PURPOSE,
 		},
 		xprv =>
 			'xprvA449goEeU9okwCzzZaxiy475EQGQzBkc65su82nXEvcwzfSskb2hAt2WymrjyRL6kpbVTGL3cKtp9herYXSjjQ1j4stsXXiRF7kXkCacK3T',
@@ -31,7 +32,7 @@ my @cases = (
 	},
 	{
 		bip44 => {
-			purpose => Bitcoin::Crypto::Constants::bip44_taproot_purpose,
+			purpose => BIP44_TAPROOT_PURPOSE,
 			index => 1,
 		},
 		xprv =>
@@ -45,7 +46,7 @@ my @cases = (
 	},
 	{
 		bip44 => {
-			purpose => Bitcoin::Crypto::Constants::bip44_taproot_purpose,
+			purpose => BIP44_TAPROOT_PURPOSE,
 			change => 1,
 		},
 		xprv =>

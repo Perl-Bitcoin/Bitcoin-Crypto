@@ -10,7 +10,7 @@ use List::Util qw(any notall);
 
 use Bitcoin::Crypto qw(btc_extpub btc_pub btc_transaction btc_script btc_tapscript btc_script_tree);
 use Bitcoin::Crypto::Transaction::Output;
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:transaction);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize lift_x);
 use Bitcoin::Crypto::Helpers qw(ensure_length die_no_trace);    # loads Math::BigInt
@@ -529,8 +529,8 @@ my %types = (
 		validator => sub {
 			my ($value) = @_;
 			die_no_trace 'must be greather than or equal to '
-				. Bitcoin::Crypto::Constants::locktime_height_threshold
-				if $value < Bitcoin::Crypto::Constants::locktime_height_threshold;
+				. LOCKTIME_HEIGHT_THRESHOLD
+				if $value < LOCKTIME_HEIGHT_THRESHOLD;
 		},
 		version_status => {
 			2 => AVAILABLE,
@@ -542,8 +542,8 @@ my %types = (
 		%uint_32bitLE_serializers,
 		validator => sub {
 			my ($value) = @_;
-			die_no_trace 'must be less than ' . Bitcoin::Crypto::Constants::locktime_height_threshold
-				unless $value < Bitcoin::Crypto::Constants::locktime_height_threshold;
+			die_no_trace 'must be less than ' . LOCKTIME_HEIGHT_THRESHOLD
+				unless $value < LOCKTIME_HEIGHT_THRESHOLD;
 		},
 		version_status => {
 			2 => AVAILABLE,
@@ -981,7 +981,7 @@ B<Required in the constructor.> Code of the field type defined in BIP174.
 
 B<Available in the constructor.> A map type this field belongs to. If not
 passed, it will be guessed from L</name>. Map types are defined as constants in
-C<Bitcoin::Crypto::Constants>.
+L<Bitcoin::Crypto::Constants>.
 
 =head3 serializer
 

@@ -3,6 +3,7 @@ use List::Util qw(first);
 use Bitcoin::Crypto qw(btc_psbt);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Network;
+use Bitcoin::Crypto::Constants qw(:sighash);
 
 # get rid of non-bitcoin networks which make it hard to run these tests
 foreach my $network_id (Bitcoin::Crypto::Network->find(sub { shift->id !~ m{^bitcoin} })) {
@@ -67,7 +68,7 @@ my @cases = (
 				'utxo ok';
 
 			is $psbt->get_field('PSBT_IN_SIGHASH_TYPE', 0)->value,
-				Bitcoin::Crypto::Constants::sighash_all,
+				SIGHASH_ALL,
 				'sighash ok';
 		},
 	],

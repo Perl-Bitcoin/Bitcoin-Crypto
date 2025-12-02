@@ -13,7 +13,7 @@ use Bitcoin::Crypto::PSBT::Map;
 use Bitcoin::Crypto::PSBT::Field;
 use Bitcoin::Crypto::PSBT::FieldType;
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(:psbt);
 use Bitcoin::Crypto::Exception;
 
 has field 'maps' => (
@@ -203,23 +203,23 @@ sub from_serialized
 	my ($class, $serialized) = @_;
 	my $self = $class->new;
 
-	my $pos = length Bitcoin::Crypto::Constants::psbt_magic;
+	my $pos = length PSBT_MAGIC;
 	my $magic = substr $serialized, 0, $pos;
 
 	Bitcoin::Crypto::Exception::PSBT->raise(
 		'serialized string does not contain the PSBT header'
-	) unless $magic eq Bitcoin::Crypto::Constants::psbt_magic;
+	) unless $magic eq PSBT_MAGIC;
 
 	push @{$self->maps}, Bitcoin::Crypto::PSBT::Map::->from_serialized(
 		$serialized,
-		map_type => Bitcoin::Crypto::Constants::psbt_global_map,
+		map_type => PSBT_GLOBAL_MAP,
 		pos => \$pos,
 	);
 
 	foreach my $index (0 .. $self->input_count - 1) {
 		push @{$self->maps}, Bitcoin::Crypto::PSBT::Map::->from_serialized(
 			$serialized,
-			map_type => Bitcoin::Crypto::Constants::psbt_input_map,
+			map_type => PSBT_INPUT_MAP,
 			pos => \$pos,
 			index => $index,
 		);
@@ -228,7 +228,7 @@ sub from_serialized
 	foreach my $index (0 .. $self->output_count - 1) {
 		push @{$self->maps}, Bitcoin::Crypto::PSBT::Map::->from_serialized(
 			$serialized,
-			map_type => Bitcoin::Crypto::Constants::psbt_output_map,
+			map_type => PSBT_OUTPUT_MAP,
 			pos => \$pos,
 			index => $index,
 		);
@@ -254,16 +254,16 @@ sub to_serialized
 
 	$self->check;
 
-	my $serialized = Bitcoin::Crypto::Constants::psbt_magic;
-	$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_global_map, set => !!1)->to_serialized;
+	my $serialized = PSBT_MAGIC;
+	$serialized .= $self->_get_map(PSBT_GLOBAL_MAP, set => !!1)->to_serialized;
 
 	for my $input_index (0 .. $self->input_count - 1) {
-		$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_input_map, index => $input_index, set => !!1)
+		$serialized .= $self->_get_map(PSBT_INPUT_MAP, index => $input_index, set => !!1)
 			->to_serialized;
 	}
 
 	for my $output_index (0 .. $self->output_count - 1) {
-		$serialized .= $self->_get_map(Bitcoin::Crypto::Constants::psbt_output_map, index => $output_index, set => !!1)
+		$serialized .= $self->_get_map(PSBT_OUTPUT_MAP, index => $output_index, set => !!1)
 			->to_serialized;
 	}
 
@@ -286,13 +286,13 @@ sub check
 	foreach my $field_type (@{$required_fields}) {
 		my @maps;
 
-		if ($field_type->map_type eq Bitcoin::Crypto::Constants::psbt_global_map) {
+		if ($field_type->map_type eq PSBT_GLOBAL_MAP) {
 			@maps = ($self->_get_map($field_type->map_type));
 		}
-		elsif ($field_type->map_type eq Bitcoin::Crypto::Constants::psbt_input_map) {
+		elsif ($field_type->map_type eq PSBT_INPUT_MAP) {
 			@maps = map { $self->_get_map($field_type->map_type, index => $_) } 0 .. $input_count - 1;
 		}
-		elsif ($field_type->map_type eq Bitcoin::Crypto::Constants::psbt_output_map) {
+		elsif ($field_type->map_type eq PSBT_OUTPUT_MAP) {
 			@maps = map { $self->_get_map($field_type->map_type, index => $_) } 0 .. $output_count - 1;
 		}
 
@@ -306,12 +306,12 @@ sub check
 
 	foreach my $map (@{$self->maps}) {
 
-		if ($map->type eq Bitcoin::Crypto::Constants::psbt_input_map) {
+		if ($map->type eq PSBT_INPUT_MAP) {
 			Bitcoin::Crypto::Exception::PSBT->raise(
 				"PSBT input map index " . $map->index . " out of range"
 			) unless $map->index < $input_count;
 		}
-		elsif ($map->type eq Bitcoin::Crypto::Constants::psbt_output_map) {
+		elsif ($map->type eq PSBT_OUTPUT_MAP) {
 			Bitcoin::Crypto::Exception::PSBT->raise(
 				"PSBT output map index " . $map->index . " out of range"
 			) unless $map->index < $output_count;
