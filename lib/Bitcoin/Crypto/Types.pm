@@ -10,7 +10,7 @@ use Types::Common -types;
 
 # make sure Math::BigInt is properly loaded - this module loads it
 use Bitcoin::Crypto::Helpers qw(die_no_trace);
-use Bitcoin::Crypto::Constants qw(:bip44 :psbt);
+use Bitcoin::Crypto::Constants qw(:bip44 :psbt USE_BIGINTS);
 
 our $CHECK_BYTESTRINGS = !!1;
 
@@ -223,14 +223,36 @@ __PACKAGE__->add_type(
 	},
 );
 
-my $satoshi_amount = __PACKAGE__->add_type(
-	name => 'SatoshiAmount',
-	parent => InstanceOf->of('Math::BigInt')->where(q{$_ >= 0}),
-);
+my $satoshi_amount;
+if (USE_BIGINTS) {
+	$satoshi_amount = __PACKAGE__->add_type(
+		name => 'SatoshiAmount',
+		parent => InstanceOf->of('Math::BigInt')->where(q{$_ >= 0}),
+	);
 
-$satoshi_amount->coercion->add_type_coercions(
-	Int | Str, q{ Math::BigInt->new($_) },
-);
+	$satoshi_amount->coercion->add_type_coercions(
+		Int | Str, q{ Math::BigInt->new($_) },
+	);
+}
+else {
+	$satoshi_amount = __PACKAGE__->add_type(
+		name => 'SatoshiAmount',
+		parent => PositiveOrZeroInt,
+	);
+
+	$satoshi_amount->coercion->add_type_coercions(
+		Str, q{
+			if (/^0x/) {
+				hex $_
+			}
+			else {
+				s/_//g;
+				$_
+			}
+		},
+		InstanceOf ['Math::BigInt'], q{ $_->numify },
+	);
+}
 
 my $derivation_path = __PACKAGE__->add_type(
 	name => 'DerivationPath',

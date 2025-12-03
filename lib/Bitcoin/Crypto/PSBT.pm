@@ -763,7 +763,7 @@ B<Value data:> Array reference, where the first item is a fingerprint and the se
 
 B<Key data:> <none>
 
-B<Value data:> Math::BigInt object
+B<Value data:> 64 bit number
 
 =item * PSBT_OUT_SCRIPT
 

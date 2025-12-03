@@ -13,7 +13,7 @@ use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Constants qw(:transaction);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize lift_x);
-use Bitcoin::Crypto::Helpers qw(ensure_length die_no_trace);    # loads Math::BigInt
+use Bitcoin::Crypto::Helpers qw(encode_64bit decode_64bit die_no_trace);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Transaction::ControlBlock;
 use Bitcoin::Crypto::DerivationPath;
@@ -717,13 +717,13 @@ my %types = (
 
 	PSBT_OUT_AMOUNT => {
 		code => 0x03,
-		value_data => "Math::BigInt object",
+		value_data => "64 bit number",
 		serializer => sub {
 			state $sig = signature(positional => [SatoshiAmount]);
 			my $value = ($sig->(@_))[0];
-			return scalar reverse ensure_length $value->to_bytes, 8;
+			return encode_64bit($value);
 		},
-		deserializer => sub { Math::BigInt->from_bytes(scalar reverse shift) },
+		deserializer => sub { decode_64bit(shift) },
 		version_status => {
 			2 => REQUIRED,
 		},

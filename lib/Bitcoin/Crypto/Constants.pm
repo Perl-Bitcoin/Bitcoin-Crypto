@@ -9,6 +9,13 @@ use Exporter qw(import);
 
 our @EXPORT_OK;
 
+# These constants are environment-specific and internal only
+use constant {
+	ivsize => $Config{ivsize},
+	is_32bit => $Config{ivsize} == 4,
+	is_64bit => $Config{ivsize} >= 8,
+};
+
 BEGIN {
 	my %constants = (
 		curve_name => 'secp256k1',
@@ -17,6 +24,8 @@ BEGIN {
 			'H*',
 			'0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8'
 		),
+
+		use_bigints => $ENV{BITCOIN_CRYPTO_USE_BIGINTS} || !is_64bit,
 
 		max_child_keys => (2 << 30),
 		key_max_length => 32,
@@ -173,13 +182,6 @@ our %EXPORT_TAGS = (
 		)
 	],
 );
-
-# These constants are environment-specific and internal only
-use constant {
-	ivsize => $Config{ivsize},
-	is_32bit => $Config{ivsize} == 4,
-	is_64bit => $Config{ivsize} >= 8,
-};
 
 1;
 

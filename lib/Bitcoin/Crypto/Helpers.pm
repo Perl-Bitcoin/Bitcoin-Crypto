@@ -8,7 +8,7 @@ use Carp qw(carp);
 use MIME::Base64;
 use Bitcoin::Secp256k1;
 
-use Bitcoin::Crypto::Constants;
+use Bitcoin::Crypto::Constants qw(USE_BIGINTS);
 use Bitcoin::Crypto::Exception;
 
 BEGIN {
@@ -26,7 +26,8 @@ BEGIN {
 our @EXPORT_OK = qw(
 	pad_hex
 	ensure_length
-	add_ec_points
+	encode_64bit
+	decode_64bit
 	carp_once
 	parse_formatdesc
 	ecc
@@ -68,6 +69,33 @@ sub ensure_length
 	) if $missing < 0;
 
 	return pack("x$missing") . $packed;
+}
+
+sub encode_64bit
+{
+	my ($value) = @_;
+
+	if (USE_BIGINTS) {
+		return scalar reverse ensure_length $value->as_bytes, 8;
+	}
+	else {
+		my $lower = $value & 0xffffffff;
+		my $upper = $value >> 32;
+		return pack 'VV', $lower, $upper;
+	}
+}
+
+sub decode_64bit
+{
+	my ($bytes) = @_;
+
+	if (USE_BIGINTS) {
+		return Math::BigInt->from_bytes(scalar reverse $bytes);
+	}
+	else {
+		my ($lower, $upper) = unpack 'VV', $bytes;
+		return ($upper << 32) + $lower;
+	}
 }
 
 # default operation is to decode based on formatdesc

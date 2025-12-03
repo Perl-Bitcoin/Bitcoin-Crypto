@@ -371,8 +371,10 @@ sub fee_rate
 	my $fee = $self->fee;
 	return undef unless defined $fee;
 
+	# assume $fee will be small enough to be numified from BigInt on 32 bit.
+	# This may be false, but we do not focus on 32 bit support
 	my $size = $self->virtual_size;
-	return $fee->as_float / $size;
+	return "$fee" / $size;
 }
 
 signature_for set_rbf => (

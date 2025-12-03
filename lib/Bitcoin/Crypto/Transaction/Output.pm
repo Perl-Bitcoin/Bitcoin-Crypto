@@ -8,7 +8,7 @@ use Mooish::Base -standard;
 use Types::Common -sigs;
 
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Helpers qw(ensure_length);
+use Bitcoin::Crypto::Helpers qw(encode_64bit decode_64bit);
 use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Exception;
 
@@ -47,7 +47,8 @@ sub set_max_value
 {
 	my ($self) = @_;
 
-	$self->set_value('0xffffffffffffffff');
+	# $self->set_value('0xffffffffffffffff');
+	$self->set_value((1 << 63) - 1 + (1 << 63));
 	return $self;
 }
 
@@ -60,9 +61,7 @@ sub value_serialized
 {
 	my ($self) = @_;
 
-	# NOTE: little endian
-	my $value = $self->value->as_bytes;
-	return scalar reverse ensure_length($value, 8);
+	return encode_64bit($self->value);
 }
 
 signature_for to_serialized => (
@@ -105,8 +104,10 @@ sub from_serialized
 	my $partial = !!$args->{pos};
 	my $pos = $partial ? ${$args->{pos}} : 0;
 
-	my $value = reverse substr $serialized, $pos, 8;
+	my $value = substr $serialized, $pos, 8;
 	$pos += 8;
+
+	$value = decode_64bit($value);
 
 	my $script_size = unpack_compactsize $serialized, \$pos;
 
@@ -125,7 +126,7 @@ sub from_serialized
 		if $partial;
 
 	return $class->new(
-		value => Math::BigInt->from_bytes($value),
+		value => $value,
 		locking_script => $script,
 	);
 }
@@ -183,8 +184,15 @@ interacted with directly.
 
 =head3 value
 
-Non-negative integer value of the output in the smallest unit (satoshi). It is
-an instance of L<Math::BigInt> with type coercions from integers and strings.
+Non-negative integer value of the output in the smallest unit (satoshi).
+
+On 32-bit machines, BigInts are used with type coercions from integers and
+strings. On 64-bit machines, perl numbers will be used.
+
+Most of the time, the internal representation of values should not matter. If
+it does matter though, C<BITCOIN_CRYPTO_USE_BIGINTS> environmental variable can
+be set to C<1> to force use of BigInts on 64 bit machines.
+
 Required.
 
 I<Available in the constructor>.
