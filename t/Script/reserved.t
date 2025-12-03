@@ -153,8 +153,10 @@ foreach my $case (@cases) {
 		my $script = btc_script->new;
 		script_fill($script, @ops);
 
+		ops_are($script, \@ops, "ops ok");
+
 		my $comp_err = dies {
-			ops_are($script, \@ops, "ops ok");
+			$script->run;
 		};
 
 		if ($case->{compilation_exception}) {

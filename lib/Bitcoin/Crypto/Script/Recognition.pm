@@ -5,9 +5,10 @@ use strict;
 use warnings;
 
 use Mooish::Base -standard;
-use List::Util qw(any min max);
 
+use Bitcoin::Crypto::Helpers qw(standard_push);
 use Bitcoin::Crypto::Script::Opcode;
+use Bitcoin::Crypto::Script::Runner;
 
 has param 'script' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script'],
@@ -15,21 +16,25 @@ has param 'script' => (
 );
 
 has field 'type' => (
-	predicate => 1,
 	writer => 1,
 );
 
 has field 'address' => (
-	predicate => 1,
 	writer => 1,
-	clearer => 1,
 );
 
 has field 'segwit_version' => (
-	predicate => 1,
 	writer => 1,
-	clearer => 1,
 );
+
+use constant {
+	KIND_OPCODE => 1,
+	KIND_SEGWIT_VERSION => 2,
+	KIND_NUMBER => 3,
+	KIND_ADDRESS => 4,
+	KIND_DATA => 5,
+	KIND_DATA_REPEATED => 6,
+};
 
 sub _blueprints
 {
@@ -48,78 +53,69 @@ sub _build_blueprints
 	my @blueprints = (
 		[
 			P2TR => [
-				['segwit_version', 1],
-				['address', 32],
+				[KIND_SEGWIT_VERSION, 1],
+				[KIND_ADDRESS, 32],
 			]
 		],
 
 		[
 			P2WPKH => [
-				['segwit_version', 0],
-				['address', 20],
+				[KIND_SEGWIT_VERSION, 0],
+				[KIND_ADDRESS, 20],
 			],
+		],
+
+		[
+			P2WSH => [
+				[KIND_SEGWIT_VERSION, 0],
+				[KIND_ADDRESS, 32],
+			]
 		],
 
 		[
 			P2PKH => [
 				'OP_DUP',
 				'OP_HASH160',
-				['address', 20],
+				[KIND_ADDRESS, 20],
 				'OP_EQUALVERIFY',
 				'OP_CHECKSIG',
 			]
 		],
 
 		[
-			P2WSH => [
-				['segwit_version', 0],
-				['address', 32],
-			]
-		],
-
-		[
 			P2SH => [
 				'OP_HASH160',
-				['address', 20],
+				[KIND_ADDRESS, 20],
 				'OP_EQUAL',
 			]
 		],
 
 		[
 			P2PK => [
-				['data', 33, 65],
+				[KIND_DATA, 33, 65],
 				'OP_CHECKSIG',
 			]
 		],
 
 		[
 			'UNKNOWN_SEGWIT' => [
-				['segwit_version', 0 .. 16],
-				['data', 2 .. 40],
+				[KIND_SEGWIT_VERSION, 0 .. 16],
+				[KIND_DATA, 2 .. 40],
 			],
 		],
 
 		[
 			NULLDATA => [
 				'OP_RETURN',
-				['address', 1 .. 75],
+				[KIND_ADDRESS, 1 .. 80],
 			]
 		],
 
-		[
-			NULLDATA => [
-				'OP_RETURN',
-				'OP_PUSHDATA1',
-				['address', 76 .. 80],
-			]
-		],
-
-		# TODO: P2MS suports up to 20 pubkeys / sigs (need better implementation)
 		[
 			P2MS => [
-				['op_n', 0 .. 16],
-				['data_repeated', 33, 65],
-				['op_n', 0 .. 16],
+				[KIND_NUMBER, 0 .. 20],
+				[KIND_DATA_REPEATED, 33, 65],
+				[KIND_NUMBER, 0 .. 20],
 				'OP_CHECKMULTISIG',
 			]
 		],
@@ -128,43 +124,34 @@ sub _build_blueprints
 	# pre-process blueprints for faster execution
 	foreach my $variant (@blueprints) {
 		my ($type, $parts) = @$variant;
-		my $len_min = 0;
-		my $len_max = 0;
 
 		foreach my $part (@$parts) {
 			if (ref $part) {
 				my ($kind, @vars) = @$part;
 
-				if ($kind eq 'address' || $kind eq 'data') {
-					$len_min += 1 + min @vars;
-					$len_max += 1 + max @vars
-						if defined $len_max;
+				if ($kind == KIND_ADDRESS || $kind == KIND_DATA) {
+
+					# no special handling
 				}
-				elsif ($kind eq 'data_repeated') {
-					$len_max = undef;
+				elsif ($kind == KIND_DATA_REPEATED) {
+
+					# no special handling
 				}
-				elsif ($kind eq 'op_n' || $kind eq 'segwit_version') {
-					my @codes = map { Bitcoin::Crypto::Script::Opcode->get_opcode_by_name("OP_$_") } @vars;
-					$part = [$kind, @codes];
-					$len_min += 1;
-					$len_max += 1
-						if defined $len_max;
+				elsif ($kind == KIND_NUMBER || $kind == KIND_SEGWIT_VERSION) {
+					@vars = map { Bitcoin::Crypto::Script::Runner->from_int($_) } @vars;
 				}
 				else {
 					die "invalid blueprint kind: $kind";
 				}
+
+				my %lookup = map { $_ => !!1 } @vars;
+				$part = [$kind, \%lookup];
 			}
 			else {
 				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name($part);
-				$part = ['byte', $opcode];
-
-				$len_min += 1;
-				$len_max += 1
-					if defined $len_max;
+				$part = [KIND_OPCODE, $opcode->code];
 			}
 		}
-
-		push @$variant, $len_min, $len_max;
 	}
 
 	return \@blueprints;
@@ -172,112 +159,87 @@ sub _build_blueprints
 
 sub _check_blueprint
 {
-	my ($self, $this_script, $pos, $part, @more_parts) = @_;
+	my ($self, $ops, $type, $parts) = @_;
 
-	return $pos == length $this_script
-		unless defined $part;
-	return !!0 unless $pos < length $this_script;
+	my $parts_size = @{$parts};
+	my $pos = 0;
 
-	my ($kind, @vars) = @$part;
+	my $address;
+	my $segwit_version;
 
-	if ($kind eq 'byte') {
-		return !!0 unless chr $vars[0]->code eq substr $this_script, $pos, 1;
-		return $self->_check_blueprint($this_script, $pos + 1, @more_parts);
-	}
-	elsif ($kind eq 'address' || $kind eq 'data') {
-		my $len = ord substr $this_script, $pos, 1;
+	foreach my $part (@{$parts}) {
+		my ($kind, $lookup) = @{$part};
+		my $op_data = $ops->[$pos];
+		return !!0 unless $op_data;
 
-		return !!0 unless any { $_ == $len } @vars;
-		if ($self->_check_blueprint($this_script, $pos + $len + 1, @more_parts)) {
-			$self->set_address(substr $this_script, $pos + 1, $len)
-				if $kind eq 'address';
-			return !!1;
+		if ($kind == KIND_OPCODE) {
+			return !!0 unless $lookup == $op_data->[0]->code;
 		}
-	}
-	elsif ($kind eq 'data_repeated') {
-		my $count = 0;
-		while (1) {
-			my $len = ord substr $this_script, $pos, 1;
-			last unless any { $_ == $len } @vars;
+		elsif ($kind == KIND_ADDRESS || $kind == KIND_DATA) {
+			return !!0 unless $op_data->[0]->pushop;
+			my $len = length $op_data->[2];
 
-			$pos += $len + 1;
-			$count += 1;
+			return !!0 unless $lookup->{$len};
+			return !!0 unless standard_push($op_data->[0]->name, $op_data->[2]);
+			$address = $op_data->[2]
+				if $kind == KIND_ADDRESS;
+		}
+		elsif ($kind == KIND_NUMBER || $kind == KIND_SEGWIT_VERSION) {
+			return !!0 unless $op_data->[0]->pushop;
+			return !!0 unless $lookup->{$op_data->[2]};
+			return !!0 unless standard_push($op_data->[0]->name, $op_data->[2]);
+
+			if ($kind == KIND_SEGWIT_VERSION) {
+
+				# numify bigint on 32 bit arch
+				$segwit_version = '' . Bitcoin::Crypto::Script::Runner->to_int($op_data->[2]);
+			}
+		}
+		elsif ($kind == KIND_DATA_REPEATED) {
+			my $count = 0;
+			while (1) {
+				return !!0 unless $op_data && $op_data->[0]->pushop;
+				return !!0 unless standard_push($op_data->[0]->name, $op_data->[2]);
+				my $len = length $op_data->[2];
+				last unless $lookup->{$len};
+
+				$pos += 1;
+				$op_data = $ops->[$pos];
+				$count += 1;
+			}
+
+			return !!0 unless $op_data->[0]->pushop;
+			return !!0 unless Bitcoin::Crypto::Script::Runner->from_int($count) eq $op_data->[2];
+
+			# check the same opcode again with next blueprint part
+			next;
 		}
 
-		return !!0 if $count > 16;
-		my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name("OP_$count");
-		return !!0 unless chr $opcode->code eq substr $this_script, $pos, 1;
-		return $self->_check_blueprint($this_script, $pos, @more_parts);
+		++$pos;
 	}
-	elsif ($kind eq 'op_n' || $kind eq 'segwit_version') {
-		my $byte = ord substr $this_script, $pos, 1;
-		my $found;
 
-		foreach my $opcode (@vars) {
-			next unless $byte eq $opcode->code;
-			$found = $opcode;
-			last;
-		}
+	return !!0 unless $pos == @{$ops};
 
-		return !!0 unless $found;
+	$self->set_address($address);
+	$self->set_segwit_version($segwit_version);
+	$self->set_type($type);
 
-		if ($kind eq 'segwit_version') {
-			$found->name =~ /^OP_(\d+)$/;
-			$self->set_segwit_version($1);
-		}
-
-		return $self->_check_blueprint($this_script, $pos + 1, @more_parts);
-	}
+	return !!1;
 }
 
 sub check
 {
 	my ($self) = @_;
 
-	my $script = $self->script->to_serialized;
-	my $len = length $script;
+	my $compiler = $self->script->_compiler;
+	return if $compiler->has_errors;
+	my $operations = $compiler->operations;
 
 	foreach my $variant (@{$self->_blueprints}) {
-		my ($type, $blueprint, $min_len, $max_len) = @{$variant};
-
-		next unless $len >= $min_len && (!defined($max_len) || $len <= $max_len);
-
-		if ($self->_check_blueprint($script, 0, @{$blueprint})) {
-			$self->set_type($type);
-			last;
-		}
-		else {
-			# clear data
-			$self->clear_address;
-			$self->clear_segwit_version;
-		}
+		last if $self->_check_blueprint($operations, @{$variant});
 	}
 
 	return;
-}
-
-sub get_type
-{
-	my ($self) = @_;
-
-	$self->check;
-	return $self->type;
-}
-
-sub get_address
-{
-	my ($self) = @_;
-
-	$self->check;
-	return $self->address;
-}
-
-sub get_segwit_version
-{
-	my ($self) = @_;
-
-	$self->check;
-	return $self->segwit_version;
 }
 
 1;

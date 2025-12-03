@@ -267,7 +267,9 @@ sub execute
 	my ($self, $script, $initial_stack) = @_;
 
 	$self->start($script, $initial_stack);
-	1 while $self->step;
+	if (!$self->success) {
+		1 while $self->step;
+	}
 
 	return $self;
 }
@@ -285,6 +287,8 @@ sub start
 	$self->_set_alt_stack([]);
 	$self->_set_pos(0);
 	$self->_clear_codeseparator;
+
+	$self->_compiler->assert_correct;
 
 	# set and increment opcode count. Incrementing is checking for too many
 	# opcodes (SCRIPT_MAX_OPCODES)
@@ -308,7 +312,7 @@ sub start
 					&& length $script->to_serialized > SCRIPT_MAX_SIZE;
 
 				die_no_trace 'maximum stack element size exceeded'
-					if any { $_->[0]->pushop && length($_->[2] // '') > SCRIPT_MAX_ELEMENT_SIZE } @{$self->operations};
+					if any { $_->[0]->pushop && length $_->[2] > SCRIPT_MAX_ELEMENT_SIZE } @{$self->operations};
 			}
 		);
 
@@ -410,6 +414,7 @@ sub success
 	my ($self) = @_;
 
 	return !!1 if $self->_compiler->unconditionally_valid;
+	return !!0 if $self->pos != @{$self->operations};
 
 	my $stack = $self->stack;
 	return !!0 if !$stack;

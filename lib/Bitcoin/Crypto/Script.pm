@@ -224,7 +224,7 @@ sub is_pushes_only
 	my ($self) = @_;
 
 	foreach my $op (@{$self->operations}) {
-		return !!0 unless $op->[0]->pushop;
+		return !!0 if $op->[0]->non_push_opcode;
 	}
 
 	return !!1;

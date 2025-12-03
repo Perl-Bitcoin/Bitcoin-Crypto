@@ -15,7 +15,7 @@ foreach my $succ (@cases) {
 		$compiler->compile;
 
 		ok $compiler->unconditionally_valid, 'script is unconditionally_valid ok';
-		is $compiler->operations, [], 'compiler operations empty ok';
+		ok $script->run->success, 'script success ok';
 	};
 }
 

@@ -58,6 +58,8 @@ foreach my $case_ind (0 .. $#actual_data)
 
 		note "Signature: $signature_raw"
 			if length $signature_raw;
+		note "Witness: " . join ' - ', @witness[0 .. $#witness - 1]
+			if @witness;
 		note "Script: $script_raw";
 
 		my $amount = 0;

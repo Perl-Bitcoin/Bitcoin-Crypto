@@ -67,7 +67,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- 10000 byte script size limit is now enforced
 	- 201 non-push opcode limit is now enforced
 	- fixed a cyclical references memory leak in scripts
-	- P2MS scripts with zero keys or signatures are now recognized
+	- P2MS scripts with zero or more than 15 keys or signatures are now recognized
 	- script type and address is now cleared if more data is added to a script
 
 	[Breaking changes]

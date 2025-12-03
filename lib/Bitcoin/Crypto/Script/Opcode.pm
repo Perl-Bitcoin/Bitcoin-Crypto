@@ -1271,9 +1271,6 @@ sub _build_opcodes
 		},
 		OP_RESERVED => {
 			code => 0x50,
-
-			# NOTE: all opcodes up to OP_16 are considered pushops
-			pushop => !!1,
 			runner => $class->_OP_RESERVED,
 		},
 		OP_NOP => {
@@ -1676,6 +1673,12 @@ sub opcodes_reverse
 		my %codes = %{$class->opcodes};
 		+{map { $codes{$_}{code}, $codes{$_} } grep { $_ !~ /^_/ } keys %codes};
 	};
+}
+
+# this is how Bitcoin Core classifies opcodes as "push opcode"
+sub non_push_opcode
+{
+	$_[0]->code > 0x60;
 }
 
 sub execute

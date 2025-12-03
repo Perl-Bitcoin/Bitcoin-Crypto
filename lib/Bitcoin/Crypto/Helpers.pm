@@ -151,20 +151,24 @@ sub standard_push
 	return !!1 if !$opcode_name || $opcode_name =~ /OP_\d/;
 
 	my $bytelen = length $bytes;
+
 	if ($bytelen == 0) {
 
 		# empty vectors are only pushed by OP_0
 		return !!0;
 	}
-	elsif ($bytelen == 1) {
+
+	if ($bytelen == 1) {
 		my $ord = ord $bytes;
 
 		# anything up to 0x10 (excluding 0x00) and 0x81 has a special push
 		# opcode
-		return ($ord == 0x00 || $ord > 0x10)
+		return !!0
+			unless ($ord == 0x00 || $ord > 0x10)
 			&& $ord != 0x81;
 	}
-	elsif ($bytelen <= 75) {
+
+	if ($bytelen <= 75) {
 
 		# byte lengths from 1 to 75 use OP_PUSH
 		return $opcode_name eq 'OP_PUSH';
