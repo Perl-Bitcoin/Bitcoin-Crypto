@@ -45,7 +45,7 @@ has param 'sigop' => (
 );
 
 # args for coderef are:
-# - Bitcoin::Crypto::Script::Runner instance
+# - Bitcoin::Crypto::Script::Compiler instance
 # - Compiled opcode (array from compile method in Runner)
 # - Compilation context (hashref)
 has option 'on_compilation' => (
@@ -70,30 +70,17 @@ sub _verify_stack
 	}
 }
 
-sub __compile_data_push
-{
-	my ($class, $context, $size) = @_;
-
-	Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-		'no PUSHDATA size in the script'
-	) unless defined $size;
-
-	Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-		'not enough bytes of data in the script'
-	) if $context->{size} - $context->{offset} < $size;
-
-	$context->{offset} += $size;
-	return substr $context->{serialized}, $context->{offset} - $size, $size;
-}
-
 sub _compile_OP_NUM
 {
 	my ($class, $num) = @_;
 
-	return sub {
-		my ($runner, $op, $context) = @_;
+	# avoid cyclical uses
+	require Bitcoin::Crypto::Script::Runner;
 
-		push @$op, $num == 0 ? '' : $runner->from_int($num);
+	return sub {
+		my ($compiler, $op, $context) = @_;
+
+		push @$op, $num == 0 ? '' : Bitcoin::Crypto::Script::Runner->from_int($num);
 	};
 }
 
@@ -102,9 +89,9 @@ sub _compile_OP_PUSH
 	my ($class, $size) = @_;
 
 	return sub {
-		my ($runner, $op, $context) = @_;
+		my ($compiler, $op, $context) = @_;
 
-		push @$op, $class->__compile_data_push($context, $size);
+		push @$op, $compiler->_compile_data_push($context, $size);
 		$op->[1] .= $op->[2];
 	};
 }
@@ -123,13 +110,13 @@ sub _compile_OP_PUSHDATA
 		// die 'bad pushdata length';
 
 	return sub {
-		my ($runner, $op, $context) = @_;
+		my ($compiler, $op, $context) = @_;
 
 		my $raw_size = substr $context->{serialized}, $context->{offset}, $length;
 		my $size = unpack $format, $raw_size;
 		$context->{offset} += $length;
 
-		push @$op, $class->__compile_data_push($context, $size);
+		push @$op, $compiler->_compile_data_push($context, $size);
 		$op->[1] .= $raw_size . $op->[2];
 	};
 }
@@ -139,7 +126,7 @@ sub _compile_OP_IF
 	my ($class) = @_;
 
 	return sub {
-		my ($runner, $op, $context) = @_;
+		my ($compiler, $op, $context) = @_;
 
 		if ($context->{branch}{if}) {
 			my $prev = {%{$context->{branch}}};
@@ -158,9 +145,9 @@ sub _compile_OP_ELSE
 	my ($class) = @_;
 
 	return sub {
-		my ($runner, $op, $context) = @_;
+		my ($compiler, $op, $context) = @_;
 
-		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+		$compiler->_invalid_script(
 			'OP_ELSE found but no previous OP_IF or OP_NOTIF'
 		) if !$context->{branch}{if};
 
@@ -178,9 +165,9 @@ sub _compile_OP_ENDIF
 	my ($class) = @_;
 
 	return sub {
-		my ($runner, $op, $context) = @_;
+		my ($compiler, $op, $context) = @_;
 
-		Bitcoin::Crypto::Exception::ScriptSyntax->raise(
+		$compiler->_invalid_script(
 			'OP_ENDIF found but no previous OP_IF or OP_NOTIF'
 		) if !$context->{branch}{if};
 
@@ -202,9 +189,9 @@ sub _compile_OP_VERIF
 	my ($class) = @_;
 
 	return sub {
-		my ($runner, $op, $context) = @_;
+		my ($compiler, $op, $context) = @_;
 
-		$runner->_invalid_script('OP_VERIF encountered');
+		$compiler->_invalid_script('OP_VERIF encountered');
 	};
 }
 
@@ -213,9 +200,9 @@ sub _compile_disabled
 	my ($class) = @_;
 
 	return sub {
-		my ($runner, $op, $context) = @_;
+		my ($compiler, $op, $context) = @_;
 
-		$runner->_invalid_script($op->[0]->name . ' is disabled');
+		$compiler->_invalid_script($op->[0]->name . ' is disabled');
 	};
 }
 

@@ -23,7 +23,9 @@ sub _compile_OP_SUCCESS
 	my ($class) = @_;
 
 	return sub {
-		Bitcoin::Crypto::Exception::ScriptSuccess->raise('OP_SUCCESS encountered');
+		my ($compiler) = @_;
+
+		$compiler->_unconditionally_valid_script('OP_SUCCESS encountered');
 	};
 }
 

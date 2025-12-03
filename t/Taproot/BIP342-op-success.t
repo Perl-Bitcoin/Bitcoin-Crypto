@@ -4,18 +4,18 @@ use Bitcoin::Crypto::Script::Runner;
 
 my @cases = (80, 98, 126 .. 129, 131 .. 134, 137, 138, 141, 142, 149 .. 153, 187 .. 254);
 
-my $runner = Bitcoin::Crypto::Script::Runner->new;
 foreach my $succ (@cases) {
 	subtest "should correctly handle success code $succ" => sub {
-		$runner->set_script(btc_tapscript->new->add("OP_SUCCESS$succ"));
-		my $ex = dies {
-			$runner->compile;
-		};
 
-		isa_ok $ex, 'Bitcoin::Crypto::Exception::ScriptSuccess';
+		# script is weak_ref - need to make a var
+		my $script = btc_tapscript->new->add("OP_SUCCESS$succ")->add('OP_VERIF');
+		my $compiler = Bitcoin::Crypto::Script::Compiler->new(
+			script => $script,
+		);
+		$compiler->compile;
 
-		$runner->execute($runner->script);
-		ok $runner->success, 'script success ok';
+		ok $compiler->unconditionally_valid, 'script is unconditionally_valid ok';
+		is $compiler->operations, [], 'compiler operations empty ok';
 	};
 }
 

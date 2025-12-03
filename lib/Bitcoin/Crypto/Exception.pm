@@ -279,20 +279,6 @@ sub as_string
 
 {
 
-	package Bitcoin::Crypto::Exception::ScriptSyntax;
-
-	use parent -norequire, 'Bitcoin::Crypto::Exception::ScriptCompilation';
-}
-
-{
-
-	package Bitcoin::Crypto::Exception::ScriptSuccess;
-
-	use parent -norequire, 'Bitcoin::Crypto::Exception::ScriptCompilation';
-}
-
-{
-
 	package Bitcoin::Crypto::Exception::ScriptRuntime;
 
 	use parent -norequire, 'Bitcoin::Crypto::Exception';

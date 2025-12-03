@@ -26,6 +26,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added illegal_upgradeable_nops flag
 	- Bitcoin::Crypto::Types:
 		- added TransactionFlags type
+	- removed ScriptSuccess exception class
+	- removed ScriptSyntax exception class
 
 	[Improvements and behavior changes]
 	- subscript generation now correctly deletes signatures (FindAndDelete)
@@ -66,6 +68,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- 201 non-push opcode limit is now enforced
 	- fixed a cyclical references memory leak in scripts
 	- P2MS scripts with zero keys or signatures are now recognized
+	- script type and address is now cleared if more data is added to a script
 
 	[Breaking changes]
 	- module now use plain perl numbers instead of BigInts on 64 bit perls:
@@ -74,6 +77,9 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- most of the time, these numbers can be used as perl numbers, and the internal representation is opaque
 		- if this causes problems, BITCOIN_CRYPTO_USE_BIGINTS environmental variable can be set to a true value
 		- this change vastly improves performance of the module on 64 bit
+	- compile method from Bitcoin::Crypto::Script::Runner has been removed
+		- this method's usage was unclear and it was marked as it was marked as advanced / internal only
+		- use operations method from Bitcoin::Crypto::Script to compile a script
 
 4.002 Fri Nov 14, 2025
 	[Public interface changes]

@@ -1,0 +1,153 @@
+package Bitcoin::Crypto::Script::Compiler;
+
+use v5.10;
+use strict;
+use warnings;
+
+use Mooish::Base -standard;
+
+use Try::Tiny;
+use Scalar::Util qw(blessed);
+use List::Util qw(sum0);
+
+use Bitcoin::Crypto::Types -types;
+use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Helpers qw(die_no_trace);
+
+has param 'script' => (
+	coerce => BitcoinScript,
+	weak_ref => 1,
+);
+
+has field 'operations' => (
+	isa => ArrayRef [ArrayRef],
+	writer => -hidden,
+);
+
+has field 'unconditionally_valid' => (
+	isa => Bool,
+	writer => -hidden,
+);
+
+has field 'opcode_count' => (
+	isa => Int,
+	writer => -hidden,
+);
+
+sub compile
+{
+	my ($self) = @_;
+
+	try {
+		$self->_set_operations($self->_compile);
+	}
+	catch {
+		my $ex = $_;
+
+		if ($self->unconditionally_valid) {
+			$self->_set_operations([]);
+		}
+		else {
+			die $ex;
+		}
+	};
+
+	# make sure no depending on result value (compile returns nothing)
+	return;
+}
+
+sub _compile
+{
+	my ($self) = @_;
+	my $script = $self->script;
+	my $opcode_class = $script->opcode_class;
+	my @ops;
+	my @debug_ops;
+
+	my $raw_script = $script->to_serialized;
+	my %context = (
+		serialized => $raw_script,
+		position => 0,
+		offset => 0,
+		size => length $raw_script,
+	);
+
+	Bitcoin::Crypto::Exception::ScriptCompilation->trap_into(
+		sub {
+			try {
+				while ($context{offset} < $context{size}) {
+					my $this_byte = substr $context{serialized}, $context{offset}++, 1;
+					my $opcode;
+					my @to_push;
+
+					# push this byte as debug op - pop it later if we can get
+					# it as real opcode
+					push @debug_ops, unpack 'H*', $this_byte;
+
+					$opcode = $opcode_class->get_opcode_by_code(ord $this_byte);
+					push @to_push, $this_byte;
+
+					splice @debug_ops, -1, 1, $opcode->name;
+					unshift @to_push, $opcode;
+
+					if ($opcode->has_on_compilation) {
+						$opcode->on_compilation->($self, \@to_push, \%context);
+					}
+
+					push @ops, \@to_push;
+					$context{position} += 1;
+				}
+
+				$self->_invalid_script(
+					'some OP_IFs were not closed'
+				) if $context{branch};
+			}
+			catch {
+				my $ex = $_;
+				if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::ScriptCompilation')) {
+					$ex->set_script(\@debug_ops);
+					$ex->set_error_position($context{position});
+				}
+
+				die $ex;
+			};
+		}
+	);
+
+	$self->_set_opcode_count(sum0 map { !$_->[0]->pushop } @ops);
+	return \@ops;
+}
+
+sub _compile_data_push
+{
+	my ($self, $context, $size) = @_;
+
+	$self->_invalid_script(
+		'no PUSHDATA size in the script'
+	) unless defined $size;
+
+	$self->_invalid_script(
+		'not enough bytes of data in the script'
+	) if $context->{size} - $context->{offset} < $size;
+
+	$context->{offset} += $size;
+	return substr $context->{serialized}, $context->{offset} - $size, $size;
+}
+
+sub _invalid_script
+{
+	my ($self, $error) = @_;
+
+	Bitcoin::Crypto::Exception::ScriptCompilation->raise($error);
+}
+
+sub _unconditionally_valid_script
+{
+	my ($self, $error) = @_;
+
+	$self->_set_unconditionally_valid(!!1);
+	die_no_trace $error;
+}
+
+1;
+

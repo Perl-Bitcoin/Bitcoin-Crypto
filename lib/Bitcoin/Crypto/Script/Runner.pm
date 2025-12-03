@@ -58,28 +58,20 @@ has field 'pos' => (
 	writer => -hidden,
 );
 
-has field 'operations' => (
-	isa => ArrayRef [ArrayRef],
-	writer => -hidden,
-);
-
 has field 'codeseparator' => (
 	isa => PositiveOrZeroInt,
 	writer => -hidden,
 	clearer => -hidden,
 );
 
-has field '_valid' => (
-	isa => Bool,
-	writer => 1,
-	predicate => 1,
-	clearer => 1,
-);
-
 has field '_opcode_count' => (
 	isa => Int,
 	writer => 1,
 );
+
+# shortcuts for quick access
+sub _compiler { $_[0]->script->_compiler }
+sub operations { $_[0]->_compiler->operations }
 
 sub _trigger_transaction
 {
@@ -240,8 +232,9 @@ sub _register_codeseparator
 sub _increment_opcode_count
 {
 	my ($self, $number) = @_;
-	$number = $number->numify
-		if blessed $number && $number->isa('Math::BigInt');
+
+	# numify from bigint
+	$number = "$number";
 
 	$self->_set_opcode_count($self->_opcode_count + $number);
 
@@ -291,19 +284,39 @@ sub start
 	$self->set_script($script);
 	$self->_set_alt_stack([]);
 	$self->_set_pos(0);
-	$self->_set_opcode_count(0);
 	$self->_clear_codeseparator;
-	$self->_clear_valid;
 
-	try {
-		$self->compile;
+	# set and increment opcode count. Incrementing is checking for too many
+	# opcodes (SCRIPT_MAX_OPCODES)
+	$self->_set_opcode_count(0);
+	$self->_increment_opcode_count($self->_compiler->opcode_count // 0);
 
-		# NOTE: this code must be placed exactly here, because OP_SUCCESSes in
-		# compilation should cause these checks to NOT run
+	Bitcoin::Crypto::Exception::ScriptRuntime->raise(
+		'cannot run tapscript without taproot flag'
+	) if $self->is_tapscript && !$self->flags->taproot;
+
+	Bitcoin::Crypto::Exception::TransactionScript->raise(
+		'no transaction is set for the script runner'
+	) if !$self->has_transaction && any { $_->[0]->needs_transaction } @{$self->operations};
+
+	# run this ONLY if the script was not marked as "unconditionally valid"
+	if (!$self->_compiler->unconditionally_valid) {
+		Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(
+			sub {
+				die_no_trace 'script size exceeded'
+					if !$self->is_tapscript
+					&& length $script->to_serialized > SCRIPT_MAX_SIZE;
+
+				die_no_trace 'maximum stack element size exceeded'
+					if any { $_->[0]->pushop && length($_->[2] // '') > SCRIPT_MAX_ELEMENT_SIZE } @{$self->operations};
+			}
+		);
+
 		Bitcoin::Crypto::Exception::ScriptPush->trap_into(
 			sub {
 				die_no_trace 'maximum initial stack element count exceeded'
 					if $self->is_tapscript && @$initial_stack > SCRIPT_MAX_STACK_ELEMENTS;
+
 				die_no_trace 'maximum initial stack element size exceeded'
 					if any { length $_ > SCRIPT_MAX_ELEMENT_SIZE } @$initial_stack;
 
@@ -311,17 +324,6 @@ sub start
 			}
 		);
 	}
-	catch {
-		my $ex = $_;
-
-		if ($ex->isa('Bitcoin::Crypto::Exception::ScriptSuccess')) {
-			$self->_set_valid(!!1);
-			$self->_set_operations([]);
-		}
-		else {
-			die $ex;
-		}
-	};
 
 	return $self;
 }
@@ -345,15 +347,11 @@ sub step
 	return !!0
 		unless defined $pos;
 
+	my $compiled_op = $self->operations->[$pos];
+
 	# out of operations
-	return !!0
-		unless $pos < @{$self->operations};
-
-	my ($op, $raw_op, @args) = @{$self->operations->[$pos]};
-
-	Bitcoin::Crypto::Exception::Transaction->raise(
-		'no transaction is set for the script runner'
-	) if $op->needs_transaction && !$self->has_transaction;
+	return !!0 unless defined $compiled_op;
+	my ($op, $raw_op, @args) = @{$compiled_op};
 
 	Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(
 		sub {
@@ -402,93 +400,6 @@ sub subscript
 	return $result;
 }
 
-signature_for compile => (
-	method => Object,
-	positional => [],
-);
-
-sub compile
-{
-	my ($self) = @_;
-	my $opcode_class = $self->script->opcode_class;
-	my $is_tapscript = $self->is_tapscript;
-	my @ops;
-	my @debug_ops;
-	my $non_push_opcodes = 0;
-
-	my $raw_script = $self->script->to_serialized;
-	my %context = (
-		serialized => $raw_script,
-		position => 0,
-		offset => 0,
-		size => length $raw_script,
-	);
-
-	Bitcoin::Crypto::Exception::ScriptCompilation->trap_into(
-		sub {
-			die_no_trace 'cannot run tapscript without taproot flag'
-				if $is_tapscript && !$self->flags->taproot;
-
-			die_no_trace 'script size exceeded'
-				if !$is_tapscript
-				&& $context{size} > SCRIPT_MAX_SIZE;
-
-			try {
-				while ($context{offset} < $context{size}) {
-					my $this_byte = substr $context{serialized}, $context{offset}++, 1;
-					my $opcode;
-					my @to_push;
-
-					# push this byte as debug op - pop it later if we can get
-					# it as real opcode
-					push @debug_ops, unpack 'H*', $this_byte;
-
-					$opcode = $opcode_class->get_opcode_by_code(ord $this_byte);
-					push @to_push, $this_byte;
-
-					splice @debug_ops, -1, 1, $opcode->name;
-					unshift @to_push, $opcode;
-
-					if ($opcode->has_on_compilation) {
-						$opcode->on_compilation->($self, \@to_push, \%context);
-					}
-
-					push @ops, \@to_push;
-					$context{position} += 1;
-				}
-
-				Bitcoin::Crypto::Exception::ScriptSyntax->raise(
-					'some OP_IFs were not closed'
-				) if $context{branch};
-			}
-			catch {
-				my $ex = $_;
-				if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::ScriptCompilation')) {
-					$ex->set_script(\@debug_ops);
-					$ex->set_error_position($context{position});
-				}
-
-				die $ex;
-			};
-
-			foreach my $op (@ops) {
-				if ($op->[0]->pushop) {
-					my $size = length $op->[2];
-
-					die_no_trace 'maximum stack element size exceeded'
-						if defined $size && $size > SCRIPT_MAX_ELEMENT_SIZE;
-				}
-				else {
-					++$non_push_opcodes;
-				}
-			}
-		}
-	);
-
-	$self->_increment_opcode_count($non_push_opcodes);
-	$self->_set_operations(\@ops);
-}
-
 signature_for success => (
 	method => Object,
 	positional => [],
@@ -498,7 +409,7 @@ sub success
 {
 	my ($self) = @_;
 
-	return $self->_valid if $self->_has_valid;
+	return !!1 if $self->_compiler->unconditionally_valid;
 
 	my $stack = $self->stack;
 	return !!0 if !$stack;
@@ -619,18 +530,7 @@ Array reference - alt stack, used by C<OP_TOALTSTACK> and C<OP_FROMALTSTACK>.
 
 B<Not assignable in the constructor>
 
-Array reference - An array of operations to be executed. Same as
-L<Bitcoin::Crypto::Script/operations> and automatically obtained by calling it.
-
-	[
-		[OP_XXX (Object), raw (String), ...],
-		...
-	]
-
-The first element of each subarray is the L<Bitcoin::Crypto::Script::Opcode>
-object. The second element is the raw opcode string, usually single byte. The
-rest of elements are metadata and is dependant on the op type. This metadata is
-used during script execution.
+A proxy to L<Bitcoin::Crypto::Script/operations> of the selected L</script>.
 
 =head3 pos
 
@@ -675,13 +575,6 @@ done in a single line:
 	my $stack = $runner->execute($script)->stack;
 
 If errors occur, they will be thrown as exceptions. See L</EXCEPTIONS>.
-
-=head3 compile
-
-	$object->compile()
-
-Fills L</operations> based on the contents of L</script>. May throw an
-exception in case of both success and failure. Advanced use only.
 
 =head3 start
 

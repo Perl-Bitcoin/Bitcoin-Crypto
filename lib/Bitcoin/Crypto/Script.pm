@@ -19,6 +19,7 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
+use Bitcoin::Crypto::Script::Compiler;
 use Bitcoin::Crypto::Script::Common;
 use Bitcoin::Crypto::Script::Recognition;
 
@@ -31,6 +32,13 @@ has field '_serialized' => (
 has field '_recognition' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script::Recognition'],
 	lazy => 1,
+	clearer => -hidden,
+);
+
+has field '_compiler' => (
+	isa => InstanceOf ['Bitcoin::Crypto::Script::Compiler'],
+	lazy => 1,
+	clearer => -hidden,
 );
 
 with qw(Bitcoin::Crypto::Role::Network);
@@ -43,6 +51,16 @@ sub _build_recognition
 	$rec->check;
 
 	return $rec;
+}
+
+sub _build_compiler
+{
+	my ($self) = @_;
+
+	my $compiler = Bitcoin::Crypto::Script::Compiler->new(script => $self);
+	$compiler->compile;
+
+	return $compiler;
 }
 
 sub _build
@@ -222,6 +240,8 @@ sub add_raw
 	my ($self, $bytes) = @_;
 
 	$self->_set_serialized($self->_serialized . $bytes);
+	$self->_clear_compiler;
+	$self->_clear_recognition;
 	return $self;
 }
 
@@ -267,26 +287,22 @@ sub push_bytes
 	}
 	elsif ($len <= 75) {
 		$self
-			->add_raw(pack 'C', $len)
-			->add_raw($bytes);
+			->add_raw(pack('C', $len) . $bytes);
 	}
 	elsif ($len < (1 << 8)) {
 		$self
 			->add_operation('OP_PUSHDATA1')
-			->add_raw(pack 'C', $len)
-			->add_raw($bytes);
+			->add_raw(pack('C', $len) . $bytes);
 	}
 	elsif ($len < (1 << 16)) {
 		$self
 			->add_operation('OP_PUSHDATA2')
-			->add_raw(pack 'v', $len)
-			->add_raw($bytes);
+			->add_raw(pack('v', $len) . $bytes);
 	}
 	elsif (Bitcoin::Crypto::Constants::is_32bit || $len < (1 << 32)) {
 		$self
 			->add_operation('OP_PUSHDATA4')
-			->add_raw(pack 'V', $len)
-			->add_raw($bytes);
+			->add_raw(pack('V', $len) . $bytes);
 	}
 	else {
 		Bitcoin::Crypto::Exception::ScriptPush->raise(
@@ -415,9 +431,7 @@ sub operations
 {
 	my ($self) = @_;
 
-	my $runner = Bitcoin::Crypto::Script::Runner->new();
-	$runner->start($self);
-	return $runner->operations;
+	return $self->_compiler->operations;
 }
 
 signature_for run => (
@@ -772,9 +786,19 @@ Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>, C<P2TR
 
 	$ops_aref = $object->operations
 
-Returns an array reference of operations contained in a script. It is the same
-as getting L<Bitcoin::Crypto::Script::Runner/operations> after calling
-C<compile>.
+Returns an array reference - An array of operations to be executed. Same as
+L<Bitcoin::Crypto::Script::Runner/operations>, which is only filled after
+starting the script.
+
+	[
+		[OP_XXX (Object), raw (String), ...],
+		...
+	]
+
+The first element of each subarray is the L<Bitcoin::Crypto::Script::Opcode>
+object. The second element is the raw opcode string, usually single byte. The
+rest of elements are metadata and is dependant on the op type. This metadata is
+used during script execution.
 
 =head3 run
 
@@ -823,8 +847,6 @@ L<Bitcoin::Crypto::Exception> namespace:
 =item * ScriptPush - data pushed to the execution stack is invalid
 
 =item * ScriptType - invalid standard script type name specified
-
-=item * ScriptSyntax - script syntax is invalid
 
 =item * ScriptRuntime - script runtime error
 
