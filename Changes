@@ -65,6 +65,13 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- 10000 byte script size limit is now enforced
 	- 201 non-push opcode limit is now enforced
 
+	[Breaking changes]
+	- script execution will now use plain perl numbers instead of BigInts on 64 bit perls:
+		- most of the time, module users have no need to interact with script numbers directly
+		- interacting with the stack numbers without using Math::BigInt methods explicitly should not change
+		- script numbers occasionally may overflow 4 bits
+		- this change vastly improves the performance of script execution on 64 bit
+
 4.002 Fri Nov 14, 2025
 	[Public interface changes]
 	- Bitcoin::Crypto::Key::Public:

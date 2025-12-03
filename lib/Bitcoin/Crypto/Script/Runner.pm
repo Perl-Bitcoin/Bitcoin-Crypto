@@ -13,7 +13,7 @@ use List::Util qw(any);
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Helpers qw(pad_hex standard_push die_no_trace);
+use Bitcoin::Crypto::Helpers qw(pad_hex ensure_length standard_push die_no_trace);
 use Bitcoin::Crypto::Script::Transaction;
 use Bitcoin::Crypto::Transaction::Flags;
 use Bitcoin::Crypto::Constants qw(:script);
@@ -127,8 +127,17 @@ sub to_int
 		substr $bytes, -1, 1, chr($ord - 0x80);
 	}
 
-	my $value = Math::BigInt->from_bytes(scalar reverse $bytes);
-	$value->bneg if $negative;
+	my $value;
+	if (Bitcoin::Crypto::Constants::is_64bit) {
+		my $bytes = ensure_length scalar(reverse $bytes), 8;
+		my ($higher, $lower) = unpack 'NN', $bytes;
+		$value = ($higher << 32) + $lower;
+		$value = -$value if $negative;
+	}
+	else {
+		$value = Math::BigInt->from_bytes(scalar reverse $bytes);
+		$value->bneg if $negative;
+	}
 
 	die_no_trace 'number is not minimally encoded'
 		if ref $self && $self->flags->minimaldata && $bytes ne $self->from_int($value);
@@ -140,16 +149,30 @@ sub from_int
 {
 	my ($self, $value) = @_;
 
-	if (!blessed $value) {
-		$value = Math::BigInt->new($value);
+	my $bytes;
+	my $negative;
+	if (Bitcoin::Crypto::Constants::is_64bit) {
+		return '' if $value == 0;
+		$negative = $value < 0;
+		$value = abs $value if $negative;
+
+		$bytes = pack 'V', $value & 0xffffffff;
+		$bytes .= pack 'V', $value >> 32;
+
+		$bytes =~ s/\x00+$//;
 	}
+	else {
+		if (!blessed $value) {
+			$value = Math::BigInt->new($value);
+		}
 
-	return '' if $value == 0;
+		return '' if $value == 0;
 
-	my $negative = $value < 0;
-	$value->babs if $negative;
+		$negative = $value < 0;
+		$value->babs if $negative;
 
-	my $bytes = reverse pack 'H*', pad_hex($value->to_hex);
+		$bytes = reverse pack 'H*', pad_hex($value->to_hex);
+	}
 
 	my $last = substr $bytes, -1, 1;
 	my $ord = ord $last;
@@ -741,9 +764,13 @@ Returns true if currently executed script is a tapscript.
 
 These methods encode and decode numbers in format which is used on L</stack>.
 
-BigInts are used. C<to_int> will return an instance of L<Math::BigInt>, while
-C<from_int> can accept it (but it should also handle regular numbers just
-fine). C<to_int> limits the size of an integer to C<$max_bytes>.
+C<to_int> limits the size of an integer to C<$max_bytes>.
+
+On 32-bit machines, BigInts are used. C<to_int> will return an instance of
+L<Math::BigInt>, while C<from_int> can accept it (but it should also handle
+regular numbers just fine). On 64-bit machines, perl numbers will be used.
+Most of the time, the internal representation of integers on the stack should
+not matter.
 
 =head3 to_bool, to_minimal_bool, from_bool
 

@@ -106,8 +106,10 @@ sub _build_height
 	my $result;
 	try {
 		$result = Bitcoin::Crypto::Script::Runner
-			->to_int(substr $full_script, 1, $size)
-			->numify;
+			->to_int(substr $full_script, 1, $size);
+
+		$result = $result->numify
+			unless Bitcoin::Crypto::Constants::is_64bit;
 	};
 
 	return $result;
