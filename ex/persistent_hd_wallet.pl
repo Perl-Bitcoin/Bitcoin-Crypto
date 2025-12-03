@@ -1,5 +1,4 @@
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 
 {
@@ -12,7 +11,7 @@ use warnings;
 	use Bitcoin::Crypto qw(btc_extprv);
 	use Bitcoin::Crypto::Network;
 	use Storable;
-	use Try::Tiny;
+	use Feature::Compat::Try;
 
 	use constant FILENAME => '.wallet.state';
 
@@ -75,9 +74,9 @@ use warnings;
 		try {
 			$self = retrieve $class->FILENAME;
 		}
-		catch {
+		catch ($e) {
 			$self = $class->new;
-		};
+		}
 
 		$self->initialize;
 		return $self;

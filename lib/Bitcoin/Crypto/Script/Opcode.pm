@@ -1,7 +1,6 @@
 package Bitcoin::Crypto::Script::Opcode;
 
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
@@ -11,7 +10,7 @@ use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 use Crypt::Digest::SHA1 qw(sha1);
 use List::Util qw(notall none);
-use Try::Tiny;
+use Feature::Compat::Try;
 
 use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Constants qw(:script :sighash :transaction);
@@ -232,14 +231,20 @@ sub __checksig
 	$runner->_invalid_script('non-strict pubkey')
 		if $runner->flags->strict_encoding && !check_strict_public_key($raw_pubkey);
 
-	my $pubkey = try { btc_pub->from_serialized($raw_pubkey) };
+	my $pubkey;
+	try {
+		$pubkey = btc_pub->from_serialized($raw_pubkey)
+	}
+	catch ($e) {
+		return !!0;
+	}
 
 	$runner->_script_error('public keys must be compressed')
 		if $runner->flags->compressed_pubkeys
 		&& $runner->transaction->is_segwit
-		&& $pubkey && !$pubkey->compressed;
+		&& !$pubkey->compressed;
 
-	return $pubkey ? $pubkey->verify_message($preimage, $sig, flags => $runner->flags) : !!0;
+	return $pubkey->verify_message($preimage, $sig, flags => $runner->flags);
 }
 
 sub _OP_PUSHDATA

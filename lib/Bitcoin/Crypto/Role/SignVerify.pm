@@ -1,11 +1,10 @@
 package Bitcoin::Crypto::Role::SignVerify;
 
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 use Mooish::Base -standard, -role;
 use Types::Common -sigs;
-use Try::Tiny;
+use Feature::Compat::Try;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Helpers qw(ecc make_strict_der_signature);
@@ -112,17 +111,17 @@ sub verify_message
 	my $algorithm = $self->taproot_output ? 'schnorr' : 'default';
 	my $flags = $args->{flags} // Bitcoin::Crypto::Transaction::Flags->new;
 
-	my $valid = !!0;
 	try {
-		$valid = $algorithms{$algorithm}{verification_method}->(
+		return $algorithms{$algorithm}{verification_method}->(
 			$self,
 			$signature,
 			$digest_result->hash,
 			$flags,
 		);
-	};
-
-	return $valid;
+	}
+	catch ($e) {
+		return !!0;
+	}
 }
 
 1;

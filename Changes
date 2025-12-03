@@ -71,7 +71,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- script type and address is now cleared if more data is added to a script
 
 	[Breaking changes]
-	- module now use plain perl numbers instead of BigInts on 64 bit perls:
+	- module now requires perl version 5.14.0 (was 5.10.1)
+	- module now uses plain perl numbers instead of BigInts on 64 bit perls:
 		- representing script stack elements as numbers occasionally may overflow 32 bits
 		- satoshi values very frequently overflow 32 bits
 		- most of the time, these numbers can be used as perl numbers, and the internal representation is opaque

@@ -1,12 +1,11 @@
 package Bitcoin::Crypto::Script::Compiler;
 
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
 
-use Try::Tiny;
+use Feature::Compat::Try;
 use Scalar::Util qw(blessed);
 use List::Util qw(sum0);
 
@@ -92,9 +91,7 @@ sub compile
 
 			$context{position}++;
 		}
-		catch {
-			my $ex = $_;
-
+		catch ($ex) {
 			if (blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::ScriptCompilation')) {
 				$ex->set_script(\@debug_ops);
 				$ex->set_error_position($context{position});
@@ -104,7 +101,7 @@ sub compile
 			else {
 				die $ex;
 			}
-		};
+		}
 	}
 
 	push @{$self->errors},

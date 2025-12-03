@@ -1,13 +1,12 @@
 package Bitcoin::Crypto::Transaction::Input;
 
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
 use Types::Common -sigs;
 use Scalar::Util qw(blessed);
-use Try::Tiny;
+use Feature::Compat::Try;
 
 use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants qw(:transaction);
@@ -108,8 +107,13 @@ sub utxo_registered
 {
 	my ($self) = @_;
 
-	try { $self->utxo } unless $self->has_utxo;
-	return $self->has_utxo;
+	try {
+		$self->utxo unless $self->has_utxo;
+		return !!1;
+	}
+	catch ($e) {
+		return !!0;
+	}
 }
 
 signature_for to_serialized => (

@@ -11,5 +11,5 @@ requires 'List::Util' => '1.45';
 requires 'CryptX' => '0.074';
 requires 'Bitcoin::Secp256k1' => '0.008';
 requires 'Bitcoin::BIP39' => '0.002';
-requires 'Try::Tiny' => 0;
+requires 'Feature::Compat::Try' => 0;
 

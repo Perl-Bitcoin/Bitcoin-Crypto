@@ -1,7 +1,6 @@
 package Bitcoin::Crypto::Role::Key;
 
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 
 use Mooish::Base -standard, -role;

@@ -1,7 +1,6 @@
 package Bitcoin::Crypto::Types;
 
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 
 use Type::Library -base;

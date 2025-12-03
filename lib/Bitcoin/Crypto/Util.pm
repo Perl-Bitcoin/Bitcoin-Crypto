@@ -1,7 +1,6 @@
 package Bitcoin::Crypto::Util;
 
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 use Exporter qw(import);
 use Unicode::Normalize;
@@ -10,7 +9,7 @@ use Encode qw(encode);
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::BIP39 qw(gen_bip39_mnemonic entropy_to_bip39_mnemonic);
-use Try::Tiny;
+use Feature::Compat::Try;
 use Scalar::Util qw(blessed);
 use Types::Common -sigs, -types;
 
@@ -135,7 +134,7 @@ sub get_address_type
 				if $version == TAPROOT_WITNESS_VERSION
 				&& length $data == 32;
 
-			return if $type;
+			return $type if $type;
 
 			Bitcoin::Crypto::Exception::SegwitProgram->raise(
 				"invalid segwit address of version $version"
@@ -144,17 +143,15 @@ sub get_address_type
 			$type = 'P2WPKH' if length $data == 20;
 			$type = 'P2WSH' if length $data == 32;
 
-			return if $type;
+			return $type if $type;
 
 			Bitcoin::Crypto::Exception::Address->raise(
 				'invalid segwit address'
 			);
 		}
-		catch {
-			die $_ unless blessed $_ && $_->isa('Bitcoin::Crypto::Exception::Bech32InputFormat');
-		};
-
-		return $type if $type;
+		catch ($ex) {
+			die $ex unless blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::Bech32InputFormat');
+		}
 	}
 
 	# then, try legacy
@@ -169,17 +166,16 @@ sub get_address_type
 			'invalid legacy address'
 		) unless length $data == 20;
 
-		return if $type;
+		return $type if $type;
 
 		Bitcoin::Crypto::Exception::Address->raise(
 			'invalid first byte in address'
 		);
 	}
-	catch {
-		die $_ unless blessed $_ && $_->isa('Bitcoin::Crypto::Exception::Base58InputFormat');
+	catch ($ex) {
+		die $ex unless blessed $ex && $ex->isa('Bitcoin::Crypto::Exception::Base58InputFormat');
 	};
 
-	return $type if $type;
 	Bitcoin::Crypto::Exception::Address->raise(
 		"not an address: $address"
 	);
@@ -284,9 +280,12 @@ sub get_path_info
 	my ($path) = @_;
 
 	# NOTE: ->coerce may still throw because of exceptions in from_string of DerivationPath
-	return scalar try {
-		DerivationPath->assert_coerce($path);
-	};
+	try {
+		return scalar DerivationPath->assert_coerce($path);
+	}
+	catch ($e) {
+		return undef;
+	}
 }
 
 # use signature, not signature_for, because of the prototype

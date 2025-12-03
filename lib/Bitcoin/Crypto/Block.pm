@@ -1,13 +1,12 @@
 package Bitcoin::Crypto::Block;
 
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
 use Types::Common -sigs;
 use Scalar::Util qw(blessed);
-use Try::Tiny;
+use Feature::Compat::Try;
 
 use Bitcoin::Crypto qw(btc_transaction);
 use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format);
@@ -103,16 +102,16 @@ sub _build_height
 		'invalid height in coinbase transaction'
 	) unless $size && ($size == 3 || $size == 5) && length $full_script > $size;
 
-	my $result;
 	try {
-		$result = Bitcoin::Crypto::Script::Runner
+		my $result = Bitcoin::Crypto::Script::Runner
 			->to_int(substr $full_script, 1, $size);
 
 		# numify if bigint
-		$result = "$result";
-	};
-
-	return $result;
+		return "$result";
+	}
+	catch ($e) {
+		return undef;
+	}
 }
 
 signature_for add_transaction => (

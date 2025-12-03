@@ -1,5 +1,4 @@
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 
 use Bitcoin::Crypto qw(btc_transaction btc_utxo btc_prv);

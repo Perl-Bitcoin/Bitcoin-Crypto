@@ -1,13 +1,11 @@
 package Bitcoin::Crypto::Script::Runner;
 
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
 use Types::Common -sigs;
 
-use Try::Tiny;
 use Scalar::Util qw(blessed);
 use List::Util qw(any);
 
@@ -212,15 +210,6 @@ sub from_bool
 	return !!$value ? "\x01" : '';
 }
 
-sub _advance
-{
-	my ($self, $count) = @_;
-	$count //= 1;
-
-	$self->_set_pos($self->pos + $count);
-	return;
-}
-
 sub _register_codeseparator
 {
 	my ($self) = @_;
@@ -364,7 +353,8 @@ sub step
 		"error at pos $pos (" . $op->name . ")"
 	);
 
-	$self->_advance;
+	# cannot trust $pos anymore. Jumps in script could've happened
+	$self->_set_pos($self->pos + 1);
 	return !!1;
 }
 

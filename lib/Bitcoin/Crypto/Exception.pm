@@ -1,11 +1,10 @@
 package Bitcoin::Crypto::Exception;
 
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
-use Try::Tiny;
+use Feature::Compat::Try;
 use Scalar::Util qw(blessed);
 
 use overload
@@ -51,14 +50,12 @@ sub throw
 
 sub trap_into
 {
-	my ($class, $sub, $prefix) = @_;
-
-	my $ret;
+	# try to be fast here. Only unpack arguments if executing the sub fails
 	try {
-		$ret = $sub->();
+		return $_[1]->();
 	}
-	catch {
-		my $ex = $_;
+	catch ($ex) {
+		my ($class, $sub, $prefix) = @_;
 
 		if (blessed $ex) {
 			if ($ex->isa($class)) {
@@ -76,9 +73,7 @@ sub trap_into
 		my $ex_string = "$ex";
 		chomp $ex_string;    # remove \n from die_no_trace
 		$class->raise($prefix ? "$prefix: $ex_string" : $ex_string);
-	};
-
-	return $ret;
+	}
 }
 
 sub as_string

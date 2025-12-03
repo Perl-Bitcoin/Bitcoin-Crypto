@@ -1,7 +1,6 @@
 package Bitcoin::Crypto::Bech32;
 
-use v5.10;
-use strict;
+use v5.14;
 use warnings;
 
 use Exporter qw(import);
