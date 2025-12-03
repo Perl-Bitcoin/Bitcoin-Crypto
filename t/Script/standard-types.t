@@ -35,6 +35,15 @@ my @cases = (
 		]
 	],
 
+	# P2MS, but zero keys and signatures
+	[
+		'P2MS',
+		[
+			hex =>
+				'0000ae'
+		]
+	],
+
 	[
 		'P2WPKH',
 		[hex => '00145f011e3cfa337698e7fe4502143eb6ada0b5a3d1'],
