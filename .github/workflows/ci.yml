@@ -66,10 +66,20 @@ jobs:
       run: |
          cat  /Users/runner/.cpanm/work/*/build.log
 
-    - name: Run tests
+    - name: Run tests (normal)
       env:
         AUTHOR_TESTING: 1
         RELEASE_TESTING: 1
+        RELEASE_TESTS_DATA: test-data
+      run: |
+        prove -l -r t xt
+
+    - name: Run tests (with bigints)
+      if:  ${{ startsWith(matrix.perl, '5.14') }}
+      env:
+        AUTHOR_TESTING: 1
+        RELEASE_TESTING: 1
+        BITCOIN_CRYPTO_USE_BIGINTS: 1
         RELEASE_TESTS_DATA: test-data
       run: |
         prove -l -r t xt
