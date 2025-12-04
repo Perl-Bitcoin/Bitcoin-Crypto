@@ -13,17 +13,10 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants qw(:sighash);
 use Bitcoin::Crypto::Transaction::Digest::Config;
 use Bitcoin::Crypto::Transaction::Digest::Result;
-use Bitcoin::Crypto::Transaction::Flags;
 
 has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],
 	weak_ref => 1,
-);
-
-has param 'flags' => (
-	isa => InstanceOf ['Bitcoin::Crypto::Transaction::Flags'],
-	writer => 1,
-	lazy => sub { Bitcoin::Crypto::Transaction::Flags->new },
 );
 
 has field 'config' => (
@@ -59,10 +52,10 @@ sub get_digest
 	) if !$input;
 
 	my $procedure = '_get_digest_default';
-	if ($self->flags->taproot && $input->is_taproot) {
+	if ($input->is_taproot) {
 		$procedure = '_get_digest_taproot';
 	}
-	elsif ($self->flags->segwit && $input->is_segwit) {
+	elsif ($input->is_segwit) {
 		$procedure = '_get_digest_segwit';
 	}
 

@@ -1071,6 +1071,11 @@ be signed by L<Bitcoin::Crypto::Key::Private/sign_message>, but for standard
 transactions L<Bitcoin::Crypto::Key::Private/sign_transaction> can be used
 instead to skip manual work.
 
+It always returns digest as if all verification flags were activated.
+Pre-SegWit scripts that look like SegWit (and should produce different digests)
+can't contain any signature operations, so flags would not change the behavior
+of signature checking.
+
 C<%params> can be any of:
 
 =over
@@ -1103,12 +1108,6 @@ Taproot annex defined by BIP341 as a bytestring. No annex by default.
 
 Caution: BIP341 warns to not use annex until the meaning of this field is
 defined by a softfork.
-
-=item * C<flags>
-
-An instance of L<Bitcoin::Crypto::Transaction::Flags>. If not passed, full set
-of consensus flags will be assumed (same as calling
-L<Bitcoin::Crypto::Transaction::Flags/new> with no arguments).
 
 =back
 

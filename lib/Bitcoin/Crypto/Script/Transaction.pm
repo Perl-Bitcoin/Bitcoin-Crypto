@@ -83,7 +83,6 @@ sub get_digest_object
 	my $annex = $self->taproot_annex;
 
 	return $self->transaction->get_digest_object(
-		flags => $self->flags,
 		signing_index => $self->input_index,
 		signing_subscript => $self->runner->subscript($args{signatures}),
 		taproot_ext_flag => $self->taproot_ext_flag,
