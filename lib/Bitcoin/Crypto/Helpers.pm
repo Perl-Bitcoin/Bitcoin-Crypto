@@ -72,21 +72,19 @@ sub ensure_length
 
 sub encode_64bit
 {
-	my ($value) = @_;
+	my $value = shift;
 
 	if (USE_BIGINTS) {
 		return scalar reverse ensure_length $value->as_bytes, 8;
 	}
 	else {
-		my $lower = $value & 0xffffffff;
-		my $upper = $value >> 32;
-		return pack 'VV', $lower, $upper;
+		return pack 'VV', $value & 0xffffffff, $value >> 32;
 	}
 }
 
 sub decode_64bit
 {
-	my ($bytes) = @_;
+	my $bytes = shift;
 
 	if (USE_BIGINTS) {
 		return Math::BigInt->from_bytes(scalar reverse $bytes);
@@ -126,20 +124,22 @@ sub parse_formatdesc
 	return $data;
 }
 
+# define an arbitrary number of times a single secp256k1 context can be
+# used. Create a new context after that. This gives an increased security
+# according to libsecp256k1 documentation.
+use constant ECC_MAX_USES => 100;
+
 sub ecc
 {
 	state $secp;
-	state $used_times = 0;
+	state $used_times = ECC_MAX_USES;
 
-	# define an arbitrary number of times a single secp256k1 context can be
-	# used. Create a new context after that. This gives an increased security
-	# according to libsecp256k1 documentation.
-	if ($used_times++ > 100) {
-		$secp = undef;
+	if (++$used_times > ECC_MAX_USES) {
+		$secp = Bitcoin::Secp256k1->new;
 		$used_times = 0;
 	}
 
-	return $secp //= Bitcoin::Secp256k1->new;
+	return $secp;
 }
 
 sub standard_push
@@ -194,10 +194,10 @@ sub check_strict_public_key
 	my ($pubkey) = @_;
 
 	my $len = length($pubkey);
-	my $byte = substr($pubkey, 0, 1);
+	my $byte = unpack('C', $pubkey);
 
-	return !!1 if $len == 65 && $byte eq "\x04";
-	return !!1 if $len == 33 && ($byte eq "\x03" || $byte eq "\x02");
+	return !!1 if $len == 65 && $byte == 0x04;
+	return !!1 if $len == 33 && ($byte == 0x03 || $byte == 0x02);
 
 	return !!0;
 }
@@ -216,34 +216,35 @@ sub check_strict_der_signature
 		if $len < 9 || $len > 73;
 
 	return !!0
-		if substr($signature, 0, 1) ne "\x30";
+		if unpack('@0C', $signature) != 0x30;
 
 	return !!0
-		if unpack('C', substr $signature, 1, 1) != $len - 3;
+		if unpack('@1C', $signature) != $len - 3;
 
-	my $r_len = unpack 'C', substr $signature, 3, 1;
+	my $r_len = unpack '@3C', $signature;
 
 	return !!0
 		if $r_len + 5 >= $len;
 
-	my $s_len = unpack 'C', substr $signature, 5 + $r_len, 1;
+	my $s_len = unpack '@' . (5 + $r_len) . 'C', $signature;
 
 	return !!0
 		if $r_len + $s_len + 7 != $len;
 
 	for my $item ([$r_len, 2], [$s_len, $r_len + 4]) {
+		my ($o0, $o2, $o3) = unpack '@0C @2C @3C', substr $signature, $item->[1];
+
 		return !!0
-			if substr($signature, $item->[1], 1) ne "\x02";
+			if $o0 != 0x02;
 
 		return !!0
 			if $item->[0] == 0;
 
 		return !!0
-			if unpack('C', substr $signature, $item->[1] + 2, 1) & 0x80;
+			if $o2 & 0x80;
 
 		return !!0
-			if $item->[0] > 1 && substr($signature, $item->[1] + 2, 1) eq "\x00"
-			&& !(unpack('C', substr $signature, $item->[1] + 3, 1) & 0x80);
+			if $item->[0] > 1 && $o2 == 0 && !($o3 & 0x80);
 	}
 
 	return !!1;
@@ -253,24 +254,19 @@ sub check_strict_der_signature
 sub make_strict_der_signature
 {
 	my ($signature) = @_;
-	return '' unless length $signature;
+	return $signature unless length $signature >= 8;
 
 	# https://bitcoin.stackexchange.com/questions/92680/what-are-the-der-signature-and-sec-format
 	# also:
 	# - ignore any trailing data
 	# - fix negative r and s
 
-	my $pos = 0;
-	my $compound = substr $signature, $pos++, 1;
-	my $total_len = unpack 'C', substr $signature, $pos++, 1;
-	my $int1 = substr $signature, $pos++, 1;
-	my $r_len = unpack 'C', substr $signature, $pos++, 1;
-	my $r = substr $signature, $pos, $r_len;
-	$pos += $r_len;
-	my $int2 = substr $signature, $pos++, 1;
-	my $s_len = unpack 'C', substr $signature, $pos++, 1;
-	my $s = substr $signature, $pos, $s_len;
-	$pos += $s_len;
+	my ($compound, $total_len, $int1, $r_len) = unpack 'aCaC', $signature;
+	my $r = substr $signature, 4, $r_len;
+
+	$signature = substr $signature, 4 + $r_len;
+	my ($int2, $s_len) = unpack 'aC', $signature;
+	my $s = substr $signature, 2, $s_len;
 
 	# remove padding
 	$r = substr($r, 1)
@@ -286,22 +282,12 @@ sub make_strict_der_signature
 		if unpack('C', $s) & 0x80;
 
 	# adjust lengths
-	$total_len -= $r_len + $s_len;
 	$r_len = length $r;
 	$s_len = length $s;
-	$total_len += $r_len + $s_len;
+	$total_len = 4 + $r_len + $s_len;
 
 	# return extracted strict signature
-	return join '',
-		$compound,
-		pack('C', $total_len),
-		$int1,
-		pack('C', $r_len),
-		$r,
-		$int2,
-		pack('C', $s_len),
-		$s,
-		;
+	return pack "aCaCa*aCa*", $compound, $total_len, $int1, $r_len, $r, $int2, $s_len, $s;
 }
 
 sub die_no_trace

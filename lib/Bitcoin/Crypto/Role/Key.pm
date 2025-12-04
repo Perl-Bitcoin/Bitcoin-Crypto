@@ -5,6 +5,7 @@ use warnings;
 
 use Mooish::Base -standard, -role;
 use Types::Common -sigs;
+use Feature::Compat::Try;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants qw(:key);
@@ -14,6 +15,7 @@ use Bitcoin::Crypto::Exception;
 
 has param 'key_instance' => (
 	isa => ByteStr,
+	writer => -hidden,
 );
 
 has param 'purpose' => (
@@ -31,7 +33,7 @@ requires qw(
 
 sub _validate_key
 {
-	my ($self) = @_;
+	my $self = shift;
 	my $entropy = $self->key_instance;
 
 	my $is_private = get_key_type $entropy;
@@ -50,9 +52,16 @@ sub _validate_key
 		) unless ecc->verify_private_key(ensure_length $entropy, KEY_MAX_LENGTH);
 	}
 	else {
-		Bitcoin::Crypto::Exception::KeyCreate->raise(
-			'public key is not valid'
-		) unless ecc->verify_public_key($entropy);
+		try {
+
+			# keep public keys in compressed form always
+			$self->_set_key_instance(ecc->compress_public_key($entropy));
+		}
+		catch ($e) {
+			Bitcoin::Crypto::Exception::KeyCreate->raise(
+				'public key is not valid'
+			);
+		}
 	}
 }
 
@@ -105,7 +114,7 @@ sub raw_key
 	my $key = $self->key_instance;
 
 	$type //= $is_private ? 'private' : 'public';
-	if ($type eq 'public' && (!$self->does('Bitcoin::Crypto::Role::Compressed') || $self->compressed)) {
+	if ($type eq 'public' && (!$self->can('compressed') || $self->compressed)) {
 		$type = 'public_compressed';
 	}
 
@@ -120,13 +129,14 @@ sub raw_key
 		$key = $self->__private_to_public($key)
 			if $is_private;
 
-		return ecc->xonly_public_key($self->__public_compressed($key, 1));
+		return ecc->xonly_public_key($key);
 	}
 	else {
 		$key = $self->__private_to_public($key)
 			if $is_private;
 
-		return $self->__public_compressed($key, $type eq 'public_compressed');
+		return $key if $type eq 'public_compressed';
+		return $self->__public_compressed($key, !!0);
 	}
 }
 

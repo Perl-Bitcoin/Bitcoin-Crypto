@@ -20,12 +20,12 @@ requires qw(
 
 my %algorithms = (
 	default => {
-		signing_method => sub {
+		sign => sub {
 			my ($key, $digest) = @_;
 
 			return ecc->sign_digest($key->raw_key, $digest);
 		},
-		verification_method => sub {
+		verify => sub {
 			my ($key, $signature, $digest, $flags) = @_;
 
 			if (!$flags->strict_signatures) {
@@ -41,12 +41,12 @@ my %algorithms = (
 		},
 	},
 	schnorr => {
-		signing_method => sub {
+		sign => sub {
 			my ($key, $digest) = @_;
 
 			return ecc->sign_digest_schnorr($key->raw_key, $digest);
 		},
-		verification_method => sub {
+		verify => sub {
 			my ($key, $signature, $digest) = @_;
 
 			return ecc->verify_digest_schnorr($key->raw_key('public_xonly'), $signature, $digest);
@@ -70,7 +70,7 @@ sub sign_message
 
 	return Bitcoin::Crypto::Exception::Sign->trap_into(
 		sub {
-			return $algorithms{$algorithm}{signing_method}->($self, $digest_result->hash);
+			return $algorithms{$algorithm}{sign}->($self, $digest_result->hash);
 		}
 	);
 }
@@ -112,7 +112,7 @@ sub verify_message
 	my $flags = $args->{flags} // Bitcoin::Crypto::Transaction::Flags->new;
 
 	try {
-		return $algorithms{$algorithm}{verification_method}->(
+		return $algorithms{$algorithm}{verify}->(
 			$self,
 			$signature,
 			$digest_result->hash,

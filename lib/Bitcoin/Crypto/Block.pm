@@ -167,15 +167,7 @@ sub to_serialized
 	# - Transaction count (VarInt)
 	# - Transactions (variable length)
 
-	my $serialized = '';
-
-	# Block header (80 bytes)
-	$serialized .= pack 'V', $self->version;
-	$serialized .= scalar reverse $self->prev_block_hash;    # Reversed for little-endian
-	$serialized .= scalar reverse $self->merkle_root;    # Reversed for little-endian
-	$serialized .= pack 'V', $self->timestamp;
-	$serialized .= pack 'V', $self->bits;
-	$serialized .= pack 'V', $self->nonce;
+	my $serialized = $self->get_header;
 
 	# Transaction count
 	$serialized .= pack_compactsize(scalar @{$self->transactions});
@@ -207,23 +199,12 @@ sub from_serialized
 	) if length($serialized) < 80;
 
 	# Parse block header (80 bytes)
-	my $version = unpack 'V', substr $serialized, $pos, 4;
-	$pos += 4;
+	my ($version, $prev_block_hash, $merkle_root, $timestamp, $bits, $nonce)
+		= unpack 'Va32a32VVV', $serialized;
+	$pos += 80;
 
-	my $prev_block_hash = scalar reverse substr $serialized, $pos, 32;
-	$pos += 32;
-
-	my $merkle_root = scalar reverse substr $serialized, $pos, 32;
-	$pos += 32;
-
-	my $timestamp = unpack 'V', substr $serialized, $pos, 4;
-	$pos += 4;
-
-	my $bits = unpack 'V', substr $serialized, $pos, 4;
-	$pos += 4;
-
-	my $nonce = unpack 'V', substr $serialized, $pos, 4;
-	$pos += 4;
+	$prev_block_hash = reverse $prev_block_hash;
+	$merkle_root = reverse $merkle_root;
 
 	# Parse transaction count
 	my $tx_count = unpack_compactsize $serialized, \$pos;
@@ -245,24 +226,23 @@ sub from_serialized
 		'block requires a coinbase transaction'
 	) unless @transactions > 0 && $transactions[0]->is_coinbase;
 
-	my $block_args = {
+	my $block = $class->new(
 		version => $version,
 		prev_block_hash => $prev_block_hash,
 		timestamp => $timestamp,
 		bits => $bits,
 		nonce => $nonce,
-	};
+	);
 
-	my $block = $class->new($block_args);
 	@{$block->transactions} = @transactions;
-
-	foreach my $tx (@transactions) {
-		$tx->set_block($block);
-	}
 
 	Bitcoin::Crypto::Exception::Block->raise(
 		'serialized block merkle root is incorrect'
 	) if $block->merkle_root ne $merkle_root;
+
+	foreach my $tx (@transactions) {
+		$tx->set_block($block);
+	}
 
 	return $block;
 }
@@ -288,15 +268,14 @@ sub get_header
 	my ($self) = @_;
 
 	# Return just the 80-byte block header
-	my $header = '';
-	$header .= pack 'V', $self->version;
-	$header .= scalar reverse $self->prev_block_hash;
-	$header .= scalar reverse $self->merkle_root;
-	$header .= pack 'V', $self->timestamp;
-	$header .= pack 'V', $self->bits;
-	$header .= pack 'V', $self->nonce;
-
-	return $header;
+	return pack 'Va32a32VVV',
+		$self->version,
+		scalar(reverse $self->prev_block_hash),
+		scalar(reverse $self->merkle_root),
+		$self->timestamp,
+		$self->bits,
+		$self->nonce,
+		;
 }
 
 sub _trigger_previous
@@ -318,6 +297,9 @@ sub _build_merkle_root
 		'cannot calculate merkle root for empty block'
 	) unless @txs > 0;
 
+	# optimization - avoid checking thousands of bytestrings passed to merkle_root
+	local $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS = !!0;
+
 	return scalar reverse Bitcoin::Crypto::Util::merkle_root(\@txs);
 }
 
@@ -337,8 +319,9 @@ sub median_time_past
 		push @stamps, $current->timestamp;
 
 		# NOTE: since we do not expect full blockchain to be available, exit
-		# the loop early if we didn't get full 11 blocks required for MTP.
-		# Should this warn?
+		# the loop early if we didn't get full 11 blocks required for MTP. Same
+		# would happen if we had a full blockchain, but were using very early
+		# blocks
 		last unless $current->has_previous;
 		$current = $current->previous;
 	}

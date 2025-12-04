@@ -4,10 +4,10 @@ use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
+use Types::Common -sigs;
 use Crypt::Digest::SHA256 qw(sha256);
 use Scalar::Util qw(blessed);
 use List::Util qw(any);
-use Types::Common -sigs;
 use Carp qw(carp);
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
@@ -44,22 +44,12 @@ with qw(Bitcoin::Crypto::Role::Network);
 
 sub _build_recognition
 {
-	my ($self) = @_;
-
-	my $rec = Bitcoin::Crypto::Script::Recognition->new(script => $self);
-	$rec->check;
-
-	return $rec;
+	return Bitcoin::Crypto::Script::Recognition->check(shift);
 }
 
 sub _build_compiler
 {
-	my ($self) = @_;
-
-	my $compiler = Bitcoin::Crypto::Script::Compiler->new(script => $self);
-	$compiler->compile;
-
-	return $compiler;
+	return Bitcoin::Crypto::Script::Compiler->compile(shift);
 }
 
 sub _build
@@ -208,9 +198,7 @@ signature_for type => (
 
 sub type
 {
-	my ($self) = @_;
-
-	return $self->_recognition->type;
+	return shift->_recognition->type;
 }
 
 signature_for is_pushes_only => (
@@ -229,6 +217,15 @@ sub is_pushes_only
 	return !!1;
 }
 
+# same as add_raw, but does not clear the object - to avoid clearing it
+# multiple times per operation
+sub _add_raw
+{
+	my ($self, $bytes) = @_;
+
+	$self->_set_serialized($self->_serialized . $bytes);
+}
+
 signature_for add_raw => (
 	method => Object,
 	positional => [ByteStr],
@@ -238,7 +235,7 @@ sub add_raw
 {
 	my ($self, $bytes) = @_;
 
-	$self->_set_serialized($self->_serialized . $bytes);
+	$self->_add_raw($bytes);
 	$self->_clear_compiler;
 	$self->_clear_recognition;
 	return $self;
@@ -276,32 +273,37 @@ sub push_bytes
 	my $len = length $bytes;
 
 	if ($len == 0) {
-		$self->add_operation('OP_0');
+		return $self->add_operation('OP_0');
 	}
-	elsif ($len == 1 && ord($bytes) <= 0x10 && ord($bytes) != 0) {
-		$self->add_operation('OP_' . ord($bytes));
+	elsif ($len == 1) {
+		my $ord = ord($bytes);
+
+		if ($ord <= 0x10 && $ord != 0) {
+			return $self->add_operation("OP_$ord");
+		}
+		elsif ($ord == 0x81) {
+			return $self->add_operation('OP_1NEGATE');
+		}
 	}
-	elsif ($len == 1 && ord($bytes) == 0x81) {
-		$self->add_operation('OP_1NEGATE');
-	}
-	elsif ($len <= 75) {
+
+	if ($len <= 75) {
 		$self
-			->add_raw(pack('C', $len) . $bytes);
+			->_add_raw(pack 'Ca*', $len, $bytes);
 	}
-	elsif ($len < (1 << 8)) {
+	elsif ($len <= 0xff) {
 		$self
 			->add_operation('OP_PUSHDATA1')
-			->add_raw(pack('C', $len) . $bytes);
+			->_add_raw(pack 'Ca*', $len, $bytes);
 	}
-	elsif ($len < (1 << 16)) {
+	elsif ($len <= 0xffff) {
 		$self
 			->add_operation('OP_PUSHDATA2')
-			->add_raw(pack('v', $len) . $bytes);
+			->_add_raw(pack 'va*', $len, $bytes);
 	}
-	elsif (Bitcoin::Crypto::Constants::is_32bit || $len < (1 << 32)) {
+	elsif ($len <= 0xffffffff) {
 		$self
 			->add_operation('OP_PUSHDATA4')
-			->add_raw(pack('V', $len) . $bytes);
+			->_add_raw(pack 'Va*', $len, $bytes);
 	}
 	else {
 		Bitcoin::Crypto::Exception::ScriptPush->raise(
@@ -336,9 +338,7 @@ signature_for segwit_version => (
 
 sub segwit_version
 {
-	my ($self) = @_;
-
-	return $self->_recognition->segwit_version;
+	return shift->_recognition->segwit_version;
 }
 
 # this can only detect native segwit in this context, as P2SH outputs are
@@ -350,9 +350,7 @@ signature_for is_native_segwit => (
 
 sub is_native_segwit
 {
-	my ($self) = @_;
-
-	return defined $self->segwit_version;
+	return defined shift->segwit_version;
 }
 
 signature_for is_taproot => (
@@ -362,9 +360,7 @@ signature_for is_taproot => (
 
 sub is_taproot
 {
-	my ($self) = @_;
-
-	return ($self->type // '') eq 'P2TR';
+	return (shift->type // '') eq 'P2TR';
 }
 
 signature_for get_hash => (
@@ -374,8 +370,7 @@ signature_for get_hash => (
 
 sub get_hash
 {
-	my ($self) = @_;
-	return hash160($self->_serialized);
+	return hash160(shift->_serialized);
 }
 
 signature_for to_serialized => (
@@ -385,9 +380,7 @@ signature_for to_serialized => (
 
 sub to_serialized
 {
-	my ($self) = @_;
-
-	return $self->_serialized;
+	goto \&_serialized;
 }
 
 signature_for from_serialized => (
@@ -399,7 +392,9 @@ sub from_serialized
 {
 	my ($class, $bytes) = @_;
 
-	return $class->new->add_raw($bytes);
+	my $self = $class->new;
+	$self->_set_serialized($bytes);
+	return $self;
 }
 
 signature_for from_standard => (
@@ -428,9 +423,7 @@ signature_for operations => (
 
 sub operations
 {
-	my ($self) = @_;
-
-	return $self->_compiler->operations;
+	return shift->_compiler->operations;
 }
 
 signature_for run => (

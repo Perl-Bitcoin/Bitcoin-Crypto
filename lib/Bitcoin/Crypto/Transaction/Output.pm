@@ -76,13 +76,10 @@ sub to_serialized
 	# - value, 8 bytes
 	# - locking script length, 1-9 bytes
 	# - locking script
-	my $serialized = '';
-
-	$serialized .= $self->value_serialized;
+	my $serialized = $self->value_serialized;
 
 	my $script = $self->locking_script->to_serialized;
-	$serialized .= pack_compactsize(length $script);
-	$serialized .= $script;
+	$serialized .= pack_compactsize(length $script) . $script;
 
 	return $serialized;
 }

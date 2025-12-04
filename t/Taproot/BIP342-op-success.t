@@ -9,10 +9,7 @@ foreach my $succ (@cases) {
 
 		# script is weak_ref - need to make a var
 		my $script = btc_tapscript->new->add("OP_SUCCESS$succ")->add('OP_VERIF');
-		my $compiler = Bitcoin::Crypto::Script::Compiler->new(
-			script => $script,
-		);
-		$compiler->compile;
+		my $compiler = Bitcoin::Crypto::Script::Compiler->compile($script);
 
 		ok $compiler->unconditionally_valid, 'script is unconditionally_valid ok';
 		ok $script->run->success, 'script success ok';

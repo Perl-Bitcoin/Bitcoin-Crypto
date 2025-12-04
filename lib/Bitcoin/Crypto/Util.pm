@@ -187,7 +187,7 @@ signature_for get_key_type => (
 
 sub get_key_type
 {
-	my ($entropy) = @_;
+	my $entropy = shift;
 
 	return 0 if defined get_public_key_compressed($entropy);
 	return 1
@@ -201,19 +201,18 @@ signature_for get_public_key_compressed => (
 
 sub get_public_key_compressed
 {
-	my ($entropy) = @_;
+	my $entropy = shift;
+	my $octet = unpack 'C', $entropy;
 
-	my $curve_size = KEY_MAX_LENGTH;
-	my $octet = substr $entropy, 0, 1;
+	return undef unless defined $octet;
 
-	my $has_unc_oc = $octet eq "\x04" || $octet eq "\x06" || $octet eq "\x07";
-	my $is_unc = $has_unc_oc && length $entropy == 2 * $curve_size + 1;
+	if ($octet == 0x02 || $octet == 0x03) {
+		return 1 if length $entropy == KEY_MAX_LENGTH + 1;
+	}
+	elsif ($octet == 0x04 || $octet == 0x06 || $octet == 0x07) {
+		return 0 if length $entropy == 2 * KEY_MAX_LENGTH + 1;
+	}
 
-	my $has_com_oc = $octet eq "\x02" || $octet eq "\x03";
-	my $is_com = $has_com_oc && length $entropy == $curve_size + 1;
-
-	return 1 if $is_com;
-	return 0 if $is_unc;
 	return undef;
 }
 
@@ -312,20 +311,20 @@ signature_for pack_compactsize => (
 
 sub pack_compactsize
 {
-	my ($value) = @_;
+	my $value = shift;
 
 	if ($value <= 0xfc) {
 		return pack 'C', $value;
 	}
 	elsif ($value <= 0xffff) {
-		return "\xfd" . pack 'v', $value;
+		return pack 'Cv', 0xfd, $value;
 	}
 	elsif ($value <= 0xffffffff) {
-		return "\xfe" . pack 'V', $value;
+		return pack 'CV', 0xfe, $value;
 	}
 	else {
 		# 32 bit archs should not reach this
-		return "\xff" . (pack 'V', $value & 0xffffffff) . (pack 'V', $value >> 32);
+		return pack 'CVV', 0xff, $value & 0xffffffff, $value >> 32;
 	}
 }
 
@@ -350,32 +349,29 @@ sub unpack_compactsize
 		) if length $stream < $length;
 
 		if ($length == 2) {
-			$value = unpack 'v', substr $stream, $pos, 2;
+			$value = unpack "\@$pos v", $stream;
 		}
 		elsif ($length == 4) {
-			$value = unpack 'V', substr $stream, $pos, 4;
+			$value = unpack "\@$pos V", $stream;
 		}
 		else {
 			Bitcoin::Crypto::Exception->raise(
 				"cannot unpack CompactSize: no 64 bit support"
 			) if !Bitcoin::Crypto::Constants::is_64bit;
 
-			my $lower = unpack 'V', substr $stream, $pos, 4;
-			my $higher = unpack 'V', substr $stream, $pos + 4, 4;
+			my ($lower, $higher) = unpack "\@$pos VV", $stream;
 			$value = ($higher << 32) + $lower;
 		}
 
 		$pos += $length;
 	}
 
-	if ($partial) {
-		$$pos_ref = $pos;
-	}
-	else {
-		Bitcoin::Crypto::Exception->raise(
-			"cannot unpack CompactSize: leftover data in stream"
-		) unless $pos == length $stream;
-	}
+	Bitcoin::Crypto::Exception->raise(
+		"cannot unpack CompactSize: leftover data in stream"
+	) if !$partial && $pos != length $stream;
+
+	$$pos_ref = $pos
+		if $partial;
 
 	return $value;
 }
@@ -386,9 +382,7 @@ signature_for hash160 => (
 
 sub hash160
 {
-	my ($data) = @_;
-
-	return ripemd160(sha256($data));
+	return ripemd160(sha256(shift));
 }
 
 signature_for hash256 => (
@@ -397,9 +391,7 @@ signature_for hash256 => (
 
 sub hash256
 {
-	my ($data) = @_;
-
-	return sha256(sha256($data));
+	return sha256(sha256(shift));
 }
 
 signature_for merkle_root => (
@@ -497,8 +489,7 @@ sub get_taproot_ext
 
 		# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#common-signature-message-extension
 		return $args->{script_tree}->get_tapleaf_hash($args->{leaf_id})
-			. "\x00"
-			. pack('V', $args->{codesep_pos} // 0xffffffff);
+			. pack('xV', $args->{codesep_pos} // 0xffffffff);
 	}
 	else {
 		Bitcoin::Crypto::Exception->raise(

@@ -50,7 +50,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- OP_CHECKMULTISIG now uses the correct order of evaluating its arguments
 	- OP_CHECKMULTISIG now correctly handles empty signatures and public keys
 	- OP_CHECKMULTISIG now allows zero pubkeys or signatures
-	- OP_CHECKMULTISIG now disallows more than 20 pubkeys or more signatures than pubkeys
+	- OP_CHECKMULTISIG now disallows invalid numbers of pubkeys or signatures (negative or more than 20)
 	- OP_CHECKMULTISIG now exits early if the number of signatures left to check is greater than pubkeys
 	- OP_CHECKLOCKTIMEVERIFY and OP_CHECKSEQUENCEVERIFY now correctly do not remove their argument from stack
 	- coinbase transactions now check if they have at least 2 bytes of coinbase input data

@@ -55,18 +55,6 @@ sub _make_TR
 		->add('OP_CHECKSIG');
 }
 
-sub _get_method
-{
-	my ($class, $type) = @_;
-
-	my $method = '_make_' . $type;
-	Bitcoin::Crypto::Exception::ScriptType->raise(
-		"cannot create common script of type $type"
-	) unless $class->can($method);
-
-	return $method;
-}
-
 signature_for new => (
 	method => Str,
 	positional => [Str, ByteStr],
@@ -88,7 +76,17 @@ sub fill
 {
 	my ($class, $type, $script, $data) = @_;
 
-	my $method = $class->_get_method($type);
+	state $methods = {
+		PKH => '_make_PKH',
+		SH => '_make_SH',
+		WSH => '_make_WSH',
+		TR => '_make_TR',
+	};
+
+	my $method = $methods->{$type} // Bitcoin::Crypto::Exception::ScriptType->raise(
+		"cannot create common script of type $type"
+	);
+
 	return $class->$method($script, $data);
 }
 

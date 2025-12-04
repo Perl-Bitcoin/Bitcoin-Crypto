@@ -9,21 +9,16 @@ use Bitcoin::Crypto::Helpers qw(standard_push);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Script::Runner;
 
-has param 'script' => (
-	isa => InstanceOf ['Bitcoin::Crypto::Script'],
-	weak_ref => 1,
+has param 'type' => (
+	default => undef,
 );
 
-has field 'type' => (
-	writer => 1,
+has param 'address' => (
+	default => undef,
 );
 
-has field 'address' => (
-	writer => 1,
-);
-
-has field 'segwit_version' => (
-	writer => 1,
+has param 'segwit_version' => (
+	default => undef,
 );
 
 use constant {
@@ -37,11 +32,10 @@ use constant {
 
 sub _blueprints
 {
-	my ($self) = @_;
-	my $class = ref $self || $self;
+	my ($class) = @_;
 
 	state $blueprints = {};
-	return $blueprints->{$class} //= $self->_build_blueprints;
+	return $blueprints->{$class} //= $class->_build_blueprints;
 }
 
 sub _build_blueprints
@@ -158,7 +152,7 @@ sub _build_blueprints
 
 sub _check_blueprint
 {
-	my ($self, $ops, $type, $parts) = @_;
+	my ($class, $ops, $type, $parts) = @_;
 
 	my $parts_size = @{$parts};
 	my $pos = 0;
@@ -169,24 +163,24 @@ sub _check_blueprint
 	foreach my $part (@{$parts}) {
 		my ($kind, $lookup) = @{$part};
 		my $op_data = $ops->[$pos];
-		return !!0 unless $op_data;
+		return undef unless $op_data;
 
 		if ($kind == KIND_OPCODE) {
-			return !!0 unless $lookup == $op_data->[0]->code;
+			return undef unless $lookup == $op_data->[0]->code;
 		}
 		elsif ($kind == KIND_ADDRESS || $kind == KIND_DATA) {
-			return !!0 unless $op_data->[0]->pushop;
+			return undef unless $op_data->[0]->pushop;
 			my $len = length $op_data->[2];
 
-			return !!0 unless $lookup->{$len};
-			return !!0 unless standard_push($op_data->[0]->name, $op_data->[2]);
+			return undef unless $lookup->{$len};
+			return undef unless standard_push($op_data->[0]->name, $op_data->[2]);
 			$address = $op_data->[2]
 				if $kind == KIND_ADDRESS;
 		}
 		elsif ($kind == KIND_NUMBER || $kind == KIND_SEGWIT_VERSION) {
-			return !!0 unless $op_data->[0]->pushop;
-			return !!0 unless $lookup->{$op_data->[2]};
-			return !!0 unless standard_push($op_data->[0]->name, $op_data->[2]);
+			return undef unless $op_data->[0]->pushop;
+			return undef unless $lookup->{$op_data->[2]};
+			return undef unless standard_push($op_data->[0]->name, $op_data->[2]);
 
 			if ($kind == KIND_SEGWIT_VERSION) {
 
@@ -197,8 +191,8 @@ sub _check_blueprint
 		elsif ($kind == KIND_DATA_REPEATED) {
 			my $count = 0;
 			while (1) {
-				return !!0 unless $op_data && $op_data->[0]->pushop;
-				return !!0 unless standard_push($op_data->[0]->name, $op_data->[2]);
+				return undef unless $op_data && $op_data->[0]->pushop;
+				return undef unless standard_push($op_data->[0]->name, $op_data->[2]);
 				my $len = length $op_data->[2];
 				last unless $lookup->{$len};
 
@@ -207,8 +201,8 @@ sub _check_blueprint
 				$count += 1;
 			}
 
-			return !!0 unless $op_data->[0]->pushop;
-			return !!0 unless Bitcoin::Crypto::Script::Runner->from_int($count) eq $op_data->[2];
+			return undef unless $op_data->[0]->pushop;
+			return undef unless Bitcoin::Crypto::Script::Runner->from_int($count) eq $op_data->[2];
 
 			# check the same opcode again with next blueprint part
 			next;
@@ -217,28 +211,30 @@ sub _check_blueprint
 		++$pos;
 	}
 
-	return !!0 unless $pos == @{$ops};
+	return undef unless $pos == @{$ops};
 
-	$self->set_address($address);
-	$self->set_segwit_version($segwit_version);
-	$self->set_type($type);
-
-	return !!1;
+	return $class->new(
+		type => $type,
+		address => $address,
+		segwit_version => $segwit_version,
+	);
 }
 
 sub check
 {
-	my ($self) = @_;
+	my ($class, $script) = @_;
 
-	my $compiler = $self->script->_compiler;
+	my $compiler = $script->_compiler;
 	return if $compiler->has_errors;
 	my $operations = $compiler->operations;
 
-	foreach my $variant (@{$self->_blueprints}) {
-		last if $self->_check_blueprint($operations, @{$variant});
+	foreach my $variant (@{$class->_blueprints}) {
+		my $recognized = $class->_check_blueprint($operations, @{$variant});
+		return $recognized if defined $recognized;
 	}
 
-	return;
+	# unknown
+	return $class->new;
 }
 
 1;

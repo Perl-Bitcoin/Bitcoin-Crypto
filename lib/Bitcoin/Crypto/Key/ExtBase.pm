@@ -112,9 +112,8 @@ sub from_serialized
 
 	# expected length is 78
 	if (defined $serialized && length $serialized == 78) {
-		my $format = 'a4aa4a4a32a33';
 		my ($version, $depth, $fingerprint, $number, $chain_code, $data) =
-			unpack($format, $serialized);
+			unpack 'a4aa4a4a32a33', $serialized;
 
 		my $is_private = pack('x') eq substr $data, 0, 1;
 

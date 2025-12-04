@@ -48,9 +48,7 @@ with qw(
 
 sub has_witness
 {
-	my ($self) = @_;
-
-	return @{$self->witness} > 0;
+	return @{shift->witness} > 0;
 }
 
 sub _nested_script
@@ -131,13 +129,10 @@ sub to_serialized
 	# - signature script length, 1-9 bytes
 	# - signature script
 	# - sequence number, 4 bytes
-	my $serialized = '';
-
-	$serialized .= $self->prevout;
+	my $serialized = $self->prevout;
 
 	my $script = $self->signature_script->to_serialized;
-	$serialized .= pack_compactsize(length $script);
-	$serialized .= $script;
+	$serialized .= pack_compactsize(length $script) . $script;
 
 	$serialized .= pack 'V', $self->sequence_no;
 
@@ -160,11 +155,9 @@ sub from_serialized
 	my $partial = !!$args->{pos};
 	my $pos = $partial ? ${$args->{pos}} : 0;
 
-	my $transaction_hash = scalar reverse substr $serialized, $pos, 32;
-	$pos += 32;
-
-	my $transaction_output_index = unpack 'V', substr $serialized, $pos, 4;
-	$pos += 4;
+	my ($transaction_hash, $transaction_output_index) = unpack "\@$pos a32V", $serialized;
+	$transaction_hash = reverse $transaction_hash;
+	$pos += 36;
 
 	my $script_size = unpack_compactsize $serialized, \$pos;
 
@@ -172,11 +165,8 @@ sub from_serialized
 		'serialized input script data is corrupted'
 	) if $pos + $script_size > length $serialized;
 
-	my $script = substr $serialized, $pos, $script_size;
-	$pos += $script_size;
-
-	my $sequence = unpack 'V', substr $serialized, $pos, 4;
-	$pos += 4;
+	my ($script, $sequence) = unpack "\@$pos a${script_size}V", $serialized;
+	$pos += $script_size + 4;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'serialized input data is corrupted'
@@ -223,9 +213,7 @@ signature_for is_taproot => (
 
 sub is_taproot
 {
-	my ($self) = @_;
-
-	return $self->utxo->output->locking_script->is_taproot;
+	return shift->utxo->output->locking_script->is_taproot;
 }
 
 signature_for prevout => (
@@ -249,17 +237,13 @@ signature_for serialized_witness => (
 sub serialized_witness
 {
 	my ($self) = @_;
-	my $serialized = '';
 
-	my @witness = @{$self->witness};
+	my $witness = $self->witness;
 
-	$serialized .= pack_compactsize(scalar @witness);
-	foreach my $witness_item (@witness) {
-		$serialized .= pack_compactsize(length $witness_item);
-		$serialized .= $witness_item;
-	}
-
-	return $serialized;
+	return join '',
+		pack_compactsize(scalar @{$witness}),
+		(map { pack_compactsize(length $_) . $_ } @{$witness}),
+		;
 }
 
 sub script_base

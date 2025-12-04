@@ -66,7 +66,7 @@ has option 'sigop_budget' => (
 
 sub _clear
 {
-	my ($self) = @_;
+	my $self = shift;
 
 	# IMPORTANT: all data but input_index MUST be cleared here (clear or set
 	# default)
@@ -94,14 +94,12 @@ sub get_digest_object
 
 sub get_digest
 {
-	my $self = shift;
-
-	return $self->get_digest_object(@_)->get_digest;
+	return shift->get_digest_object(@_)->get_digest;
 }
 
 sub this_input
 {
-	my ($self) = @_;
+	my $self = shift;
 
 	return $self->inputs->[$self->input_index];
 }
@@ -115,12 +113,12 @@ sub set_sigop_budget
 
 sub reduce_sigop_budget
 {
-	my ($self) = @_;
-
-	die_no_trace 'no sigop budget defined for the transaction object'
-		unless $self->has_sigop_budget;
+	my $self = shift;
 
 	my $budget = $self->sigop_budget;
+	die_no_trace 'no sigop budget defined for the transaction object'
+		unless defined $budget;
+
 	$budget -= 50;
 	$self->_set_sigop_budget($budget);
 	return $budget >= 0;
@@ -128,7 +126,7 @@ sub reduce_sigop_budget
 
 sub is_segwit
 {
-	my ($self) = @_;
+	my $self = shift;
 
 	return
 		$self->flags->segwit
@@ -137,7 +135,7 @@ sub is_segwit
 
 sub is_native_segwit
 {
-	my ($self) = @_;
+	my $self = shift;
 
 	return
 		$self->flags->segwit
@@ -146,11 +144,11 @@ sub is_native_segwit
 
 sub is_taproot
 {
-	my ($self) = @_;
+	my $self = shift;
 
 	return
 		$self->flags->taproot
-		&& $self->this_input->utxo->output->locking_script->is_taproot;
+		&& $self->this_input->is_taproot;
 }
 
 1;

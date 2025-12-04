@@ -28,7 +28,7 @@ has option 'redeem_script' => (
 );
 
 has option 'multisig' => (
-	coerce => Tuple [PositiveInt, PositiveInt],
+	isa => Tuple [PositiveInt, PositiveInt],
 );
 
 has option 'sighash' => (

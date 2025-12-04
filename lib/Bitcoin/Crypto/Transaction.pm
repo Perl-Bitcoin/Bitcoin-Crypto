@@ -7,7 +7,8 @@ use Mooish::Base -standard;
 use Types::Common -sigs;
 use Scalar::Util qw(blessed);
 use Carp qw(carp);
-use List::Util qw(sum any uniqstr);
+use List::Util qw(any uniqstr);
+use Feature::Compat::Try;
 
 use Bitcoin::Crypto qw(btc_pub btc_script btc_tapscript btc_script_tree btc_utxo);
 use Bitcoin::Crypto::Constants qw(:script :transaction :coin);
@@ -138,6 +139,12 @@ sub to_serialized
 {
 	my ($self, $args) = @_;
 
+	my $inputs = $self->inputs;
+	my $outputs = $self->outputs;
+
+	my $with_witness = $args->{witness}
+		&& ($self->had_witness_flag || any { $_->has_witness } @{$inputs});
+
 	# transaction should be serialized as follows:
 	# - version, 4 bytes
 	# - number of inputs, 1-9 bytes
@@ -156,34 +163,19 @@ sub to_serialized
 	# - witness data
 	# - lock time, 4 bytes
 
-	my $serialized = '';
-
-	$serialized .= pack 'V', $self->version;
+	my $serialized = pack 'V', $self->version;
+	$serialized .= pack 'n', 0x0001 if $with_witness;
 
 	# Process inputs
-	my @inputs = @{$self->inputs};
-
-	my $with_witness = $args->{witness}
-		&& ($self->had_witness_flag || any { $_->has_witness } @inputs);
-
-	$serialized .= "\x00\x01"
-		if $with_witness;
-
-	$serialized .= pack_compactsize(scalar @inputs);
-	foreach my $input (@inputs) {
-		$serialized .= $input->to_serialized;
-	}
+	$serialized .= pack_compactsize(scalar @{$inputs});
+	$serialized .= join '', map { $_->to_serialized } @{$inputs};
 
 	# Process outputs
-	my @outputs = @{$self->outputs};
-	$serialized .= pack_compactsize(scalar @outputs);
-	foreach my $item (@outputs) {
-		$serialized .= $item->to_serialized;
-	}
+	$serialized .= pack_compactsize(scalar @{$outputs});
+	$serialized .= join '', map { $_->to_serialized } @{$outputs};
 
-	if ($with_witness) {
-		$serialized .= join '', map { $_->serialized_witness } @inputs;
-	}
+	$serialized .= join '', map { $_->serialized_witness } @{$inputs}
+		if $with_witness;
 
 	$serialized .= pack 'V', $self->locktime;
 
@@ -210,11 +202,14 @@ sub from_serialized
 	# has already been checked.
 	local $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS = !!0;
 
-	my $version = unpack 'V', substr $serialized, $pos, 4;
-	$pos += 4;
+	my ($version, $witness_flag) = unpack "\@$pos Vn", $serialized;
+	$pos += 6;
 
-	my $witness_flag = (substr $serialized, $pos, 2) eq "\x00\x01";
-	$pos += 2 if $witness_flag;
+	# back off if no witness equal to 0x0001
+	if ($witness_flag != 0x0001) {
+		$pos -= 2;
+		$witness_flag = 0;
+	}
 
 	my $input_count = unpack_compactsize $serialized, \$pos;
 	my @inputs;
@@ -247,7 +242,7 @@ sub from_serialized
 		}
 	}
 
-	my $locktime = unpack 'V', substr $serialized, $pos, 4;
+	my $locktime = unpack "\@$pos V", $serialized;
 	$pos += 4;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
@@ -337,25 +332,32 @@ sub get_digest_object
 
 signature_for fee => (
 	method => Object,
-	positional => [],
+	positional => [Maybe [Bool], {default => undef}],
 );
 
 sub fee
 {
-	my ($self) = @_;
+	my ($self, $require_value) = @_;
 
-	my $input_value = 0;
-	foreach my $input (@{$self->inputs}) {
-		return undef unless $input->utxo_registered;
-		$input_value += $input->utxo->output->value;
+	my $value = 0;
+
+	try {
+		foreach my $input (@{$self->inputs}) {
+			$value += $input->utxo->output->value;
+		}
+	}
+	catch ($e) {
+
+		# utxos are unregistered - cannot calculate
+		die $e if $require_value;
+		return undef;
 	}
 
-	my $output_value = 0;
 	foreach my $output (@{$self->outputs}) {
-		$output_value += $output->value;
+		$value -= $output->value;
 	}
 
-	return $input_value - $output_value;
+	return $value;
 }
 
 signature_for fee_rate => (
@@ -608,24 +610,20 @@ sub _verify_script_taproot
 	die_no_trace 'signature script is not empty in taproot input'
 		unless $input->signature_script->is_empty;
 
-	my $locking_script = $input->utxo->output->locking_script;
-	my $pubkey = substr $locking_script->to_serialized, 2;
+	die_no_trace 'witness stack has 0 elements'
+		unless $input->has_witness;
 
 	# shallow copy of the witness - avoid modifying the transaction
-	my @witness_stack = @{$input->witness // []};
+	my @witness_stack = @{$input->witness};
+	my $pubkey = $input->utxo->output->locking_script->_recognition->address;
 
 	# consensus rules from https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#script-validation-rules
 
-	die_no_trace 'witness stack has 0 elements'
-		unless @witness_stack;
-
 	# remove the annex from the witness stack - annex first byte is 0x50
 	$script_runner->transaction->set_taproot_annex(pop @witness_stack)
-		if @witness_stack >= 2 && substr($witness_stack[-1], 0, 1) eq "\x50";
+		if @witness_stack >= 2 && (unpack('C', $witness_stack[-1]) // 0) == 0x50;
 
 	my $script;
-	$script_runner->transaction->set_sigop_budget(length $input->serialized_witness);
-
 	if (@witness_stack == 1) {
 		$script = Bitcoin::Crypto::Script::Common->new(TR => $pubkey);
 	}
@@ -674,6 +672,7 @@ sub _verify_script_taproot
 	# use remaining witness elements as initial stack
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
+			$script_runner->transaction->set_sigop_budget(length $input->serialized_witness);
 			$script_runner->execute($script, \@witness_stack);
 			die_no_trace 'execution yielded failure'
 				unless $script_runner->success;
@@ -693,10 +692,12 @@ sub verify_script
 
 	# run bitcoin script
 	my $procedure = '_verify_script_default';
-	$procedure = '_verify_script_segwit'
-		if $script_runner->flags->segwit && $utxo->output->locking_script->is_native_segwit;
-	$procedure = '_verify_script_taproot'
-		if $script_runner->flags->taproot && $utxo->output->locking_script->is_taproot;
+	if ($script_runner->flags->taproot && $utxo->output->locking_script->is_taproot) {
+		$procedure = '_verify_script_taproot';
+	}
+	elsif ($script_runner->flags->segwit && $utxo->output->locking_script->is_native_segwit) {
+		$procedure = '_verify_script_segwit';
+	}
 
 	Bitcoin::Crypto::Exception::TransactionScript->trap_into(
 		sub {
@@ -785,17 +786,13 @@ sub verify
 	return $self->_verify_coinbase($script_runner)
 		if $self->is_coinbase;
 
-	# duplicate inputs
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'transaction has duplicate inputs'
-	) if @$inputs != uniqstr map { $_->utxo->txid . $_->utxo->output_index } @$inputs;
+	) if @$inputs != uniqstr map { $_->prevout } @$inputs;
 
-	# amount checking
-	my $total_in = sum map { $_->utxo->output->value } @$inputs;
-	my $total_out = sum map { $_->value } @$outputs;
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		'output value exceeds input'
-	) if $total_in < $total_out;
+	) if $self->fee(!!1) < 0;
 
 	# locktime checking
 	if (
@@ -817,7 +814,7 @@ sub verify
 	}
 
 	# per-input verification
-	foreach my $input_index (0 .. $#$inputs) {
+	foreach my $input_index (keys @{$inputs}) {
 		$self->verify_script($input_index, $script_runner);
 
 		# check sequence (BIP 68)

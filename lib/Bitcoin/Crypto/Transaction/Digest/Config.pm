@@ -41,9 +41,8 @@ sub _default_sighash
 {
 	my ($self, $value) = @_;
 
-	if (!defined $self->sighash) {
-		$self->_set_sighash($value);
-	}
+	$self->_set_sighash($value)
+		unless defined $self->sighash;
 }
 
 1;

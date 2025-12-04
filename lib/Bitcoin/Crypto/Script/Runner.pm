@@ -366,32 +366,35 @@ signature_for subscript => (
 sub subscript
 {
 	my ($self, $sigs) = @_;
-	$sigs = [grep { length($_ // '') } @{$sigs // []}];
 
 	my $start = ($self->codeseparator // -1) + 1;
-	my @operations = @{$self->operations};
+	my $operations = $self->operations;
 
-	my $witness = $self->transaction->this_input->is_segwit;
+	if ($self->transaction->this_input->is_segwit) {
+		return join '', map { $_->[1] } @{$operations}[$start .. $#$operations];
+	}
+	else {
+		my %sigs_lookup = map { $_ => 1 } grep { length $_ // '' } @{$sigs // []};
 
-	my $result = '';
-	foreach my $operation (@operations[$start .. $#operations]) {
-		my ($op, $raw_op, $pushop_data) = @$operation;
+		my $result = '';
+		foreach my $operation (@{$operations}[$start .. $#$operations]) {
+			my ($op, $raw_op, $pushop_data) = @$operation;
 
-		if (!$witness) {
-			next if $op->name eq 'OP_CODESEPARATOR';
-			next if $op->pushop && (any { $pushop_data eq $_ } @{$sigs}) && standard_push($op->name, $pushop_data);
+			my $name = $op->name;
+			next if $name eq 'OP_CODESEPARATOR';
+			next if $op->pushop && $sigs_lookup{$pushop_data} && standard_push($name, $pushop_data);
+
+			$result .= $raw_op;
 		}
 
-		$result .= $raw_op;
-	}
+		if ($self->flags->const_script) {
+			my $orig = $self->script->to_serialized;
+			$self->_invalid_script('script is not constant')
+				if $result ne $orig;
+		}
 
-	if (!$witness && $self->flags->const_script) {
-		my $orig = $self->script->to_serialized;
-		$self->_invalid_script('script is not constant')
-			if $result ne $orig;
+		return $result;
 	}
-
-	return $result;
 }
 
 signature_for success => (
@@ -411,7 +414,9 @@ sub success
 	return !!0 if !$stack->[-1];
 	return !!0 if !$self->to_bool($stack->[-1]);
 
-	# TODO: check altstack?
+	# NOTE: cleanstack rule does not check altstack, because altstack can only
+	# be manipulated by the script itself, so there is no chance for witness
+	# malleability
 	if (@$stack > 1) {
 		my $segwit = $self->has_transaction && $self->transaction->is_native_segwit;
 		return !!0 if $segwit || $self->is_tapscript || $self->flags->cleanstack;
@@ -427,9 +432,7 @@ signature_for is_tapscript => (
 
 sub is_tapscript
 {
-	my ($self) = @_;
-
-	my $script = $self->script;
+	my $script = shift->script;
 	return $script && $script->isa('Bitcoin::Crypto::Tapscript');
 }
 

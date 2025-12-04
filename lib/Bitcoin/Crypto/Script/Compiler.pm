@@ -7,20 +7,13 @@ use Mooish::Base -standard;
 
 use Feature::Compat::Try;
 use Scalar::Util qw(blessed);
-use List::Util qw(sum0);
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(die_no_trace);
 
-has param 'script' => (
-	coerce => BitcoinScript,
-	weak_ref => 1,
-);
-
-has field 'operations' => (
+has param 'operations' => (
 	isa => ArrayRef [ArrayRef],
-	writer => -hidden,
 );
 
 has field 'unconditionally_valid' => (
@@ -39,14 +32,14 @@ has field 'opcode_count' => (
 
 sub has_errors
 {
-	my ($self) = @_;
+	my $self = shift;
 
 	return @{$self->errors} > 0;
 }
 
 sub assert_correct
 {
-	my ($self) = @_;
+	my $self = shift;
 
 	return if $self->unconditionally_valid;
 	return unless $self->has_errors;
@@ -57,11 +50,15 @@ sub assert_correct
 
 sub compile
 {
-	my ($self) = @_;
-	my $script = $self->script;
+	my ($class, $script) = @_;
 	my $opcode_class = $script->opcode_class;
 	my @ops;
+	my $non_push_opcodes = 0;
 	my @debug_ops;
+
+	my $self = $class->new(
+		operations => \@ops
+	);
 
 	my $raw_script = $script->to_serialized;
 	my %context = (
@@ -74,19 +71,16 @@ sub compile
 	while ($context{offset} < $context{size}) {
 		try {
 			my $this_byte = substr $context{serialized}, $context{offset}++, 1;
-			my $opcode;
-			my @to_push;
 
-			$opcode = $opcode_class->get_opcode_by_code(ord $this_byte);
-			push @to_push, $this_byte;
-
+			my $opcode = $opcode_class->get_opcode_by_code(ord $this_byte);
 			push @debug_ops, $opcode->name;
-			unshift @to_push, $opcode;
+			my @compiled_op = ($opcode, $this_byte);
 
-			push @ops, \@to_push;
+			push @ops, \@compiled_op;
+			$non_push_opcodes++ if $opcode->non_push_opcode;
 
 			if ($opcode->has_on_compilation) {
-				$opcode->on_compilation->($self, \@to_push, \%context);
+				$opcode->on_compilation->($self, \@compiled_op, \%context);
 			}
 
 			$context{position}++;
@@ -108,11 +102,11 @@ sub compile
 		Bitcoin::Crypto::Exception::ScriptCompilation->new(message => 'not enough bytes of data in the script')
 		unless $context{offset} == $context{size};
 
-	push @{$self->errors}, Bitcoin::Crypto::Exception::ScriptCompilation->new(message => 'some OP_IFs were not closed')
+	push @{$self->errors},
+		Bitcoin::Crypto::Exception::ScriptCompilation->new(message => 'some OP_IFs were not closed')
 		if $context{branch};
 
-	$self->_set_opcode_count(sum0 map { $_->[0]->non_push_opcode } @ops);
-	$self->_set_operations(\@ops);
+	$self->_set_opcode_count($non_push_opcodes);
 	return $self;
 }
 

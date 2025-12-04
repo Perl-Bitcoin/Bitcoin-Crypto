@@ -33,7 +33,7 @@ sub _OP_CHECKSIG
 	my ($class) = @_;
 
 	return sub {
-		my ($runner) = @_;
+		my $runner = shift;
 
 		my $stack = $runner->stack;
 		$runner->_stack_error unless @$stack >= 2;
@@ -65,47 +65,54 @@ sub _OP_CHECKSIG
 			return;
 		}
 		else {
-			$hashtype = length $sig == 65 ? unpack('C', substr $sig, -1, 1, '') : undef;
-			state $allowed_sighash = [
-				SIGHASH_ALL,
-				SIGHASH_ALL | SIGHASH_ANYONECANPAY,
-				SIGHASH_SINGLE,
-				SIGHASH_SINGLE | SIGHASH_ANYONECANPAY,
-				SIGHASH_NONE,
-				SIGHASH_NONE | SIGHASH_ANYONECANPAY,
-			];
+			($sig, $hashtype) = unpack 'a64C', $sig
+				if length $sig == 65;
+
+			state $allowed_sighash = {
+				map { $_ => !!1 } (
+					SIGHASH_ALL,
+					SIGHASH_ALL | SIGHASH_ANYONECANPAY,
+					SIGHASH_SINGLE,
+					SIGHASH_SINGLE | SIGHASH_ANYONECANPAY,
+					SIGHASH_NONE,
+					SIGHASH_NONE | SIGHASH_ANYONECANPAY,
+				)
+			};
 
 			$runner->_invalid_script('bad sighash')
-				if defined $hashtype && none { $hashtype == $_ } @$allowed_sighash;
+				if defined $hashtype && !$allowed_sighash->{$hashtype};
 		}
 
-		$runner->_invalid_script('sigop budget exceeded')
-			unless $runner->transaction->reduce_sigop_budget;
+		my $tx = $runner->transaction;
 
-		my $ext_flag = $runner->transaction->taproot_ext_flag;
+		$runner->_invalid_script('sigop budget exceeded')
+			unless $tx->reduce_sigop_budget;
+
+		my $ext_flag = $tx->taproot_ext_flag;
 		my $ext;
 
 		if ($ext_flag == 1) {
 
 			die_no_trace 'no script_tree in script transaction object'
-				unless $runner->transaction->has_script_tree;
+				unless $tx->has_script_tree;
 
 			# leaf for this script must be defined with id 0 to get a proper hash
 			$ext = get_taproot_ext(
 				$ext_flag,
-				script_tree => $runner->transaction->script_tree,
+				script_tree => $tx->script_tree,
 				leaf_id => 0,
 				codesep_pos => $runner->codeseparator,
 			);
 		}
 
-		my $preimage = $runner->transaction->get_digest(
+		my $preimage = $tx->get_digest(
 			sighash => $hashtype,
 			taproot_ext => $ext
 		);
 
-		my $result =
-			$known_pubkey_type ? $pubkey->verify_message($preimage, $sig, flags => $runner->flags) : !!1;
+		my $result = $known_pubkey_type
+			? $pubkey->verify_message($preimage, $sig, flags => $runner->flags)
+			: !!1;
 
 		$runner->_invalid_script('signature verification failed') unless $result;
 		push @$stack, $runner->from_bool($result);

@@ -29,17 +29,18 @@ has param 'hash' => (
 
 sub _build_hash
 {
-	my ($self) = @_;
+	my $self = shift;
+	my $preimage = $self->preimage;
 
 	Bitcoin::Crypto::Exception->raise(
 		"can't hash without preimage"
-	) unless $self->has_preimage;
+	) unless defined $preimage;
 
 	if ($self->taproot) {
-		return tagged_hash('TapSighash', $self->preimage);
+		return tagged_hash('TapSighash', $preimage);
 	}
 	else {
-		return hash256($self->preimage);
+		return hash256($preimage);
 	}
 }
 

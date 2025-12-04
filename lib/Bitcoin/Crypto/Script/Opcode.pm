@@ -9,7 +9,7 @@ use Types::Common -sigs;
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
 use Crypt::Digest::SHA1 qw(sha1);
-use List::Util qw(notall none);
+use List::Util qw(notall);
 use Feature::Compat::Try;
 
 use Bitcoin::Crypto qw(btc_pub);
@@ -75,11 +75,12 @@ sub _compile_OP_NUM
 
 	# avoid cyclical uses
 	require Bitcoin::Crypto::Script::Runner;
+	my $to_push = $num == 0 ? '' : Bitcoin::Crypto::Script::Runner->from_int($num);
 
 	return sub {
 		my ($compiler, $op, $context) = @_;
 
-		push @$op, $num == 0 ? '' : Bitcoin::Crypto::Script::Runner->from_int($num);
+		push @$op, $to_push;
 	};
 }
 
@@ -209,19 +210,21 @@ sub __checksig
 {
 	my ($runner, $sig, $hashtype, $raw_pubkey, $preimage) = @_;
 
-	state $allowed_sighash = [
-		SIGHASH_ALL,
-		SIGHASH_ALL | SIGHASH_ANYONECANPAY,
-		SIGHASH_SINGLE,
-		SIGHASH_SINGLE | SIGHASH_ANYONECANPAY,
-		SIGHASH_NONE,
-		SIGHASH_NONE | SIGHASH_ANYONECANPAY,
-	];
+	state $allowed_sighash = {
+		map { $_ => !!1 } (
+			SIGHASH_ALL,
+			SIGHASH_ALL | SIGHASH_ANYONECANPAY,
+			SIGHASH_SINGLE,
+			SIGHASH_SINGLE | SIGHASH_ANYONECANPAY,
+			SIGHASH_NONE,
+			SIGHASH_NONE | SIGHASH_ANYONECANPAY,
+		)
+	};
 
 	if (defined $hashtype) {
 		$runner->_invalid_script('bad sighash')
 			if $runner->flags->strict_encoding
-			&& none { $hashtype == $_ } @$allowed_sighash;
+			&& !$allowed_sighash->{$hashtype};
 
 		$runner->_invalid_script('non-strict DER signature')
 			if $runner->flags->strict_signatures
@@ -1104,6 +1107,8 @@ sub _OP_CHECKMULTISIG
 		$runner->_stack_error unless @$stack >= 1;
 		my $pubkeys_num = $runner->to_int(pop @$stack);
 		$runner->_stack_error unless @$stack >= $pubkeys_num;
+		$runner->_script_error('OP_CHECKMULTISIG negative number of public keys')
+			if $pubkeys_num < 0;
 		$runner->_script_error('OP_CHECKMULTISIG maximum number of public keys exceeded')
 			if $pubkeys_num > SCRIPT_MAX_MULTISIG_PUBKEYS;
 		$runner->_increment_opcode_count($pubkeys_num);
@@ -1112,6 +1117,8 @@ sub _OP_CHECKMULTISIG
 		$runner->_stack_error unless @$stack >= 1;
 		my $signatures_num = $runner->to_int(pop @$stack);
 		$runner->_stack_error unless @$stack >= $signatures_num;
+		$runner->_script_error('OP_CHECKMULTISIG negative number of signatures')
+			if $signatures_num < 0;
 		$runner->_script_error('OP_CHECKMULTISIG number of signatures exceeds the number of public keys')
 			if $signatures_num > $pubkeys_num;
 		my @signatures = $signatures_num ? splice @$stack, -$signatures_num : ();
@@ -1129,7 +1136,7 @@ sub _OP_CHECKMULTISIG
 			my $hashtype = unpack 'C', substr $sig, -1, 1, '';
 
 			my $preimage = $digests{$hashtype // ''} //= $runner->transaction->get_digest(
-				signatures => [@signatures],
+				signatures => \@signatures,
 				sighash => $hashtype,
 			);
 
@@ -1715,9 +1722,9 @@ signature_for get_opcode_by_code => (
 sub get_opcode_by_code
 {
 	my ($self, $code) = @_;
-	my $hash = $self->opcodes_reverse;
 
-	return $hash->{$code} // $self->_make_unknown($code);
+	return $self->opcodes_reverse->{$code}
+		// $self->_make_unknown($code);
 }
 
 signature_for get_opcode_by_name => (

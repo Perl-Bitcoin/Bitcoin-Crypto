@@ -16,10 +16,7 @@ my %utxos;
 my $loader;
 
 has param 'txid' => (
-	coerce => ByteStr->create_child_type(
-		constraint => q{ length $_ == 32 },
-		coercion => 1
-	),
+	coerce => ByteStrLen [32],
 );
 
 # NOTE: ideally, utxo should point to a transaction, and transaction should
