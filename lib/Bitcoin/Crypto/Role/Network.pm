@@ -4,7 +4,6 @@ use v5.14;
 use warnings;
 
 use Mooish::Base -standard, -role;
-use Scalar::Util qw(blessed);
 
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;

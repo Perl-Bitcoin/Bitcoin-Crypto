@@ -146,15 +146,11 @@ sub find
 
 sub get
 {
-	my ($class, $id) = @_;
-	$id //= $default_network;
-
-	my $network = $networks{$id};
-	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"network $id is not registered"
-	) unless defined $network;
-
-	return $network;
+	my $id = $_[1] // $default_network;
+	return $networks{$id}
+		// Bitcoin::Crypto::Exception::NetworkConfig->raise(
+			"network $id is not registered"
+		);
 }
 
 ### PREDEFINED NETWORKS SECTION
