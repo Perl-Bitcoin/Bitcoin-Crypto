@@ -252,7 +252,13 @@ sub execute
 
 	$self->start($script, $initial_stack);
 	if (!$self->success) {
-		1 while $self->step;
+		my $stepper = $self->_step;
+
+		# optimization: a lot of operations may want to check bytestrings here, but
+		# all bytestrings were already checked and accepted
+		local $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS = !!0;
+
+		1 while $stepper->();
 	}
 
 	return $self;
@@ -272,27 +278,25 @@ sub start
 	$self->_set_pos(0);
 	$self->_clear_codeseparator;
 
-	$self->_compiler->assert_correct;
+	my $compiler = $self->_compiler;
+	my $is_tapscript = $self->is_tapscript;
+	$compiler->assert_correct;
+
+	Bitcoin::Crypto::Exception::ScriptRuntime->raise(
+		'cannot run tapscript without taproot flag'
+	) if $is_tapscript && !$self->flags->taproot;
 
 	# set and increment opcode count. Incrementing is checking for too many
 	# opcodes (SCRIPT_MAX_OPCODES)
 	$self->_set_opcode_count(0);
-	$self->_increment_opcode_count($self->_compiler->opcode_count // 0);
-
-	Bitcoin::Crypto::Exception::ScriptRuntime->raise(
-		'cannot run tapscript without taproot flag'
-	) if $self->is_tapscript && !$self->flags->taproot;
-
-	Bitcoin::Crypto::Exception::TransactionScript->raise(
-		'no transaction is set for the script runner'
-	) if !$self->has_transaction && any { $_->[0]->needs_transaction } @{$self->operations};
+	$self->_increment_opcode_count($compiler->opcode_count // 0);
 
 	# run this ONLY if the script was not marked as "unconditionally valid"
-	if (!$self->_compiler->unconditionally_valid) {
+	if (!$compiler->unconditionally_valid) {
 		Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(
 			sub {
 				die_no_trace 'script size exceeded'
-					if !$self->is_tapscript
+					if !$is_tapscript
 					&& length $script->to_serialized > SCRIPT_MAX_SIZE;
 
 				die_no_trace 'maximum stack element size exceeded'
@@ -303,7 +307,7 @@ sub start
 		Bitcoin::Crypto::Exception::ScriptPush->trap_into(
 			sub {
 				die_no_trace 'maximum initial stack element count exceeded'
-					if $self->is_tapscript && @$initial_stack > SCRIPT_MAX_STACK_ELEMENTS;
+					if $is_tapscript && @$initial_stack > SCRIPT_MAX_STACK_ELEMENTS;
 
 				die_no_trace 'maximum initial stack element size exceeded'
 					if any { length $_ > SCRIPT_MAX_ELEMENT_SIZE } @$initial_stack;
@@ -316,36 +320,48 @@ sub start
 	return $self;
 }
 
+sub _step
+{
+	my ($self) = @_;
+
+	# if pos is undefined, execution was not yet started
+	my $pos = $self->pos;
+	return sub { !!0 }
+		unless defined $pos;
+
+	my $operations = $self->operations;
+	my $has_transaction = $self->has_transaction;
+
+	return sub {
+		my $compiled_op = $operations->[$pos];
+
+		# out of operations
+		return !!0 unless defined $compiled_op;
+		my ($op, $raw_op, @args) = @{$compiled_op};
+
+		Bitcoin::Crypto::Exception::TransactionScript->raise(
+			'no transaction is set for the script runner'
+		) if $op->needs_transaction && !$has_transaction;
+
+		Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(
+			sub {
+				$op->execute($self, @args);
+			},
+			"error at pos $pos (" . $op->name . ")"
+		);
+
+		# cannot trust $pos anymore. Jumps in script could've happened
+		$pos = $self->pos + 1;
+		$self->_set_pos($pos);
+		return !!1;
+	};
+}
+
 sub step
 {
 	my ($self) = @_;
 
-	# optimization: a lot of operations may want to check bytestrings here, but
-	# all bytestrings were already checked and accepted
-	local $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS = !!0;
-
-	my $pos = $self->pos;
-
-	# execution not started
-	return !!0
-		unless defined $pos;
-
-	my $compiled_op = $self->operations->[$pos];
-
-	# out of operations
-	return !!0 unless defined $compiled_op;
-	my ($op, $raw_op, @args) = @{$compiled_op};
-
-	Bitcoin::Crypto::Exception::ScriptRuntime->trap_into(
-		sub {
-			$op->execute($self, @args);
-		},
-		"error at pos $pos (" . $op->name . ")"
-	);
-
-	# cannot trust $pos anymore. Jumps in script could've happened
-	$self->_set_pos($self->pos + 1);
-	return !!1;
+	return $self->_step->();
 }
 
 sub subscript
