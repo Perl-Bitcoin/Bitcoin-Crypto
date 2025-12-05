@@ -150,17 +150,15 @@ sub standard_push
 	my ($opcode_name, $bytes) = @_;
 
 	# standard push is not checked for opcodes that push constant data
-	return !!1 if !$opcode_name || $opcode_name =~ /OP_\d/;
+	return !!1 if !$opcode_name || $opcode_name =~ /^OP_\d/;
 
-	my $bytelen = length $bytes;
-
-	if ($bytelen == 0) {
+	if (length $bytes == 0) {
 
 		# empty vectors are only pushed by OP_0
 		return !!0;
 	}
 
-	if ($bytelen == 1) {
+	if (length $bytes == 1) {
 		my $ord = ord $bytes;
 
 		# anything up to 0x10 (excluding 0x00) and 0x81 has a special push
@@ -170,17 +168,17 @@ sub standard_push
 			&& $ord != 0x81;
 	}
 
-	if ($bytelen <= 75) {
+	if (length $bytes <= 75) {
 
 		# byte lengths from 1 to 75 use OP_PUSH
 		return $opcode_name eq 'OP_PUSH';
 	}
-	elsif ($bytelen < (1 << 8)) {
+	elsif (length $bytes < (1 << 8)) {
 
 		# byte lengths fitting on 1 byte use OP_PUSHDATA1
 		return $opcode_name eq 'OP_PUSHDATA1';
 	}
-	elsif ($bytelen < (1 << 16)) {
+	elsif (length $bytes < (1 << 16)) {
 
 		# byte lengths fitting on 2 bytes use OP_PUSHDATA2
 		return $opcode_name eq 'OP_PUSHDATA2';
@@ -196,11 +194,10 @@ sub check_strict_public_key
 {
 	my ($pubkey) = @_;
 
-	my $len = length($pubkey);
 	my $byte = unpack('C', $pubkey);
 
-	return !!1 if $len == 65 && $byte == 0x04;
-	return !!1 if $len == 33 && ($byte == 0x03 || $byte == 0x02);
+	return !!1 if length($pubkey) == 65 && $byte == 0x04;
+	return !!1 if length($pubkey) == 33 && ($byte == 0x03 || $byte == 0x02);
 
 	return !!0;
 }
@@ -278,13 +275,16 @@ sub make_strict_der_signature
 	$s = "\x00$s"
 		if unpack('C', $s) & 0x80;
 
-	# adjust lengths
-	$r_len = length $r;
-	$s_len = length $s;
-	$total_len = 4 + $r_len + $s_len;
-
 	# return extracted strict signature
-	return pack "aCaCa*aCa*", $compound, $total_len, $int1, $r_len, $r, $int2, $s_len, $s;
+	return pack "aCaCa*aCa*",
+		$compound,
+		4 + length($r) + length($s),
+		$int1,
+		length($r),
+		$r,
+		$int2,
+		length($s),
+		$s;
 }
 
 sub die_no_trace

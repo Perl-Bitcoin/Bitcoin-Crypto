@@ -170,10 +170,9 @@ sub _check_blueprint
 		}
 		elsif ($kind == KIND_ADDRESS || $kind == KIND_DATA) {
 			return undef unless $op_data->[0]->pushop;
-			my $len = length $op_data->[2];
-
-			return undef unless $lookup->{$len};
+			return undef unless $lookup->{length $op_data->[2]};
 			return undef unless standard_push($op_data->[0]->name, $op_data->[2]);
+
 			$address = $op_data->[2]
 				if $kind == KIND_ADDRESS;
 		}
@@ -182,19 +181,16 @@ sub _check_blueprint
 			return undef unless $lookup->{$op_data->[2]};
 			return undef unless standard_push($op_data->[0]->name, $op_data->[2]);
 
-			if ($kind == KIND_SEGWIT_VERSION) {
-
-				# numify bigint on 32 bit arch
-				$segwit_version = '' . Bitcoin::Crypto::Script::Runner->to_int($op_data->[2]);
-			}
+			# numify bigint on 32 bit arch
+			$segwit_version = '' . Bitcoin::Crypto::Script::Runner->to_int($op_data->[2])
+				if $kind == KIND_SEGWIT_VERSION;
 		}
 		elsif ($kind == KIND_DATA_REPEATED) {
 			my $count = 0;
 			while (1) {
 				return undef unless $op_data && $op_data->[0]->pushop;
 				return undef unless standard_push($op_data->[0]->name, $op_data->[2]);
-				my $len = length $op_data->[2];
-				last unless $lookup->{$len};
+				last unless $lookup->{length $op_data->[2]};
 
 				$pos += 1;
 				$op_data = $ops->[$pos];
