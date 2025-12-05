@@ -65,10 +65,10 @@ sub _get_digest_default
 {
 	my ($self) = @_;
 
-	$self->_default_sighash(SIGHASH_ALL);
+	my $sighash = $self->_default_sighash(SIGHASH_ALL);
 
-	my $sighash_type = $self->sighash & 31;
-	my $anyonecanpay = $self->sighash & SIGHASH_ANYONECANPAY;
+	my $sighash_type = $sighash & 31;
+	my $anyonecanpay = $sighash & SIGHASH_ANYONECANPAY;
 
 	my $transaction = $self->transaction;
 	my $tx_copy = $transaction->clone;
@@ -135,7 +135,7 @@ sub _get_digest_default
 	}
 
 	my $serialized = $tx_copy->to_serialized(witness => 0);
-	$serialized .= pack 'V', $self->sighash;
+	$serialized .= pack 'V', $sighash;
 
 	return Bitcoin::Crypto::Transaction::Digest::Result->new(preimage => $serialized);
 }
@@ -144,10 +144,10 @@ sub _get_digest_segwit
 {
 	my ($self) = @_;
 
-	$self->_default_sighash(SIGHASH_ALL);
+	my $sighash = $self->_default_sighash(SIGHASH_ALL);
 
-	my $sighash_type = $self->sighash & 31;
-	my $anyonecanpay = $self->sighash & SIGHASH_ANYONECANPAY;
+	my $sighash_type = $sighash & 31;
+	my $anyonecanpay = $sighash & SIGHASH_ANYONECANPAY;
 
 	my $signing_index = $self->signing_index;
 	my $transaction = $self->transaction;
@@ -212,7 +212,7 @@ sub _get_digest_segwit
 		$serialized .= $empty_hash;
 	}
 
-	$serialized .= pack 'VV', $transaction->locktime, $self->sighash;
+	$serialized .= pack 'VV', $transaction->locktime, $sighash;
 
 	return Bitcoin::Crypto::Transaction::Digest::Result->new(preimage => $serialized);
 }
@@ -221,10 +221,10 @@ sub _get_digest_taproot
 {
 	my ($self) = @_;
 
-	$self->_default_sighash(SIGHASH_DEFAULT);
+	my $sighash = $self->_default_sighash(SIGHASH_DEFAULT);
 
-	my $sighash_type = $self->sighash & 3;
-	my $anyonecanpay = $self->sighash & SIGHASH_ANYONECANPAY;
+	my $sighash_type = $sighash & 3;
+	my $anyonecanpay = $sighash & SIGHASH_ANYONECANPAY;
 
 	my $signing_index = $self->signing_index;
 	my $transaction = $self->transaction;
@@ -232,14 +232,18 @@ sub _get_digest_taproot
 	my $annex = $self->taproot_annex;
 	my $ext_flag = $self->taproot_ext_flag;
 
-	my $all = $sighash_type == SIGHASH_ALL
-		|| $sighash_type == SIGHASH_DEFAULT;
-	my $single = $sighash_type == SIGHASH_SINGLE;
-	my $none = $sighash_type == SIGHASH_NONE;
+	state $allowed_sighash = {
+		map { $_ => !!1 } (
+			SIGHASH_DEFAULT,
+			SIGHASH_ALL,
+			SIGHASH_SINGLE,
+			SIGHASH_NONE,
+		)
+	};
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
 		"can't digest taproot transaction with unknown SIGHASH"
-	) unless $all || $single || $none;
+	) unless $allowed_sighash->{$sighash_type};
 
 	# According to https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
 	# SHA256 of the serialization of:
@@ -267,7 +271,7 @@ sub _get_digest_taproot
 	# - sha_single_output (32): the SHA256 of the corresponding output in CTxOut format.
 
 	# zero is sighash epoch
-	my $serialized = pack 'CCVV', 0, $self->sighash, $transaction->version, $transaction->locktime;
+	my $serialized = pack 'CCVV', 0, $sighash, $transaction->version, $transaction->locktime;
 
 	if (!$anyonecanpay) {
 		$serialized .= $self->_cache->{taproot_common_tx_data} //= do {
@@ -296,7 +300,7 @@ sub _get_digest_taproot
 		map { $_->to_serialized } @{$transaction->outputs}
 	];
 
-	if (!$none && !$single) {
+	if ($sighash_type != SIGHASH_NONE && $sighash_type != SIGHASH_SINGLE) {
 		$serialized .= sha256(join '', @$outputs);
 	}
 
@@ -321,13 +325,12 @@ sub _get_digest_taproot
 		$serialized .= sha256(pack_compactsize(length $annex) . $annex);
 	}
 
-	if ($single && $signing_index < @$outputs) {
-		$serialized .= sha256($outputs->[$self->signing_index]);
-	}
-	elsif ($single) {
+	if ($sighash_type == SIGHASH_SINGLE) {
 		Bitcoin::Crypto::Exception::Transaction->raise(
 			"can't digest taproot transaction with SIGHASH_SINGLE without corresponding output"
-		);
+		) unless $signing_index < @$outputs;
+
+		$serialized .= sha256($outputs->[$self->signing_index]);
 	}
 
 	# BIP342 extension
