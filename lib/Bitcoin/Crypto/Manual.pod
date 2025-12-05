@@ -319,6 +319,28 @@ will disallow creation of objects with other network than the default. It can
 come handy if you are de-serializing keys from non-constant strings, for
 example fetched from the Internet or entered by the user.
 
+=head2 Performance
+
+A lot of work has been done to ensure Bitcoin::Crypto transaction decoding and
+verification performance is somewhat acceptable. Benchmarks on author's (not
+very powerful) machine has shown that up to 500 transactions (each having 2
+P2MS inputs) can be decoded and verified per second, per process.
+
+For best performance, extra modules from CPAN should be installed, listed
+below. Module will use them if they can be loaded.
+
+=over
+
+=item * L<MooX::TypeTiny>
+
+=item * L<Type::Tiny::XS>
+
+=item * L<Class::XSAccessor>
+
+=item * L<MooX::XSConstructor>
+
+=back
+
 =head1 DISCLAIMER
 
 Although the module was written with an extra care and appropriate tests are in
