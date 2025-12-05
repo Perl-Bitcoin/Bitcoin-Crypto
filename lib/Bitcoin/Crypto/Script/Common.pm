@@ -3,7 +3,6 @@ package Bitcoin::Crypto::Script::Common;
 use v5.14;
 use warnings;
 
-use Types::Common -sigs, -types;
 use namespace::autoclean;
 
 use Bitcoin::Crypto qw(btc_script btc_tapscript);
@@ -55,22 +54,12 @@ sub _make_TR
 		->add('OP_CHECKSIG');
 }
 
-signature_for new => (
-	method => !!1,
-	positional => [Str, ByteStr],
-);
-
 sub new
 {
 	my ($class, $type, $data) = @_;
 
 	return $class->fill($type, undef, $data);
 }
-
-signature_for fill => (
-	method => !!1,
-	positional => [Str, Maybe [BitcoinScript], ByteStr],
-);
 
 sub fill
 {
