@@ -70,6 +70,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fixed a cyclical references memory leak in scripts
 	- P2MS scripts with zero or more than 15 keys or signatures are now recognized
 	- script type and address is now cleared if more data is added to a script
+	- fixed an issue where cloning a transaction did not clear its internal digest object
 
 	[Breaking changes]
 	- module now requires perl version 5.14.0 (was 5.10.1)

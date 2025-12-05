@@ -70,7 +70,7 @@ with qw(
 	Bitcoin::Crypto::Role::ShallowClone
 );
 
-after clone => sub {
+before clone => sub {
 	my ($self) = @_;
 
 	$self->clear_digest_object;
