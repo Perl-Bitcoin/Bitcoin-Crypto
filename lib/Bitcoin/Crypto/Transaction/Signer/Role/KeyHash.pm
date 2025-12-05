@@ -14,7 +14,7 @@ requires qw(
 );
 
 signature_for _add_pkh => (
-	method => Object,
+	method => !!1,
 	head => [InstanceOf ['Bitcoin::Crypto::Key::Private']],
 	named => [
 		sighash => Maybe [PositiveOrZeroInt],

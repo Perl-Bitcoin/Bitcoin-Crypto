@@ -9,7 +9,7 @@ use Types::Common -sigs;
 use Bitcoin::Crypto::Transaction;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Util::Internal qw(to_format);
 use Bitcoin::Crypto::Exception;
 
 my %utxos;
@@ -34,11 +34,6 @@ has param 'output' => (
 		->plus_coercions(HashRef q{ Bitcoin::Crypto::Transaction::Output->new($_) }),
 );
 
-signature_for register => (
-	method => Object,
-	positional => [],
-);
-
 sub register
 {
 	my ($self) = @_;
@@ -51,11 +46,6 @@ sub register
 	return $self;
 }
 
-signature_for unregister => (
-	method => Object,
-	positional => [],
-);
-
 sub unregister
 {
 	my ($self) = @_;
@@ -65,7 +55,7 @@ sub unregister
 }
 
 signature_for get => (
-	method => Str,
+	method => !!1,
 	positional => [ByteStr, PositiveOrZeroInt],
 );
 
@@ -89,7 +79,7 @@ sub get
 }
 
 signature_for set_loader => (
-	method => Str,
+	method => !!1,
 	positional => [Maybe [CodeRef]],
 );
 
@@ -102,7 +92,7 @@ sub set_loader
 }
 
 signature_for extract => (
-	method => Str,
+	method => !!1,
 	positional => [ByteStr],
 );
 

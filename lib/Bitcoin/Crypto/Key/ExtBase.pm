@@ -13,7 +13,7 @@ use Bitcoin::Crypto::Key::Private;
 use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Constants qw(:bip44 :key);
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Util qw(hash160 to_format);
+use Bitcoin::Crypto::Util::Internal qw(hash160 to_format);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Exception;
@@ -64,11 +64,6 @@ sub _get_network_extkey_version
 	return $network->$name;
 }
 
-signature_for to_serialized => (
-	method => Object,
-	positional => [],
-);
-
 sub to_serialized
 {
 	my ($self) = @_;
@@ -102,7 +97,7 @@ sub to_serialized
 }
 
 signature_for from_serialized => (
-	method => Str,
+	method => !!1,
 	positional => [ByteStr, Maybe [Str], {default => undef}],
 );
 
@@ -189,11 +184,6 @@ sub from_serialized
 	}
 }
 
-signature_for get_basic_key => (
-	method => Object,
-	positional => [],
-);
-
 sub get_basic_key
 {
 	my ($self) = @_;
@@ -208,7 +198,7 @@ sub get_basic_key
 }
 
 signature_for get_fingerprint => (
-	method => Object,
+	method => !!1,
 	positional => [PositiveInt, {default => 4}],
 );
 
@@ -241,7 +231,7 @@ sub _get_purpose_from_BIP44
 }
 
 signature_for derive_key => (
-	method => Object,
+	method => !!1,
 	positional => [Defined],
 );
 

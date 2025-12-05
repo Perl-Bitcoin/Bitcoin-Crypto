@@ -4,7 +4,6 @@ use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
-use Types::Common -sigs;
 
 use Scalar::Util qw(blessed);
 
@@ -89,11 +88,6 @@ use overload
 	q{""} => sub { shift->as_string },
 	fallback => 1;
 
-signature_for as_string => (
-	method => Object,
-	positional => [],
-);
-
 sub as_string
 {
 	my ($self) = @_;
@@ -113,11 +107,6 @@ sub as_string
 	return sprintf "%s/%u/%u",
 		$path, $self->change, $self->index;
 }
-
-signature_for get_derivation_path => (
-	method => Object,
-	positional => [],
-);
 
 sub get_derivation_path
 {

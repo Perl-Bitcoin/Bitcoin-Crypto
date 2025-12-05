@@ -7,7 +7,7 @@ use Exporter qw(import);
 use Types::Common -sigs, -types;
 
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Util qw(validate_segwit);
+use Bitcoin::Crypto::Util::Internal qw(validate_segwit);
 use Bitcoin::Crypto::Types -types;
 
 our @EXPORT_OK = qw(

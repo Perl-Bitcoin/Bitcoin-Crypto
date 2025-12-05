@@ -4,11 +4,10 @@ use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
-use Types::Common -sigs;
 
 use List::Util qw(none);
 use Bitcoin::Crypto qw(btc_pub);
-use Bitcoin::Crypto::Util qw(lift_x get_taproot_ext);
+use Bitcoin::Crypto::Util::Internal qw(lift_x get_taproot_ext);
 use Bitcoin::Crypto::Helpers qw(die_no_trace);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Exception;

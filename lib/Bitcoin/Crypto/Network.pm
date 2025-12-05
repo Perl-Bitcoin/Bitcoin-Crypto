@@ -4,7 +4,6 @@ use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
-use Types::Common -sigs;
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
@@ -74,11 +73,6 @@ has param 'bip44_coin' => (
 	required => 0,
 );
 
-signature_for single_network => (
-	method => Str,
-	positional => [],
-);
-
 sub single_network
 {
 	my ($class) = @_;
@@ -86,27 +80,17 @@ sub single_network
 	return $single_network;
 }
 
-signature_for register => (
-	method => !!1,
-	positional => [HashRef, {slurpy => !!1}],
-);
-
 sub register
 {
-	my ($self, $config) = @_;
+	my ($self, %config) = @_;
 
 	if (!ref $self) {
-		$self = $self->new($config);
+		$self = $self->new(%config);
 	}
 
 	$networks{$self->id} = $self;
 	return $self;
 }
-
-signature_for unregister => (
-	method => Object,
-	positional => [],
-);
 
 sub unregister
 {
@@ -119,11 +103,6 @@ sub unregister
 	delete $networks{$self->id};
 	return $self;
 }
-
-signature_for set_default => (
-	method => Object,
-	positional => [],
-);
 
 sub set_default
 {
@@ -138,11 +117,6 @@ sub set_default
 	return $self;
 }
 
-signature_for set_single => (
-	method => Object,
-	positional => [],
-);
-
 sub set_single
 {
 	my ($self) = @_;
@@ -153,22 +127,12 @@ sub set_single
 	return $self;
 }
 
-signature_for supports_segwit => (
-	method => Object,
-	positional => [],
-);
-
 sub supports_segwit
 {
 	my ($self) = @_;
 
 	return defined $self->segwit_hrp;
 }
-
-signature_for find => (
-	method => Str,
-	positional => [Maybe [CodeRef], {default => undef}],
-);
 
 sub find
 {
@@ -180,14 +144,10 @@ sub find
 	return grep { $sub->($networks{$_}) } keys %networks;
 }
 
-signature_for get => (
-	method => Str,
-	positional => [Str, {default => sub { $default_network }}],
-);
-
 sub get
 {
 	my ($class, $id) = @_;
+	$id //= $default_network;
 
 	my $network = $networks{$id};
 	Bitcoin::Crypto::Exception::NetworkConfig->raise(

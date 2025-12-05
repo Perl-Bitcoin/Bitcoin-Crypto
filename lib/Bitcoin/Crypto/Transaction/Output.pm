@@ -8,7 +8,7 @@ use Types::Common -sigs;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Helpers qw(encode_64bit decode_64bit);
-use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
+use Bitcoin::Crypto::Util::Internal qw(to_format pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Exception;
 
 has param 'value' => (
@@ -25,22 +25,12 @@ with qw(
 	Bitcoin::Crypto::Role::ShallowClone
 );
 
-signature_for is_standard => (
-	method => Object,
-	positional => [],
-);
-
 sub is_standard
 {
 	my ($self) = @_;
 
 	return $self->locking_script->has_type;
 }
-
-signature_for set_max_value => (
-	method => Object,
-	positional => [],
-);
 
 sub set_max_value
 {
@@ -51,22 +41,12 @@ sub set_max_value
 	return $self;
 }
 
-signature_for value_serialized => (
-	method => Object,
-	positional => [],
-);
-
 sub value_serialized
 {
 	my ($self) = @_;
 
 	return encode_64bit($self->value);
 }
-
-signature_for to_serialized => (
-	method => Object,
-	positional => [],
-);
 
 sub to_serialized
 {
@@ -85,7 +65,7 @@ sub to_serialized
 }
 
 signature_for from_serialized => (
-	method => Str,
+	method => !!1,
 	head => [ByteStr],
 	named => [
 		pos => Maybe [ScalarRef [PositiveOrZeroInt]],
@@ -126,11 +106,6 @@ sub from_serialized
 		locking_script => $script,
 	);
 }
-
-signature_for dump => (
-	method => Object,
-	positional => [],
-);
 
 sub dump
 {

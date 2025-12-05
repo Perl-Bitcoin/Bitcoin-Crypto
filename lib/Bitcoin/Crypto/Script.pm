@@ -13,7 +13,7 @@ use Carp qw(carp);
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit get_hrp);
 use Bitcoin::Crypto::Constants qw(:witness);
-use Bitcoin::Crypto::Util qw(hash160 hash256 get_address_type to_format);
+use Bitcoin::Crypto::Util::Internal qw(hash160 hash256 get_address_type to_format);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Opcode;
@@ -191,20 +191,10 @@ sub BUILD
 	}
 }
 
-signature_for type => (
-	method => Object,
-	positional => [],
-);
-
 sub type
 {
 	return shift->_recognition->type;
 }
-
-signature_for is_pushes_only => (
-	method => Object,
-	positional => [],
-);
 
 sub is_pushes_only
 {
@@ -227,7 +217,7 @@ sub _add_raw
 }
 
 signature_for add_raw => (
-	method => Object,
+	method => !!1,
 	positional => [ByteStr],
 );
 
@@ -242,7 +232,7 @@ sub add_raw
 }
 
 signature_for add_operation => (
-	method => Object,
+	method => !!1,
 	positional => [Str],
 );
 
@@ -262,7 +252,7 @@ sub add
 }
 
 signature_for push_bytes => (
-	method => Object,
+	method => !!1,
 	positional => [ByteStr],
 );
 
@@ -315,7 +305,7 @@ sub push_bytes
 }
 
 signature_for push_number => (
-	method => Object,
+	method => !!1,
 	positional => [Int | Str | InstanceOf ['Math::BigInt']],
 );
 
@@ -331,11 +321,6 @@ sub push
 	goto \&push_bytes;
 }
 
-signature_for segwit_version => (
-	method => Object,
-	positional => [],
-);
-
 sub segwit_version
 {
 	return shift->_recognition->segwit_version;
@@ -343,40 +328,20 @@ sub segwit_version
 
 # this can only detect native segwit in this context, as P2SH outputs are
 # indistinguishable from any other P2SH
-signature_for is_native_segwit => (
-	method => Object,
-	positional => [],
-);
-
 sub is_native_segwit
 {
 	return defined shift->segwit_version;
 }
-
-signature_for is_taproot => (
-	method => Object,
-	positional => [],
-);
 
 sub is_taproot
 {
 	return (shift->type // '') eq 'P2TR';
 }
 
-signature_for get_hash => (
-	method => Object,
-	positional => [],
-);
-
 sub get_hash
 {
 	return hash160(shift->_serialized);
 }
-
-signature_for to_serialized => (
-	method => Object,
-	positional => [],
-);
 
 sub to_serialized
 {
@@ -384,7 +349,7 @@ sub to_serialized
 }
 
 signature_for from_serialized => (
-	method => Str,
+	method => !!1,
 	positional => [ByteStr],
 );
 
@@ -398,7 +363,7 @@ sub from_serialized
 }
 
 signature_for from_standard => (
-	method => Str,
+	method => !!1,
 	positional => [ScriptDesc, {slurpy => !!1}],
 );
 
@@ -416,18 +381,13 @@ sub from_standard
 	);
 }
 
-signature_for operations => (
-	method => Object,
-	positional => [],
-);
-
 sub operations
 {
 	return shift->_compiler->operations;
 }
 
 signature_for run => (
-	method => Object,
+	method => !!1,
 	positional => [ArrayRef [ByteStr], {default => []}],
 );
 
@@ -438,11 +398,6 @@ sub run
 	my $runner = Bitcoin::Crypto::Script::Runner->new();
 	return $runner->execute($self, $initial_stack);
 }
-
-signature_for witness_program => (
-	method => Object,
-	positional => [],
-);
 
 sub witness_program
 {
@@ -456,21 +411,11 @@ sub witness_program
 	return $program;
 }
 
-signature_for get_legacy_address => (
-	method => Object,
-	positional => [],
-);
-
 sub get_legacy_address
 {
 	my ($self) = @_;
 	return encode_base58check($self->network->p2sh_byte . $self->get_hash);
 }
-
-signature_for get_compat_address => (
-	method => Object,
-	positional => [],
-);
 
 sub get_compat_address
 {
@@ -484,11 +429,6 @@ sub get_compat_address
 	return $self->witness_program->get_legacy_address;
 }
 
-signature_for get_segwit_address => (
-	method => Object,
-	positional => [],
-);
-
 sub get_segwit_address
 {
 	my ($self) = @_;
@@ -500,11 +440,6 @@ sub get_segwit_address
 
 	return encode_segwit($self->network->segwit_hrp, $self->witness_program->run->stack_serialized);
 }
-
-signature_for get_address => (
-	method => Object,
-	positional => [],
-);
 
 sub get_address
 {
@@ -539,11 +474,6 @@ sub get_address
 	}
 }
 
-signature_for has_type => (
-	method => Object,
-	positional => [],
-);
-
 sub has_type
 {
 	my ($self) = @_;
@@ -551,22 +481,12 @@ sub has_type
 	return defined $self->type;
 }
 
-signature_for is_empty => (
-	method => Object,
-	positional => [],
-);
-
 sub is_empty
 {
 	my ($self) = @_;
 
 	return length $self->_serialized == 0;
 }
-
-signature_for dump => (
-	method => Object,
-	positional => [],
-);
 
 sub dump
 {

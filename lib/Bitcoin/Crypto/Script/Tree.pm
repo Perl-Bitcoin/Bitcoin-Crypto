@@ -9,7 +9,7 @@ use List::Util qw(first);
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Util qw(tagged_hash pack_compactsize has_even_y);
+use Bitcoin::Crypto::Util::Internal qw(tagged_hash pack_compactsize has_even_y);
 use Bitcoin::Crypto::Transaction::ControlBlock;
 
 # recursive structure - a binary tree
@@ -146,11 +146,6 @@ sub _build_tree_cache
 	};
 }
 
-signature_for get_merkle_root => (
-	method => Object,
-	positional => [],
-);
-
 sub get_merkle_root
 {
 	my ($self) = @_;
@@ -170,22 +165,12 @@ sub _get_tapleaf
 	return $leaf;
 }
 
-signature_for get_tapleaf_script => (
-	method => Object,
-	positional => [Int],
-);
-
 sub get_tapleaf_script
 {
 	my ($self, $leaf_id) = @_;
 
 	return $self->_get_tapleaf($leaf_id)->{script};
 }
-
-signature_for get_tapleaf_hash => (
-	method => Object,
-	positional => [Int],
-);
 
 sub get_tapleaf_hash
 {
@@ -194,22 +179,12 @@ sub get_tapleaf_hash
 	return $self->_get_tapleaf($leaf_id)->{hash};
 }
 
-signature_for get_tapleaf_version => (
-	method => Object,
-	positional => [Int],
-);
-
 sub get_tapleaf_version
 {
 	my ($self, $leaf_id) = @_;
 
 	return $self->_get_tapleaf($leaf_id)->{leaf_version};
 }
-
-signature_for get_tree_paths => (
-	method => Object,
-	positional => [],
-);
 
 sub get_tree_paths
 {
@@ -219,7 +194,7 @@ sub get_tree_paths
 }
 
 signature_for from_path => (
-	method => Str,
+	method => !!1,
 	positional => [HashRef, ArrayRef [ByteStr]],
 );
 
@@ -242,7 +217,7 @@ sub from_path
 }
 
 signature_for get_control_block => (
-	method => Object,
+	method => !!1,
 	positional => [Int, InstanceOf ['Bitcoin::Crypto::Key::Public']],
 );
 

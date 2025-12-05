@@ -4,13 +4,6 @@ use v5.14;
 use warnings;
 
 use Mooish::Base -standard, -role;
-use Types::Common -sigs;
-
-signature_for clone => (
-	method => Object,
-	positional => [
-	],
-);
 
 # Clones up to two levels deep - main reference and any plain hash / array
 # references inside it

@@ -11,7 +11,7 @@ use Crypt::Digest::SHAKE;
 
 use Bitcoin::Crypto qw(btc_prv btc_extprv);
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Util qw(mnemonic_from_entropy);
+use Bitcoin::Crypto::Util::Internal qw(mnemonic_from_entropy);
 use Bitcoin::Crypto::Exception;
 
 has param 'key' => (
@@ -33,7 +33,7 @@ sub _adjust_length
 }
 
 signature_for derive_entropy => (
-	method => Object,
+	method => !!1,
 	positional => [DerivationPath, Maybe [PositiveInt], {default => undef}],
 );
 
@@ -55,7 +55,7 @@ sub derive_entropy
 }
 
 signature_for derive_mnemonic => (
-	method => Object,
+	method => !!1,
 	named => [
 		words => Enum [12, 18, 24],
 		{default => 24},
@@ -98,7 +98,7 @@ sub derive_mnemonic
 }
 
 signature_for derive_prv => (
-	method => Object,
+	method => !!1,
 	named => [
 		index => PositiveOrZeroInt,
 		{default => 0},
@@ -117,7 +117,7 @@ sub derive_prv
 }
 
 signature_for derive_extprv => (
-	method => Object,
+	method => !!1,
 	named => [
 		index => PositiveOrZeroInt,
 		{default => 0},
@@ -139,7 +139,7 @@ sub derive_extprv
 }
 
 signature_for derive_bytes => (
-	method => Object,
+	method => !!1,
 	named => [
 		bytes => Int->where(q{$_ >= 16 && $_ <= 64}),
 		{default => 64},

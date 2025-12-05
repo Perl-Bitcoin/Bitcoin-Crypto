@@ -8,7 +8,7 @@ use Types::Common -sigs;
 
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Util qw(to_format tagged_hash lift_x has_even_y);
+use Bitcoin::Crypto::Util::Internal qw(to_format tagged_hash lift_x has_even_y);
 use Bitcoin::Crypto::Helpers qw(ecc);
 
 has param 'taproot_output' => (
@@ -29,7 +29,7 @@ sub _is_private
 }
 
 signature_for from_serialized => (
-	method => Str,
+	method => !!1,
 	positional => [ByteStr],
 );
 
@@ -40,11 +40,6 @@ sub from_serialized
 	return $class->new(key_instance => $bytes);
 }
 
-signature_for to_serialized => (
-	method => Object,
-	positional => [],
-);
-
 sub to_serialized
 {
 	my ($self) = @_;
@@ -53,7 +48,7 @@ sub to_serialized
 }
 
 signature_for get_taproot_output_key => (
-	method => Object,
+	method => !!1,
 	positional => [Maybe [ByteStr], {default => undef}],
 );
 

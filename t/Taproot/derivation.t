@@ -69,9 +69,9 @@ for my $case_num (0 .. $#test_data) {
 		my $test_vector = $tdata->{data};
 		my $master_key = btc_extprv->from_mnemonic($tdata->{mnemonic});
 		for my $tdata (@$test_vector) {
-			my $derived_private = $master_key->derive_key_bip44($tdata->{bip44});
+			my $derived_private = $master_key->derive_key_bip44(%{$tdata->{bip44}});
 			my $account_public = btc_extpub->from_serialized([base58 => $tdata->{account_public}]);
-			my $derived_public = $account_public->derive_key_bip44($tdata->{bip44});
+			my $derived_public = $account_public->derive_key_bip44(%{$tdata->{bip44}});
 
 			my $pubkey = $derived_private->get_public_key();
 			is(to_format [base58 => $pubkey->to_serialized], $tdata->{public}, 'derived from private ok');

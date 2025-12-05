@@ -9,7 +9,7 @@ use Feature::Compat::Try;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants qw(:key);
-use Bitcoin::Crypto::Util qw(get_key_type);
+use Bitcoin::Crypto::Util::Internal qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length ecc);
 use Bitcoin::Crypto::Exception;
 
@@ -72,7 +72,7 @@ sub BUILD
 }
 
 signature_for has_purpose => (
-	method => Object,
+	method => !!1,
 	positional => [BIP44Purpose],
 );
 
@@ -84,7 +84,7 @@ sub has_purpose
 }
 
 signature_for raw_key => (
-	method => Object,
+	method => !!1,
 	positional => [Maybe [Enum [qw(private public public_compressed public_xonly)]], {default => undef}],
 );
 

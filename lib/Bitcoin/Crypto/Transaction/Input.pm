@@ -10,7 +10,7 @@ use Feature::Compat::Try;
 
 use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants qw(:transaction);
-use Bitcoin::Crypto::Util qw(to_format pack_compactsize unpack_compactsize);
+use Bitcoin::Crypto::Util::Internal qw(to_format pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Script::Common;
@@ -96,11 +96,6 @@ around BUILDARGS => sub {
 	return $class->$orig(@params);
 };
 
-signature_for utxo_registered => (
-	method => Object,
-	positional => [],
-);
-
 sub utxo_registered
 {
 	my ($self) = @_;
@@ -113,11 +108,6 @@ sub utxo_registered
 		return !!0;
 	}
 }
-
-signature_for to_serialized => (
-	method => Object,
-	positional => [],
-);
 
 sub to_serialized
 {
@@ -140,7 +130,7 @@ sub to_serialized
 }
 
 signature_for from_serialized => (
-	method => Str,
+	method => !!1,
 	head => [ByteStr],
 	named => [
 		pos => Maybe [ScalarRef [PositiveOrZeroInt]],
@@ -182,11 +172,6 @@ sub from_serialized
 	);
 }
 
-signature_for is_segwit => (
-	method => Object,
-	positional => [],
-);
-
 sub is_segwit
 {
 	my ($self) = @_;
@@ -206,20 +191,10 @@ sub is_segwit
 	return !!0;
 }
 
-signature_for is_taproot => (
-	method => Object,
-	positional => [],
-);
-
 sub is_taproot
 {
 	return shift->utxo->output->locking_script->is_taproot;
 }
-
-signature_for prevout => (
-	method => Object,
-	positional => [],
-);
 
 sub prevout
 {
@@ -228,11 +203,6 @@ sub prevout
 
 	return scalar reverse($txid) . pack 'V', $index;
 }
-
-signature_for serialized_witness => (
-	method => Object,
-	positional => [],
-);
 
 sub serialized_witness
 {
@@ -288,11 +258,6 @@ sub script_base
 		return $self->utxo->output->locking_script;
 	}
 }
-
-signature_for dump => (
-	method => Object,
-	positional => [],
-);
 
 sub dump
 {

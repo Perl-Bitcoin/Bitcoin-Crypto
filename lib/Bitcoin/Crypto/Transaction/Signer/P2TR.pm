@@ -9,7 +9,7 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants qw(:sighash);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Runner;
-use Bitcoin::Crypto::Util qw(get_taproot_ext);
+use Bitcoin::Crypto::Util::Internal qw(get_taproot_ext);
 
 extends 'Bitcoin::Crypto::Transaction::Signer::Taproot';
 

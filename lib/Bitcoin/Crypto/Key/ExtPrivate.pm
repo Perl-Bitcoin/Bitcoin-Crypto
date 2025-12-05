@@ -13,7 +13,7 @@ use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Helpers qw(ensure_length ecc die_no_trace);
-use Bitcoin::Crypto::Util qw(mnemonic_to_seed);
+use Bitcoin::Crypto::Util::Internal qw(mnemonic_to_seed);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 
@@ -22,7 +22,7 @@ extends qw(Bitcoin::Crypto::Key::ExtBase);
 sub _is_private { 1 }
 
 signature_for from_mnemonic => (
-	method => Str,
+	method => !!1,
 	positional => [Str, Maybe [Str], {default => ''}, Maybe [Str], {default => undef}],
 );
 
@@ -52,7 +52,7 @@ sub from_mnemonic
 }
 
 signature_for from_seed => (
-	method => Str,
+	method => !!1,
 	positional => [ByteStr],
 );
 
@@ -69,11 +69,6 @@ sub from_seed
 		chain_code => $cc,
 	);
 }
-
-signature_for get_public_key => (
-	method => Object,
-	positional => [],
-);
 
 sub get_public_key
 {
@@ -92,16 +87,11 @@ sub get_public_key
 	return $public;
 }
 
-signature_for derive_key_bip44 => (
-	method => Object,
-	positional => [HashRef, {slurpy => !!1}],
-);
-
 sub derive_key_bip44
 {
-	my ($self, $data) = @_;
+	my ($self, %data) = @_;
 	my $path = Bitcoin::Crypto::BIP44->new(
-		%{$data},
+		%data,
 		coin_type => $self,
 	);
 

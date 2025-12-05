@@ -11,7 +11,7 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Runner;
-use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Util::Internal qw(to_format);
 use Bitcoin::Crypto::Helpers qw(die_no_trace);
 
 has param 'transaction' => (
@@ -156,7 +156,7 @@ sub new_impl
 }
 
 signature_for add_bytes => (
-	method => Object,
+	method => !!1,
 	positional => [ByteStr],
 );
 
@@ -171,7 +171,7 @@ sub add_bytes
 }
 
 signature_for add_number => (
-	method => Object,
+	method => !!1,
 	positional => [Int | Str | InstanceOf ['Math::BigInt']],
 );
 
@@ -183,7 +183,7 @@ sub add_number
 }
 
 signature_for add_signature => (
-	method => Object,
+	method => !!1,
 	head => [ByteStr | InstanceOf ['Bitcoin::Crypto::Key::Private']],
 	named => [
 		sighash => Maybe [PositiveOrZeroInt],
@@ -212,11 +212,6 @@ sub add_signature
 	return $self;
 }
 
-signature_for finalize_multisignature => (
-	method => Object,
-	positional => [],
-);
-
 sub finalize_multisignature
 {
 	my ($self) = @_;
@@ -232,11 +227,6 @@ sub finalize_multisignature
 	return $self;
 }
 
-signature_for finalize => (
-	method => Object,
-	positional => [],
-);
-
 sub finalize
 {
 	my ($self) = @_;
@@ -248,7 +238,7 @@ sub finalize
 }
 
 signature_for dump => (
-	method => Object,
+	method => !!1,
 	positional => [Bool, {default => !!1}],
 );
 
@@ -286,7 +276,7 @@ sub dump
 }
 
 signature_for dump_abort => (
-	method => Object,
+	method => !!1,
 	positional => [Bool, {default => !!1}],
 );
 

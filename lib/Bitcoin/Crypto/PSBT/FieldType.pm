@@ -11,7 +11,7 @@ use Bitcoin::Crypto qw(btc_extpub btc_pub btc_transaction btc_script btc_tapscri
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Constants qw(:transaction);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize lift_x);
+use Bitcoin::Crypto::Util::Internal qw(pack_compactsize unpack_compactsize lift_x);
 use Bitcoin::Crypto::Helpers qw(encode_64bit decode_64bit die_no_trace);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Transaction::ControlBlock;
@@ -862,7 +862,7 @@ foreach my $type (values %types) {
 }
 
 signature_for get_field_by_code => (
-	method => Str,
+	method => !!1,
 	positional => [PSBTMapType, PositiveOrZeroInt],
 );
 
@@ -887,7 +887,7 @@ sub get_field_by_code
 }
 
 signature_for get_field_by_name => (
-	method => Str,
+	method => !!1,
 	positional => [Str],
 );
 
@@ -903,7 +903,7 @@ sub get_field_by_name
 }
 
 signature_for get_fields_required_in_version => (
-	method => Str,
+	method => !!1,
 	positional => [PositiveOrZeroInt],
 );
 
@@ -922,7 +922,7 @@ sub get_fields_required_in_version
 }
 
 signature_for available_in_version => (
-	method => Object,
+	method => !!1,
 	positional => [PositiveOrZeroInt],
 );
 
@@ -934,7 +934,7 @@ sub available_in_version
 }
 
 signature_for required_in_version => (
-	method => Object,
+	method => !!1,
 	positional => [PositiveOrZeroInt],
 );
 

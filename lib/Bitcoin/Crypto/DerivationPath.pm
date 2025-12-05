@@ -4,7 +4,6 @@ use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
-use Types::Common -sigs;
 
 use Bitcoin::Crypto::Constants qw(:key);
 use Bitcoin::Crypto::Exception;
@@ -23,22 +22,12 @@ use overload
 	q{""} => sub { shift->as_string },
 	fallback => 1;
 
-signature_for get_derivation_path => (
-	method => Object,
-	positional => [],
-);
-
 sub get_derivation_path
 {
 	my ($self) = @_;
 
 	return $self;
 }
-
-signature_for get_path_hardened => (
-	method => Object,
-	positional => [],
-);
 
 sub get_path_hardened
 {
@@ -53,11 +42,6 @@ sub get_path_hardened
 		} @$path
 	];
 }
-
-signature_for from_string => (
-	method => Str,
-	positional => [Str],
-);
 
 sub from_string
 {
@@ -92,11 +76,6 @@ sub from_string
 		path => \@path,
 	);
 }
-
-signature_for as_string => (
-	method => Object,
-	positional => [],
-);
 
 sub as_string
 {

@@ -34,11 +34,6 @@ sub BUILD
 	) if $self->need_index && !defined $self->index;
 }
 
-signature_for name => (
-	method => Object,
-	positional => [],
-);
-
 sub name
 {
 	my ($self) = @_;
@@ -56,11 +51,6 @@ sub name
 	return $name;
 }
 
-signature_for need_index => (
-	method => Object,
-	positional => [],
-);
-
 sub need_index
 {
 	my ($self) = @_;
@@ -73,7 +63,7 @@ sub need_index
 }
 
 signature_for add => (
-	method => Object,
+	method => !!1,
 	positional => [InstanceOf ['Bitcoin::Crypto::PSBT::Field']],
 );
 
@@ -132,7 +122,7 @@ sub _find
 }
 
 signature_for find => (
-	method => Object,
+	method => !!1,
 	positional => [
 		InstanceOf ['Bitcoin::Crypto::PSBT::FieldType'],
 		Maybe [ByteStr], {default => undef}
@@ -147,7 +137,7 @@ sub find
 }
 
 signature_for from_serialized => (
-	method => Str,
+	method => !!1,
 	head => [ByteStr],
 	named => [
 		map_type => PSBTMapType,
@@ -199,11 +189,6 @@ sub from_serialized
 	return $self;
 }
 
-signature_for to_serialized => (
-	method => Object,
-	positional => [],
-);
-
 sub to_serialized
 {
 	my ($self) = @_;
@@ -216,11 +201,6 @@ sub to_serialized
 	my @sorted = map { $encoded{$_} } sort keys %encoded;
 	return join('', @sorted) . PSBT_SEPARATOR;
 }
-
-signature_for dump => (
-	method => Object,
-	positional => [],
-);
 
 sub dump
 {

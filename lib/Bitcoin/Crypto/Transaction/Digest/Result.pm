@@ -7,7 +7,7 @@ use Mooish::Base -standard;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Util qw(hash256 tagged_hash);
+use Bitcoin::Crypto::Util::Internal qw(hash256 tagged_hash);
 
 use overload
 	q{""} => "as_string",

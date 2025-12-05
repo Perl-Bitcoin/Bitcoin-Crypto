@@ -55,7 +55,7 @@ my %algorithms = (
 );
 
 signature_for sign_message => (
-	method => Object,
+	method => !!1,
 	positional => [BitcoinDigest],
 );
 
@@ -75,28 +75,20 @@ sub sign_message
 	);
 }
 
-signature_for sign_transaction => (
-	method => Object,
-	positional => [
-		InstanceOf ['Bitcoin::Crypto::Transaction'],
-		HashRef, {slurpy => !!1}
-	],
-);
-
 sub sign_transaction
 {
-	my ($self, $transaction, $args) = @_;
+	my ($self, $transaction, %args) = @_;
 
-	$args->{transaction} = $transaction;
-	$args->{key} = $self;
-	my $signer = Bitcoin::Crypto::Transaction::AutoSigner->new($args);
+	$args{transaction} = $transaction;
+	$args{key} = $self;
+	my $signer = Bitcoin::Crypto::Transaction::AutoSigner->new(%args);
 	$signer->sign;
 
 	return;
 }
 
 signature_for verify_message => (
-	method => Object,
+	method => !!1,
 	head => [BitcoinDigest, ByteStr],
 	named => [
 		flags => Maybe [InstanceOf ['Bitcoin::Crypto::Transaction::Flags']],

@@ -16,7 +16,7 @@ use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Transaction::Input;
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Transaction::Digest;
-use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format lift_x has_even_y);
+use Bitcoin::Crypto::Util::Internal qw(pack_compactsize unpack_compactsize hash256 to_format lift_x has_even_y);
 use Bitcoin::Crypto::Helpers qw(die_no_trace);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Common;
@@ -76,58 +76,50 @@ before clone => sub {
 	$self->clear_digest_object;
 };
 
-signature_for add_input => (
-	method => Object,
-	positional => [ArrayRef, {slurpy => !!1}],
-);
-
 sub add_input
 {
-	my ($self, $data) = @_;
+	my ($self, @data) = @_;
 
-	if (@$data == 1) {
-		$data = $data->[0];
+	my $input;
+	if (@data == 1) {
+		$input = $data[0];
 
 		Bitcoin::Crypto::Exception::Transaction->raise(
 			'expected an input object'
-		) unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction::Input');
+		) unless blessed $input && $input->isa('Bitcoin::Crypto::Transaction::Input');
 	}
 	else {
-		$data = Bitcoin::Crypto::Transaction::Input->new(@$data);
+		$input = Bitcoin::Crypto::Transaction::Input->new(@data);
 	}
 
-	push @{$self->inputs}, $data;
+	push @{$self->inputs}, $input;
 	$self->clear_digest_object;
 	return $self;
 }
 
-signature_for add_output => (
-	method => Object,
-	positional => [ArrayRef, {slurpy => !!1}],
-);
-
 sub add_output
 {
-	my ($self, $data) = @_;
+	my ($self, @data) = @_;
 
-	if (@$data == 1) {
-		$data = $data->[0];
+	my $output;
+	if (@data == 1) {
+		$output = $data[0];
 
 		Bitcoin::Crypto::Exception::Transaction->raise(
 			'expected an output object'
-		) unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction::Output');
+		) unless blessed $output && $output->isa('Bitcoin::Crypto::Transaction::Output');
 	}
 	else {
-		$data = Bitcoin::Crypto::Transaction::Output->new(@$data);
+		$output = Bitcoin::Crypto::Transaction::Output->new(@data);
 	}
 
-	push @{$self->outputs}, $data;
+	push @{$self->outputs}, $output;
 	$self->clear_digest_object;
 	return $self;
 }
 
 signature_for to_serialized => (
-	method => Object,
+	method => !!1,
 	named => [
 		witness => Bool,
 		{default => 1},
@@ -183,7 +175,7 @@ sub to_serialized
 }
 
 signature_for from_serialized => (
-	method => Str,
+	method => !!1,
 	head => [ByteStr],
 	named => [
 		pos => Maybe [ScalarRef [PositiveOrZeroInt]],
@@ -265,7 +257,7 @@ sub from_serialized
 }
 
 signature_for get_hash => (
-	method => Object,
+	method => !!1,
 	named => [
 		witness => Bool,
 		{default => 0},
@@ -280,22 +272,12 @@ sub get_hash
 	return scalar reverse hash256($self->to_serialized(%$args));
 }
 
-signature_for txid => (
-	method => Object,
-	positional => [],
-);
-
 sub txid
 {
 	my ($self) = @_;
 
 	return $self->get_hash(witness => 0);
 }
-
-signature_for wtxid => (
-	method => Object,
-	positional => [],
-);
 
 sub wtxid
 {
@@ -304,36 +286,21 @@ sub wtxid
 	return $self->get_hash(witness => 1);
 }
 
-signature_for get_digest => (
-	method => Object,
-	positional => [HashRef, {slurpy => !!1}],
-);
-
 sub get_digest
 {
-	my ($self, $params) = @_;
+	my ($self, %params) = @_;
 
-	return $self->get_digest_object($params)->get_digest;
+	return $self->get_digest_object(%params)->get_digest;
 }
-
-signature_for get_digest_object => (
-	method => Object,
-	positional => [HashRef, {slurpy => !!1}],
-);
 
 sub get_digest_object
 {
-	my ($self, $params) = @_;
+	my ($self, %params) = @_;
 
 	my $digest = $self->_digest_object;
-	$digest->set_config($params);
+	$digest->set_config(\%params);
 	return $digest;
 }
-
-signature_for fee => (
-	method => Object,
-	positional => [Maybe [Bool], {default => undef}],
-);
 
 sub fee
 {
@@ -360,11 +327,6 @@ sub fee
 	return $value;
 }
 
-signature_for fee_rate => (
-	method => Object,
-	positional => [],
-);
-
 sub fee_rate
 {
 	my ($self) = @_;
@@ -377,11 +339,6 @@ sub fee_rate
 	my $size = $self->virtual_size;
 	return "$fee" / $size;
 }
-
-signature_for set_rbf => (
-	method => Object,
-	positional => [],
-);
 
 sub set_rbf
 {
@@ -396,11 +353,6 @@ sub set_rbf
 	return $self;
 }
 
-signature_for has_rbf => (
-	method => Object,
-	positional => [],
-);
-
 sub has_rbf
 {
 	my ($self) = @_;
@@ -413,11 +365,6 @@ sub has_rbf
 	return !!0;
 }
 
-signature_for virtual_size => (
-	method => Object,
-	positional => [],
-);
-
 sub virtual_size
 {
 	my ($self) = @_;
@@ -429,11 +376,6 @@ sub virtual_size
 	return $base + $witness / 4;
 }
 
-signature_for weight => (
-	method => Object,
-	positional => [],
-);
-
 sub weight
 {
 	my ($self) = @_;
@@ -444,11 +386,6 @@ sub weight
 
 	return $base * 4 + $witness;
 }
-
-signature_for update_utxos => (
-	method => Object,
-	positional => [],
-);
 
 sub update_utxos
 {
@@ -471,11 +408,6 @@ sub update_utxos
 
 	return $self;
 }
-
-signature_for is_coinbase => (
-	method => Object,
-	positional => [],
-);
 
 sub is_coinbase
 {
@@ -741,7 +673,7 @@ sub _verify_coinbase
 }
 
 signature_for verify => (
-	method => Object,
+	method => !!1,
 	named => [
 		block => Maybe [InstanceOf ['Bitcoin::Crypto::Block']],
 		{default => undef},
@@ -852,22 +784,12 @@ sub verify
 	return;
 }
 
-signature_for sign => (
-	method => Object,
-	positional => [HashRef, {slurpy => !!1}],
-);
-
 sub sign
 {
-	my ($self, $args) = @_;
+	my ($self, %args) = @_;
 
-	return Bitcoin::Crypto::Transaction::Signer->new_impl($self, $args);
+	return Bitcoin::Crypto::Transaction::Signer->new_impl($self, \%args);
 }
-
-signature_for dump => (
-	method => Object,
-	positional => [],
-);
 
 sub dump
 {

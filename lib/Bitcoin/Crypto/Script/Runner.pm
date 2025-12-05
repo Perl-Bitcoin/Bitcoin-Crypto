@@ -232,11 +232,6 @@ sub _increment_opcode_count
 		&& $self->_opcode_count > SCRIPT_MAX_OPCODES;
 }
 
-signature_for stack_serialized => (
-	method => Object,
-	positional => [],
-);
-
 sub stack_serialized
 {
 	my ($self) = @_;
@@ -247,7 +242,7 @@ sub stack_serialized
 }
 
 signature_for execute => (
-	method => Object,
+	method => !!1,
 	positional => [BitcoinScript, ArrayRef [ByteStr], {default => []}],
 );
 
@@ -264,7 +259,7 @@ sub execute
 }
 
 signature_for start => (
-	method => Object,
+	method => !!1,
 	positional => [BitcoinScript, ArrayRef [ByteStr], {default => []}],
 );
 
@@ -321,11 +316,6 @@ sub start
 	return $self;
 }
 
-signature_for step => (
-	method => Object,
-	positional => [],
-);
-
 sub step
 {
 	my ($self) = @_;
@@ -357,11 +347,6 @@ sub step
 	$self->_set_pos($self->pos + 1);
 	return !!1;
 }
-
-signature_for subscript => (
-	method => Object,
-	positional => [Maybe [ArrayRef [ByteStr]], {default => undef}],
-);
 
 sub subscript
 {
@@ -397,11 +382,6 @@ sub subscript
 	}
 }
 
-signature_for success => (
-	method => Object,
-	positional => [],
-);
-
 sub success
 {
 	my ($self) = @_;
@@ -424,11 +404,6 @@ sub success
 
 	return !!1;
 }
-
-signature_for is_tapscript => (
-	method => Object,
-	positional => [],
-);
 
 sub is_tapscript
 {

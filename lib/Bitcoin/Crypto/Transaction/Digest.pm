@@ -7,7 +7,7 @@ use Mooish::Base -standard;
 
 use Crypt::Digest::SHA256 qw(sha256);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
-use Bitcoin::Crypto::Util qw(hash256 pack_compactsize);
+use Bitcoin::Crypto::Util::Internal qw(hash256 pack_compactsize);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Constants qw(:sighash);

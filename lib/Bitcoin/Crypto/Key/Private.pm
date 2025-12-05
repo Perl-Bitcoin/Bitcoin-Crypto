@@ -12,18 +12,13 @@ use Bitcoin::Crypto::Key::Public;
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Constants qw(:key);
 use Bitcoin::Crypto::Network;
-use Bitcoin::Crypto::Util qw(validate_wif);
+use Bitcoin::Crypto::Util::Internal qw(validate_wif);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Exception;
 
 extends qw(Bitcoin::Crypto::Key::Base);
 
 sub _is_private { 1 }
-
-signature_for to_wif => (
-	method => Object,
-	positional => [],
-);
 
 sub to_wif
 {
@@ -43,7 +38,7 @@ sub to_wif
 }
 
 signature_for from_wif => (
-	method => Str,
+	method => !!1,
 	positional => [Str, Maybe [Str], {default => undef}],
 );
 
@@ -94,11 +89,6 @@ sub from_wif
 	return $instance;
 }
 
-signature_for get_public_key => (
-	method => Object,
-	positional => [],
-);
-
 sub get_public_key
 {
 	my ($self) = @_;
@@ -140,7 +130,7 @@ Bitcoin::Crypto::Key::Private - Bitcoin private keys
 	# signature is returned as byte string
 	# use to_format to get the representation you need
 
-	use Bitcoin::Crypto::Util qw(to_format);
+	use Bitcoin::Crypto::Util::Internal qw(to_format);
 	my $sig_hex = to_format [hex => $sig];
 
 	# signature verification

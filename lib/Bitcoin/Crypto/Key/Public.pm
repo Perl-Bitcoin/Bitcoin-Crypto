@@ -12,17 +12,12 @@ use Bitcoin::Crypto::Base58 qw(encode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants qw(:bip44 :witness);
-use Bitcoin::Crypto::Util qw(hash160 get_public_key_compressed);
+use Bitcoin::Crypto::Util::Internal qw(hash160 get_public_key_compressed);
 use Bitcoin::Crypto::Helpers qw(ecc);
 
 extends qw(Bitcoin::Crypto::Key::Base);
 
 sub _is_private { 0 }
-
-signature_for get_hash => (
-	method => Object,
-	positional => [],
-);
 
 sub get_hash
 {
@@ -30,11 +25,6 @@ sub get_hash
 
 	return hash160($self->to_serialized);
 }
-
-signature_for get_xonly_key => (
-	method => Object,
-	positional => [],
-);
 
 sub get_xonly_key
 {
@@ -44,7 +34,7 @@ sub get_xonly_key
 }
 
 signature_for from_serialized => (
-	method => Str,
+	method => !!1,
 	positional => [ByteStr],
 );
 
@@ -59,7 +49,7 @@ sub from_serialized
 }
 
 signature_for witness_program => (
-	method => Object,
+	method => !!1,
 	positional => [PositiveOrZeroInt, {default => 0}, HashRef, {default => sub { {} }}],
 );
 
@@ -91,11 +81,6 @@ sub witness_program
 	return $program;
 }
 
-signature_for get_legacy_address => (
-	method => Object,
-	positional => [],
-);
-
 sub get_legacy_address
 {
 	my ($self) = @_;
@@ -107,11 +92,6 @@ sub get_legacy_address
 	my $pkh = $self->network->p2pkh_byte . $self->get_hash;
 	return encode_base58check($pkh);
 }
-
-signature_for get_compat_address => (
-	method => Object,
-	positional => [],
-);
 
 sub get_compat_address
 {
@@ -128,11 +108,6 @@ sub get_compat_address
 
 	return $self->witness_program->get_legacy_address;
 }
-
-signature_for get_segwit_address => (
-	method => Object,
-	positional => [],
-);
 
 sub get_segwit_address
 {
@@ -155,7 +130,7 @@ sub get_segwit_address
 }
 
 signature_for get_taproot_address => (
-	method => Object,
+	method => !!1,
 	positional => [Maybe [BitcoinScriptTree], {default => undef}],
 );
 
@@ -179,11 +154,6 @@ sub get_taproot_address
 
 	return encode_segwit($self->network->segwit_hrp, $taproot_program->run->stack_serialized);
 }
-
-signature_for get_address => (
-	method => Object,
-	positional => [],
-);
 
 sub get_address
 {

@@ -56,7 +56,7 @@ sub _make_TR
 }
 
 signature_for new => (
-	method => Str,
+	method => !!1,
 	positional => [Str, ByteStr],
 );
 
@@ -68,7 +68,7 @@ sub new
 }
 
 signature_for fill => (
-	method => Str,
+	method => !!1,
 	positional => [Str, Maybe [BitcoinScript], ByteStr],
 );
 

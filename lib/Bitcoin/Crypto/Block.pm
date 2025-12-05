@@ -9,7 +9,7 @@ use Scalar::Util qw(blessed);
 use Feature::Compat::Try;
 
 use Bitcoin::Crypto qw(btc_transaction);
-use Bitcoin::Crypto::Util qw(pack_compactsize unpack_compactsize hash256 to_format);
+use Bitcoin::Crypto::Util::Internal qw(pack_compactsize unpack_compactsize hash256 to_format);
 use Bitcoin::Crypto::Script::Runner;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
@@ -114,28 +114,24 @@ sub _build_height
 	}
 }
 
-signature_for add_transaction => (
-	method => Object,
-	positional => [ArrayRef, {slurpy => !!1}],
-);
-
 sub add_transaction
 {
-	my ($self, $data) = @_;
+	my ($self, @data) = @_;
 
-	if (@$data == 1) {
-		$data = $data->[0];
+	my $tx;
+	if (@data == 1) {
+		$tx = $data[0];
 
 		Bitcoin::Crypto::Exception::Block->raise(
 			'expected a transaction object'
-		) unless blessed $data && $data->isa('Bitcoin::Crypto::Transaction');
+		) unless blessed $tx && $tx->isa('Bitcoin::Crypto::Transaction');
 	}
 	else {
-		$data = btc_transaction->new(@$data);
+		$tx = btc_transaction->new(@data);
 	}
 
-	$data->set_block($self);
-	push @{$self->transactions}, $data;
+	$tx->set_block($self);
+	push @{$self->transactions}, $tx;
 
 	# Clear cached merkle root if set
 	$self->clear_merkle_root;
@@ -144,7 +140,7 @@ sub add_transaction
 }
 
 signature_for to_serialized => (
-	method => Object,
+	method => !!1,
 	named => [
 		witness => Bool,
 		{default => 1},
@@ -181,7 +177,7 @@ sub to_serialized
 }
 
 signature_for from_serialized => (
-	method => Str,
+	method => !!1,
 	positional => [ByteStr],
 );
 
@@ -247,21 +243,11 @@ sub from_serialized
 	return $block;
 }
 
-signature_for get_hash => (
-	method => Object,
-	positional => [],
-);
-
 sub get_hash
 {
 	my ($self) = @_;
 	return scalar reverse hash256($self->get_header);
 }
-
-signature_for get_header => (
-	method => Object,
-	positional => [],
-);
 
 sub get_header
 {
@@ -303,11 +289,6 @@ sub _build_merkle_root
 	return scalar reverse Bitcoin::Crypto::Util::merkle_root(\@txs);
 }
 
-signature_for median_time_past => (
-	method => Object,
-	positional => [],
-);
-
 sub median_time_past
 {
 	my ($self) = @_;
@@ -330,21 +311,11 @@ sub median_time_past
 	return $stamps[int(@stamps / 2)];
 }
 
-signature_for size => (
-	method => Object,
-	positional => [],
-);
-
 sub size
 {
 	my ($self) = @_;
 	return length $self->to_serialized;
 }
-
-signature_for weight => (
-	method => Object,
-	positional => [],
-);
 
 sub weight
 {
@@ -358,7 +329,7 @@ sub weight
 }
 
 signature_for verify => (
-	method => Object,
+	method => !!1,
 	named => [
 	],
 	bless => !!0,
@@ -389,11 +360,6 @@ sub verify
 	#
 	# these verifications only make sense in full chain context though
 }
-
-signature_for dump => (
-	method => Object,
-	positional => [],
-);
 
 sub dump
 {

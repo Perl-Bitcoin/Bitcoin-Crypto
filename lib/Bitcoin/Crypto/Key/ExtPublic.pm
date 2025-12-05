@@ -16,16 +16,11 @@ extends qw(Bitcoin::Crypto::Key::ExtBase);
 
 sub _is_private { 0 }
 
-signature_for derive_key_bip44 => (
-	method => Object,
-	positional => [HashRef, {slurpy => !!1}],
-);
-
 sub derive_key_bip44
 {
-	my ($self, $data) = @_;
+	my ($self, %data) = @_;
 	my $path = Bitcoin::Crypto::BIP44->new(
-		%{$data},
+		%data,
 		coin_type => $self,
 		public => 1,
 	);

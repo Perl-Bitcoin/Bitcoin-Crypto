@@ -10,7 +10,7 @@ use Crypt::Digest::SHA256 qw(sha256);
 
 use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Util qw(lift_x);
+use Bitcoin::Crypto::Util::Internal qw(lift_x);
 use Bitcoin::Crypto::Helpers qw(ecc);
 use Bitcoin::Crypto::Constants qw(:curve);
 
@@ -18,11 +18,6 @@ use Bitcoin::Crypto::Constants qw(:curve);
 has param 'tweak' => (
 	coerce => ByteStrLen [32],
 	lazy => sub { random_bytes(32) },
-);
-
-signature_for get_public_key => (
-	method => Object,
-	positional => [],
 );
 
 sub get_public_key

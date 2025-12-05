@@ -4,7 +4,6 @@ use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
-use Types::Common -sigs;
 
 use Crypt::Digest::RIPEMD160 qw(ripemd160);
 use Crypt::Digest::SHA256 qw(sha256);
@@ -16,7 +15,7 @@ use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Constants qw(:script :sighash :transaction);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Util qw(hash160 hash256);
+use Bitcoin::Crypto::Util::Internal qw(hash160 hash256);
 use Bitcoin::Crypto::Helpers qw(standard_push check_strict_public_key check_strict_der_signature die_no_trace);
 use Bitcoin::Crypto::Transaction::Input;
 
@@ -1714,11 +1713,6 @@ sub _make_unknown
 	);
 }
 
-signature_for get_opcode_by_code => (
-	method => Str,
-	positional => [IntMaxBits [8]],
-);
-
 sub get_opcode_by_code
 {
 	my ($self, $code) = @_;
@@ -1726,11 +1720,6 @@ sub get_opcode_by_code
 	return $self->opcodes_reverse->{$code}
 		// $self->_make_unknown($code);
 }
-
-signature_for get_opcode_by_name => (
-	method => Str,
-	positional => [Str],
-);
 
 sub get_opcode_by_name
 {

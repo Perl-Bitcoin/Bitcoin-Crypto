@@ -45,11 +45,6 @@ sub _get_map
 	return $found_map;
 }
 
-signature_for input_count => (
-	method => Object,
-	positional => []
-);
-
 sub input_count
 {
 	my ($self) = @_;
@@ -63,11 +58,6 @@ sub input_count
 		return $self->get_field('PSBT_GLOBAL_INPUT_COUNT')->value;
 	}
 }
-
-signature_for output_count => (
-	method => Object,
-	positional => []
-);
 
 sub output_count
 {
@@ -84,7 +74,7 @@ sub output_count
 }
 
 signature_for get_field => (
-	method => Object,
+	method => !!1,
 	positional => [
 		PSBTFieldType,
 		Maybe [PositiveOrZeroInt], {default => undef},
@@ -105,7 +95,7 @@ sub get_field
 }
 
 signature_for get_all_fields => (
-	method => Object,
+	method => !!1,
 	positional => [
 		PSBTFieldType,
 		Maybe [PositiveOrZeroInt], {default => undef},
@@ -122,22 +112,17 @@ sub get_all_fields
 	return $map->find($type, $key);
 }
 
-signature_for add_field => (
-	method => Object,
-	positional => [ArrayRef, {slurpy => !!1}],
-);
-
 sub add_field
 {
-	my ($self, $data) = @_;
+	my ($self, @data) = @_;
 	my $field;
 	my $index;
 
-	if ((@$data == 1 || @$data == 2) && blessed $data->[0] && $data->[0]->isa('Bitcoin::Crypto::PSBT::Field')) {
-		($field, $index) = @$data;
+	if ((@data == 1 || @data == 2) && blessed $data[0] && $data[0]->isa('Bitcoin::Crypto::PSBT::Field')) {
+		($field, $index) = @data;
 	}
 	else {
-		my %data = @$data;
+		my %data = @data;
 		$index = delete $data{index};
 		$field = Bitcoin::Crypto::PSBT::Field->new(%data);
 	}
@@ -147,11 +132,6 @@ sub add_field
 
 	return $self;
 }
-
-signature_for list_fields => (
-	method => Object,
-	positional => [],
-);
 
 sub list_fields
 {
@@ -173,11 +153,6 @@ sub list_fields
 	return @results[0 .. $#results];
 }
 
-signature_for version => (
-	method => Object,
-	positional => [],
-);
-
 sub version
 {
 	my ($self) = @_;
@@ -193,7 +168,7 @@ sub version
 }
 
 signature_for from_serialized => (
-	method => Str,
+	method => !!1,
 	positional => [ByteStr],
 );
 
@@ -242,11 +217,6 @@ sub from_serialized
 	return $self;
 }
 
-signature_for to_serialized => (
-	method => Object,
-	positional => [],
-);
-
 sub to_serialized
 {
 	my ($self) = @_;
@@ -268,11 +238,6 @@ sub to_serialized
 
 	return $serialized;
 }
-
-signature_for check => (
-	method => Object,
-	positional => [],
-);
 
 sub check
 {
@@ -325,11 +290,6 @@ sub check
 
 	return $self;
 }
-
-signature_for dump => (
-	method => Object,
-	positional => [],
-);
 
 sub dump
 {

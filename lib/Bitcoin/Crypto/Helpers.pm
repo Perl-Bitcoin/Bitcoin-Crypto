@@ -3,7 +3,7 @@ package Bitcoin::Crypto::Helpers;
 use v5.14;
 use warnings;
 use Exporter qw(import);
-use Carp qw(carp);
+use Carp qw(croak carp);
 use MIME::Base64;
 use Bitcoin::Secp256k1;
 
@@ -119,6 +119,9 @@ sub parse_formatdesc
 			? encode_base64($data, '')
 			: decode_base64($data)
 			;
+	}
+	elsif ($type ne 'bytes') {
+		croak "bad format type: $type";
 	}
 
 	return $data;
