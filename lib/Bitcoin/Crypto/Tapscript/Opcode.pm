@@ -6,9 +6,8 @@ use warnings;
 use Mooish::Base -standard;
 
 use List::Util qw(none);
-use Bitcoin::Crypto qw(btc_pub);
 use Bitcoin::Crypto::Util::Internal qw(lift_x get_taproot_ext);
-use Bitcoin::Crypto::Helpers qw(die_no_trace);
+use Bitcoin::Crypto::Helpers qw(ecc die_no_trace);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
@@ -40,15 +39,16 @@ sub _OP_CHECKSIG
 		my $raw_pubkey = pop @$stack;
 		my $sig = pop @$stack;
 
-		my $pubkey;
 		my $known_pubkey_type;
 		my $hashtype;
 
 		# rules according to https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#rules-for-signature-opcodes
 		if (length $raw_pubkey == 32) {
-			$pubkey = btc_pub->from_serialized(lift_x $raw_pubkey);
+
+			# TODO: this uses ecc directly and skips creating a new public key
+			# with lift_x - this saves time, but maybe an abstraction for that
+			# should be made as Key::Schnorr (which would use SignVerify)?
 			$known_pubkey_type = !!1;
-			$pubkey->set_taproot_output(!!1);
 		}
 		elsif (length $raw_pubkey == 0) {
 			$runner->_invalid_script('bad pubkey');
@@ -104,14 +104,17 @@ sub _OP_CHECKSIG
 			);
 		}
 
+		if (!$known_pubkey_type) {
+			push @$stack, $runner->from_bool(!!1);
+			return;
+		}
+
 		my $preimage = $tx->get_digest(
 			sighash => $hashtype,
 			taproot_ext => $ext
 		);
 
-		my $result = $known_pubkey_type
-			? $pubkey->verify_message($preimage, $sig, flags => $runner->flags)
-			: !!1;
+		my $result = ecc->verify_digest_schnorr($raw_pubkey, $sig, $preimage->hash);
 
 		$runner->_invalid_script('signature verification failed') unless $result;
 		push @$stack, $runner->from_bool($result);
