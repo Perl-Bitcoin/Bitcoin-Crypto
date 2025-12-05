@@ -226,8 +226,9 @@ sub _get_digest_taproot
 	my $sighash_type = $self->sighash & 3;
 	my $anyonecanpay = $self->sighash & SIGHASH_ANYONECANPAY;
 
+	my $signing_index = $self->signing_index;
 	my $transaction = $self->transaction;
-	my $this_input = $transaction->inputs->[$self->signing_index];
+	my $this_input = $transaction->inputs->[$signing_index];
 	my $annex = $self->taproot_annex;
 	my $ext_flag = $self->taproot_ext_flag;
 
@@ -275,12 +276,13 @@ sub _get_digest_taproot
 			my @pubkeys;
 			my @sequences;
 			foreach my $input (@{$transaction->inputs}) {
-				push @prevouts, $input->prevout;
-				push @amounts, $input->utxo->output->value_serialized;
-				push @sequences, pack 'V', $input->sequence_no;
+				my $utxo_output = $input->utxo->output;
+				my $pubkey = $utxo_output->locking_script->to_serialized;
 
-				my $pubkey = $input->utxo->output->locking_script->to_serialized;
+				push @prevouts, $input->prevout;
+				push @amounts, $utxo_output->value_serialized;
 				push @pubkeys, pack_compactsize(length $pubkey) . $pubkey;
+				push @sequences, pack 'V', $input->sequence_no;
 			}
 
 			sha256(join '', @prevouts)
@@ -301,23 +303,25 @@ sub _get_digest_taproot
 	$serialized .= pack 'C', $ext_flag * 2 + defined $annex;
 
 	if ($anyonecanpay) {
-		$serialized .= $this_input->prevout;
-		$serialized .= $this_input->utxo->output->value_serialized;
+		my $utxo_output = $this_input->utxo->output;
+		my $pubkey = $utxo_output->locking_script->to_serialized;
 
-		my $pubkey = $this_input->utxo->output->locking_script->to_serialized;
-		$serialized .= pack_compactsize(length $pubkey) . $pubkey;
-
-		$serialized .= pack 'V', $this_input->sequence_no;
+		$serialized .= join '',
+			$this_input->prevout,
+			$utxo_output->value_serialized,
+			pack_compactsize(length $pubkey),
+			$pubkey,
+			pack 'V', $this_input->sequence_no;
 	}
 	else {
-		$serialized .= pack 'V', $self->signing_index;
+		$serialized .= pack 'V', $signing_index;
 	}
 
 	if (defined $annex) {
 		$serialized .= sha256(pack_compactsize(length $annex) . $annex);
 	}
 
-	if ($single && $self->signing_index < @$outputs) {
+	if ($single && $signing_index < @$outputs) {
 		$serialized .= sha256($outputs->[$self->signing_index]);
 	}
 	elsif ($single) {
