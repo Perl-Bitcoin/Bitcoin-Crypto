@@ -365,9 +365,10 @@ sub merkle_root
 sub tagged_hash
 {
 	my ($tag, $message) = @_;
+	state $tags = {};
 
-	my $partial = sha256(encode 'UTF-8', $tag);
-	return sha256($partial . $partial . $message);
+	$tags->{$tag} //= sha256(encode 'UTF-8', $tag) x 2;
+	return sha256($tags->{$tag} . $message);
 }
 
 sub lift_x
