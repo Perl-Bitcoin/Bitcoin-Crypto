@@ -218,36 +218,30 @@ sub check_strict_der_signature
 	return !!0
 		if $len < 9 || $len > 73;
 
+	my ($t1, $t2, $t3, $r_len, $s_len);
+	($t1, $t2, $r_len) = unpack 'CC @3C', $signature;
+
+	# check start and r length
 	return !!0
-		if unpack('@0C', $signature) != 0x30;
+		if $t1 != 0x30
+		|| $t2 != $len - 3
+		|| $r_len + 5 >= $len;
 
-	return !!0
-		if unpack('@1C', $signature) != $len - 3;
+	$s_len = unpack '@' . (5 + $r_len) . 'C', $signature;
 
-	my $r_len = unpack '@3C', $signature;
-
-	return !!0
-		if $r_len + 5 >= $len;
-
-	my $s_len = unpack '@' . (5 + $r_len) . 'C', $signature;
-
+	# check s length
 	return !!0
 		if $r_len + $s_len + 7 != $len;
 
 	for my $item ([$r_len, 2], [$s_len, $r_len + 4]) {
-		my ($o0, $o2, $o3) = unpack '@0C @2C @3C', substr $signature, $item->[1];
+		($t1, $t2, $t3) = unpack '@0C @2C @3C', substr $signature, $item->[1];
 
+		# check parts of r or s
 		return !!0
-			if $o0 != 0x02;
-
-		return !!0
-			if $item->[0] == 0;
-
-		return !!0
-			if $o2 & 0x80;
-
-		return !!0
-			if $item->[0] > 1 && $o2 == 0 && !($o3 & 0x80);
+			if $t1 != 0x02
+			|| $item->[0] == 0
+			|| $t2 & 0x80
+			|| ($item->[0] > 1 && $t2 == 0 && !($t3 & 0x80));
 	}
 
 	return !!1;
