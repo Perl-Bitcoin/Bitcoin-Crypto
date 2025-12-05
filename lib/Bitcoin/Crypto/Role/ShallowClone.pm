@@ -29,8 +29,13 @@ sub clone
 
 	# Don't use the constructor because not all state may be assignable this
 	# way
-	return bless \%new_self, ref $self;
+	my $clone = bless \%new_self, ref $self;
+	$clone->_cloned;
+	return $clone;
 }
+
+# overridable to modify after cloning
+sub _cloned { }
 
 1;
 
