@@ -29,6 +29,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added pos parameter to from_serialized method
 	- Bitcoin::Crypto::Types:
 		- added TransactionFlags type
+	- added Bitcoin::Crypto::Secret class
 	- removed ScriptSuccess exception class
 	- removed ScriptSyntax exception class
 
@@ -42,6 +43,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- errors reported by script execution should now do a better job at pinpointing the issue
 	- added disabled script opcodes
 	- module can now take advantage of various XS modules that speed up Moo
+	- module now stores secrets in inside-out objects, and is aware of Crypt::SecretBuffer
 
 	[Fixes]
 	- get_taproot_output_key yields the same key if called on a taproot_output key

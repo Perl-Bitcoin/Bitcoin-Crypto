@@ -15,6 +15,7 @@ use Bitcoin::Crypto::Network;
 use Bitcoin::Crypto::Util::Internal qw(validate_wif);
 use Bitcoin::Crypto::Helpers qw(ensure_length);
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Types -types;
 
 extends qw(Bitcoin::Crypto::Key::Base);
 
@@ -37,56 +38,67 @@ sub to_wif
 	return encode_base58check($wifdata);
 }
 
+signature_for from_serialized => (
+	method => !!1,
+	positional => [BitcoinSecret],
+);
+
 signature_for from_wif => (
 	method => !!1,
-	positional => [Str, Maybe [Str], {default => undef}],
+	positional => [BitcoinSecret, Maybe [Str], {default => undef}],
 );
 
 sub from_wif
 {
-	my ($class, $wif, $network) = @_;
+	my ($class, $secret, $network) = @_;
 
-	Bitcoin::Crypto::Exception::KeyCreate->raise(
-		'base58 string is not valid WIF'
-	) unless validate_wif($wif);
+	return $secret->unmask_to(
+		sub {
+			my ($wif) = @_;
 
-	my $decoded = decode_base58check($wif);
-	my $private = substr $decoded, 1;
+			Bitcoin::Crypto::Exception::KeyCreate->raise(
+				'base58 string is not valid WIF'
+			) unless validate_wif($wif);
 
-	my $compressed = 0;
-	if (length($private) > KEY_MAX_LENGTH) {
-		chop $private;
-		$compressed = 1;
-	}
+			my $decoded = decode_base58check($wif);
+			my $private = substr $decoded, 1;
 
-	my $wif_network_byte = substr $decoded, 0, 1;
-	my @found_networks =
-		Bitcoin::Crypto::Network->find(sub { shift->wif_byte eq $wif_network_byte });
-	@found_networks = grep { $_ eq $network } @found_networks
-		if defined $network;
+			my $compressed = 0;
+			if (length($private) > KEY_MAX_LENGTH) {
+				chop $private;
+				$compressed = 1;
+			}
 
-	if (@found_networks > 1) {
-		my $default_network = Bitcoin::Crypto::Network->get->id;
+			my $wif_network_byte = substr $decoded, 0, 1;
+			my @found_networks =
+				Bitcoin::Crypto::Network->find(sub { shift->wif_byte eq $wif_network_byte });
+			@found_networks = grep { $_ eq $network } @found_networks
+				if defined $network;
 
-		Bitcoin::Crypto::Exception::KeyCreate->raise(
-			'found multiple networks possible for given WIF: ' . join ', ', @found_networks
-		) if none { $_ eq $default_network } @found_networks;
+			if (@found_networks > 1) {
+				my $default_network = Bitcoin::Crypto::Network->get->id;
 
-		@found_networks = ($default_network);
-	}
+				Bitcoin::Crypto::Exception::KeyCreate->raise(
+					'found multiple networks possible for given WIF: ' . join ', ', @found_networks
+				) if none { $_ eq $default_network } @found_networks;
 
-	Bitcoin::Crypto::Exception::KeyCreate->raise(
-		"network name $network cannot be used for given WIF"
-	) if @found_networks == 0 && defined $network;
+				@found_networks = ($default_network);
+			}
 
-	Bitcoin::Crypto::Exception::NetworkConfig->raise(
-		"couldn't find network for WIF byte $wif_network_byte"
-	) if @found_networks == 0;
+			Bitcoin::Crypto::Exception::KeyCreate->raise(
+				"network name $network cannot be used for given WIF"
+			) if @found_networks == 0 && defined $network;
 
-	my $instance = $class->from_serialized($private);
-	$instance->set_compressed($compressed);
-	$instance->set_network(@found_networks);
-	return $instance;
+			Bitcoin::Crypto::Exception::NetworkConfig->raise(
+				"couldn't find network for WIF byte $wif_network_byte"
+			) if @found_networks == 0;
+
+			my $instance = $class->from_serialized($private);
+			$instance->set_compressed($compressed);
+			$instance->set_network(@found_networks);
+			return $instance;
+		}
+	);
 }
 
 sub get_public_key
@@ -94,7 +106,7 @@ sub get_public_key
 	my ($self) = @_;
 
 	my $public = Bitcoin::Crypto::Key::Public->new(
-		key_instance => $self->raw_key('public'),
+		_key_instance => $self->raw_key('public'),
 		compressed => $self->compressed,
 		network => $self->network,
 		purpose => $self->purpose,
@@ -191,6 +203,8 @@ or L</from_wif> instead.
 This creates a new key from string data. Argument C<$serialized> is a
 formatable bytestring containing the private key entropy.
 
+This method accepts a secret argument. See L<Bitcoin::Crypto::Secret> for details.
+
 Returns a new key object instance.
 
 =head3 to_serialized
@@ -202,7 +216,7 @@ which can be further formated with C<to_format> utility.
 
 =head3 from_wif
 
-	$key_object = $class->from_wif($str, $network = undef)
+	$key_object = $class->from_wif($wif, $network = undef)
 
 Creates a new private key from Wallet Import Format string.
 
@@ -211,6 +225,8 @@ if you use many networks and some have the same WIF byte.
 
 This method will change compression and network states of the created private
 key, as this data is included in WIF format.
+
+This method accepts a secret argument. See L<Bitcoin::Crypto::Secret> for details.
 
 Returns class instance.
 

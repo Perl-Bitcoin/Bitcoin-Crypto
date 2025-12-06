@@ -1,6 +1,7 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_extprv);
 use Bitcoin::Crypto::Util qw(generate_mnemonic to_format);
+use Bitcoin::Crypto::Secret;
 
 my @test_data = (
 	{
@@ -172,6 +173,25 @@ subtest 'testing network handling' => sub {
 	$key = $key->derive_key("m/0'/1");
 	is($key->network->name, 'Bitcoin Testnet', 'derived extended key used the new network data');
 	is($key->get_basic_key->network->name, 'Bitcoin Testnet', "basic key inherited extended key's network");
+};
+
+subtest 'should accept Secret' => sub {
+
+	# use a case with non-ascii
+	my %case = %{$test_data[8]};
+	my $seckey = Bitcoin::Crypto::Secret->new([base58 => $case{key}]);
+	my $secseed = Bitcoin::Crypto::Secret->new([hex => $case{seed}]);
+	my $secmnemonic = Bitcoin::Crypto::Secret->new($case{mnemonic});
+	my $secpass = Bitcoin::Crypto::Secret->new($case{passphrase});
+
+	is to_format [base58 => btc_extprv->from_mnemonic($secmnemonic, $secpass)->to_serialized],
+		$case{key}, 'from_mnemonic ok';
+
+	is to_format [base58 => btc_extprv->from_seed($secseed)->to_serialized],
+		$case{key}, 'from_seed ok';
+
+	is to_format [base58 => btc_extprv->from_serialized($seckey)->to_serialized],
+		$case{key}, 'from_serialized ok';
 };
 
 done_testing;

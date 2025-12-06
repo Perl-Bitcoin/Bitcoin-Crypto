@@ -5,6 +5,7 @@ use Encode qw(encode);
 use Bitcoin::Crypto qw(btc_prv);
 use Bitcoin::Crypto::Constants qw(:key);
 use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Secret;
 
 # silence warnings
 local $SIG{__WARN__} = sub { };
@@ -134,6 +135,42 @@ subtest 'should generate taproot output keys consistently for both private and p
 	is to_format [hex => $even_y_prv->get_taproot_output_key->get_public_key->to_serialized],
 		to_format [hex => $even_y_prv->get_public_key->get_taproot_output_key->to_serialized],
 		'even key ok';
+};
+
+subtest 'should accept Secret' => sub {
+	my $wif_raw_key = '972e85e7e3345cb7e6a5f812aa5f5bea82005e3ded7b32d9d56f5ab2504f1648';
+	my $wif = '5JxsKGzCoJwaWEjQvfNqD4qPEoUQ696BUEq68Y68WQ2GNR6zrxW';
+
+	my $secwif = Bitcoin::Crypto::Secret->new($wif);
+	my $secraw = Bitcoin::Crypto::Secret->new([hex => $wif_raw_key]);
+
+	is to_format [hex => btc_prv->from_wif($secwif)->to_serialized],
+		$wif_raw_key, 'from_wif ok';
+
+	is to_format [hex => btc_prv->from_serialized($secraw)->to_serialized],
+		$wif_raw_key, 'from_serialized ok';
+};
+
+subtest 'buffer should be secret' => sub {
+	my $orig = '010203';
+	my $random_prv = btc_prv->from_serialized([hex => $orig]);
+	isa_ok $random_prv->_key_instance, 'Bitcoin::Crypto::Secret';
+	is $random_prv->_key_instance, '[REDACTED]', 'stringified ok';
+
+	like to_format [hex => $random_prv->raw_key], qr{^(00)+$orig$}, 'stringified ok';
+};
+
+subtest 'buffer should be secret (Crypt::SecretBuffer)' => sub {
+	my $has_secretbuffer = eval { require Crypt::SecretBuffer; 1 };
+	skip_all 'this test requires Crypt::SecretBuffer'
+		unless $has_secretbuffer;
+	my $orig = '010203';
+
+	my $random_prv = btc_prv->from_serialized(Crypt::SecretBuffer->new(pack 'H*', $orig));
+	isa_ok $random_prv->_key_instance, 'Crypt::SecretBuffer';
+	is $random_prv->_key_instance, '[REDACTED]', 'stringified ok';
+
+	like to_format [hex => $random_prv->raw_key], qr{^(00)+$orig$}, 'stringified ok';
 };
 
 done_testing;

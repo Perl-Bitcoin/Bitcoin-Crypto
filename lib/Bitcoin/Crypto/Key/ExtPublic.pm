@@ -54,7 +54,7 @@ sub _derive_key_partial
 	);
 
 	return $self->new(
-		key_instance => $key,
+		_key_instance => $key,
 		chain_code => $chain_code,
 		child_number => $child_num,
 		parent_fingerprint => $self->get_fingerprint,

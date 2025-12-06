@@ -133,7 +133,7 @@ sub derive_extprv
 
 	my $entropy = $self->derive_entropy($spec_path);
 	return btc_extprv->new(
-		key_instance => substr($entropy, 32, 32),
+		_key_instance => substr($entropy, 32, 32),
 		chain_code => substr($entropy, 0, 32),
 	);
 }

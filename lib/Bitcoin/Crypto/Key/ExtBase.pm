@@ -166,7 +166,7 @@ sub from_serialized
 		) if @found_networks == 0;
 
 		my $key = $class->new(
-			key_instance => $data,
+			_key_instance => $data,
 			chain_code => $chain_code,
 			child_number => unpack('N', $number),
 			parent_fingerprint => $fingerprint,
@@ -189,7 +189,7 @@ sub get_basic_key
 	my ($self) = @_;
 	my $base_class = 'Bitcoin::Crypto::Key::' . ($self->_is_private ? 'Private' : 'Public');
 	my $basic_key = $base_class->new(
-		key_instance => $self->key_instance,
+		_key_instance => $self->_key_instance,
 		network => $self->network,
 		purpose => $self->purpose,
 	);

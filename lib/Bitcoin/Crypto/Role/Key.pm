@@ -12,10 +12,11 @@ use Bitcoin::Crypto::Constants qw(:key);
 use Bitcoin::Crypto::Util::Internal qw(get_key_type);
 use Bitcoin::Crypto::Helpers qw(ensure_length ecc);
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Secret;
 
-has param 'key_instance' => (
-	isa => ByteStr,
-	writer => -hidden,
+# ByteStr or BitcoinSecret or SecretBuffer
+has param '_key_instance' => (
+	writer => 1,
 );
 
 has param 'purpose' => (
@@ -31,11 +32,22 @@ requires qw(
 	_is_private
 );
 
+sub _run_with_key
+{
+	my ($self, $sub_ref) = @_;
+
+	if ($self->_is_private) {
+		return $self->_key_instance->unmask_to($sub_ref);
+	}
+	else {
+		return $sub_ref->($self->_key_instance);
+	}
+}
+
 sub _validate_key
 {
-	my $self = shift;
-	my $entropy = $self->key_instance;
-
+	state $sig = signature(method => !!1, positional => [ByteStr]);
+	my ($self, $entropy) = $sig->(@_);
 	my $is_private = get_key_type $entropy;
 
 	Bitcoin::Crypto::Exception::KeyCreate->raise(
@@ -68,7 +80,16 @@ sub _validate_key
 sub BUILD
 {
 	my ($self) = @_;
-	$self->_validate_key;
+	state $type_secret = BitcoinSecret;
+
+	$self->_set_key_instance($type_secret->assert_coerce($self->_key_instance))
+		if $self->_is_private;
+
+	$self->_run_with_key(
+		sub {
+			$self->_validate_key($_[0]);
+		}
+	);
 }
 
 signature_for has_purpose => (
@@ -91,27 +112,21 @@ signature_for raw_key => (
 # helpers for raw_key
 sub __full_private
 {
-	my ($self, $key) = @_;
+	state $sig = signature(positional => [ByteStr]);
+	my ($key) = $sig->(@_);
 	return ensure_length $key, KEY_MAX_LENGTH;
 }
 
 sub __private_to_public
 {
-	my ($self, $key) = @_;
-	return ecc->create_public_key($self->__full_private($key));
-}
-
-sub __public_compressed
-{
-	my ($self, $key, $compressed) = @_;
-	return ecc->compress_public_key($key, $compressed);
+	my ($key) = @_;
+	return ecc->create_public_key(__full_private($key));
 }
 
 sub raw_key
 {
 	my ($self, $type) = @_;
 	my $is_private = $self->_is_private;
-	my $key = $self->key_instance;
 
 	$type //= $is_private ? 'private' : 'public';
 	if ($type eq 'public' && (!$self->can('compressed') || $self->compressed)) {
@@ -123,20 +138,18 @@ sub raw_key
 			'cannot create private key from a public key'
 		) unless $is_private;
 
-		return $self->__full_private($key);
-	}
-	elsif ($type eq 'public_xonly') {
-		$key = $self->__private_to_public($key)
-			if $is_private;
-
-		return ecc->xonly_public_key($key);
+		# CAUTION: exposing the secret!
+		return $self->_run_with_key(\&__full_private);
 	}
 	else {
-		$key = $self->__private_to_public($key)
-			if $is_private;
-
-		return $key if $type eq 'public_compressed';
-		return $self->__public_compressed($key, !!0);
+		my $key = $is_private ? $self->_run_with_key(\&__private_to_public) : $self->_key_instance;
+		if ($type eq 'public_xonly') {
+			return ecc->xonly_public_key($key);
+		}
+		else {
+			return $key if $type eq 'public_compressed';
+			return ecc->compress_public_key($key, !!0);
+		}
 	}
 }
 

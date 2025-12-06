@@ -68,6 +68,18 @@ $bytestr->coercion->add_type_coercions(
 	HasMethods ['as_string'], q{ $_->as_string },
 );
 
+my $secret = __PACKAGE__->add_type(
+	name => 'BitcoinSecret',
+	parent => InstanceOf->of('Bitcoin::Crypto::Secret') | InstanceOf->of('Crypt::SecretBuffer'),
+);
+
+$secret->coercion->add_type_coercions(
+	Defined, q{
+		require Bitcoin::Crypto::Secret;
+		Bitcoin::Crypto::Secret->new($_);
+	},
+);
+
 my $bytestrlen = __PACKAGE__->add_type(
 	name => 'ByteStrLen',
 	parent => $bytestr,

@@ -28,16 +28,11 @@ sub _is_private
 	die __PACKAGE__ . '::_is_private is unimplemented';
 }
 
-signature_for from_serialized => (
-	method => !!1,
-	positional => [ByteStr],
-);
-
 sub from_serialized
 {
-	my ($class, $bytes) = @_;
+	my ($class, $data) = @_;
 
-	return $class->new(key_instance => $bytes);
+	return $class->new(_key_instance => $data);
 }
 
 sub to_serialized
@@ -76,7 +71,7 @@ sub get_taproot_output_key
 
 	my $pkg = ref $self;
 	return $pkg->new(
-		key_instance => $new_key,
+		_key_instance => $new_key,
 		purpose => $self->purpose,
 		network => $self->network,
 		taproot_output => !!1,

@@ -21,14 +21,35 @@ extends qw(Bitcoin::Crypto::Key::ExtBase);
 
 sub _is_private { 1 }
 
+signature_for from_serialized => (
+	method => !!1,
+	positional => [BitcoinSecret, Maybe [Str], {default => undef}],
+);
+
+sub from_serialized
+{
+	my ($class, $secret, $network) = @_;
+
+	return $secret->unmask_to(
+		sub {
+			return $class->SUPER::from_serialized(shift, $network);
+		}
+	);
+}
+
 signature_for from_mnemonic => (
 	method => !!1,
-	positional => [Str, Maybe [Str], {default => ''}, Maybe [Str], {default => undef}],
+	positional => [BitcoinSecret, Maybe [BitcoinSecret], {default => ''}, Maybe [Str], {default => undef}],
 );
 
 sub from_mnemonic
 {
-	my ($class, $mnemonic, $password, $lang) = @_;
+	my ($class, $secret_mnemonic, $secret_password, $lang) = @_;
+
+	my $mnemonic = $secret_mnemonic->unmask_to(sub { shift });
+	my $password = defined $secret_password
+		? $secret_password->unmask_to(sub { shift })
+		: undef;
 
 	if (defined $lang) {
 
@@ -53,20 +74,27 @@ sub from_mnemonic
 
 signature_for from_seed => (
 	method => !!1,
-	positional => [ByteStr],
+	positional => [BitcoinSecret],
 );
 
 sub from_seed
 {
-	my ($class, $seed) = @_;
+	my ($class, $secret) = @_;
+	state $sig = signature(positional => [ByteStr]);
 
-	my $bytes = hmac('SHA512', 'Bitcoin seed', $seed);
-	my $key = substr $bytes, 0, 32;
-	my $cc = substr $bytes, 32, 32;
+	return $secret->unmask_to(
+		sub {
+			my ($seed) = $sig->(@_);
 
-	return $class->new(
-		key_instance => $key,
-		chain_code => $cc,
+			my $bytes = hmac('SHA512', 'Bitcoin seed', $seed);
+			my $key = substr $bytes, 0, 32;
+			my $cc = substr $bytes, 32, 32;
+
+			return $class->new(
+				_key_instance => $key,
+				chain_code => $cc,
+			);
+		}
 	);
 }
 
@@ -75,7 +103,7 @@ sub get_public_key
 	my ($self) = @_;
 
 	my $public = Bitcoin::Crypto::Key::ExtPublic->new(
-		key_instance => $self->raw_key('public'),
+		_key_instance => $self->raw_key('public'),
 		chain_code => $self->chain_code,
 		child_number => $self->child_number,
 		parent_fingerprint => $self->parent_fingerprint,
@@ -131,7 +159,7 @@ sub _derive_key_partial
 	);
 
 	return $self->new(
-		key_instance => $key,
+		_key_instance => $key,
 		chain_code => $chain_code,
 		child_number => $child_num,
 		parent_fingerprint => $self->get_fingerprint,
@@ -251,6 +279,8 @@ produce a different key>. Be careful when using this method without C<$lang>
 argument as you can easily create keys incompatible with other software due to
 these whitespace problems.
 
+This method accepts a secret argument. See L<Bitcoin::Crypto::Secret> for details.
+
 Returns a new instance of this class.
 
 B<Important note about unicode:> this function only accepts UTF8-decoded
@@ -267,6 +297,8 @@ wallet.
 Creates and returns a new key from seed, which can be any data of any length.
 C<$seed> is expected to be a byte string.
 
+This method accepts a secret argument. See L<Bitcoin::Crypto::Secret> for details.
+
 =head3 to_serialized
 
 	$serialized = $object->to_serialized()
@@ -281,6 +313,8 @@ Tries to unserialize byte string C<$serialized> with format specified in BIP32.
 
 Dies on errors. If multiple networks match serialized data specify C<$network>
 manually (id of the network) to avoid exception.
+
+This method accepts a secret argument. See L<Bitcoin::Crypto::Secret> for details.
 
 =head3 set_network
 
