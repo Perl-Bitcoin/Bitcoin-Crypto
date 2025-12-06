@@ -178,13 +178,19 @@ sub to_serialized
 
 signature_for from_serialized => (
 	method => !!1,
-	positional => [ByteStr],
+	head => [ByteStr],
+	named => [
+		pos => Maybe [ScalarRef [PositiveOrZeroInt]],
+		{default => undef},
+	],
+	bless => !!0,
 );
 
 sub from_serialized
 {
-	my ($class, $serialized) = @_;
-	my $pos = 0;
+	my ($class, $serialized, $args) = @_;
+	my $partial = !!$args->{pos};
+	my $pos = $partial ? ${$args->{pos}} : 0;
 
 	# optimization - no need to keep checking bytestrings on every level. It
 	# has already been checked.
@@ -214,9 +220,12 @@ sub from_serialized
 		);
 	}
 
-	Bitcoin::Crypto::Exception::Block->raise(
+	Bitcoin::Crypto::Exception::Transaction->raise(
 		'serialized block data is corrupted'
-	) if $pos != length $serialized;
+	) if !$partial && $pos != length $serialized;
+
+	${$args->{pos}} = $pos
+		if $partial;
 
 	Bitcoin::Crypto::Exception::Block->raise(
 		'block requires a coinbase transaction'
@@ -283,10 +292,7 @@ sub _build_merkle_root
 		'cannot calculate merkle root for empty block'
 	) unless @txs > 0;
 
-	# optimization - avoid checking thousands of bytestrings passed to merkle_root
-	local $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS = !!0;
-
-	return scalar reverse Bitcoin::Crypto::Util::merkle_root(\@txs);
+	return scalar reverse Bitcoin::Crypto::Util::Internal::merkle_root(\@txs);
 }
 
 sub median_time_past
@@ -585,7 +591,7 @@ Returns the serialized block as a binary string.
 
 =head3 from_serialized
 
-	$block = $class->from_serialized($bytes)
+	$block = $class->from_serialized($bytes, %params)
 
 Creates a block object from serialized Bitcoin block data.
 
@@ -593,6 +599,20 @@ Takes the serialized block data as binary string. Does some basic validation of
 the block: checks if a coinbase transaction exists, and if the merkle root
 encoded in the serialized form matches the one calculated from transactions
 (acting like a checksum check).
+
+C<%params> can be any of:
+
+=over
+
+=item * C<pos>
+
+Position for partial string decoding. Optional. If passed, must be a scalar
+reference to an integer value.
+
+This integer will mark the starting position of C<$bytestring> from which to
+start decoding. It will be set to the next byte after end of block stream.
+
+=back
 
 Returns a new block instance.
 
