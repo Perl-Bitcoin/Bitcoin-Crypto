@@ -323,8 +323,9 @@ example fetched from the Internet or entered by the user.
 
 A lot of work has been done to ensure Bitcoin::Crypto transaction decoding and
 verification performance is somewhat acceptable. Benchmarks on author's (not
-very powerful) machine has shown that up to 500 transactions (each having 2
-P2MS inputs) can be decoded and verified per second, per process.
+very powerful) machine has shown that up to legacy 600 transactions (each
+having 2 P2MS inputs) or 800 taproot transactions (each having 4 key spend
+inputs) can be decoded and verified per second, per process.
 
 For best performance, extra modules from CPAN should be installed, listed
 below. Module will use them if they can be loaded.
