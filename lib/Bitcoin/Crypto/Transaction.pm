@@ -1146,6 +1146,24 @@ Returns true if this transaction is coinbase: its first input has an empty
 previous transaction hash. Does not check any further - actual validation of
 coinbase is done in L</verify>.
 
+=head3 sign
+
+	$signer = $object->sign(%args)
+
+This method creates a new instance of L<Bitcoin::Crypto::Transaction::Signer>,
+which can be used to build a signature for any transaction regardless of
+complexity. It requires user to know what type of output you are signing, and
+what the operations of the script are. For signing simple, standard
+transactions, L<Bitcoin::Crypto::Key::Private/sign_transaction> should be used
+to sign automatically (which uses the signer class under the hood).
+
+To understand what C<%args> can be passed to the method, see
+L<Bitcoin::Crypto::Transaction::Signer/Common attributes> and
+L<Bitcoin::Crypto::Transaction::Signer/Taproot attributes>. In addition to
+those attributes, a C<compat> key can be specified as a true value if a compat
+segwit output is being signed (as there is no way to detect it by looking at
+the transaction).
+
 =head3 dump
 
 	$text = $object->dump()

@@ -8,6 +8,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Transaction:
 		- added had_witness_flag attribute
 		- removed flags parameter from get_digest method
+		- added sign method
 	- Bitcoin::Crypto::Transaction::Input:
 		- method script_base is now internal use only, as it depends on other parts to deliver correct results
 	- Bitcoin::Crypto::Transaction::Flags:

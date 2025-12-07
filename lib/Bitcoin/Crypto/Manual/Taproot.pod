@@ -74,36 +74,8 @@ generates public keys that have no known private key counterparts.
 
 Signing transactions by using key path spend is as simple as calling
 L<Bitcoin::Crypto::Key::Private/sign_transaction> on a transaction with proper
-C<signing_index>. Signing spend by script path is much harder and currently has
-no internal implementation. Here's a naive example of witness stack
-construction that uses C<sighash_all> and assumes no C<OP_CODESEPARATOR> in the
-script:
-
-	my $tree = btc_script_tree->new(tree => [{id => 0, script => $script, leaf_version => 0xc0}]);
-	my @input_witness;
-
-	# first witness element: signature for script [<pubkey> OP_CHECKSIG]
-	push @input_witness, $privkey->sign_message(
-		$tx->get_digest(
-			signing_index => 0,
-			signing_subscript => $script->to_serialized,
-			taproot_ext_flag => 1,
-			taproot_ext => get_taproot_ext(1, script_tree => $tree, leaf_id => 0),
-			sighash => Bitcoin::Crypto::Constants::sighash_all,
-		)
-	) . pack('C', Bitcoin::Crypto::Constants::sighash_all);
-
-	# second witness element: serialized script
-	push @input_witness, $script->to_serialized;
-
-	# third witness element: taproot control block
-	push @input_witness, $tree->get_control_block(0, $pub)->to_serialized;
-
-This example uses L<Bitcoin::Crypto::Util/get_taproot_ext> to build extension
-defined in BIP342. L<Bitcoin::Crypto::Script::Tree/get_control_block> returns
-an instance of L<Bitcoin::Crypto::Transaction::ControlBlock>. After
-serialization, control block will contain the data required for the transaction
-to reconstruct the script tree and validate the used script was a part of it.
+C<signing_index>. Signing spend by script path is a bit harder and requires the
+use of L<Bitcoin::Crypto::Transaction::Signer> (same as other custom scripts).
 
 To be able to spend via script path you need to have the exact copy of script
 tree saved somewhere. L<Bitcoin::Crypto::Script::Tree> class has no

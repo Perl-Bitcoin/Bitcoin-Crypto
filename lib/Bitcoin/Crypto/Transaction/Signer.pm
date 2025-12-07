@@ -295,3 +295,159 @@ sub dump_abort
 
 1;
 
+__END__
+=head1 NAME
+
+Bitcoin::Crypto::Transaction::Signer - Construct a signature for any transaction
+
+=head1 SYNOPSIS
+
+	# sign a multisignature transaction
+	$tx->sign(signing_index => 0, script => $p2ms_script, %more_args)
+		->add_signature($priv, SIGHASH_ALL)
+		->add_signature('bytestring signature')
+		->finalize_multisignature
+		->finalize;
+
+=head1 DESCRIPTION
+
+This class implements a signer for transactions of any complexity. It is best
+used for custom transactions which cannot be signed by calling
+C<Bitcoin::Crypto::Key::Private/sign_transaction>.
+
+It works by running the script in the background, progressing it with each
+added signature. Executing the script allows finding the correct
+signature-checking opcodes to sign by simulating how the script will behave
+when the transaction is verified. No changes to the underlying transaction are
+applied until the signature is finalized.
+
+Note that since transactions use stack as a data structure, the order of
+generated signature will be reversed, which may be surprising when inspecting
+the transaction. Method calls must be done in order of opcode execution.
+
+=head1 INTERFACE
+
+Attributes vary depending on signing output type.
+
+=head2 Common attributes
+
+These attributes are common for all output types.
+
+=head3 transaction
+
+Mandatory transaction object. No need to include it when calling
+L<Bitcoin::Crypto::Transaction/sign>, because it will be included
+automatically.
+
+=head3 signing_index
+
+The index of input being signed. Required.
+
+=head3 script
+
+The script being signed. It is required for script hash output types (C<P2SH>
+and C<P2WSH>). Otherwise it will be taken from output locking script. In
+taproot script spends, it will be taken from L</script_tree> and L</leaf_id>.
+
+=head2 Taproot attributes
+
+These attributes are only used for taproot outputs.
+
+=head3 script_tree
+
+L<Bitcoin::Crypto::Script::Tree> instance with a script tree used when creating
+the taproot output. Must be passed for script spends or key spends with enabled
+script path.
+
+=head3 leaf_id
+
+Numeric identifier which marks the leaf in L</script_tree>. Must be passed for
+script spends.
+
+=head3 public_key
+
+A taproot internal key which was used for creating this output. Must be passed
+for script spends.
+
+=head3 taproot_ext_flag
+
+A taproot extension flag for script spends. By default, a value C<1> (for
+tapscript) is used.
+
+=head2 Methods
+
+=head3 new
+
+	$signer = $class->new(%args)
+
+This is a standard Moo constructor, which can be used to create the object. It
+takes arguments specified in L</Attributes>. Usually, there is no need to call
+this method directly, as it will be called by
+L<Bitcoin::Crypto::Transaction/sign> on the correct Signer subclass.
+
+Returns class instance.
+
+=head3 add_bytes
+
+	$signer = $signer->add_bytes($bytestr)
+
+Adds raw bytes from C<$bytestr> into the signature. Note that this should not
+be used to add signatures - use L</add_signature> with bytes instead.
+
+Returns the instance, for chaining.
+
+=head3 add_number
+
+	$signer = $signer->add_number($num)
+
+Adds a script number C<$num> into the signature.
+
+Returns the instance, for chaining.
+
+=head3 add_signature
+
+	$signer = $signer->add_signature($bytestr, %args)
+	$signer = $signer->add_signature($privkey, %args)
+
+Adds a signature to the transaction. If C<$privkey> is passed
+(L<Bitcoin::Crypto::Key::Private>), then it will be used to sign the next
+signature-checking opcode in the script. If C<$bytestr> is passed, then it will
+be used as-is, but unlike L</add_bytes>, next call to C<add_signature> will
+correctly target next opcode.
+
+If the next signature-checking opcode is a multisig, then it will not step over
+it after the call, but wait for a mandatory L</finalize_multisignature> call.
+
+C<%args> can be any of:
+
+=over
+
+=item * C<sighash>
+
+The sighash which should be used for the signature. By default L<Bitcoin::Crypto::Constants/SIGHASH_ALL>
+is used for pre-taproot outputs and L<Bitcoin::Crypto::Constants/SIGHASH_DEFAULT> for taproot
+outputs.
+
+=back
+
+Returns the instance, for chaining.
+
+=head3 finalize_multisignature
+
+	$signer = $signer->finalize_multisignature()
+
+Used to finalize signing of multisig opcodes. It is mandatory to call it when
+signing a multisig transaction.
+
+Returns the instance, for chaining.
+
+=head3 finalize
+
+	$signer->finalize()
+
+Finalizes the signing process, applying changes on the transaction object.
+After this call, the C<$signer> object is done and should be discarded as soon
+as possible.
+
+Returns nothing, as the signing process is done.
+
