@@ -29,6 +29,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added pos parameter to from_serialized method
 	- Bitcoin::Crypto::Types:
 		- added TransactionFlags type
+	- Bitcoin::Crypto::Script:
+		- added get_raw_address method
 	- added Bitcoin::Crypto::Secret class
 	- added exporting mechanism for Bitcoin::Crypto::Constants
 	- removed ScriptSuccess exception class

@@ -444,7 +444,7 @@ sub get_segwit_address
 sub get_address
 {
 	my ($self) = @_;
-	my $address = $self->_recognition->address;
+	my $address = $self->get_raw_address;
 
 	return undef
 		unless $self->has_type && defined $address;
@@ -472,6 +472,11 @@ sub get_address
 	elsif ($self->type eq 'NULLDATA') {
 		return qq("$address");
 	}
+}
+
+sub get_raw_address
+{
+	return shift->_recognition->address;
 }
 
 sub has_type
@@ -693,6 +698,15 @@ of type C<P2WPKH>, then a bech32 segwit address will be returned. If the script
 is not of standard type or the type does not use addresses, returns C<undef>.
 
 Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>, C<P2TR>.
+
+=head3 get_raw_address
+
+	$raw_address = $object->get_raw_address()
+
+Same as L</get_address>, but does not encode the address with base58 / bech32,
+and does not add any network markers specific for this type of address. Can be
+used to fetch the data encoded in a standard script type, for example output
+xonly public key for C<P2TR>.
 
 =head3 operations
 

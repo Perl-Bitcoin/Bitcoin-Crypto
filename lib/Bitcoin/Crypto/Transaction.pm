@@ -545,7 +545,7 @@ sub _verify_script_taproot
 
 	# shallow copy of the witness - avoid modifying the transaction
 	my @witness_stack = @{$input->witness};
-	my $pubkey = $input->utxo->output->locking_script->_recognition->address;
+	my $pubkey = $input->utxo->output->locking_script->get_raw_address;
 
 	# consensus rules from https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#script-validation-rules
 
