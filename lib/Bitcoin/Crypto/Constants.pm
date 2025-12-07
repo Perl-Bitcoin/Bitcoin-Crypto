@@ -24,11 +24,10 @@ BEGIN {
 			'0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8'
 		),
 
-		use_bigints => $ENV{BITCOIN_CRYPTO_USE_BIGINTS} || !is_64bit,
-
-		max_child_keys => (2 << 30),
 		key_max_length => 32,
+		max_child_keys => (1 << 31),
 		wif_compressed_byte => "\x01",
+
 		segwit_witness_version => 0,
 		taproot_witness_version => 1,
 		max_witness_version => 16,
@@ -38,11 +37,11 @@ BEGIN {
 		bip44_segwit_purpose => 84,
 		bip44_taproot_purpose => 86,
 
-		units_per_coin => 100_000_000,
-		max_money => '2100000000000000',
-
-		locktime_height_threshold => 500_000_000,
-		max_sequence_no => 0xffffffff,
+		psbt_magic => pack('H*', '70736274ff'),
+		psbt_separator => "\x00",
+		psbt_global_map => 'global',
+		psbt_input_map => 'in',
+		psbt_output_map => 'out',
 
 		sighash_default => 0x00,
 		sighash_all => 0x01,
@@ -57,16 +56,16 @@ BEGIN {
 		script_max_multisig_pubkeys => 20,
 		tapscript_leaf_version => 0xc0,
 
+		locktime_height_threshold => 500_000_000,
+		max_sequence_no => 0xffffffff,
 		p2sh_timestamp_threshold => 1333238400,
 		rbf_sequence_no_threshold => 0xffffffff - 2,
-
-		psbt_magic => pack('H*', '70736274ff'),
-		psbt_separator => "\x00",
-		psbt_global_map => 'global',
-		psbt_input_map => 'in',
-		psbt_output_map => 'out',
-
 		null_utxo => sub () { [pack('x32'), 0xffffffff] },
+
+		units_per_coin => 100_000_000,
+		max_money => '2100000000000000',
+
+		use_bigints => $ENV{BITCOIN_CRYPTO_USE_BIGINTS} || !is_64bit,
 	);
 
 	my $package = __PACKAGE__;
@@ -183,7 +182,6 @@ our %EXPORT_TAGS = (
 );
 
 1;
-
 
 __END__
 =head1 NAME
