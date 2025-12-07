@@ -1008,7 +1008,9 @@ custom scripts.
 
 =item * C<sighash>
 
-The sighash which should be used for the digest. By default C<SIGHASH_ALL>.
+The sighash which should be used for the digest. By default
+L<Bitcoin::Crypto::Constants/SIGHASH_ALL> for pre-taproot and
+L<Bitcoin::Crypto::Constants/SIGHASH_DEFAULT> for taproot.
 
 =item * C<taproot_ext_flag>
 

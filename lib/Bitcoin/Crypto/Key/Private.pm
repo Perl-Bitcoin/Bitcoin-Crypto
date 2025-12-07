@@ -319,8 +319,8 @@ can look like this (taken from C<ex/tx/multisig_redeem.pl> example):
 
 =item * C<sighash>
 
-The sighash which should be used for the signature. By default C<SIGHASH_ALL>
-is used for pre-taproot outputs and C<SIGHASH_DEFAULT> for taproot
+The sighash which should be used for the signature. By default L<Bitcoin::Crypto::Constants/SIGHASH_ALL>
+is used for pre-taproot outputs and L<Bitcoin::Crypto::Constants/SIGHASH_DEFAULT> for taproot
 outputs.
 
 =item * C<script_tree>

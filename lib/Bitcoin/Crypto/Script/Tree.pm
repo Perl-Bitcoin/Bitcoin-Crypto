@@ -267,8 +267,8 @@ Optional C<id> is used to identify the leaf in the tree, which is used in
 methods like L</get_control_block>.
 
 Currently, C<leaf_version> must be equal to
-C<TAPSCRIPT_LEAF_VERSION> constant, since other versions are
-reserved for future use.
+L<Bitcoin::Crypto::Constants/TAPSCRIPT_LEAF_VERSION>, since other
+versions are reserved for future use.
 
 If the leaf is prehashed or not known, it can be represented as this structure
 instead:

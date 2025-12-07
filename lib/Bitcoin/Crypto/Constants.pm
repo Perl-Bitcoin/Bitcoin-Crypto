@@ -184,3 +184,307 @@ our %EXPORT_TAGS = (
 
 1;
 
+
+__END__
+=head1 NAME
+
+Bitcoin::Crypto::Constants - Bitcoin-related constant values
+
+=head1 SYNOPSIS
+
+	use Bitcoin::Crypto::Constants (
+		# these constants are grouped under :curve tag
+		'CURVE_NAME',
+		'CURVE_ORDER',
+		'CURVE_GENERATOR',
+
+		# these constants are grouped under :key tag
+		'MAX_CHILD_KEYS',
+		'KEY_MAX_LENGTH',
+		'WIF_COMPRESSED_BYTE',
+
+		# these constants are grouped under :witness tag
+		'SEGWIT_WITNESS_VERSION',
+		'TAPROOT_WITNESS_VERSION',
+		'MAX_WITNESS_VERSION',
+
+		# these constants are grouped under :bip44 tag
+		'BIP44_PURPOSE',
+		'BIP44_COMPAT_PURPOSE',
+		'BIP44_SEGWIT_PURPOSE',
+		'BIP44_TAPROOT_PURPOSE',
+
+		# these constants are grouped under :coin tag
+		'UNITS_PER_COIN',
+		'MAX_MONEY',
+
+		# these constants are grouped under :transaction tag
+		'LOCKTIME_HEIGHT_THRESHOLD',
+		'P2SH_TIMESTAMP_THRESHOLD',
+		'MAX_SEQUENCE_NO',
+		'RBF_SEQUENCE_NO_THRESHOLD',
+		'NULL_UTXO',
+
+		# these constants are grouped under :sighash tag
+		'SIGHASH_DEFAULT',
+		'SIGHASH_ALL',
+		'SIGHASH_NONE',
+		'SIGHASH_SINGLE',
+		'SIGHASH_ANYONECANPAY',
+
+		# these constants are grouped under :script tag
+		'SCRIPT_MAX_STACK_ELEMENTS',
+		'SCRIPT_MAX_ELEMENT_SIZE',
+		'SCRIPT_MAX_OPCODES',
+		'SCRIPT_MAX_SIZE',
+		'SCRIPT_MAX_MULTISIG_PUBKEYS',
+		'TAPSCRIPT_LEAF_VERSION',
+
+		# these constants are grouped under :psbt tag
+		'PSBT_MAGIC',
+		'PSBT_SEPARATOR',
+		'PSBT_GLOBAL_MAP',
+		'PSBT_INPUT_MAP',
+		'PSBT_OUTPUT_MAP',
+
+		# these constants are ungrouped
+		'USE_BIGINTS',
+	);
+
+	# or, if you are not sure...
+	use Bitcoin::Crypto::Constants qw(:all);
+
+=head1 DESCRIPTION
+
+This package contains named constants for all kinds of values used across
+Bitcoin. It is not uncommon to have a need to use these values in code which
+interacts with Bitcoin::Crypto.
+
+Each constant can be accessed either by importing it (as shown above) or by
+calling a fully qualified name, like C<Bitcoin::Crypto::Constants::MAX_MONEY>.
+For backward compatibility, the second form can also be used with lowercase
+name: C<Bitcoin::Crypto::Constants::max_money>.
+
+To avoid overly long import statements, constants are organized under tags.
+Unless there is a reason not to, it is recommended to import tags instead of
+each constant separately. The exception is the C<:all> tag, which should be
+used sparingly.
+
+=head1 TAGS
+
+=head2 :all
+
+Imports everything. Should generally be avoided to not clutter the namespace.
+
+=head2 :curve
+
+Contains basic secp256k1 curve data:
+
+L</CURVE_NAME>, L</CURVE_ORDER>, L</CURVE_GENERATOR>
+
+=head2 :key
+
+Contains values which may be required when dealing with keys:
+
+L</MAX_CHILD_KEYS>, L</KEY_MAX_LENGTH>, L</WIF_COMPRESSED_BYTE>
+
+=head2 :witness
+
+Contains values for witness versions:
+
+L</SEGWIT_WITNESS_VERSION>, L</TAPROOT_WITNESS_VERSION>, L</MAX_WITNESS_VERSION>
+
+=head2 :bip44
+
+Contains various BIP44 purpose values:
+
+L</BIP44_PURPOSE>, L</BIP44_COMPAT_PURPOSE>, L</BIP44_SEGWIT_PURPOSE>, L</BIP44_TAPROOT_PURPOSE>
+
+=head2 :coin
+
+Contains very basic coin constants:
+
+L</UNITS_PER_COIN>, L</MAX_MONEY>
+
+=head2 :transaction
+
+Contains constants used together with transactions:
+
+L</LOCKTIME_HEIGHT_THRESHOLD>, L</P2SH_TIMESTAMP_THRESHOLD>, L</MAX_SEQUENCE_NO>, L</RBF_SEQUENCE_NO_THRESHOLD>, L</NULL_UTXO>
+
+=head2 :sighash
+
+Contains known sighash values:
+
+L</SIGHASH_DEFAULT>, L</SIGHASH_ALL>, L</SIGHASH_NONE>, L</SIGHASH_SINGLE>, L</SIGHASH_ANYONECANPAY>
+
+=head2 :script
+
+Contains values used during script creation and execution:
+
+L</SCRIPT_MAX_STACK_ELEMENTS>, L</SCRIPT_MAX_ELEMENT_SIZE>, L</SCRIPT_MAX_OPCODES>, L</SCRIPT_MAX_SIZE>, L</SCRIPT_MAX_MULTISIG_PUBKEYS>, L</TAPSCRIPT_LEAF_VERSION>
+
+=head2 :psbt
+
+Contains values useful for PSBTs:
+
+L</PSBT_MAGIC>, L</PSBT_SEPARATOR>, L</PSBT_GLOBAL_MAP>, L</PSBT_INPUT_MAP>, L</PSBT_OUTPUT_MAP>
+
+=head1 CONSTANTS
+
+=head2 CURVE_NAME
+
+Curve name used by Bitcoin, C<secp256k1>
+
+=head2 CURVE_ORDER
+
+A bytestring containing the secp256k1 curve order.
+
+=head2 CURVE_GENERATOR
+
+A bytestring with serialized uncompressed curve generator point for secp256k1.
+
+=head2 MAX_CHILD_KEYS
+
+Maximum number of keys which can be derived in extended key derivation. Values
+above it start being recognized as hardened instead, and start counting from 0.
+
+=head2 KEY_MAX_LENGTH
+
+The maximum byte length of a serialized private key.
+
+=head2 WIF_COMPRESSED_BYTE
+
+A magic byte which is used in WIFs to mark the key as compressed.
+
+=head2 SEGWIT_WITNESS_VERSION
+
+Numeric witness version used in SegWit (version 0) programs.
+
+=head2 TAPROOT_WITNESS_VERSION
+
+Numeric witness version used in Taproot (version 1) programs.
+
+=head2 MAX_WITNESS_VERSION
+
+Numeric maximum possible witness version.
+
+=head2 BIP44_PURPOSE
+
+Numeric base BIP44 purpose.
+
+=head2 BIP44_COMPAT_PURPOSE
+
+Numeric BIP44 compat SegWit purpose (BIP49)
+
+=head2 BIP44_SEGWIT_PURPOSE
+
+Numeric BIP44 native SegWit purpose (BIP84)
+
+=head2 BIP44_TAPROOT_PURPOSE
+
+Numeric BIP44 native SegWit purpose (BIP86)
+
+=head2 UNITS_PER_COIN
+
+Number of satoshis that equal a single coin.
+
+=head2 MAX_MONEY
+
+Number of satoshis that will ever exist.
+
+=head2 LOCKTIME_HEIGHT_THRESHOLD
+
+First number which will be understood as timestamp in locktime checks.
+
+=head2 P2SH_TIMESTAMP_THRESHOLD
+
+BIP16 timestamp which marks the start of validating P2SH transactions.
+
+=head2 MAX_SEQUENCE_NO
+
+Default and maximum possible L<Bitcoin::Crypto::Transaction::Input/sequence_no>.
+
+=head2 RBF_SEQUENCE_NO_THRESHOLD
+
+Value which is used in finding out if a transaction has Replace-By-Fee enabled.
+
+=head2 NULL_UTXO
+
+An 2-element array reference which is an UTXO location for a coinbase transaction.
+
+=head2 SIGHASH_DEFAULT
+
+Default hashtype for digests - only used in Taproot. Functionally equal to SIGHASH_ALL.
+
+=head2 SIGHASH_ALL
+
+Hashtype for digesting all outputs of a transaction - default in pre-Taproot.
+
+=head2 SIGHASH_NONE
+
+Hashtype for digesting no transaction outputs.
+
+=head2 SIGHASH_SINGLE
+
+Hashtype for digesting only one output in a transaction, corresponding to this input.
+
+=head2 SIGHASH_ANYONECANPAY
+
+Hashtype for digesting only this input and no other inputs. Cannot be used
+standalone, must be binary-or'ed with other SIGHASH constants.
+
+=head2 SCRIPT_MAX_STACK_ELEMENTS
+
+Maximum number of elements which can be kept on a script stack and altstack
+together.
+
+=head2 SCRIPT_MAX_ELEMENT_SIZE
+
+Maximum byte size of a single stack element.
+
+=head2 SCRIPT_MAX_OPCODES
+
+Maximum non-push opcodes which can be used in a single script. Not applicable
+to Taproot.
+
+=head2 SCRIPT_MAX_SIZE
+
+Maximum script size in bytes. Not applicable to Taproot.
+
+=head2 SCRIPT_MAX_MULTISIG_PUBKEYS
+
+Maximum OP_CHECKMULTISIG public keys.
+
+=head2 TAPSCRIPT_LEAF_VERSION
+
+Tree leaf version number used in Taproot tapscript spends.
+
+=head2 PSBT_MAGIC
+
+A magic byte sequence which is required in PSBTs.
+
+=head2 PSBT_SEPARATOR
+
+A byte sequence which separates PSBT maps.
+
+=head2 PSBT_GLOBAL_MAP
+
+A value for making use of global PSBT maps.
+
+=head2 PSBT_INPUT_MAP
+
+A value for making use of input PSBT maps.
+
+=head2 PSBT_OUTPUT_MAP
+
+A value for making use of output PSBT maps.
+
+=head2 USE_BIGINTS
+
+Whether the module currently uses BigInts (32-bit architecture compatibility).
+Can be forced to a true value by setting C<BITCOIN_CRYPTO_USE_BIGINTS>
+environmental variable.
+
+=head2
+

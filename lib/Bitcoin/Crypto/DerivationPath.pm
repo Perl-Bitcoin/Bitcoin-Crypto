@@ -124,7 +124,7 @@ C<m>).
 
 B<Required in the constructor>. An array reference of unsigned integers - the derivation path.
 Hardened keys are greater than or equal to C<2^31>
-(C<MAX_CHILD_KEYS>).
+(L<Bitcoin::Crypto::Constants/MAX_CHILD_KEYS>).
 
 =head2 Methods
 

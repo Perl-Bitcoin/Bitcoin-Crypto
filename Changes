@@ -30,6 +30,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Types:
 		- added TransactionFlags type
 	- added Bitcoin::Crypto::Secret class
+	- added exporting mechanism for Bitcoin::Crypto::Constants
 	- removed ScriptSuccess exception class
 	- removed ScriptSyntax exception class
 

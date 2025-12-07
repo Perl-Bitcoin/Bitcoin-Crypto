@@ -31,7 +31,7 @@ marked with C<taproot_output> flag and uses schnorr algorithm for signing and
 verifying.
 
 You can use purpose number C<86> or
-C<BIP44_TAPROOT_PURPOSE> to
+L<Bitcoin::Crypto::Constants/BIP44_TAPROOT_PURPOSE> to
 L<BIP44|https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki>-derive
 extended keys in compilance with
 L<BIP86|https://github.com/bitcoin/bips/blob/master/bip-0086.mediawiki>.
@@ -59,7 +59,7 @@ taproot output, any script from a tree can be selected, and only this script
 must be revealed. All other scripts in the tree will stay private.
 
 Currently, all leaves in the tree must have C<leaf_version> equal to C<0xc0> or
-C<TAPSCRIPT_LEAF_VERSION>, according to
+L<Bitcoin::Crypto::Constants/TAPSCRIPT_LEAF_VERSION>, according to
 L<BIP342|https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki>. Using
 this C<leaf_version> means that C<script> in the leaf must be an instance of
 L<Bitcoin::Crypto::Tapscript> (shortcut L<Bitcoin::Crypto/btc_tapscript>).
