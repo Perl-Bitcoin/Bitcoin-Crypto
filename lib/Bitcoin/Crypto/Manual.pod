@@ -1,46 +1,101 @@
 =head1 NAME
 
-Bitcoin::Crypto::Manual - Module overview
+Bitcoin::Crypto::Manual - Main reference to Bitcoin::Crypto
 
 =head1 DESCRIPTION
 
-This module allows you to perform low-level tasks for Bitcoin such as:
+Bitcoin::Crypto is a mature cryptographic Perl module for Bitcoin management.
+It focuses on delivering unopinionated tools which make it possible to manage
+Bitcoin with Perl code. The following list of topics is an overview of module's
+capabilities:
 
 =over
 
-=item * creating extended keys and utilizing bip32 key derivation
+=item * keypair management, key derivation, address generation
 
-=item * creating private key / public key pairs
+=item * block and transaction building and management
 
-=item * address generation (in legacy, compatibility and segwit formats)
+=item * signing and verifying transactions
 
-=item * importing / exporting using popular mediums (WIF, mnemonic, hex)
+=item * script building and execution
 
-=item * building, serializing and running transaction scripts
-
-=item * serializing, signing and verifying transactions
-
-=item * serializing bitcoin blocks
+=item * Bitcoin-related formats: PSBT, bech32, base58, mnemonics
 
 =back
 
-This module won't help you with:
+=head1 THE BASICS
 
-=over
+=head2 Bitcoin protocol overview
 
-=item * using any Bitcoin CLI tools / clients
+Bitcoin is a decentralized ledger of transactions. Transactions come in a
+sequence, one after another. This sequence is split into chunks, called blocks.
+Blocks are generated in a process called mining, which tries to randomly find a
+block with a certain hashed value. That value is adjusted periodically, so that
+each block is mined every 10 minutes (on average). The entire point of mining
+is to prove that a significant amount of time and energy was spent finding a
+block. This is called I<Proof of Work> (PoW), and is a way to gain trust in a
+trustless, decentralized system. Miner which found a block has the right to
+inject a limited number of new coins into the system, which is how all coins in
+existence were created.
 
-=item * connecting to Bitcoin network
+Transaction is the single most important structure in Bitcoin. It defines where
+the coins came from (inputs) and where they will end up (outputs). Transaction
+can have multiple inputs and multiple outputs. Each input must point to an
+output of a previous transaction, and spend it entirely. Once the output is
+used in a transaction, it is no longer considered an UTXO (unspent transaction
+output), and can't be spent again. Since UTXOs must be spent entirely at once,
+any coins exceeding the payment amount must be sent to outputs controlled by
+the sender.
 
-=back
+Bitcoin script is a language for defining spend conditions for outputs. Each
+transaction output has a I<locking script> which must yield success when the
+transaction is verified. Transaction inputs define initial conditions for
+execution of locking script, in form of I<signature script> or I<witness>. Vast
+majority of output scripts contain a public key and signature checking against
+the serialized form of the transaction.
+
+To prove ownership of coins, Bitcoin uses assymetric cryptography over an
+C<secp256k1> Elliptic Curve. Most bitcoin locking scripts are standard type
+scripts, which can be recognized as I<addresses>. Each private/public keypair
+corresponds to a single address. An example of a standard script is C<P2TR>
+("pay to taproot"), and its locking script can be encoded as a I<bech32>
+address starting with C<bc1p>. That address contains the public key, and
+spending coins sent to it requires a signature from the corresponding private
+key. Once a transaction creates an UTXO to an address corresponding to a
+private/public keypair, the coins are considered to be owned by the person who
+controls th private key.
+
+=head2 Whitepaper and Bitcoin Improvement Proposals
+
+Original Bitcoin was proposed and implemented by Satoshi Nakamoto. The original
+document which defines how Bitcoin works (without much detail) is called the
+Bitcoin Whitepaper. Since Bitcoin inception it has been modified heavily, and
+most influential changes were introduced as Bitcoin Improvement Proposals
+(I<BIPs>).
+
+Each BIP has its unique number and defines one change or new feature. It is
+very common to use some BIP numbers to refer to that change or feature. All
+BIPs can be viewed in their GitHub repository:
+L<https://github.com/bitcoin/bips>.
+
+=head2 Storing and accessing secrets
+
+The primary method of storing private keys for Bitcoin is mnemonic phrases,
+which are sets of 12 to 24 human-readable words. Mnemonics can be imported and
+turned into an extended key, which can be used to derive unlimited number of
+addresses. Mnemonics can be stored securely away from devices connected to the
+Internet, or without a computer at all, for example written of a piece of paper
+- this is called I<cold storage>. Secrets stored on a computer connected to an
+Internet are called I<hot storage>, and have greater than zero chance to be
+hacked.
+
+Key derivation uses standardized paths, referred to as I<BIP44>. This
+standardization allows different wallet software to access the coins stored on
+a mnemonic. Keys are derived using Hierarchical-Deterministic algorithm, and
+keys are generating in sequence. This ensures no coins will be lost within one
+mnemonic.
 
 =head1 WHERE TO START?
-
-Documentation and examples in this module assume you're already familiar with
-the basics of Bitcoin protocol and asymmetric cryptography. If that's not the
-case, start with reading about those topics.
-
-If you like to learn by example, dive right into the examples directory.
 
 There are many goals which you may want to achieve with this module. Common
 topics include:
@@ -357,8 +412,6 @@ B<no warranty on funds manipulated by this module>.
 I will gladly accept help working on these:
 
 =over
-
-=item * All listed in L<Bitcoin::Crypto::Manual::Transactions/Current known problems with transactions>
 
 =item * All issues with C<help wanted> tag on GitHub
 
