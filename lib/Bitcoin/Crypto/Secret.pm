@@ -109,6 +109,12 @@ Bitcoin::Crypto::Secret:
 
 =item * C<$serialized> in L<Bitcoin::Crypto::Key::Private/from_serialized>
 
+=item * C<$wif> in L<Bitcoin::Crypto::Util/validate_wif>
+
+=item * C<$entropy> in L<Bitcoin::Crypto::Util/mnemonic_from_entropy>
+
+=item * C<$mnemonic> and C<$password> in L<Bitcoin::Crypto::Util/mnemonic_to_seed>
+
 =back
 
 =head2 Crypt::SecretBuffer awareness and partial compatibility

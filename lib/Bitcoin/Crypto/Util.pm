@@ -11,14 +11,11 @@ use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 
 use Bitcoin::Crypto::Util::Internal qw(
-	validate_wif
 	validate_segwit
 	get_address_type
 	get_key_type
 	get_public_key_compressed
 	generate_mnemonic
-	mnemonic_from_entropy
-	mnemonic_to_seed
 	get_path_info
 	from_format
 	to_format
@@ -59,8 +56,20 @@ our @EXPORT_OK = qw(
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
 
 signature_for validate_wif => (
-	positional => [Str],
+	positional => [BitcoinSecret],
 );
+
+sub validate_wif
+{
+	my ($secret) = @_;
+	state $inner_sig = signature(positional => [ByteStr]);
+
+	return $secret->unmask_to(
+		sub {
+			return Bitcoin::Crypto::Util::Internal::validate_wif($inner_sig->(@_));
+		}
+	);
+}
 
 signature_for validate_segwit => (
 	positional => [ByteStr],
@@ -79,16 +88,42 @@ signature_for get_public_key_compressed => (
 );
 
 signature_for mnemonic_to_seed => (
-	positional => [Str, Maybe [Str], {default => undef}],
+	positional => [BitcoinSecret, Maybe [BitcoinSecret], {default => undef}],
 );
+
+sub mnemonic_to_seed
+{
+	my ($secret_mnemonic, $secret_password) = @_;
+
+	my $mnemonic = $secret_mnemonic->unmask_to(sub { shift });
+	my $password = $secret_password
+		? $secret_password->unmask_to(sub { shift })
+		: undef;
+
+	return Bitcoin::Crypto::Util::Internal::mnemonic_to_seed($mnemonic, $password);
+}
 
 signature_for generate_mnemonic => (
 	positional => [PositiveInt, {default => 128}, Str, {default => 'en'}],
 );
 
 signature_for mnemonic_from_entropy => (
-	positional => [ByteStr, Str, {default => 'en'}],
+	positional => [BitcoinSecret, Str, {default => 'en'}],
 );
+
+sub mnemonic_from_entropy
+{
+	my ($secret_entropy, $language) = @_;
+	state $inner_sig = signature(positional => [ByteStr]);
+
+	return $secret_entropy->unmask_to(
+		sub {
+			return Bitcoin::Crypto::Util::Internal::mnemonic_from_entropy(
+				$inner_sig->(@_), $language
+			);
+		}
+	);
+}
 
 signature_for get_path_info => (
 	positional => [Defined],
@@ -167,10 +202,12 @@ part of other, more specialized packages.
 
 =head2 validate_wif
 
-	$is_wif = validate_wif($str)
+	$is_wif = validate_wif($wif)
 
 Ensures Base58 encoded string looks like encoded private key in WIF format.
-Throws an exception if C<$str> is not valid base58.
+Throws an exception if C<$wif> is not valid base58.
+
+This method accepts a secret argument. See L<Bitcoin::Crypto::Secret> for details.
 
 =head2 validate_segwit
 
@@ -239,9 +276,9 @@ L<Bytes::Random::Secure> in non-blocking mode (via the OO interface).
 
 =head2 mnemonic_from_entropy
 
-	$mnemonic = mnemonic_from_entropy($bytes, $lang = 'en')
+	$mnemonic = mnemonic_from_entropy($entropy, $lang = 'en')
 
-Generates a new mnemonic code from custom entropy given in C<$bytes> (a
+Generates a new mnemonic code from custom entropy given in C<$entropy> (a
 bytestring). This entropy should be of the same bit size as in
 L</"generate_mnemonic">. Returns newly generated BIP39 mnemonic string.
 
@@ -256,6 +293,8 @@ Be aware that the method you use to generate a mnemonic will be a very
 important factor in your key's security. If possible, use real sources of
 randomness (not pseudo-random) or a cryptographically secure pseduo-random
 number generator like the one used by L<Bytes::Random::Secure>.
+
+This method accepts a secret argument. See L<Bitcoin::Crypto::Secret> for details.
 
 =head2 mnemonic_to_seed
 
@@ -279,6 +318,8 @@ it or not. This will only become a problem if you use non-ascii mnemonic and/or
 password. If there's a possibility of non-ascii, always use utf8 and set
 binmodes to get decoded (wide) characters to avoid problems recovering your
 wallet.
+
+This method accepts a secret argument. See L<Bitcoin::Crypto::Secret> for details.
 
 =head2 get_path_info
 

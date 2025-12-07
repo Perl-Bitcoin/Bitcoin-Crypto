@@ -34,7 +34,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- removed ScriptSyntax exception class
 
 	[Improvements and behavior changes]
-	- subscript generation now correctly deletes signatures (FindAndDelete)
+	- module now stores secrets in inside-out objects, and is aware of Crypt::SecretBuffer
 	- future segwit versions are now recognized as UNKNOWN_SEGWIT script types
 	- Script's is_native_segwit method will now return true for future segwit versions
 	- push_bytes in Scripts will now include OP_1NEGATE for value 0x81
@@ -43,11 +43,11 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- errors reported by script execution should now do a better job at pinpointing the issue
 	- added disabled script opcodes
 	- module can now take advantage of various XS modules that speed up Moo
-	- module now stores secrets in inside-out objects, and is aware of Crypt::SecretBuffer
 
 	[Fixes]
 	- get_taproot_output_key yields the same key if called on a taproot_output key
 	- has_witness method in inputs now only yields true if there is at least one element in the witness stack
+	- subscript generation now correctly deletes signatures (FindAndDelete)
 	- OP_1NEGATE is now correctly recognized as a pushop
 	- OP_CHECKMULTISIG now correctly fails without the dangling stack element
 	- OP_CHECKMULTISIG now correctly allows uncompressed public keys in segwit (like OP_CHECKSIG)

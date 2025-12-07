@@ -6,17 +6,22 @@ use Encode qw(encode);
 use Bitcoin::Crypto::Util qw(:all);
 use Bitcoin::Crypto::Helpers qw(ecc);    # loads Math::BigInt
 use Bitcoin::Crypto::Key::ExtPrivate;
+use Bitcoin::Crypto::Secret;
 
 subtest 'testing mnemonic_to_seed' => sub {
-	is mnemonic_to_seed(
-		'われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　らいう',
-		'㍍ガバヴァぱばぐゞちぢ十人十色'
-		),
-		pack(
-			'H*',
-			'a44ba7054ac2f9226929d56505a51e13acdaa8a9097923ca07ea465c4c7e294c038f3f4e7e4b373726ba0057191aced6e48ac8d183f3a11569c426f0de414623'
-		),
-		'seed from mnemonic ok';
+	my $mnemonic =
+		'われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　われる　らいう';
+	my $password = '㍍ガバヴァぱばぐゞちぢ十人十色';
+	my $expected = pack(
+		'H*',
+		'a44ba7054ac2f9226929d56505a51e13acdaa8a9097923ca07ea465c4c7e294c038f3f4e7e4b373726ba0057191aced6e48ac8d183f3a11569c426f0de414623'
+	);
+
+	is mnemonic_to_seed($mnemonic, $password), $expected, 'seed from mnemonic ok';
+
+	is mnemonic_to_seed(Bitcoin::Crypto::Secret->new($mnemonic), Bitcoin::Crypto::Secret->new($password)),
+		$expected,
+		'secret handling ok';
 };
 
 subtest 'testing validate_wif' => sub {
@@ -39,6 +44,10 @@ subtest 'testing validate_wif' => sub {
 			}, 'Bitcoin::Crypto::Exception';
 		}
 	}
+
+	is validate_wif(Bitcoin::Crypto::Secret->new($cases[0][0])),
+		$cases[0][1],
+		'secret handling ok';
 };
 
 subtest 'testing get_path_info' => sub {
@@ -102,11 +111,16 @@ subtest 'testing mnemonic_from_entropy' => sub {
 	my $mnemonic = mnemonic_from_entropy($entropy);
 
 	is $mnemonic,
-		'charge ski orange scorpion kiwi trust lyrics soul scrap tackle drum quote inspire story artwork shuffle exile ahead first slender risk city collect silver';
+		'charge ski orange scorpion kiwi trust lyrics soul scrap tackle drum quote inspire story artwork shuffle exile ahead first slender risk city collect silver',
+		'generated mnemonic ok';
 
 	isa_ok dies {
 		my $mnemonic = mnemonic_from_entropy("\x01" x 17, 'en');
 	}, 'Bitcoin::Crypto::Exception::MnemonicGenerate';
+
+	is mnemonic_from_entropy(Bitcoin::Crypto::Secret->new($entropy)),
+		$mnemonic,
+		'secret handling ok';
 };
 
 subtest 'testing generate_mnemonic / mnemonic_from_entropy' => sub {
