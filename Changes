@@ -37,7 +37,6 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- module now stores secrets in inside-out objects, and is aware of Crypt::SecretBuffer
 	- future segwit versions are now recognized as UNKNOWN_SEGWIT script types
 	- Script's is_native_segwit method will now return true for future segwit versions
-	- push_bytes in Scripts will now include OP_1NEGATE for value 0x81
 	- flags can now be passed to verify function as a hashref
 	- most error messages no longer contain double error position
 	- errors reported by script execution should now do a better job at pinpointing the issue
@@ -48,6 +47,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- get_taproot_output_key yields the same key if called on a taproot_output key
 	- has_witness method in inputs now only yields true if there is at least one element in the witness stack
 	- subscript generation now correctly deletes signatures (FindAndDelete)
+	- push_bytes in Scripts will now include OP_1NEGATE for value 0x81
 	- OP_1NEGATE is now correctly recognized as a pushop
 	- OP_CHECKMULTISIG now correctly fails without the dangling stack element
 	- OP_CHECKMULTISIG now correctly allows uncompressed public keys in segwit (like OP_CHECKSIG)
