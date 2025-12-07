@@ -40,11 +40,16 @@ sub _build_runner
 {
 	my ($self) = @_;
 
+	# clone a transaction and input. Some subclasses may want to modify it
+	my $ind = $self->signing_index;
+	my $temp_tx = $self->transaction->clone;
+	$temp_tx->inputs->[$ind] = $temp_tx->inputs->[$ind]->clone;
+
 	my $runner = Bitcoin::Crypto::Script::Runner->new(
-		transaction => $self->transaction
+		transaction => $temp_tx,
 	);
 
-	$runner->transaction->set_input_index($self->signing_index);
+	$runner->transaction->set_input_index($ind);
 	$runner->start($self->script);
 	return $runner;
 }

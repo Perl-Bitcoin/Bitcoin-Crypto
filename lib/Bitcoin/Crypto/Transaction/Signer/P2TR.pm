@@ -82,9 +82,8 @@ sub _get_taproot_ext
 
 	return undef unless $self->script_spend;
 
-	my $flag = $self->taproot_ext_flag;
 	my $ext = get_taproot_ext(
-		$flag,
+		$self->taproot_ext_flag,
 		script_tree => $self->script_tree,
 		leaf_id => $self->leaf_id,
 		codesep_pos => $codesep_pos,

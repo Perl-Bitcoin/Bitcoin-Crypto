@@ -18,26 +18,6 @@ has field 'witness_program' => (
 	writer => 1,
 );
 
-sub _build_runner
-{
-	my ($self) = @_;
-
-	my $ind = $self->signing_index;
-	my $temp_tx = $self->transaction->clone;
-	$temp_tx->inputs->[$ind] = $temp_tx->inputs->[$ind]->clone;
-
-	# build a runner with temporary transaction. No need to call SUPER version,
-	# since it would be doing the same work twice
-	my $runner = Bitcoin::Crypto::Script::Runner->new(
-		transaction => $temp_tx
-	);
-
-	$runner->transaction->set_input_index($ind);
-	$runner->start($self->script);
-
-	return $runner;
-}
-
 sub _trigger_witness_program
 {
 	my ($self) = @_;
