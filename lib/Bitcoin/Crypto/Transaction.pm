@@ -782,6 +782,16 @@ sub verify
 	return;
 }
 
+sub verify_standard
+{
+	my ($self, @args) = @_;
+
+	return $self->verify(
+		@args,
+		flags => Bitcoin::Crypto::Transaction::Flags->new_full
+	);
+}
+
 sub sign
 {
 	my ($self, %args) = @_;
@@ -1137,6 +1147,15 @@ issued.
 Including this parameter is deprecated - call C<set_block> before verifying instead.
 
 =back
+
+=head3 verify_standard
+
+	$object->verify_standard(%params)
+
+Same as L</verify>, but assumes a full set of verification C<flags>. This can
+be useful to determine whether the transaction is standard and will be relayed,
+as opposed to default set of flags which only validates the consensus layer
+(whether the transaction can be included in a block).
 
 =head3 is_coinbase
 

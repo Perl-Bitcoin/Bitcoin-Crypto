@@ -159,5 +159,12 @@ subtest 'checking low_s_signatures' => sub {
 	ok dies { $tx->verify(flags => $flags) }, 'checking with enabled low s signatures ok';
 };
 
+subtest 'checking verify_standard' => sub {
+	my $tx = btc_transaction->from_serialized([hex => $p2pk_low_s_sig]);
+
+	ok lives { $tx->verify }, 'checking with consensus rules ok';
+	ok dies { $tx->verify_standard }, 'checking with standard rules ok';
+};
+
 done_testing;
 
