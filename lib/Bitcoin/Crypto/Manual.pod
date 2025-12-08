@@ -69,11 +69,11 @@ controls th private key.
 
 =head3 Whitepaper and Bitcoin Improvement Proposals
 
-Original Bitcoin was proposed and implemented by Satoshi Nakamoto. The original
+Original Bitcoin was proposed and implemented by Satoshi Nakamoto. The first
 document which defines how Bitcoin works (without much detail) is called the
-Bitcoin Whitepaper. Since Bitcoin inception it has been modified heavily, and
-most influential changes were introduced as Bitcoin Improvement Proposals
-(I<BIPs>).
+Bitcoin Whitepaper. Since Bitcoin inception, the code has been modified
+heavily, and most influential changes were introduced as Bitcoin Improvement
+Proposals (I<BIPs>).
 
 Each BIP has its unique number and defines one change or new feature. It is
 very common to use some BIP numbers to refer to that change or feature. All
@@ -91,8 +91,8 @@ a piece of paper - this is called I<cold storage>. Secrets stored on a computer
 connected to an Internet are called I<hot storage>, and have greater than zero
 chance to be hacked. If possible, cold storage should be used for storing large
 sums, while hot storage can be used as "pocket money". Certain hardware wallets
-exist, which are not connected to the internet, but can be connected to and
-asked to sign a transaction.
+exist, which are not connected to the Internet, but can be connected to via a
+private channel and asked to sign a transaction.
 
 Key derivation uses standardized paths, referred to as I<BIP44>. This
 standardization allows different wallet software to access the coins stored on
@@ -111,10 +111,33 @@ dependencies. You are also required to have C<libsecp256k1> installed. If it
 isn't, L<Alien::libsecp256k1> will attempt to download and install it
 automatically.
 
+=head3 Backward compatibility
+
+Any behavior which is not explicitly documented is considered internal and may
+be changed without a deprecation period. This applies to: undocumented methods
+or functions, undocumented return values, undocumented side effects. Lacking
+documentation is therefore considered a bug and will be treated as such when
+reported.
+
+Developers of Bitcoin::Crypto promise not to break existing documented API
+without a good reason and a long deprecation period (at least one year). We
+value backward compatibility and consider it one of the greatest strengths of
+Perl. However, we reserve the right to break it in the following cases:
+
+=over
+
+=item * if breaking backcompat is required to fix a serious bug in function's behavior
+
+=item * if the function is documented as "advanced use only"
+
+=item * if the function was first introduced within one month of changing it (hotfixing)
+
+=back
+
 =head3 How to read the documentation?
 
 Most functions in this documentation have a code snippet showcasing the arguments
-used by the function. These lines are not meant to be valid perl. They're there
+used by the function. These lines are not meant to be valid Perl. They're there
 for you to understand what arguments the function expects.
 
 Most packages in this module have types of their thrown exceptions
@@ -810,7 +833,7 @@ types and what objects their serializers / deserializers use.
 
 A lot of work has been done to ensure Bitcoin::Crypto transaction decoding and
 verification performance is somewhat acceptable. Benchmarks on author's (not
-very powerful) machine has shown that up to legacy 600 transactions (each
+very powerful) machine has shown that up to 600 legacy transactions (each
 having 2 P2MS inputs) or 800 taproot transactions (each having 4 key spend
 inputs) can be decoded and verified per second, per process.
 
