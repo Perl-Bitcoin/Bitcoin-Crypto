@@ -313,7 +313,7 @@ Bitcoin::Crypto::Transaction::Signer - Construct a signature for any transaction
 
 This class implements a signer for transactions of any complexity. It is best
 used for custom transactions which cannot be signed by calling
-C<Bitcoin::Crypto::Key::Private/sign_transaction>.
+L<Bitcoin::Crypto::Key::Private/sign_transaction>.
 
 It works by running the script in the background, progressing it with each
 added signature. Executing the script allows finding the correct

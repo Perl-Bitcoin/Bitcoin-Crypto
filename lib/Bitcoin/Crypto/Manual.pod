@@ -23,9 +23,11 @@ capabilities:
 
 =back
 
-=head1 THE BASICS
+This document serves as a reference to working with Bitcoin::Crypto. It is not
+complete on its own, but it should refer you to other documentation pages with
+more detailed information about the given subject.
 
-=head2 Bitcoin protocol overview
+=head2 Bitcoin overview
 
 Bitcoin is a decentralized ledger of transactions. Transactions come in a
 sequence, one after another. This sequence is split into chunks, called blocks.
@@ -65,7 +67,7 @@ key. Once a transaction creates an UTXO to an address corresponding to a
 private/public keypair, the coins are considered to be owned by the person who
 controls th private key.
 
-=head2 Whitepaper and Bitcoin Improvement Proposals
+=head3 Whitepaper and Bitcoin Improvement Proposals
 
 Original Bitcoin was proposed and implemented by Satoshi Nakamoto. The original
 document which defines how Bitcoin works (without much detail) is called the
@@ -78,77 +80,396 @@ very common to use some BIP numbers to refer to that change or feature. All
 BIPs can be viewed in their GitHub repository:
 L<https://github.com/bitcoin/bips>.
 
-=head2 Storing and accessing secrets
+=head3 Storing and accessing secrets
 
-The primary method of storing private keys for Bitcoin is mnemonic phrases,
-which are sets of 12 to 24 human-readable words. Mnemonics can be imported and
-turned into an extended key, which can be used to derive unlimited number of
-addresses. Mnemonics can be stored securely away from devices connected to the
-Internet, or without a computer at all, for example written of a piece of paper
-- this is called I<cold storage>. Secrets stored on a computer connected to an
-Internet are called I<hot storage>, and have greater than zero chance to be
-hacked.
+The most widely used method of storing private keys for Bitcoin is mnemonic
+phrases, which are sets of 12 to 24 human-readable words. Mnemonics can be
+imported and turned into an extended key, which can be used to derive unlimited
+number of addresses. Mnemonics can be stored securely away from devices
+connected to the Internet, or without a computer at all, for example written of
+a piece of paper - this is called I<cold storage>. Secrets stored on a computer
+connected to an Internet are called I<hot storage>, and have greater than zero
+chance to be hacked. If possible, cold storage should be used for storing large
+sums, while hot storage can be used as "pocket money". Certain hardware wallets
+exist, which are not connected to the internet, but can be connected to and
+asked to sign a transaction.
 
 Key derivation uses standardized paths, referred to as I<BIP44>. This
 standardization allows different wallet software to access the coins stored on
-a mnemonic. Keys are derived using Hierarchical-Deterministic algorithm, and
-keys are generating in sequence. This ensures no coins will be lost within one
-mnemonic.
+a mnemonic. Such interoperability is a great strength of this solution, since
+it is easy to switch software vendor if needed. Keys are derived using
+Hierarchical-Deterministic algorithm, and they are generated in a sequence
+according to fund discovery algorithms. This ensures no coins will be lost
+within a mnemonic, as the same keys can be generated again deterministically.
 
-=head1 WHERE TO START?
+=head2 General information
 
-There are many goals which you may want to achieve with this module. Common
-topics include:
+=head3 Installation
+
+This module requires you to have access to a compiler to install some of its
+dependencies. You are also required to have C<libsecp256k1> installed. If it
+isn't, L<Alien::libsecp256k1> will attempt to download and install it
+automatically.
+
+=head3 How to read the documentation?
+
+Most functions in this documentation have a code snippet showcasing the arguments
+used by the function. These lines are not meant to be valid perl. They're there
+for you to understand what arguments the function expects.
+
+Most packages in this module have types of their thrown exceptions
+documented near the bottom of the document. The exceptions section may be
+useful to understand which types of exceptions can be thrown when using
+functions or methods from the package and what they mean. It is not meant to be
+a full list of exceptions a function can throw and unblessed errors may still
+be raised occasionally.
+
+=head3 Class shortcuts
+
+The most frequently used classes have their shortcuts starting with C<btc_>
+registered in L<Bitcoin::Crypto>. Examples are C<btc_prv> for basic private key
+or C<btc_transaction> for transactions. These shortcuts can make the code more
+compact and avoid manually requiring too many classes, but they are completely
+optional. If this style does not sound reasonable to you, feel free to ignore
+it.
+
+See L<Bitcoin::Crypto/SHORTCUT FUNCTIONS> for details.
+
+=head3 How to pass data to functions?
+
+Many frequently used functions (like C<from_serialized> commonly used in keys,
+scripts and transactions) require you to pass in a string of bytes. Bytestring
+is a string in which each character has numeric value less than or equal to
+C<255>. It is the default way to pass in data to functions in Bitcoin::Crypto.
+
+It is not rare that you may want to use some other format instead, like hex
+strings. To avoid duplicating functions for different formats or manually
+transforming data to a bytestring, the module uses data structures called
+I<format descriptions>. In any place where a bytestring is used you may instead
+use an array reference with exactly two elements. The first element must be a
+name of the format, and the second element is the actual data in that format.
+For strings of hex data, this may look like this:
+
+	use Bitcoin::Crypto qw(btc_prv);
+	my $private = btc_prv->from_serialized([hex => '152a3f549597a2bef783']);
+
+Currently supported values for the first argument are:
 
 =over
 
-=item * create a key pair for signature or address generation
+=item * C<hex> (hexadecimal string, may be prefixed by C<0x>)
 
-	use Bitcoin::Crypto qw(btc_prv);
+=item * C<base58> (base58-encoded string with the checksum)
 
-	# create a key pair from wif
+=item * C<base64> (base64-encoded string)
 
-	my $private = btc_prv->from_wif($wif_string);
-	my $public = $private->get_public_key;
+=back
 
-Start with L<Bitcoin::Crypto::Key::Private> if you already have some data you
-want to use as a private key entropy (like Bitcoin's C<WIF> format or hex
-data). If you'd like to generate list of words (a mnemonic) instead, see
-L<Bitcoin::Crypto::Util/generate_mnemonic> and
-L<Bitcoin::Crypto::Key::ExtPrivate/from_mnemonic>.
+It is also common for functions to return bytestrings (like C<to_serialized>).
+If you need help changing that output format you may use
+L<Bitcoin::Crypto::Util/to_format> helper function, which does the reverse
+operation:
 
-=item * generate many keys at once
+	use Bitcoin::Crypto::Util qw(to_format);
+	print to_format [hex => $private->to_serialized];
+
+=head3 How to pass commonly used script types to functions?
+
+Similar to format descriptions, you may use a I<script description> anywhere a
+script is expected. It is an array reference of two elements, where the first
+one is the short name of the script type, like C<P2WPKH>. The second one
+contains data specific to that script type, usually the address:
+
+	$transaction->add_output(
+		locking_script => [P2WPKH => 'bc1qr9htu5sy02q6kv6mx7axz2zdg3k9nrh8pe4l47'],
+	);
+
+You may also leave address detection up to the module by using the string C<address>:
+
+	# the same thing
+	$transaction->add_output(
+		locking_script => [address => 'bc1qr9htu5sy02q6kv6mx7axz2zdg3k9nrh8pe4l47'],
+	);
+
+Note that the script created like this always belongs to the currently set
+default network (C<bitcoin> by default). Passing address from the wrong network
+will result in an exception.
+
+See L<Bitcoin::Crypto::Script/from_standard> for more details.
+
+=head2 Support for other cryptocurrencies
+
+Bitcoin::Crypto has limited support for other cryptocurrency networks through
+L<Bitcoin::Crypto::Network>. The network must be fully compatible with Bitcoin
+(a Bitcoin clone or a strict subset of Bitcoin features) - no extra cases will
+exist in the code, only constant values can differ between the networks. Lack
+of certain constant values can be used to mark feature unsupported in the given
+network, for example lack of C<segwit_hrp> network constant will be interpreted
+as network not supporting Segregated Witness. Note that Bitcoin testnet is also
+considered a separate network.
+
+=head2 Working with Bitcoin::Crypto
+
+There are many goals which you may want to achieve with this module. It's hard
+to show a single learning path that will cover all use cases. Instead, common
+topics of interest are listed below, from basic to advanced.
+
+=head3 Selecting a network
+
+L<Bitcoin::Crypto::Network> allows you to choose the network, which has
+influence on some parts of the system, like generated addresses. If you want to
+work with default Bitcoin Mainnet, there is no need to select it manually. See
+L<Bitcoin::Crypto::Network/PREDEFINED NETWORKS> for a list of networks which
+can be used out of the box, without extra configuration.
+
+	use Bitcoin::Crypto::Network;
+
+	# put module into single-network mode and choose testnet
+	Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_single;
+
+Networks can be set globally through default network or on per-object basis for
+basic and extended keys, and scripts. Other parts of the system does not
+support per-object setting of networks and rely on the currently set default
+network. Setting keys for every object separately is considered an outdated
+feature which is kept for backwards compatibility (and convenience, sometimes).
+If you want to make sure all your keys are in the same, default network, see
+single-network mode in L<Bitcoin::Crypto::Network/single_network>, as shown
+above. This mode will disallow creation of objects with other network than the
+default. It can come handy if you are de-serializing keys from non-constant
+strings, for example fetched from the Internet or entered by the user.
+
+=head3 Working with Bitcoin-related encodings
+
+Although it isn't required when interacting with the module in a normal way,
+encodings like L<Bitcoin::Crypto::Base58> and L<Bitcoin::Crypto::Bech32> can be
+used standalone for custom purposes.
+
+	use Bitcoin::Crypto::Bech32 qw(encode_bech32);
+
+	# encode some data as bech32
+	my $encoded_str = encode_bech32('customdata', [25, 13, 31, 8, 0, 5]);
+
+You can validate an address and get its type using
+L<Bitcoin::Crypto::Util/get_address_type>. Wallet Import Format (I<WIF>)
+strings can be validated by L<Bitcoin::Crypto::Util/validate_wif>. When
+handling Bitcoin-related raw data, L<Bitcoin::Crypto::Util/pack_compactsize>
+and L<Bitcoin::Crypto::Util/unpack_compactsize> will prove themselves useful.
+
+=head3 Generating and importing a mnemonic
+
+Use L<Bitcoin::Crypto::Util/generate_mnemonic> to generate list of words which
+form a mnemonic, and L<Bitcoin::Crypto::Key::ExtPrivate/from_mnemonic> to turn
+it into an instance of extended private key. Mnemonic can be imported with a
+password, which generates a different mnemonic. Beware that the password cannot
+be recovered in any way (other than brute forcing) if it is forgotten.
 
 	use Bitcoin::Crypto qw(btc_extprv);
 	use Bitcoin::Crypto::Util qw(generate_mnemonic);
-	use Bitcoin::Crypto::BIP85;
 
-	# generate a mnemonic and derive more mnemonics from it deterministically
-
+	# generate a mnemonic and import it
 	my $mnemonic = generate_mnemonic;
-	my $generator = Bitcoin::Crypto::BIP85->new(
-		key => btc_extprv->from_mnemonic($mnemonic),
+	my $master_key = btc_extprv->from_mnemonic($mnemonic, $password);
+
+=head3 Deriving from a master key
+
+The key obtained by importing a mnemonic is called a I<master key> and should
+be derived before using it. The most common way of deriving it is BIP44, which
+can be performed by using L<Bitcoin::Crypto::Key::ExtPrivate/derive_key_bip44>.
+The way BIP44 works is it defines purposes (the context of derivation - what
+type of address is generated), accounts (arbitrary namespace for keys, which is
+a sequential number and can be increased at any time) and indexes (consecutive
+receiving addresses within an account). A key for account can be derived, which
+will then allow deriving multiple keys later.
+
+Here, we will get the extended key for the first account (C<account> 0 is
+implied) to be used with Segregated Witness addresses:
+
+	use Bitcoin::Crypto::Constants qw(:bip44);
+
+	my $account_key = $master_key->derive_key_bip44(
+		purpose => BIP44_SEGWIT_PURPOSE,
+		get_account => !!1,
 	);
 
+=head3 Obtaining a basic keypair from account
+
+Bitcoin basic private and public keys are essential for generating addresses
+and signing transactions.
+
+Here, we will get the first index from our account key (C<index> 0 is implied)
+and get an address from it. Since we specified C<BIP44_SEGWIT_PURPOSE> earlier,
+the address will be of type C<P2WPKH>, which is a native SegWit address.
+
+	# get the first index key from account key
+	my $extended_key = $account_key->derive_key_bip44(
+		get_from_account => !!1,
+	);
+
+	# get the basic key from extended key
+	my $private = $extended_key->get_basic_key;
+
+	# generate an address
+	my $public = $private->get_public_key;
+	say $public->get_address;
+
+You can also import a private key from serialized forms, like C<WIF>, though it
+is not as common as getting it from a mnemonic. See
+L<Bitcoin::Crypto::Key::Private> for more details.
+
+=head3 Generate entropy from mnemonic deterministically
+
+Another cool use of mnemonics is generating entropy from them
+deterministically. L<Bitcoin::Crypto::BIP85> lets you derive mnemonics, private
+keys or just entropy from a single extended private key.
+
+	use Bitcoin::Crypto::BIP85;
+
+	my $generator = Bitcoin::Crypto::BIP85->new(
+		key => $master_key,
+	);
+
+	# generate ten new mnemonics - this yields deterministic results
 	for my $i (0 .. 9) {
 		my $new_mnemonic = $generator->derive_mnemonic(index => $i);
+		say $new_mnemonic;
 	}
 
-L<Bitcoin::Crypto::BIP85> lets you derive mnemonics, private keys or just
-entropy from a single extended private key.
+=head3 Create a Bitcoin script
 
-L<Bitcoin::Crypto::Key::ExtPrivate> allows you to derive multiple keys from a
-master key, so you don't have to store multiple private keys.
-L<Bitcoin::Crypto::Key::ExtPublic> can be then used to derive public keys
-lazily. I<(Note: storing extended public keys together with private keys in a
-hot storage will put your extended private key at risk!)>
+L<Bitcoin::Crypto::Script> will help you build, de/serialize and run a script.
+L<Bitcoin::Crypto::Script::Runner> gives you more control over script
+execution, including running in the context of a certain transaction object, or
+running the script step by step, allowing introspection after each opcode.
 
-=item * create a transaction object from scratch or from serialized transaction data
+	use Bitcoin::Crypto qw(btc_script);
+
+	my $bytestring = "\x00" x 10;
+	my @initial = ($bytestring);
+
+	# create a script by hand and run it with an initial stack
+	my $runner = btc_script->new
+		->add('OP_SIZE')
+		->push_number(10)
+		->add('OP_NUMEQUAL')
+		->run(\@initial);
+
+	# check if the script succeeded
+	say 'success' if $runner->success;
+
+=head3 Transactions
+
+First and foremost, understand that in its nature Bitcoin::Crypto transaction
+system is B<just a reimplementation>. Reimplementations are known to have bugs
+which can make them insecure to be used as a full node - see
+L<https://bitcointalk.org/index.php?topic=260595.0>. In addition, it is rather
+ineffective to verify the entire blockchain using Perl + XS code. We focus on
+support for standard transaction types (see below). While we strive to be
+bug-free eventually, it's good to be realistic about capabilities of this
+module in real-life scenarios. Keep L</DISCLAIMER> in mind.
+
+=head4 Which types of transactions are supported?
+
+Bitcoin::Crypto test suite contains pretty thorough testing of the following
+output types:
+
+=over
+
+=item * P2PK (pay to public key - obsolete)
+
+=item * P2PKH (pay to public key hash - legacy)
+
+=item * P2SH (pay to script hash - legacy)
+
+=item * P2WPKH (pay to witness public key hash)
+
+=item * P2WSH (pay to witness script hash)
+
+=item * P2SH(P2WPKH) (P2WPKH inside P2SH)
+
+=item * P2SH(P2WSH) (P2WSH inside P2SH)
+
+=item * P2MS (pay to multisig, usually nested inside P2SH or P2WSH)
+
+=item * P2TR (pay to taproot, both key and script path spends)
+
+=item * NULLDATA (provably unspendable outputs with OP_RETURN)
+
+=back
+
+Be aware that Bitcoin::Crypto is required to pass pretty comprehensive Bitcoin
+Core tests suites for script execution and transaction verification before each
+release, so it should be supporting script of any complexity just fine.
+However, be extra careful when writing your own scripts, as the chance of
+making a mistake is much higher than when using standard key spending
+transactions.
+
+=head4 How we handle the UTXOs
+
+Normally, when using software which is working as a full node (such as Bitcoin
+Core) the blockchain history can be accessed without any extra steps, because
+they collect full blockchain data. Bitcoin::Crypto does not do that and depend
+on you to provide valid Unspent Transaction Outputs (UTXOs) before adding
+inputs to the transaction (or deserializing a transaction). You can get
+transaction data from your own Bitcoin full node or from external sources such
+as L<mempool.space>. UTXO data is necessary for performing many tasks on
+transactions, like calculating the fee, signing or verifying.
+
+You can register UTXOs manually using C<< btc_utxo->new(...)->register >> or
+automatically from a serialized transaction using C<< btc_utxo->extract >>. See
+L<Bitcoin::Crypto::Transaction::UTXO/register> and
+L<Bitcoin::Crypto::Transaction::UTXO/extract> for details. The process of
+getting transaction data can be automated using the
+L<Bitcoin::Crypto::Transaction::UTXO/set_loader> hook (for example, call some
+API to get the serialized transaction and use C<extract> on it).
+
+This means you can create valid transactions without the need to download,
+store and verify the entire Bitcoin blockchain. You only need to know which
+UTXOs belong to you. Once you have created a transaction and it got validated
+in the blockchain, you can call C<< $tx->update_utxos >> on it, which will
+invalidate the UTXOs it used and register its outputs as new UTXOs, which will
+reflect the changes that happened on the chain.
+
+Bitcoin::Crypto implements blocks as L<Bitcoin::Crypto::Block>. While
+transactions don't usually care about blocks at all, their objects can be
+passed as C<block> attribute in L<Bitcoin::Crypto::Transaction/new> and
+L<Bitcoin::Crypto::Transaction::UTXO/new>. Blocks can be used partially
+(without transactions) for the purpose of checking locktime or sequence of a
+transaction. Not specifying a block for a transaction will mean that locktime
+and sequence checks will always pass (and raise a warning).
+
+There is no way to set network (L<Bitcoin::Crypto::Network>) on
+per-transaction-object basis like you can do with keys. Most of transaction
+functionality is not network-dependent, but some addresses will be encoded
+using given network settings, which will be pulled from the default network.
+Note that only networks which use the B<exact> consensus rules of Bitcoin can
+be used successfully. No special cases for other networks will be implemented.
+
+=head4 Consensus vs standard
+
+Bitcoin validation rules are either enforced on consensus level (transaction is
+invalid if violated) or standardness level (transaction is rejected by
+mempool when violated). Transactions which follow the protocol but not the
+standard would still be valid if they were inserted into the block directly by
+the miner (skipping the mempool).
+
+Flags for certain consensus or standard rules are located in
+L<Bitcoin::Crypto::Transaction::Flags>. By default,
+L<Bitcoin::Crypto::Transaction/verify> uses only consensus rules, which can be
+dangerous to depend on, because it may make it much harder to spend such
+transaction. For complete check of standard rules,
+L<Bitcoin::Crypto::Transaction/verify_standard> can be used, which constructs
+flags object with all flags active.
+
+=head4 Creating a transaction object from scratch
+
+This extremely simple example creates a transaction with a single input and a
+single output. The transaction is not signed, and if the UTXO for the input was
+not yet registered, it will not be possible to do much with it other than
+inspecting it (as it will raise an exception when trying to fetch the UTXO).
 
 	use Bitcoin::Crypto qw(btc_transaction);
 
 	# create and dump a transaction
-
 	my $tx = btc_transaction->new;
 
 	$tx->add_input(
@@ -160,30 +481,204 @@ hot storage will put your extended private key at risk!)>
 		value => 1337,
 	);
 
-	print $tx->dump;
+	say $tx->dump;
 
-See L<Bitcoin::Crypto::Manual::Transactions>.
+=head4 Importing the UTXOs
 
-=item * utilize Bitcoin Script
+To be able to calculate fee, sign or verify the transaction, we must first
+import the UTXO for our input. We can do this with
+L<Bitcoin::Crypto::Transaction::UTXO>. This could be done automatically if we
+called L<Bitcoin::Crypto::Transaction::UTXO/extract> on a serialized
+transaction, but let's just build it by hand.
 
-	use Bitcoin::Crypto qw(btc_script);
+	use Bitcoin::Crypto qw(btc_utxo);
 
-	# create a script by hand and run it
+	my $utxo = btc_utxo->new(
+		txid => [hex => '9dd8d1ebba95d4ddc2b9fa21b9bc893385e9d5928d0d4835433f34b0ad4b9527'],
+		output_index => 0,
+		output => {
+			locking_script => [address => 'bc1pevxtvxmv9m2p202t9kcavhgfv2utcpy4zhpvxxqx6zcjll4f0c4ss6c2hy'],
+			value => 1500,
+		},
+	);
 
-	btc_script
-		->new
-		->push($bytestring)
-		->add('OP_SIZE')
-		->add('OP_10')
-		->add('OP_EQUALVERIFY')
-		->run;
+	# make this UTXO known to transactions
+	$utxo->register;
 
-L<Bitcoin::Crypto::Script> will help you build, de/serialize and run a script.
-L<Bitcoin::Crypto::Script::Runner> gives you more control over script execution,
-including running the script step by step, stopping after each opcode.
+After the call to L<Bitcoin::Crypto::Transaction::UTXO/register>, we can now
+call L<Bitcoin::Crypto::Transaction/fee> to calculate the fee. Without calling
+C<register>, it would raise an exception, because the previous output value was
+not known.
 
-=item * build script trees
+=head4 Automatically signing a transaction
 
+Since we created the UTXO as a C<P2TR> output (recognizable by the prefix
+C<bc1p>), we can automatically sign it with a private key:
+
+	# sign the first (and only) input
+	$private->sign_transaction($tx, signing_index => 0);
+
+	# verify if it worked - will raise an exception on failure
+	$tx->verify_standard;
+
+=head4 Manually signing transactions
+
+Lets assume a different scenario: we have a completely custom script which was
+embedded in a SegWit compatibility P2WSH script (C<P2SH(P2WSH)>). The script
+looks like this:
+
+	my $script = btc_script->new
+		->push_number(1)
+		->add('OP_EQUAL')
+		->add('OP_IF')
+			->push($serialized_external_public1)
+			->add('OP_CHECKSIG')
+		->add('OP_ELSE')
+			->push_number(2)
+			->push($public->to_serialized)
+			->push($serialized_external_public2)
+			->push_number(2)
+			->add('OP_CHECKMULTISIG')
+		->add('OP_ENDIF');
+
+This script conditionally checks either one signature, or a 2-of-2
+multisignature, based on the value of the first argument. Lets assume we own
+the private key to C<$public>, and C<$serialized_external_public1> and
+C<$serialized_external_public2> are owned by others. We are spending
+multisignature branch, and the owner of that key has already signed the
+transaction and handed the signature to us. Our job is to sign this transaction
+and broadcast it. How can we do it?
+
+After we build the transaction C<$tx> (same procedure as in L</Creating a
+transaction object from scratch>), we must sign it manually by calling
+L<Bitcoin::Crypto::Transaction/sign>. We must use C<compat> flag to mark it as
+a compat SegWit, and provide the script object.
+
+	# get the signer object
+	my $signer = $tx->sign(
+		signing_index => 0,
+		script => $script,
+		compat => !!1,
+	);
+
+Object C<$signer> is an instance of L<Bitcoin::Crypto::Transaction::Signer>,
+and lets us build our signature step by step. In our case, signing it should
+look like this:
+
+	$signer
+		->add_number(0)                      # enter the branch with OP_CHECKMULTISIG
+		->add_signature($external_signature) # add a known external signature
+		->add_signature($private)            # generate a signature using our private key
+		->finalize_multisig                  # end the OP_CHECKMULTISIG signing
+		->finalize;                          # apply changes to the transaction
+
+Note that even though in the script our public key came in first, we must
+reverse the order and add a signature for it as the second one. This is
+required because C<OP_CHECKMULTISIG> will remove them from initial stack in the
+reverse order (according to LIFO rule).
+
+When C<finalize> is called, the transaction is modified and it should now
+contain a valid signature (but always check with C<verify> or
+C<verify_standard>).
+
+=head4 More transaction examples
+
+Bundled directory C<ex/tx/> contains scripts with transactions which were
+published to the testnet chain. These scripts should provide a convenient
+starting base for anyone interested in hacking Bitcoin using Bitcoin::Crypto.
+
+Each example contains a short description and a link to the transaction in the
+blockchain explorer. The fact that these were successfully processed by the
+network is a good testament to module's faithfulness to consensus rules.
+However, we still strongly encourage using other tools or otherwise testing the
+transactions before broadcasting them to the network.
+
+=head4 Known problems with transactions
+
+Some unsolved problems are listed below. Contributions sorting out any of those
+are welcome!
+
+=over
+
+=item * Sigop limit for pre-taproot transactions is not checked
+
+Before taproot, limit of signature operations was defined for a block, not for
+a transaction. We currently do not check that.
+
+=back
+
+=head3 Taproot
+
+Taproot extends bitcoin functionality to add one new type of address (C<P2TR>),
+xonly public keys (32-byte public keys with only X coordinate), schnorr
+signatures, script trees and tapscripts (along with new C<OP_CHECKSIGADD>).
+Taproot outputs can be spent using key path (like C<P2PKH>) or script path
+(like C<P2SH>). There is no visual distiction between key path and script path
+spending before outputs are spent. In addition, taproot outputs can contain
+many scripts organized in a tree, and any single script can be used for
+spending without the need to reveal all scripts in the tree. Overall, taproot
+increases privacy, increases flexibility of scripts and reduces the size of
+transactions, which results in lower fees.
+
+=head4 Keys and derivation
+
+Taproot distinguishes between two types of keys: internal keys and output keys.
+Internal keys are like the regular ECC keypair, but the public key is
+serialized as 32 byte array xonly key (dropping the first byte of regular
+compressed serialization format). Output keys are internal keys that were
+tweaked with a taproot-specific procedure. Bitcoin::Crypto uses the same
+L<Bitcoin::Crypto::Key::Private> and L<Bitcoin::Crypto::Key::Public> instances
+for both internal and output keys. The difference is that output keys are
+marked with C<taproot_output> flag and uses schnorr algorithm for signing and
+verifying.
+
+You can use purpose number C<86> or
+L<Bitcoin::Crypto::Constants/BIP44_TAPROOT_PURPOSE> to
+L<BIP44|https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki>-derive
+extended keys in compilance with
+L<BIP86|https://github.com/bitcoin/bips/blob/master/bip-0086.mediawiki>.
+
+Bitcoin::Crypto's taproot handling should be opaque, so that you don't need to
+manually handle xonly public keys, taproot output keys and schnorr signatures.
+Standard keypair should be all you need most of the time.
+
+=head4 Constructing addresses
+
+L<Bitcoin::Crypto::Key::Public/get_address> returns taproot addresses by
+default. Method L<Bitcoin::Crypto::Key::Public/get_taproot_address> works like
+other address-generating methods, but can optionally accept an additional
+argument to support spending via a script. Taproot scripts can simultaneously
+be spendable using key path (like C<P2WPKH>) or script path (like C<P2WSH>). If
+you omit the extra argument, coins sent to address will only be spendable with
+the key path.
+
+To enable script path, the extra argument to the method mentioned above must be
+an instance of L<Bitcoin::Crypto::Script::Tree> (shortcut
+L<Bitcoin::Crypto/btc_script_tree>). Script trees are explained in
+L<BIP341|https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#user-content-Constructing_and_spending_Taproot_outputs>
+- they are binary trees with each leaf being a single script. When spending a
+taproot output, any script from a tree can be selected, and only this script
+must be revealed. All other scripts in the tree will stay private.
+
+Currently, all leaves in the tree must have C<leaf_version> equal to C<0xc0> or
+L<Bitcoin::Crypto::Constants/TAPSCRIPT_LEAF_VERSION>, according to
+L<BIP342|https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki>. Using
+this C<leaf_version> means that C<script> in the leaf must be an instance of
+L<Bitcoin::Crypto::Tapscript> (shortcut L<Bitcoin::Crypto/btc_tapscript>).
+Tapscripts are similar to scripts, but they use a different set of opcodes
+(L<Bitcoin::Crypto::Tapscript::Opcode>).
+
+To completely disable spending via key path (to force spending with scripts),
+"Nothing Up My Sleeve" L<Bitcoin::Crypto::Key::NUMS> can be used, which
+generates public keys that have no known private key counterparts.
+
+=head4 Building script trees
+
+L<Bitcoin::Crypto::Script::Tree> lets you create tapscript trees and utilize
+them in transactions. Every script spend requires a taproot tree, even if it
+contains just a single script.
+
+	use Bitcoin::Crypto::Constants qw(:script);
 	use Bitcoin::Crypto qw(btc_tapscript btc_script_tree);
 
 	my $script1 = btc_tapscript->new
@@ -227,152 +722,89 @@ including running the script step by step, stopping after each opcode.
 
 	my $merkle_root = $tree->get_merkle_root;
 
-L<Bitcoin::Crypto::Script::Tree> lets you create tapscript trees and utilize
-them in transactions.
+To be able to spend via script path you need to have the exact copy of script
+tree saved somewhere. L<Bitcoin::Crypto::Script::Tree> class has no
+serialization method, but L<Bitcoin::Crypto::PSBT> with C<PSBT_OUT_TAP_TREE>
+field can be used to store the entire unhashed script tree in base64 format.
 
-=item * work with Bitcoin-related encodings
-
-	use Bitcoin::Crypto::Bech32 qw(encode_bech32);
-
-	# encode some data as bech32
-
-	my $encoded_str = encode_bech32('customdata', [25, 13, 31, 8, 0, 5]);
-
-There are L<Bitcoin::Crypto::Base58> and L<Bitcoin::Crypto::Bech32>. PSBT
-format is supported in L<Bitcoin::Crypto::PSBT>. You can validate an address
-and get its type using L<Bitcoin::Crypto::Util/get_address_type>.
-
-=item * work with other cryptocurrencies
-
-	use Bitcoin::Crypto::Network;
-
-	# put module into single-network mode and choose testnet
-
-	Bitcoin::Crypto::Network->get('bitcoin_testnet')->set_single;
-
-You can work with any cryptocurrency as long as it is based on the same
-fundamentals as Bitcoin. You have to register a network in
-L<Bitcoin::Crypto::Network> first, with the protocol data valid for your
-cryptocurrency. Also see L</Support for other cryptocurrencies>
-
-=back
-
-=head1 GENERAL INFORMATION
-
-=head2 Installation
-
-This module requires you to have access to a compiler to install some of its
-dependencies. You are also required to have C<libsecp256k1> installed. If it
-isn't, L<Alien::libsecp256k1> will attempt to download and install it
-automatically.
-
-=head2 How to read the documentation?
-
-Most functions in this documentation have a code snippet showcasing the arguments
-used by the function. These lines are not meant to be valid perl. They're there
-for you to understand what arguments the function expects.
-
-Most packages in this module have types of their thrown exceptions
-documented near the bottom of the document. The exceptions section may be
-useful to understand which types of exceptions can be thrown when using
-functions or methods from the package and what they mean. It is not meant to be
-a full list of exceptions a function can throw and unblessed errors may still
-be raised occasionally.
-
-=head2 Class shortcuts
-
-The most frequently used classes have their shortcuts starting with C<btc_>
-registered in L<Bitcoin::Crypto>. Examples are C<btc_prv> for basic private key
-or C<btc_transaction> for transactions. These shortcuts can make the code more
-compact and avoid manually requiring too many classes, but they are completely
-optional. If this style does not sound reasonable to you, feel free to ignore
-it.
-
-See L<Bitcoin::Crypto/SHORTCUT FUNCTIONS> for details.
-
-=head2 How to pass data to functions?
-
-Many frequently used functions (like C<from_serialized> commonly used in keys,
-scripts and transactions) require you to pass in a string of bytes. Bytestring
-is a string in which each character has numeric value less than or equal to
-C<255>. It is the default way to pass in data to functions in Bitcoin::Crypto.
-
-It is not rare that you may want to use some other format instead, like hex
-strings. To avoid duplicating functions for different formats or manually
-transforming data to a bytestring, the module uses data structures called
-I<format descriptions>. In any place where a bytestring is used you may instead
-use an array reference with exactly two elements. The first element must be a
-name of the format, and the second element is the actual data in that format.
-For strings of hex data, this may look like this:
-
-	use Bitcoin::Crypto qw(btc_prv);
-	my $private = btc_prv->from_serialized([hex => '152a3f549597a2bef783']);
-
-Currently supported values for the first argument are:
+=head4 Various bits and pieces
 
 =over
 
-=item * C<hex> (hexadecimal string, may be prefixed by C<0x>)
+=item
 
-=item * C<base58> (base58-encoded string with the checksum)
+Public keys in scripts should be marked as C<taproot_output> keys. These are
+xonly keys, so they use a different way of serialization. Use sequence C<<
+$pubkey->get_taproot_output_key->get_xonly_key >> to get the tweaked output key
+as a bytestring. Alternatively, to avoid tweaking and use the key as-is, call
+C<< $privkey->set_taproot_output(1) >> before signing and use C<<
+$pubkey->get_xonly_key >> instead. This may be useful if you obtain a
+serialized copy of a key that was already tweaked or used for schnorr signatures.
 
-=item * C<base64> (base64-encoded string)
+=item
+
+To create a public key from 32-byte xonly public key, use
+L<Bitcoin::Crypto::Util/lift_x> by calling C<< btc_pub->from_serialized(lift_x
+$bytes) >>. Call C<set_taproot_output> on it if it is supposed to be a taproot
+output key (e.g. used in schnorr signatures).
+
+=item
+
+Encountering one of the new C<OP_SUCCESS> opcodes while compiling a tapscript
+will mark it as unconditionally valid. L<Bitcoin::Crypto::Script/operations> of
+such script may not be very useful after the first C<OP_SUCCESS> (may contain
+garbage), but calling L<Bitcoin::Crypto::Script::Runner/success> on the runner
+which compiled it will return C<true>.
 
 =back
 
-It is also common for functions to return bytestrings (like C<to_serialized>).
-If you need help changing that output format you may use
-L<Bitcoin::Crypto::Util/to_format> helper function, which does the reverse
-operation:
+=head2 Partially Signed Bitcoin Transactions
 
-	use Bitcoin::Crypto::Util qw(to_format);
-	print to_format [hex => $private->to_serialized];
+PSBT is a format for exchaning transaction data between parties in a
+standardized way. Each PSBT consists of Global, Input and Output maps. Each map
+consists of various fields which can be used to store data.
 
-=head2 How to pass commonly used script types to functions?
+Bitcoin::Crypto implements PSBT in L<Bitcoin::Crypto::PSBT>. It contains
+implementations of all fields from BIP174 (PSBTv0), BIP370 (PSBTv2) and BIP371
+(taproot fields). Our implementation uses serializers and deserializers to map
+binary PSBT data into Bitcoin::Crypto objects.
 
-Similar to format descriptions, you may use a I<script description> anywhere a
-script is expected. It is an array reference of two elements, where the first
-one is the short name of the script type, like C<P2WPKH>. The second one
-contains data specific to that script type, usually the address:
+Following example (taken from C<ex/tx/taproot_script_create.pl>) creates a
+minimal PSBTv0 to store a taproot script tree and a NUMS public key. It depends
+on serializers to turn Perl objects into binary data:
 
-	$transaction->add_output(
-		locking_script => [P2WPKH => 'bc1qr9htu5sy02q6kv6mx7axz2zdg3k9nrh8pe4l47'],
+	use Bitcoin::Crypto qw(btc_psbt);
+
+	# create a PSBT with tree and public key saved for later
+	my $psbt = btc_psbt->new;
+	$psbt->add_field(
+		type => 'PSBT_GLOBAL_UNSIGNED_TX',
+		value => $tx,
+	);
+	$psbt->add_field(
+		type => 'PSBT_OUT_TAP_INTERNAL_KEY',
+		value => $public,
+		index => 0,
+	);
+	$psbt->add_field(
+		type => 'PSBT_OUT_TAP_TREE',
+		value => $tree,
+		index => 0,
 	);
 
-You may also leave address detection up to the module by using the string C<address>:
+	say 'PSBT with tree and internal key: ' . to_format [base64 => $psbt->to_serialized];
 
-	# the same thing
-	$transaction->add_output(
-		locking_script => [address => 'bc1qr9htu5sy02q6kv6mx7axz2zdg3k9nrh8pe4l47'],
-	);
+Following example (taken from C<ex/tx/taproot_script_redeem.pl>) decodes a that
+PSBT and pulls data out of it:
 
-Note that the script created like this always belongs to the currently set
-default network (C<bitcoin> by default). Passing address from the wrong network
-will result in an exception.
+	my $psbt = btc_psbt->from_serialized([base64 => $b64_psbt]);
 
-See L<Bitcoin::Crypto::Script/from_standard> for more details.
+	my $prev_tx = $psbt->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value;
+	my $tree = $psbt->get_field('PSBT_OUT_TAP_TREE', 0)->value;
+	my $public_key = $psbt->get_field('PSBT_OUT_TAP_INTERNAL_KEY', 0)->value;
 
-=head2 Support for other cryptocurrencies
-
-Bitcoin::Crypto has limited support for other cryptocurrency networks through
-L<Bitcoin::Crypto::Network>. The network must be fully compatible with Bitcoin
-(a Bitcoin clone or a strict subset of Bitcoin features) - no extra cases will
-exist in the code, only constant values can differ between the networks. Lack
-of certain constant values can be used to mark feature unsupported in the given
-network, for example lack of C<segwit_hrp> network constant will be interpreted
-as network not supporting Segregated Witness. Note that Bitcoin testnet is also
-considered a separate network.
-
-Networks can be set globally through default network or on per-object basis for
-basic and extended keys, and scripts. Other parts of the system does not
-support per-object setting of networks and rely on the currently set default
-network. Setting keys for every object separately is considered an outdated
-feature which is kept for backwards compatibility (and convenience, sometimes).
-If you want to make sure all your keys are in the same, default network, see
-single-network mode in L<Bitcoin::Crypto::Network/single_network>. This mode
-will disallow creation of objects with other network than the default. It can
-come handy if you are de-serializing keys from non-constant strings, for
-example fetched from the Internet or entered by the user.
+See L<Bitcoin::Crypto::PSBT> for more details and a complete reference of field
+types and what objects their serializers / deserializers use.
 
 =head2 Performance
 
@@ -397,6 +829,26 @@ below. Module will use them if they can be loaded.
 
 =back
 
+=head2 Module development and TODOs
+
+There is no official roadmap for developing new Bitcoin::Crypto features. The
+library tries to stay up to date with most impactful additions to the protocol,
+but no promises can be made.
+
+I will gladly accept help working on these:
+
+=over
+
+=item * All issues with L<help wanted|https://github.com/Perl-Bitcoin/Bitcoin-Crypto/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22help%20wanted%22> tag on GitHub
+
+=item * Test improvements
+
+=item * Documentation improvements
+
+=item * Performance improvements
+
+=back
+
 =head1 DISCLAIMER
 
 Although the module was written with an extra care and appropriate tests are in
@@ -407,19 +859,47 @@ themselves, review the test cases and use the module with care. Suggestions for
 improvements and more edge cases to test will be gladly accepted, but there is
 B<no warranty on funds manipulated by this module>.
 
-=head1 TODO
+=head1 SUPPORT
 
-I will gladly accept help working on these:
+Use the L<GitHub
+bugtracker|https://github.com/Perl-Bitcoin/Bitcoin-Crypto/issues> to report
+issues. If you have any questions, ask them on L<GitHub
+discussions|https://github.com/orgs/Perl-Bitcoin/discussions>.
+
+=head1 SEE ALSO
+
+L<Bitcoin Whitepaper|https://bitcoin.org/en/bitcoin-paper>
+
+L<Bitcoin BIPs|https://github.com/bitcoin/bips>
+
+L<Bitcoin::BIP39>
+
+L<Bitcoin::Secp256k1>
+
+L<App::Bitcoin::PaperWallet>
+
+=head1 AUTHOR
+
+Bartosz Jarzyna E<lt>bbrtj.pro@gmail.comE<gt>
+
+Consider supporting my effort: L<https://bbrtj.eu/support>
+
+=head2 Contributors
+
+In no particular order:
 
 =over
 
-=item * All issues with C<help wanted> tag on GitHub
+=item * Reginaldo Costa
 
-=item * Better error checking (edge cases etc.)
-
-=item * Better test coverage
+=item * chromatic
 
 =back
 
-=cut
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2018 - 2025 by Bartosz Jarzyna
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 

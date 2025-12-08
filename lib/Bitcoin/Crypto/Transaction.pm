@@ -863,7 +863,7 @@ standard transaction types. Widely used C<P2PKH>, C<P2SH>, their SegWit
 counterparts, C<P2TR> and C<P2MS> are thoroughly tested and should be safe to
 use. Still, keep L<Bitcoin::Crypto::Manual/DISCLAIMER> in mind.
 
-See L<Bitcoin::Crypto::Manual::Transactions> for details and guidelines.
+See L<Bitcoin::Crypto::Manual/Transactions> for details and guidelines.
 
 =head1 INTERFACE
 
@@ -1125,7 +1125,7 @@ NOTE: it does not verify the transaction by itself.
 Verifies the transaction according to the Bitcoin consensus rules. Returns
 nothing, but will throw an exception if the verification failed.
 
-See L<Bitcoin::Crypto::Manual::Transactions/Current known problems with transactions>.
+See L<Bitcoin::Crypto::Manual/Known problems with transactions>.
 
 C<%params> can be any of:
 

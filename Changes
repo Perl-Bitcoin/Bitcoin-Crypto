@@ -38,6 +38,11 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- removed ScriptSuccess exception class
 	- removed ScriptSyntax exception class
 
+	[Documentation]
+	- Bitcoin::Crypto::Manual has been rewritten and extended
+	- Bitcoin::Crypto::Manual::Transactions has been merged into base manual
+	- Bitcoin::Crypto::Manual::Taproot has been merged into base manual
+
 	[Improvements and behavior changes]
 	- module now stores secrets in inside-out objects, and is aware of Crypt::SecretBuffer
 	- future segwit versions are now recognized as UNKNOWN_SEGWIT script types
