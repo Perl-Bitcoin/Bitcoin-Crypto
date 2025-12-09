@@ -225,7 +225,7 @@ sub finalize_multisignature
 		'not on multisignature opcode'
 	) unless $self->_multisigop;
 
-	# add mandatory nulldummy element
+	# add mandatory null dummy element
 	$self->add_bytes('');
 	$self->_step_over_sigop;
 

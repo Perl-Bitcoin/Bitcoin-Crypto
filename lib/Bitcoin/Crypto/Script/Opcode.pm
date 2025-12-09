@@ -257,7 +257,7 @@ sub _OP_PUSHDATA
 		my ($runner, $bytes) = @_;
 
 		$runner->_invalid_script("push opcode for data is not minimal in $opcode_name")
-			if $runner->flags->minimaldata && !standard_push($opcode_name, $bytes);
+			if $runner->flags->minimal_data && !standard_push($opcode_name, $bytes);
 
 		push @{$runner->stack}, $bytes;
 		$class->_verify_stack($runner);
@@ -315,10 +315,10 @@ sub _OP_IF
 		$runner->_stack_error unless @$stack >= 1;
 		my $value = pop @$stack;
 
-		my $minimalif = $runner->is_tapscript
-			|| ($runner->has_transaction && $runner->transaction->is_segwit && $runner->flags->minimalif);
+		my $minimal_if = $runner->is_tapscript
+			|| ($runner->has_transaction && $runner->transaction->is_segwit && $runner->flags->minimal_if);
 
-		$value = $minimalif ? $runner->to_minimal_bool($value) : $runner->to_bool($value);
+		$value = $minimal_if ? $runner->to_minimal_bool($value) : $runner->to_bool($value);
 		$runner->_invalid_script('OP_IF argument is not minimal') unless defined $value;
 
 		$value = !$value if $inverted;
@@ -1076,7 +1076,7 @@ sub _OP_CHECKSIG
 		my $result = __checksig($runner, $sig, $hashtype, $raw_pubkey, $preimage);
 
 		$runner->_script_error('non-empty signature verification failed')
-			if !$result && $runner->flags->nullfail && $sig ne '';
+			if !$result && $runner->flags->null_fail && $sig ne '';
 
 		push @$stack, $runner->from_bool($result);
 	};
@@ -1127,7 +1127,7 @@ sub _OP_CHECKMULTISIG
 		$runner->_stack_error unless @$stack >= 1;
 		my $unused = pop @$stack;
 		$runner->_script_error('OP_CHECKMULTISIG dummy argument must be empty')
-			if $runner->flags->nulldummy && length $unused;
+			if $runner->flags->null_dummy && length $unused;
 
 		my $found = !!1;
 		my %digests;
@@ -1152,7 +1152,7 @@ sub _OP_CHECKMULTISIG
 		# last one was found correctly
 		my $result = $found && !@signatures_left;
 		$runner->_script_error('non-empty signature verification failed')
-			if !$result && $runner->flags->nullfail && notall { $_ eq '' } @signatures;
+			if !$result && $runner->flags->null_fail && notall { $_ eq '' } @signatures;
 
 		push @$stack, $runner->from_bool($result);
 	};

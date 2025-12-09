@@ -24,14 +24,14 @@ subtest 'checking new_empty' => sub {
 	my $flags = Bitcoin::Crypto::Transaction::Flags->new_empty(p2sh => !!1);
 
 	ok $flags->p2sh, 'p2sh ok';
-	ok !$flags->nulldummy, 'nulldummy ok';
+	ok !$flags->null_dummy, 'null_dummy ok';
 };
 
 subtest 'checking new_full' => sub {
-	my $flags = Bitcoin::Crypto::Transaction::Flags->new_full(nullfail => !!0);
+	my $flags = Bitcoin::Crypto::Transaction::Flags->new_full(null_fail => !!0);
 
-	ok !$flags->nullfail, 'nullfail ok';
-	ok $flags->cleanstack, 'cleanstack ok';
+	ok !$flags->null_fail, 'null_fail ok';
+	ok $flags->clean_stack, 'clean_stack ok';
 };
 
 subtest 'checking p2sh' => sub {
@@ -54,15 +54,15 @@ subtest 'checking p2sh' => sub {
 	ok lives { $tx->verify(flags => $flags) }, 'checking with disabled p2sh ok';
 };
 
-subtest 'checking nulldummy' => sub {
-	my $flags = Bitcoin::Crypto::Transaction::Flags->new(nulldummy => !!0);
+subtest 'checking null_dummy' => sub {
+	my $flags = Bitcoin::Crypto::Transaction::Flags->new(null_dummy => !!0);
 	my $tx = btc_transaction->from_serialized([hex => $p2wsh_multisig]);
 
-	# modify nulldummy element
+	# modify null_dummy element
 	$tx->inputs->[0]->witness->[0] = "\x01";
 
 	ok dies { $tx->verify }, 'checking with all flags ok';
-	ok lives { $tx->verify(flags => $flags) }, 'checking with disabled nulldummy ok';
+	ok lives { $tx->verify(flags => $flags) }, 'checking with disabled null_dummy ok';
 };
 
 subtest 'checking checklocktimeverify' => sub {

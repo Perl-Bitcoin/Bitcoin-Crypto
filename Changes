@@ -15,15 +15,16 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Transaction::Flags:
 		- added new_full method
 		- renamed strict_signatures flag to der_signatures
+		- renamed nulldummy flag to null_dummy
 		- added strict_sigantures method
 		- added signature_pushes_only flag
-		- added minimalif flag
+		- added minimal_if flag
 		- added compressed_pubkeys flag
 		- added strict_encoding flag
 		- added low_s_signatures flag
-		- added minimaldata flag
-		- added nullfail flag
-		- added cleanstack flag
+		- added minimal_data flag
+		- added null_fail flag
+		- added clean_stack flag
 		- added const_script flag
 		- added known_witness flag
 		- added illegal_upgradeable_nops flag

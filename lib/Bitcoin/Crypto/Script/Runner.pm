@@ -130,7 +130,7 @@ sub to_int
 	}
 
 	die_no_trace 'number is not minimally encoded'
-		if ref $self && $self->flags->minimaldata && $bytes ne $self->from_int($value);
+		if ref $self && $self->flags->minimal_data && $bytes ne $self->from_int($value);
 
 	return $value;
 }
@@ -410,12 +410,12 @@ sub success
 	return !!0 if !$stack->[-1];
 	return !!0 if !$self->to_bool($stack->[-1]);
 
-	# NOTE: cleanstack rule does not check altstack, because altstack can only
+	# NOTE: clean_stack rule does not check altstack, because altstack can only
 	# be manipulated by the script itself, so there is no chance for witness
 	# malleability
 	if (@$stack > 1) {
 		my $segwit = $self->has_transaction && $self->transaction->is_native_segwit;
-		return !!0 if $segwit || $self->is_tapscript || $self->flags->cleanstack;
+		return !!0 if $segwit || $self->is_tapscript || $self->flags->clean_stack;
 	}
 
 	return !!1;
@@ -666,7 +666,7 @@ machines.
 =head3 from_bool
 
 These methods encode and decode booleans in format which is used on L</stack>.
-C<to_minimal_bool> variant is used to enforce MINIMALIF rule.
+C<to_minimal_bool> variant is used to enforce L<Bitcoin::Crypto::Transaction::Flags/minimal_if>.
 
 =head3 stack_serialized
 
