@@ -750,6 +750,18 @@ tree saved somewhere. L<Bitcoin::Crypto::Script::Tree> class has no
 serialization method, but L<Bitcoin::Crypto::PSBT> with C<PSBT_OUT_TAP_TREE>
 field can be used to store the entire unhashed script tree in base64 format.
 
+Notice how each leaf in the tree can have an C<id>. This is the way
+Bitcoin::Crypto locates the leaf in various places, for example in
+L<Bitcoin::Crypto::Util/get_taproot_ext> or in
+L<Bitcoin::Crypto::Transaction::Signer/leaf_id>. However, since it is a custom
+part of this structure which is not serialized in PSBT, often you have to give
+an ID to a structure which is already created. In this case, you can add an
+C<id> directly into a structure in L<Bitcoin::Crypto::Script::Tree/tree>, and
+then call L<Bitcoin::Crypto::Script::Tree/clear_tree_cache>:
+
+	$tree->tree->[0]{id} = 0;
+	$tree->clear_tree_cache;
+
 =head4 Various bits and pieces
 
 =over

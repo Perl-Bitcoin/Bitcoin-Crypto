@@ -401,6 +401,14 @@ of L<Bitcoin::Crypto::Transaction::ControlBlock>.
 Returns a hash reference of paths for each of leaves in the tree which have an
 id. Each path is an array reference - same as what L</from_path> takes as input.
 
+=head3 clear_tree_cache
+
+	$tree->clear_tree_cache()
+
+Clears the internal cache of the tree, forcing recalculation of merkle root and
+all leaf hashes. Must be done after the internal structure of the tree
+changed.
+
 =head1 EXCEPTIONS
 
 This module throws an instance of L<Bitcoin::Crypto::Exception> if it
