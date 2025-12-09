@@ -36,7 +36,7 @@ block with a certain hashed value. That value is adjusted periodically, so that
 each block is mined every 10 minutes (on average). The entire point of mining
 is to prove that a significant amount of time and energy was spent finding a
 block. This is called I<Proof of Work> (PoW), and is a way to gain trust in a
-trustless, decentralized system. Miner which found a block has the right to
+trustless, decentralized system. Miner who found a block has the right to
 inject a limited number of new coins into the system, which is how all coins in
 existence were created.
 
@@ -56,7 +56,7 @@ execution of locking script, in form of I<signature script> or I<witness>. Vast
 majority of output scripts contain a public key and signature checking against
 the serialized form of the transaction.
 
-To prove ownership of coins, Bitcoin uses assymetric cryptography over an
+To prove ownership of coins, Bitcoin uses asymmetric cryptography over a
 C<secp256k1> Elliptic Curve. Most bitcoin locking scripts are standard type
 scripts, which can be recognized as I<addresses>. Each private/public keypair
 corresponds to a single address. An example of a standard script is C<P2TR>
@@ -65,13 +65,13 @@ address starting with C<bc1p>. That address contains the public key, and
 spending coins sent to it requires a signature from the corresponding private
 key. Once a transaction creates an UTXO to an address corresponding to a
 private/public keypair, the coins are considered to be owned by the person who
-controls th private key.
+controls the private key.
 
 =head3 Whitepaper and Bitcoin Improvement Proposals
 
 Original Bitcoin was proposed and implemented by Satoshi Nakamoto. The first
 document which defines how Bitcoin works (without much detail) is called the
-Bitcoin Whitepaper. Since Bitcoin inception, the code has been modified
+Bitcoin whitepaper. Since Bitcoin inception, the code has been modified
 heavily, and most influential changes were introduced as Bitcoin Improvement
 Proposals (I<BIPs>).
 
@@ -84,15 +84,15 @@ L<https://github.com/bitcoin/bips>.
 
 The most widely used method of storing private keys for Bitcoin is mnemonic
 phrases, which are sets of 12 to 24 human-readable words. Mnemonics can be
-imported and turned into an extended key, which can be used to derive unlimited
-number of addresses. Mnemonics can be stored securely away from devices
-connected to the Internet, or without a computer at all, for example written of
-a piece of paper - this is called I<cold storage>. Secrets stored on a computer
-connected to an Internet are called I<hot storage>, and have greater than zero
-chance to be hacked. If possible, cold storage should be used for storing large
-sums, while hot storage can be used as "pocket money". Certain hardware wallets
-exist, which are not connected to the Internet, but can be connected to via a
-private channel and asked to sign a transaction.
+imported and turned into an extended key, which can be used to derive an
+unlimited number of addresses. Mnemonics can be stored securely away from
+devices connected to the Internet, or without a computer at all, for example
+written on a piece of paper - this is called I<cold storage>. Secrets stored on
+a computer connected to the Internet are called I<hot storage>, and have a
+greater than zero chance to be hacked. If possible, cold storage should be used
+for storing large sums, while hot storage can be used as "pocket money".
+Certain hardware wallets exist, which are not connected to the Internet, but
+can be connected via a private channel and asked to sign a transaction.
 
 Key derivation uses standardized paths, referred to as I<BIP44>. This
 standardization allows different wallet software to access the coins stored on
@@ -140,7 +140,7 @@ Most functions in this documentation have a code snippet showcasing the argument
 used by the function. These lines are not meant to be valid Perl. They're there
 for you to understand what arguments the function expects.
 
-Most packages in this module have types of their thrown exceptions
+Packages in this module often have types of their thrown exceptions
 documented near the bottom of the document. The exceptions section may be
 useful to understand which types of exceptions can be thrown when using
 functions or methods from the package and what they mean. It is not meant to be
@@ -161,11 +161,11 @@ See L<Bitcoin::Crypto/SHORTCUT FUNCTIONS> for details.
 =head3 How to pass data to functions?
 
 Many frequently used functions (like C<from_serialized> commonly used in keys,
-scripts and transactions) require you to pass in a string of bytes. Bytestring
+scripts and transactions) require you to pass in a bytestring. Bytestring
 is a string in which each character has numeric value less than or equal to
 C<255>. It is the default way to pass in data to functions in Bitcoin::Crypto.
 
-It is not rare that you may want to use some other format instead, like hex
+It is common that you may want to use some other format instead, like hex
 strings. To avoid duplicating functions for different formats or manually
 transforming data to a bytestring, the module uses data structures called
 I<format descriptions>. In any place where a bytestring is used you may instead
@@ -257,8 +257,8 @@ network. Setting keys for every object separately is considered an outdated
 feature which is kept for backwards compatibility (and convenience, sometimes).
 If you want to make sure all your keys are in the same, default network, see
 single-network mode in L<Bitcoin::Crypto::Network/single_network>, as shown
-above. This mode will disallow creation of objects with other network than the
-default. It can come handy if you are de-serializing keys from non-constant
+above. This mode will disallow creation of objects with a network other than
+the default. It can come handy if you are de-serializing keys from non-constant
 strings, for example fetched from the Internet or entered by the user.
 
 =head3 Working with Bitcoin-related encodings
@@ -359,10 +359,11 @@ keys or just entropy from a single extended private key.
 
 =head3 Create a Bitcoin script
 
-L<Bitcoin::Crypto::Script> will help you build, de/serialize and run a script.
-L<Bitcoin::Crypto::Script::Runner> gives you more control over script
-execution, including running in the context of a certain transaction object, or
-running the script step by step, allowing introspection after each opcode.
+L<Bitcoin::Crypto::Script> will help you build, serialize, deserialize and run
+a script.  L<Bitcoin::Crypto::Script::Runner> gives you more control over
+script execution, including running in the context of a certain transaction
+object, or running the script step by step, allowing introspection after each
+opcode.
 
 	use Bitcoin::Crypto qw(btc_script);
 
@@ -388,7 +389,7 @@ L<https://bitcointalk.org/index.php?topic=260595.0>. In addition, it is rather
 ineffective to verify the entire blockchain using Perl + XS code. We focus on
 support for standard transaction types (see below). While we strive to be
 bug-free eventually, it's good to be realistic about capabilities of this
-module in real-life scenarios. Keep L</DISCLAIMER> in mind.
+module in real-life scenarios. Be aware of the L</DISCLAIMER>.
 
 =head4 Which types of transactions are supported?
 
@@ -492,7 +493,7 @@ inspecting it (as it will raise an exception when trying to fetch the UTXO).
 
 	use Bitcoin::Crypto qw(btc_transaction);
 
-	# create and dump a transaction
+	# create a transaction
 	my $tx = btc_transaction->new;
 
 	$tx->add_input(
@@ -504,6 +505,7 @@ inspecting it (as it will raise an exception when trying to fetch the UTXO).
 		value => 1337,
 	);
 
+	# dump it in human-readable form
 	say $tx->dump;
 
 =head4 Importing the UTXOs
@@ -618,8 +620,8 @@ transactions before broadcasting them to the network.
 
 =head4 Known problems with transactions
 
-Some unsolved problems are listed below. Contributions sorting out any of those
-are welcome!
+Issues with transaction verification algorithms are listed below. Contributions
+sorting out any of those are welcome!
 
 =over
 
@@ -636,7 +638,7 @@ Taproot extends bitcoin functionality to add one new type of address (C<P2TR>),
 xonly public keys (32-byte public keys with only X coordinate), schnorr
 signatures, script trees and tapscripts (along with new C<OP_CHECKSIGADD>).
 Taproot outputs can be spent using key path (like C<P2PKH>) or script path
-(like C<P2SH>). There is no visual distiction between key path and script path
+(like C<P2SH>). There is no visual distinction between key path and script path
 spending before outputs are spent. In addition, taproot outputs can contain
 many scripts organized in a tree, and any single script can be used for
 spending without the need to reveal all scripts in the tree. Overall, taproot
@@ -658,7 +660,7 @@ verifying.
 You can use purpose number C<86> or
 L<Bitcoin::Crypto::Constants/BIP44_TAPROOT_PURPOSE> to
 L<BIP44|https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki>-derive
-extended keys in compilance with
+extended keys in compliance with
 L<BIP86|https://github.com/bitcoin/bips/blob/master/bip-0086.mediawiki>.
 
 Bitcoin::Crypto's taproot handling should be opaque, so that you don't need to
@@ -795,9 +797,10 @@ which compiled it will return C<true>.
 
 =head2 Partially Signed Bitcoin Transactions
 
-PSBT is a format for exchaning transaction data between parties in a
-standardized way. Each PSBT consists of Global, Input and Output maps. Each map
-consists of various fields which can be used to store data.
+PSBT is a format for exchanging transaction data between parties in a
+standardized way. Each PSBT consists of maps, which are containers for values.
+There are Global, Input and Output maps, and each consists of various fields
+which can be used to store data. Fields each have an optional key and a value.
 
 Bitcoin::Crypto implements PSBT in L<Bitcoin::Crypto::PSBT>. It contains
 implementations of all fields from BIP174 (PSBTv0), BIP370 (PSBTv2) and BIP371
@@ -845,7 +848,7 @@ types and what objects their serializers / deserializers use.
 
 A lot of work has been done to ensure Bitcoin::Crypto transaction decoding and
 verification performance is somewhat acceptable. Benchmarks on author's (not
-very powerful) machine has shown that up to 600 legacy transactions (each
+very powerful) machine have shown that up to 600 legacy transactions (each
 having 2 P2MS inputs) or 800 taproot transactions (each having 4 key spend
 inputs) can be decoded and verified per second, per process.
 
@@ -870,7 +873,7 @@ There is no official roadmap for developing new Bitcoin::Crypto features. The
 library tries to stay up to date with most impactful additions to the protocol,
 but no promises can be made.
 
-I will gladly accept help working on these:
+Contributions are welcome for:
 
 =over
 
@@ -897,13 +900,13 @@ B<no warranty on funds manipulated by this module>.
 =head1 SUPPORT
 
 Use the L<GitHub
-bugtracker|https://github.com/Perl-Bitcoin/Bitcoin-Crypto/issues> to report
+bug tracker|https://github.com/Perl-Bitcoin/Bitcoin-Crypto/issues> to report
 issues. If you have any questions, ask them on L<GitHub
 discussions|https://github.com/orgs/Perl-Bitcoin/discussions>.
 
 =head1 SEE ALSO
 
-L<Bitcoin Whitepaper|https://bitcoin.org/en/bitcoin-paper>
+L<Bitcoin whitepaper|https://bitcoin.org/en/bitcoin-paper>
 
 L<Bitcoin BIPs|https://github.com/bitcoin/bips>
 
