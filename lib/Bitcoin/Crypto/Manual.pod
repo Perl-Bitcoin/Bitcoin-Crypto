@@ -339,7 +339,7 @@ You can also import a private key from serialized forms, like C<WIF>, though it
 is not as common as getting it from a mnemonic. See
 L<Bitcoin::Crypto::Key::Private> for more details.
 
-=head3 Generate entropy from mnemonic deterministically
+=head3 Generating entropy from mnemonic deterministically
 
 Another cool use of mnemonics is generating entropy from them
 deterministically. L<Bitcoin::Crypto::BIP85> lets you derive mnemonics, private
@@ -357,7 +357,7 @@ keys or just entropy from a single extended private key.
 		say $new_mnemonic;
 	}
 
-=head3 Create a Bitcoin script
+=head3 Creating a Bitcoin script
 
 L<Bitcoin::Crypto::Script> will help you build, serialize, deserialize and run
 a script.  L<Bitcoin::Crypto::Script::Runner> gives you more control over
@@ -379,6 +379,18 @@ opcode.
 
 	# check if the script succeeded
 	say 'success' if $runner->success;
+
+=head3 Deserializing a block
+
+L<Bitcoin::Crypto::Block> is a class which can be used to deserialize a raw
+Bitcoin block. Deserializing automatically verifies the merkle root of a block.
+All transactions created this way are set as belonging to the block.
+
+	use Bitcoin::Crypto qw(btc_block);
+
+	# deserialize and dump a block
+	my $block = btc_block->from_serialized($raw_block_data);
+	say $block->dump;
 
 =head3 Transactions
 
