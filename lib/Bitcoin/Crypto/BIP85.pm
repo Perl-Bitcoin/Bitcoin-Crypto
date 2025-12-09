@@ -203,7 +203,7 @@ using L<Bitcoin::Crypto::Key::Private/to_wif>.
 
 This application returns an extended private key instead of its serialized
 version, but can be serialized using
-L</Bitcoin::Crypto::Key::ExtPrivate/to_serialized>.
+L<Bitcoin::Crypto::Key::ExtPrivate/to_serialized>.
 
 =item * C<HEX>: L</derive_bytes>
 

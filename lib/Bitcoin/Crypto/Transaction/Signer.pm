@@ -381,8 +381,8 @@ tapscript) is used.
 	$signer = $class->new(%args)
 
 This is a standard Moo constructor, which can be used to create the object. It
-takes arguments specified in L</Attributes>. Usually, there is no need to call
-this method directly, as it will be called by
+takes arguments specified in L</Common attributes> and L</Taproot attributes>.
+Usually, there is no need to call this method directly, as it will be called by
 L<Bitcoin::Crypto::Transaction/sign> on the correct Signer subclass.
 
 Returns class instance.

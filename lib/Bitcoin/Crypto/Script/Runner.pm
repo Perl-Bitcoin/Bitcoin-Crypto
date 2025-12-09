@@ -639,7 +639,9 @@ Returns true if currently executed script is a tapscript.
 
 =head2 Helper methods
 
-=head3 to_int, from_int
+=head3 to_int
+
+=head3 from_int
 
 	my $int = $runner->to_int($byte_vector, $max_bytes = 4);
 	my $byte_vector = $runner->from_int($int);
@@ -657,7 +659,11 @@ not matter. If it does matter though, C<BITCOIN_CRYPTO_USE_BIGINTS>
 environmental variable can be set to C<1> to force use of BigInts on 64 bit
 machines.
 
-=head3 to_bool, to_minimal_bool, from_bool
+=head3 to_bool
+
+=head3 to_minimal_bool
+
+=head3 from_bool
 
 These methods encode and decode booleans in format which is used on L</stack>.
 C<to_minimal_bool> variant is used to enforce MINIMALIF rule.

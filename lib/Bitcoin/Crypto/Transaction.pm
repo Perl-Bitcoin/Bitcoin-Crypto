@@ -879,13 +879,13 @@ I<Available in the constructor>.
 
 The array reference of transaction inputs (L<Bitcoin::Crypto::Transaction::Input>).
 
-It's better to use L<add_input> instead of pushing directly to this array.
+It's better to use L</add_input> instead of pushing directly to this array.
 
 =head3 outputs
 
 The array reference of transaction outputs (L<Bitcoin::Crypto::Transaction::Output>).
 
-It's better to use L<add_output> instead of pushing directly to this array.
+It's better to use L</add_output> instead of pushing directly to this array.
 
 =head3 locktime
 
@@ -1052,7 +1052,7 @@ force this by calling C<clear_digest_object>.
 	$digest_object = $object->get_digest_object(%params)
 
 Same as L</get_digest>, but returns an object of
-L<Bitcoin::Crypto::Transaction::Digest> instead of a bytestring. Advanced use
+C<Bitcoin::Crypto::Transaction::Digest> instead of a bytestring. Advanced use
 only.
 
 =head3 fee
