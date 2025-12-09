@@ -760,30 +760,6 @@ Returns true if the script contains only opcodes pushing to the stack.
 
 Returns a readable representation of the script
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * ScriptOpcode - unknown opcode was specified
-
-=item * ScriptPush - data pushed to the execution stack is invalid
-
-=item * ScriptType - invalid standard script type name specified
-
-=item * ScriptRuntime - script runtime error
-
-=item * SegwitProgram - Segregated witness address error
-
-=item * NetworkConfig - incomplete or corrupted network configuration
-
-=item * NetworkCheck - address does not belong to the configured network
-
-=back
-
 =head1 SEE ALSO
 
 =over

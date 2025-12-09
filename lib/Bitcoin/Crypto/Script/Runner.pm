@@ -563,7 +563,7 @@ done in a single line:
 
 	my $stack = $runner->execute($script)->stack;
 
-If errors occur, they will be thrown as exceptions. See L</EXCEPTIONS>.
+If errors occur, an exception will be thrown.
 
 =head3 start
 
@@ -671,20 +671,6 @@ C<to_minimal_bool> variant is used to enforce MINIMALIF rule.
 =head3 stack_serialized
 
 Returns the serialized stack. Any null vectors will be transformed to C<0x00>.
-
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * ScriptRuntime - script has encountered a runtime exception - the transaction is invalid
-
-=item * ScriptCompilation - script compilation has encountered a problem
-
-=back
 
 =head1 SEE ALSO
 

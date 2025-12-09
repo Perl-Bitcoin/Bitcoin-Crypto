@@ -409,18 +409,6 @@ Clears the internal cache of the tree, forcing recalculation of merkle root and
 all leaf hashes. Must be done after the internal structure of the tree
 changed.
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * ScriptTree - general error with the tree
-
-=back
-
 =head1 SEE ALSO
 
 =over

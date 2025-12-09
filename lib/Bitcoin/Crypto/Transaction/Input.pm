@@ -463,18 +463,6 @@ digest preimages. Mostly used internally.
 
 Returns a readable description of the input.
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * Transaction - general error with transaction
-
-=back
-
 =head1 SEE ALSO
 
 =over

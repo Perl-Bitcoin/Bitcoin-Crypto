@@ -405,24 +405,6 @@ B<NOTE>: The rules this function uses to choose the address type B<will>
 change when more up-to-date address types are implemented. Use
 other address functions if this is not what you want.
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * KeyCreate - key couldn't be created correctly
-
-=item * Verify - couldn't verify the message correctly
-
-=item * NetworkConfig - incomplete or corrupted network configuration
-
-=item * AddressGenerate - address could not be generated (see BIP44 constraint notes)
-
-=back
-
 =head1 SEE ALSO
 
 L<Bitcoin::Crypto::Key::Private>

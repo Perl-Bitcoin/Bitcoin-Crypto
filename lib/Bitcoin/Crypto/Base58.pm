@@ -137,20 +137,6 @@ compatibility addresses as well as WIF strings and extended key serialization.
 
 Arguments are the same as base functions mentioned above.
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception::Base58> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * Base58InputFormat - input was not suitable for base58 operations due to invalid format
-
-=item * Base58InputChecksum - checksum validation has failed
-
-=back
-
 =head1 SEE ALSO
 
 L<Crypt::Misc>

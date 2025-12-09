@@ -360,26 +360,6 @@ function to fail. You can encode like this (for UTF-8):
 	use Encode qw(encode);
 	$message = encode('UTF-8', $message);
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * Sign - couldn't sign the message correctly
-
-=item * ScriptType - couldn't automatically sign the given script type
-
-=item * Verify - couldn't verify the message correctly
-
-=item * KeyCreate - key couldn't be created correctly
-
-=item * NetworkConfig - incomplete or corrupted network configuration
-
-=back
-
 =head1 SEE ALSO
 
 =over

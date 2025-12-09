@@ -355,6 +355,132 @@ C<Bitcoin::Crypto::Exception::Sign> for errors in signature generation). Search
 individual Bitcoin::Crypto packages documentation for a list the exception
 classes to check for extra control flow when needed.
 
+=head1 EXCEPTION SUBCLASSES
+
+This module defines the following subclasses to Bitcoin::Crypto::Exception:
+
+=head2 Bitcoin::Crypto::Exception::Transaction
+
+Thrown when a general problem with a transaction is detected, for example:
+non-script verification failure, corrupted serialized transaction data.
+
+=head2 Bitcoin::Crypto::Exception::UTXO
+
+Thrown when a problem with UTXO is detected, most notably inability to find the UTXO.
+
+=head2 Bitcoin::Crypto::Exception::Sign
+
+Thrown when a problem occurs during signing a transaction or message.
+
+=head2 Bitcoin::Crypto::Exception::KeyCreate
+
+Thrown when a problem occurs during creation of a key.
+
+=head2 Bitcoin::Crypto::Exception::KeyDerive
+
+Thrown when a problem occurs during derivation of a key.
+
+=head2 Bitcoin::Crypto::Exception::MnemonicCheck
+
+Thrown when a mnemonic checking was unsuccessful.
+
+=head2 Bitcoin::Crypto::Exception::Base58
+
+Thrown when a general base58 format problem is detected.
+
+=head2 Bitcoin::Crypto::Exception::Base58InputFormat
+
+Thrown when input does not look like valid base58. Subclass of
+L</Bitcoin::Crypto::Exception::Base58>.
+
+=head2 Bitcoin::Crypto::Exception::Base58InputChecksum
+
+Thrown when base58check input checksum is invalid. Subclass of
+L</Bitcoin::Crypto::Exception::Base58>.
+
+=head2 Bitcoin::Crypto::Exception::Bech32
+
+Thrown when a general Bech32 format problem is detected.
+
+=head2 Bitcoin::Crypto::Exception::Bech32InputFormat
+
+Thrown when input does not look like valid bech32. Subclass of
+L</Bitcoin::Crypto::Exception::Bech32>.
+
+=head2 Bitcoin::Crypto::Exception::Bech32InputData
+
+Thrown when input is valid bech32, but contains invalid data. Subclass of
+L</Bitcoin::Crypto::Exception::Bech32>.
+
+=head2 Bitcoin::Crypto::Exception::Bech32InputChecksum
+
+Thrown when bech32 input checksum is invalid. Subclass of
+L</Bitcoin::Crypto::Exception::Bech32>.
+
+=head2 Bitcoin::Crypto::Exception::SegwitProgram
+
+Thrown when an issue with Segregated Witness program is detected.
+
+=head2 Bitcoin::Crypto::Exception::ScriptType
+
+Thrown when an unexpected script type is encountered.
+
+=head2 Bitcoin::Crypto::Exception::ScriptOpcode
+
+Thrown when unexpected script operation is encountered.
+
+=head2 Bitcoin::Crypto::Exception::ScriptPush
+
+Thrown when bad script push operation is performed.
+
+=head2 Bitcoin::Crypto::Exception::Block
+
+Thrown when a general problem with a block is detected.
+
+=head2 Bitcoin::Crypto::Exception::ScriptTree
+
+Thrown when a general problem with a script tree is detected.
+
+=head2 Bitcoin::Crypto::Exception::ScriptCompilation
+
+Thrown when a script compilation fails. It can only be thrown just
+before the script is executed.
+
+=head2 Bitcoin::Crypto::Exception::ScriptRuntime
+
+Thrown when an error occurs during script runtime.
+
+=head2 Bitcoin::Crypto::Exception::TransactionScript
+
+Thrown when an error occurs in execution of scripts during
+transaction validation. Subclass of
+L</Bitcoin::Crypto::Exception::Transaction> and
+L</Bitcoin::Crypto::Exception::ScriptRuntime>.
+
+=head2 Bitcoin::Crypto::Exception::NetworkCheck
+
+Thrown when an assumption about network is not met. This can happen
+in single-network mode or if a network parameter is used, but it
+does not match the arguments.
+
+=head2 Bitcoin::Crypto::Exception::NetworkConfig
+
+Thrown when network configuration is bad or insufficient to perform
+the operation.
+
+=head2 Bitcoin::Crypto::Exception::Address
+
+Thrown when a general error connected to addresses is encountered.
+
+=head2 Bitcoin::Crypto::Exception::AddressGenerate
+
+Thrown when an error is encountered while generating an address. Subclass of
+L</Bitcoin::Crypto::Exception::Address>.
+
+=head2 Bitcoin::Crypto::Exception::PSBT
+
+Thrown when a problem with PSBT format was encountered.
+
 =head1 INTERFACE
 
 =head2 Attributes

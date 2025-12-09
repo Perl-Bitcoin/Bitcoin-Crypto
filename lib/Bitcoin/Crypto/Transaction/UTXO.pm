@@ -234,18 +234,6 @@ achieved by calling C<update_utxos> on a transaction object.
 Returns nothing. All C<$serialized_tx> outputs will be added to the register as
 new UTXO instances.
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * UTXO - UTXO was not found
-
-=back
-
 =head1 SEE ALSO
 
 =over

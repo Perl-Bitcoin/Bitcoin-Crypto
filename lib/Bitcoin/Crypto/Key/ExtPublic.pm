@@ -200,22 +200,6 @@ account, effectively only using C<change> and C<index> attributes.
 
 Returns a fingerprint of the extended key of C<$len> length (byte string)
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * KeyDerive - key couldn't be derived correctly
-
-=item * KeyCreate - key couldn't be created correctly
-
-=item * NetworkConfig - incomplete or corrupted network configuration
-
-=back
-
 =head1 SEE ALSO
 
 =over

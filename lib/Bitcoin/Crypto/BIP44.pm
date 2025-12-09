@@ -255,18 +255,6 @@ indirectly by just stringifying the object.
 
 Returns an object of class L<Bitcoin::Crypto::DerivationPath>.
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * NetworkConfig - incomplete or corrupted network configuration
-
-=back
-
 =head1 SEE ALSO
 
 L<Bitcoin::Crypto::Key::ExtPrivate>

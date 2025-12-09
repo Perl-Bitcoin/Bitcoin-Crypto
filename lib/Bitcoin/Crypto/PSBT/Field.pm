@@ -352,18 +352,6 @@ start decoding. It will be set to the next byte after end of input stream.
 
 Returns a readable description of this field.
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * PSBT - general error with the PSBT
-
-=back
-
 =head1 SEE ALSO
 
 =over

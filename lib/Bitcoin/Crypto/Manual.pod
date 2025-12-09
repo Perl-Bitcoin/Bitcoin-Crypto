@@ -134,18 +134,20 @@ Perl. However, we reserve the right to break it in the following cases:
 
 =back
 
-=head3 How to read the documentation?
+=head3 Exceptions
 
-Most functions in this documentation have a code snippet showcasing the arguments
-used by the function. These lines are not meant to be valid Perl. They're there
-for you to understand what arguments the function expects.
+This module tries hard not to throw any unblessed exceptions. Most exceptions
+should be caught and turned into a subclass of L<Bitcoin::Crypto::Exception>,
+or the main class if no specific subclass exists for the exception. However,
+unblessed errors may still happen occasionally.
 
-Packages in this module often have types of their thrown exceptions
-documented near the bottom of the document. The exceptions section may be
-useful to understand which types of exceptions can be thrown when using
-functions or methods from the package and what they mean. It is not meant to be
-a full list of exceptions a function can throw and unblessed errors may still
-be raised occasionally.
+Refer to L<Bitcoin::Crypto::Exception/EXCEPTION SUBCLASSES> for a list of
+exceptions used by the module.
+
+Note that removing completely subclass of exceptions is not considered
+backward-incompatible, as checking for non-existent class through C<isa> does
+no harm. Renaming an exception subclass or merging it into another subclass is
+an incompatibility and will be done only after a deprecation period.
 
 =head3 Class shortcuts
 

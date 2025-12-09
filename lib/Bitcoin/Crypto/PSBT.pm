@@ -750,18 +750,6 @@ B<Value data:> Array reference, where first item is an array of leaf hashes, sec
 
 =back
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * PSBT - general error with the PSBT
-
-=back
-
 =head1 SEE ALSO
 
 =over

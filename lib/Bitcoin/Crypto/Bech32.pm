@@ -444,22 +444,6 @@ data in bech32 strings, like so:
 
 Returns the human readable part encoded in the bech32 address.
 
-=head1 EXCEPTIONS
-
-This module throws an instance of L<Bitcoin::Crypto::Exception::Bech32> if it
-encounters an error. It can produce the following error types from the
-L<Bitcoin::Crypto::Exception> namespace:
-
-=over
-
-=item * Bech32InputFormat - input was not suitable for bech32 operations due to invalid format
-
-=item * Bech32InputData - input was parsed with bech32 operations but contained invalid data
-
-=item * Bech32InputChecksum - checksum validation has failed
-
-=back
-
 =head1 SEE ALSO
 
 L<Bitcoin::Crypto::Base58>
