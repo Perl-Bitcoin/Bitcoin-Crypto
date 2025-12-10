@@ -221,12 +221,13 @@ sub check
 	my ($class, $script) = @_;
 
 	my $compiler = $script->_compiler;
-	return if $compiler->has_errors;
-	my $operations = $compiler->operations;
+	if (!$compiler->has_errors) {
+		my $operations = $compiler->operations;
 
-	foreach my $variant (@{$class->_blueprints}) {
-		my $recognized = $class->_check_blueprint($operations, @{$variant});
-		return $recognized if defined $recognized;
+		foreach my $variant (@{$class->_blueprints}) {
+			my $recognized = $class->_check_blueprint($operations, @{$variant});
+			return $recognized if defined $recognized;
+		}
 	}
 
 	# unknown

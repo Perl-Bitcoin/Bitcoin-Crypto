@@ -44,6 +44,15 @@ my @cases = (
 		]
 	],
 
+	# P2MS, but contains a non-strict encoded uncompressed key (starting with 06)
+	[
+		'P2MS',
+		[
+			hex =>
+				'51410611db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a351ae'
+		]
+	],
+
 	[
 		'P2WPKH',
 		[hex => '00145f011e3cfa337698e7fe4502143eb6ada0b5a3d1'],
@@ -82,11 +91,58 @@ my @cases = (
 			. '"',
 	],
 
+	[
+		'UNKNOWN_SEGWIT',
+		[hex => '5f022233'],
+	],
+
 	# P2PKH, but OP_CHECKSIG is duplicated
 	[
 		undef,
 		[hex => '76a9142099fe62b65c69928ffef486987f8216fd68f9c488acac']
 	],
+
+	# P2MS, but no signatures number
+	[
+		undef,
+		[hex => '00ae']
+	],
+
+	# unknown segwit, too short
+	[
+		undef,
+		[hex => '5f0122']
+	],
+
+	# bad push, past the end of script
+	[
+		undef,
+		[hex => '0f0001'],
+	],
+
+	# OP_VERIF in script after OP_RETURN
+	[
+		undef,
+		[hex => '6a66050102030405'],
+	],
+
+	# P2WPKH, but non-standard push
+	[
+		undef,
+		[hex => '004c145f011e3cfa337698e7fe4502143eb6ada0b5a3d1'],
+	],
+
+	# P2WPKH, but prepended by 22 byte push, like compat program
+	[
+		undef,
+		[hex => '1600145f011e3cfa337698e7fe4502143eb6ada0b5a3d1'],
+	],
+
+	# P2TR, but push past end of the script (1 missing byte)
+	[
+		undef,
+		[hex => '5120ab0271db7bcba922e74a05051a00c250b4e79a893908e16c61b153cb2a7a45'],
+	]
 );
 
 my $case_num = 0;
