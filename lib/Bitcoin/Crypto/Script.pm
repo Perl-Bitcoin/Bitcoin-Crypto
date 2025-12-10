@@ -32,6 +32,11 @@ has field '_recognition' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script::Recognition'],
 	lazy => 1,
 	clearer => -hidden,
+	handles => {
+		get_raw_address => 'address',
+		type => 'type',
+		segwit_version => 'segwit_version',
+	},
 );
 
 has field '_compiler' => (
@@ -191,11 +196,6 @@ sub BUILD
 	}
 }
 
-sub type
-{
-	return shift->_recognition->type;
-}
-
 sub is_pushes_only
 {
 	my ($self) = @_;
@@ -319,11 +319,6 @@ sub push_number
 sub push
 {
 	goto \&push_bytes;
-}
-
-sub segwit_version
-{
-	return shift->_recognition->segwit_version;
 }
 
 # this can only detect native segwit in this context, as P2SH outputs are
@@ -472,11 +467,6 @@ sub get_address
 	elsif ($self->type eq 'NULLDATA') {
 		return qq("$address");
 	}
-}
-
-sub get_raw_address
-{
-	return shift->_recognition->address;
 }
 
 sub has_type
