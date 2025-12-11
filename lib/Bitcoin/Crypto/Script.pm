@@ -43,6 +43,11 @@ has field '_compiler' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script::Compiler'],
 	lazy => 1,
 	clearer => -hidden,
+	handles => {
+		operations => 'operations',
+		has_errors => 'has_errors',
+		assert_valid => 'assert_valid',
+	},
 );
 
 with qw(Bitcoin::Crypto::Role::Network);
@@ -374,11 +379,6 @@ sub from_standard
 		type => $desc->[0],
 		address => $desc->[1],
 	);
-}
-
-sub operations
-{
-	return shift->_compiler->operations;
 }
 
 signature_for run => (
@@ -715,6 +715,29 @@ The first element of each subarray is the L<Bitcoin::Crypto::Script::Opcode>
 object. The second element is the raw opcode string, usually single byte. The
 rest of elements are metadata and is dependant on the op type. This metadata is
 used during script execution.
+
+Note that operations are returned even for invalid scripts. See L</has_errors> and L</assert_valid>.
+
+=head3 has_errors
+
+	$bool = $object->has_errors()
+
+Returns a true value if the script is syntax is invalid - has pushes past end
+of the script, opcode errors like unclosed OP_IFs, or opcodes that make it
+invalid on compilation like OP_VERIF.
+
+Note that having errors may not be a good indicator whether the script is
+correct, since it may be unconditionally valid due to OP_SUCCESS (in
+tapscripts). Script can have errors and still be valid because of that. See
+L</assert_valid>.
+
+=head3 assert_valid
+
+	$object->assert_valid
+
+Checks if the script is valid - either it has no errors, or it is marked an
+unconditionally valid. If the script is not valid, the first error will be
+raised as exception. If the script is valid, returns nothing.
 
 =head3 run
 

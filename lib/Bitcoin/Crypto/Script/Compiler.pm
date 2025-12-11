@@ -37,7 +37,7 @@ sub has_errors
 	return @{$self->errors} > 0;
 }
 
-sub assert_correct
+sub assert_valid
 {
 	my $self = shift;
 

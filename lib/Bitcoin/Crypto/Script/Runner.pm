@@ -280,7 +280,7 @@ sub start
 
 	my $compiler = $self->_compiler;
 	my $is_tapscript = $self->is_tapscript;
-	$compiler->assert_correct;
+	$compiler->assert_valid;
 
 	Bitcoin::Crypto::Exception::ScriptRuntime->raise(
 		'cannot run tapscript without taproot flag'
