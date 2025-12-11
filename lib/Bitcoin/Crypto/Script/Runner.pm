@@ -364,38 +364,54 @@ sub step
 	return $self->_step->();
 }
 
-sub subscript
+sub _subscript_legacy
 {
 	my ($self, $sigs) = @_;
 
 	my $start = ($self->codeseparator // -1) + 1;
 	my $operations = $self->operations;
 
-	if ($self->transaction->this_input->is_segwit) {
-		return join '', map { $_->[1] } @{$operations}[$start .. $#$operations];
+	my %sigs_lookup = map { $_ => 1 } grep { length $_ // '' } @{$sigs // []};
+
+	my $result = '';
+	foreach my $operation (@{$operations}[$start .. $#$operations]) {
+		my ($op, $raw_op, $pushop_data) = @$operation;
+
+		my $name = $op->name;
+		next if $name eq 'OP_CODESEPARATOR';
+		next if $op->pushop && $sigs_lookup{$pushop_data} && standard_push($name, $pushop_data);
+
+		$result .= $raw_op;
 	}
-	else {
-		my %sigs_lookup = map { $_ => 1 } grep { length $_ // '' } @{$sigs // []};
 
-		my $result = '';
-		foreach my $operation (@{$operations}[$start .. $#$operations]) {
-			my ($op, $raw_op, $pushop_data) = @$operation;
-
-			my $name = $op->name;
-			next if $name eq 'OP_CODESEPARATOR';
-			next if $op->pushop && $sigs_lookup{$pushop_data} && standard_push($name, $pushop_data);
-
-			$result .= $raw_op;
-		}
-
-		if ($self->flags->const_script) {
-			my $orig = $self->script->to_serialized;
-			$self->_invalid_script('script is not constant')
-				if $result ne $orig;
-		}
-
-		return $result;
+	if ($self->flags->const_script) {
+		my $orig = $self->script->to_serialized;
+		$self->_invalid_script('script is not constant')
+			if $result ne $orig;
 	}
+
+	return $result;
+}
+
+sub _subscript_segwit
+{
+	my $self = shift;
+
+	my $codeseparator = $self->codeseparator;
+
+	return $self->script->to_serialized
+		unless defined $codeseparator;
+
+	my $operations = $self->operations;
+	return join '', map { $_->[1] } @{$operations}[$codeseparator + 1 .. $#$operations];
+}
+
+sub subscript
+{
+	goto \&_subscript_segwit
+		if $_[0]->transaction->this_input->is_segwit;
+
+	goto \&_subscript_legacy;
 }
 
 sub success
