@@ -42,6 +42,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added has_errors method
 		- added assert_valid method
 	- added Bitcoin::Crypto::Secret class
+	- added Bitcoin::Crypto::Script::Compiler::Opcode class
 	- added exporting mechanism for Bitcoin::Crypto::Constants
 	- removed ScriptSuccess exception class
 	- removed ScriptSyntax exception class

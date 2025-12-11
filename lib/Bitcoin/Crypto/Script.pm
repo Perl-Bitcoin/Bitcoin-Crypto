@@ -498,7 +498,7 @@ sub dump
 	my @result;
 	CORE::push @result, "$type script$errors, $num ops:";
 	foreach my $op (@$ops) {
-		CORE::push @result, '  ' . $op->[0]->name . ' (' . (to_format [hex => $op->[1]]) . ')';
+		CORE::push @result, '  ' . $op->opcode->name . ' (' . (to_format [hex => $op->raw_data]) . ')';
 	}
 
 	return join "\n", @result;
@@ -710,17 +710,10 @@ Returns an array reference - An array of operations to be executed. Same as
 L<Bitcoin::Crypto::Script::Runner/operations>, which is only filled after
 starting the script.
 
-	[
-		[OP_XXX (Object), raw (String), ...],
-		...
-	]
+Returned operations are of type L<Bitcoin::Crypto::Script::Compiler::Opcode>.
 
-The first element of each subarray is the L<Bitcoin::Crypto::Script::Opcode>
-object. The second element is the raw opcode string, usually single byte. The
-rest of elements are metadata and is dependant on the op type. This metadata is
-used during script execution.
-
-Note that operations are returned even for invalid scripts. See L</has_errors> and L</assert_valid>.
+Note that operations are returned even for invalid scripts. See L</has_errors>
+and L</assert_valid>.
 
 =head3 has_errors
 

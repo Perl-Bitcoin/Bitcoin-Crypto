@@ -11,6 +11,7 @@ use Scalar::Util qw(blessed);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Helpers qw(die_no_trace);
+use Bitcoin::Crypto::Script::Compiler::Opcode;
 
 has param 'operations' => (
 	isa => ArrayRef [ArrayRef],
@@ -74,13 +75,13 @@ sub compile
 
 			my $opcode = $opcode_class->get_opcode_by_code(ord $this_byte);
 			push @debug_ops, $opcode->name;
-			my @compiled_op = ($opcode, $this_byte);
+			my $compiled_op = Bitcoin::Crypto::Script::Compiler::Opcode->new($opcode, $this_byte);
 
-			push @ops, \@compiled_op;
+			push @ops, $compiled_op;
 			$non_push_opcodes++ if $opcode->non_push_opcode;
 
 			if ($opcode->has_on_compilation) {
-				$opcode->on_compilation->($self, \@compiled_op, \%context);
+				$opcode->on_compilation->($self, $compiled_op, \%context);
 			}
 
 			$context{position}++;
