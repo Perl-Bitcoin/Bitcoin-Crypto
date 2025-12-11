@@ -1,6 +1,8 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
+
+4.003 Thu Dec 11, 2025
 	[Public interface changes]
 	- Bitcoin::Crypto::Script::Tree:
 		- added get_tapleaf_script method
