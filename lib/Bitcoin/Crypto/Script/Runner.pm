@@ -19,6 +19,7 @@ use Bitcoin::Crypto::Constants qw(:script USE_BIGINTS);
 has field 'script' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Script'],
 	writer => 1,
+	handles => [qw(_compiler)],
 );
 
 has option 'transaction' => (
@@ -67,8 +68,7 @@ has field '_opcode_count' => (
 	writer => 1,
 );
 
-# shortcuts for quick access
-sub _compiler { $_[0]->script->_compiler }
+# shortcut for quick access
 sub operations { $_[0]->_compiler->operations }
 
 sub _trigger_transaction
