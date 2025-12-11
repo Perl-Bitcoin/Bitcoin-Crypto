@@ -73,27 +73,25 @@ sub _build_utxo
 }
 
 around BUILDARGS => sub {
-	my ($orig, $class, @params) = @_;
-	my %hash_params = @params;
-	my $utxo = delete $hash_params{utxo};
+	my ($orig, $class, %params) = @_;
+	my $utxo = $params{utxo};
 
-	if (defined $utxo) {
-		if (blessed $utxo && $utxo->isa('Bitcoin::Crypto::Transaction::UTXO')) {
-			return {
-				%hash_params,
-				utxo => $utxo,
-				utxo_location => [$utxo->txid, $utxo->output_index],
-			};
-		}
-		elsif (ref $utxo eq 'ARRAY') {
-			return {
-				%hash_params,
-				utxo_location => $utxo,
-			};
-		}
+	if (ref $utxo eq 'ARRAY') {
+		delete $params{utxo};
+
+		return {
+			%params,
+			utxo_location => $utxo,
+		};
+	}
+	elsif (blessed $utxo && $utxo->isa('Bitcoin::Crypto::Transaction::UTXO')) {
+		return {
+			%params,
+			utxo_location => [$utxo->txid, $utxo->output_index],
+		};
 	}
 
-	return $class->$orig(@params);
+	return $class->$orig(%params);
 };
 
 sub utxo_registered
@@ -198,10 +196,9 @@ sub is_taproot
 
 sub prevout
 {
-	my ($self) = @_;
-	my ($txid, $index) = @{$self->utxo_location};
+	my ($txid, $index) = @{shift->utxo_location};
 
-	return scalar reverse($txid) . pack 'V', $index;
+	return pack 'a32V', scalar(reverse $txid), $index;
 }
 
 sub serialized_witness
