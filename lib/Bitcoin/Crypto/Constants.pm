@@ -67,6 +67,9 @@ BEGIN {
 		units_per_coin => 100_000_000,
 		max_money => '2100000000000000',
 
+		bech32 => 'bech32',
+		bech32m => 'bech32m',
+
 		use_bigints => $ENV{BITCOIN_CRYPTO_USE_BIGINTS} || !is_64bit,
 	);
 
@@ -180,6 +183,13 @@ our %EXPORT_TAGS = (
 			MAX_MONEY
 		)
 	],
+
+	bech32 => [
+		qw(
+			BECH32
+			BECH32M
+		)
+	],
 );
 
 1;
@@ -244,6 +254,10 @@ Bitcoin::Crypto::Constants - Bitcoin-related constant values
 		'PSBT_GLOBAL_MAP',
 		'PSBT_INPUT_MAP',
 		'PSBT_OUTPUT_MAP',
+
+		# these constants are grouped under :bech32 tag
+		'BECH32',
+		'BECH32M',
 
 		# these constants are ungrouped
 		'USE_BIGINTS',
@@ -327,6 +341,12 @@ L</SCRIPT_MAX_STACK_ELEMENTS>, L</SCRIPT_MAX_ELEMENT_SIZE>, L</SCRIPT_MAX_OPCODE
 Contains values useful for PSBTs:
 
 L</PSBT_MAGIC>, L</PSBT_SEPARATOR>, L</PSBT_GLOBAL_MAP>, L</PSBT_INPUT_MAP>, L</PSBT_OUTPUT_MAP>
+
+=head2 :bech32
+
+Contains values useful for BECH32:
+
+L</BECH32>, L</BECH32M>
 
 =head1 CONSTANTS
 
@@ -473,6 +493,14 @@ A value for making use of input PSBT maps.
 =head2 PSBT_OUTPUT_MAP
 
 A value for making use of output PSBT maps.
+
+=head2 BECH32
+
+A value used for marking original bech32 serialization
+
+=head2 BECH32M
+
+A value used for marking bech32m serialization
 
 =head2 USE_BIGINTS
 

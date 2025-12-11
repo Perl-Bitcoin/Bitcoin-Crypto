@@ -9,6 +9,7 @@ use Types::Common -sigs, -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util::Internal qw(validate_segwit);
 use Bitcoin::Crypto::Types -types;
+use Bitcoin::Crypto::Constants qw(:bech32);
 
 our @EXPORT_OK = qw(
 	translate_5to8
@@ -19,9 +20,6 @@ our @EXPORT_OK = qw(
 	decode_segwit
 	get_hrp
 );
-
-use constant BECH32 => 'bech32';
-use constant BECH32M => 'bech32m';
 
 our %EXPORT_TAGS = (all => [@EXPORT_OK]);
 
@@ -406,8 +404,8 @@ Encoding takes up to three arguments which are:
 be between 0 and 31)
 
 =item * optional type, which may be C<'bech32'> or C<'bech32m'> (also available
-in constant values Bitcoin::Crypto::Bech32::BECH32 and
-Bitcoin::Crypto::Bech32::BECH32M)
+in constant values L<Bitcoin::Crypto::Constants/BECH32> and
+L<Bitcoin::Crypto::Constants/BECH32M>)
 
 =back
 

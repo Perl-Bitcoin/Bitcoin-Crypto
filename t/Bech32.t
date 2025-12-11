@@ -1,5 +1,6 @@
 use Test2::V0;
 use Bitcoin::Crypto::Bech32 qw(:all);
+use Bitcoin::Crypto::Constants qw(:bech32);
 
 # BECH32 / BECH32M
 my @tests_bech32 = (
@@ -414,7 +415,7 @@ for my $test (@tests_segwit) {
 			my $result = decode_segwit($test->{case});
 			my ($hrp, $data, $type) = decode_bech32($test->{case});
 
-			my $wanted_type = $data->[0] == 0 ? 'bech32' : 'bech32m';
+			my $wanted_type = $data->[0] == 0 ? BECH32 : BECH32M;
 			is $type, $wanted_type, 'valid encoding type';
 
 			is unpack('H*', $result), $test->{data}, 'decode result ok';
@@ -427,6 +428,11 @@ for my $test (@tests_segwit) {
 		}
 	};
 }
+
+subtest 'old bech32 constants are available (backcompat)' => sub {
+	is Bitcoin::Crypto::Bech32::BECH32, BECH32, 'bech32 ok';
+	is Bitcoin::Crypto::Bech32::BECH32M, BECH32M, 'bech32m ok';
+};
 
 done_testing;
 
