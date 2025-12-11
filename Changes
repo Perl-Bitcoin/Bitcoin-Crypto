@@ -37,6 +37,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added pos parameter to from_serialized method
 	- Bitcoin::Crypto::Types:
 		- added TransactionFlags type
+		- added BitcoinSecret type
 	- Bitcoin::Crypto::Script:
 		- added get_raw_address method
 		- added has_errors method
@@ -61,6 +62,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- errors reported by script execution should now do a better job at pinpointing the issue
 	- added disabled script opcodes
 	- transaction dumps now include more readable dumps of scripts
+	- transaction verification and deserialization speed has been optimized
 	- module can now take advantage of various XS modules that speed up Moo
 
 	[Fixes]

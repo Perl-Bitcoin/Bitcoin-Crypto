@@ -79,5 +79,5 @@ byte. For push opcodes, this is the opcode code plus all the data they contain.
 	$bytes = $object->push_data()
 
 Returns a bytestring containing bytes pushed onto the stack by the push
-operation. If this operation is not a push operation, return undef.
+operation. If this operation is not a push operation, returns undef.
 

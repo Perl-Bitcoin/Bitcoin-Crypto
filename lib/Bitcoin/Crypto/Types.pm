@@ -303,6 +303,7 @@ Bitcoin::Crypto::Types - Bitcoin-specific data types
 		SatoshiAmount
 		DerivationPath
 		TransactionFlags
+		BitcoinSecret
 	);
 
 	use Bitcoin::Crypto::Types -types;
@@ -380,8 +381,9 @@ specified number of bits (parametrizable).
 
 =head2 SatoshiAmount
 
-A non-negative integer, represented as L<Math::BigInt> object. Can be coerced
-from an integer or from a string.
+A non-negative integer, represented as a perl number (on 64 bit) or
+L<Math::BigInt> object (on 32 bit). Can be coerced from an integer or from a
+string.
 
 =head2 DerivationPath
 
@@ -404,6 +406,12 @@ Same as calling L<Bitcoin::Crypto::Transaction::Flags/new> with arguments
 specified in the hashref.
 
 =back
+
+=head2 BitcoinSecret
+
+A secret value - either instance of L<Bitcoin::Crypto::Secret> or
+L<Crypt::SecretBuffer>. May be coerced from anything defined into
+L<Bitcoin::Crypto::Secret>.
 
 =head1 SEE ALSO
 
