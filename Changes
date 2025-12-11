@@ -28,6 +28,9 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added const_script flag
 		- added known_witness flag
 		- added illegal_upgradeable_nops flag
+	- Bitcoin::Crypto::Transaction::UTXO:
+		- added unload method
+		- added registered_count method
 	- Bitcoin::Crypto::Block:
 		- added pos parameter to from_serialized method
 	- Bitcoin::Crypto::Types:

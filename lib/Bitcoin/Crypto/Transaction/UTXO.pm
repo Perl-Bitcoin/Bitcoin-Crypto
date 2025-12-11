@@ -42,7 +42,7 @@ sub register
 	return $self
 		if $self->output->is_standard && $self->output->locking_script->type eq 'NULLDATA';
 
-	$utxos{$self->txid}[$self->output_index] = $self;
+	$utxos{$self->txid . $self->output_index} = $self;
 	return $self;
 }
 
@@ -50,7 +50,7 @@ sub unregister
 {
 	my ($self) = @_;
 
-	delete $utxos{$self->txid}[$self->output_index];
+	delete $utxos{$self->txid . $self->output_index};
 	return $self;
 }
 
@@ -63,17 +63,23 @@ sub get
 {
 	my ($class, $txid, $outid) = @_;
 
-	my $utxo = $utxos{$txid}[$outid];
+	my $utxo = $utxos{$txid . $outid};
 
-	# NOTE: loader should unregister the utxo in its own store
-	if (!$utxo && defined $loader) {
-		$utxo = $loader->($txid, $outid);
-		$utxo->register if $utxo;
+	if (!$utxo) {
+
+		$utxo = $loader->($txid, $outid)
+			if defined $loader;
+
+		Bitcoin::Crypto::Exception::UTXO->raise(
+			sprintf(
+				"no UTXO registered for transaction id %s and output index %s",
+				to_format [hex => $txid],
+				$outid
+			)
+		) unless $utxo;
+
+		$utxo->register;
 	}
-
-	Bitcoin::Crypto::Exception::UTXO->raise(
-		"no UTXO registered for transaction id @{[to_format [hex => $txid]]} and output index $outid"
-	) unless $utxo;
 
 	return $utxo;
 }
@@ -85,10 +91,21 @@ signature_for set_loader => (
 
 sub set_loader
 {
-	my ($class, $new_loader) = @_;
-
-	$loader = $new_loader;
+	$loader = pop;
 	return;
+}
+
+sub unload
+{
+	my @result = values %utxos;
+	%utxos = ();
+
+	return \@result;
+}
+
+sub registered_count
+{
+	return scalar keys %utxos;
 }
 
 signature_for extract => (
@@ -220,9 +237,30 @@ Replaces an UTXO loader.
 
 The subroutine should accept the same parameters as L</get> and return a
 constructed UTXO object. If possible, the loader should not return the same
-UTXO twice in a single runtime of the script.
+UTXO twice in a single runtime of the script. It will be not informed of UTXOs
+being spent, so it should "hand over" UTXOs while marking them as spent in its
+source.
 
 Returns nothing. Passing undef disables the custom loader.
+
+=head3 unload
+
+	\@utxos = $class->unload()
+
+Removes all UTXOs from the perl memory and returns them as an array reference.
+Returned UTXOs will no longer be visible to L</get> calls.
+
+This may be useful to move the UTXOs gathered in Perl memory to some other
+medium, for example a database. L</set_loader> could be set to load UTXOs from
+a database, and the script could periodically clear them from its memory to store
+them in a persistent storage for later.
+
+=head3 registered_count
+
+	$count = $class->registered_count()
+
+Returns the number of UTXOS currently present in internal perl memory. This can
+be used to decide whether a call to L</unload> is needed or not.
 
 =head3 extract
 
