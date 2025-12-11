@@ -489,12 +489,16 @@ sub dump
 
 	my $ops = $self->operations;
 	my $num = @$ops;
+
+	return 'Empty script' unless $num;
+
 	my $type = $self->type // 'Custom';
+	my $errors = $self->has_errors ? ' (with errors)' : '';
 
 	my @result;
-	CORE::push @result, "$type script, $num ops:";
+	CORE::push @result, "$type script$errors, $num ops:";
 	foreach my $op (@$ops) {
-		CORE::push @result, $op->[0]->name . ': ' . to_format [hex => $op->[1]];
+		CORE::push @result, '  ' . $op->[0]->name . ' (' . (to_format [hex => $op->[1]]) . ')';
 	}
 
 	return join "\n", @result;

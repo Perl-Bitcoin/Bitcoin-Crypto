@@ -282,11 +282,11 @@ sub dump
 	push @result, 'value: ' . $utxo->output->value
 		if $utxo;
 	push @result, sprintf 'sequence: 0x%X', $self->sequence_no;
-	push @result, 'locking script: ' . to_format [hex => $utxo->output->locking_script->to_serialized]
+	push @result, 'locking script: ' . $utxo->output->locking_script->dump
 		if $utxo;
 
 	if (!$self->signature_script->is_empty) {
-		push @result, 'signature script: ' . to_format [hex => $self->signature_script->to_serialized];
+		push @result, 'signature script: ' . $self->signature_script->dump;
 	}
 
 	if ($self->has_witness) {

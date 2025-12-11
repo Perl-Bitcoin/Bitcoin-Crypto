@@ -57,6 +57,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- most error messages no longer contain double error position
 	- errors reported by script execution should now do a better job at pinpointing the issue
 	- added disabled script opcodes
+	- transaction dumps now include more readable dumps of scripts
 	- module can now take advantage of various XS modules that speed up Moo
 
 	[Fixes]

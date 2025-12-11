@@ -8,7 +8,7 @@ use Types::Common -sigs;
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Helpers qw(encode_64bit decode_64bit);
-use Bitcoin::Crypto::Util::Internal qw(to_format pack_compactsize unpack_compactsize);
+use Bitcoin::Crypto::Util::Internal qw(pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Exception;
 
 has param 'value' => (
@@ -118,7 +118,7 @@ sub dump
 	my @result;
 	push @result, "$type Output$address";
 	push @result, 'value: ' . $self->value;
-	push @result, 'locking script: ' . to_format [hex => $self->locking_script->to_serialized];
+	push @result, 'locking script: ' . $self->locking_script->dump;
 
 	return join "\n", @result;
 }
