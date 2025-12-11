@@ -15,6 +15,9 @@ use constant {
 	is_64bit => $Config{ivsize} >= 8,
 };
 
+# just for backcompat, since docs used to include this
+use constant p2sh_timestamp_threshold => 1333238400;
+
 BEGIN {
 	my %constants = (
 		curve_name => 'secp256k1',
@@ -58,7 +61,6 @@ BEGIN {
 
 		locktime_height_threshold => 500_000_000,
 		max_sequence_no => 0xffffffff,
-		p2sh_timestamp_threshold => 1333238400,
 		rbf_sequence_no_threshold => 0xffffffff - 2,
 		null_utxo => sub () { [pack('x32'), 0xffffffff] },
 
@@ -165,7 +167,6 @@ our %EXPORT_TAGS = (
 
 	transaction => [
 		qw(
-			P2SH_TIMESTAMP_THRESHOLD
 			RBF_SEQUENCE_NO_THRESHOLD
 			NULL_UTXO
 			LOCKTIME_HEIGHT_THRESHOLD
@@ -218,7 +219,6 @@ Bitcoin::Crypto::Constants - Bitcoin-related constant values
 
 		# these constants are grouped under :transaction tag
 		'LOCKTIME_HEIGHT_THRESHOLD',
-		'P2SH_TIMESTAMP_THRESHOLD',
 		'MAX_SEQUENCE_NO',
 		'RBF_SEQUENCE_NO_THRESHOLD',
 		'NULL_UTXO',
@@ -308,7 +308,7 @@ L</UNITS_PER_COIN>, L</MAX_MONEY>
 
 Contains constants used together with transactions:
 
-L</LOCKTIME_HEIGHT_THRESHOLD>, L</P2SH_TIMESTAMP_THRESHOLD>, L</MAX_SEQUENCE_NO>, L</RBF_SEQUENCE_NO_THRESHOLD>, L</NULL_UTXO>
+L</LOCKTIME_HEIGHT_THRESHOLD>, L</MAX_SEQUENCE_NO>, L</RBF_SEQUENCE_NO_THRESHOLD>, L</NULL_UTXO>
 
 =head2 :sighash
 
@@ -394,10 +394,6 @@ Number of satoshis that will ever exist.
 =head2 LOCKTIME_HEIGHT_THRESHOLD
 
 First number which will be understood as timestamp in locktime checks.
-
-=head2 P2SH_TIMESTAMP_THRESHOLD
-
-BIP16 timestamp which marks the start of validating P2SH transactions.
 
 =head2 MAX_SEQUENCE_NO
 
