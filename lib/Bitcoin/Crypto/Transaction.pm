@@ -979,14 +979,38 @@ fill in the blanks. See L<Bitcoin::Crypto::Transaction::UTXO> for details.
 
 =head3 get_hash
 
-	$txid = $object->get_hash()
+	$hash = $object->get_hash(%params)
 
 Returns the hash of the transaction, also used as its id. The return value is a
 bytestring.
 
+C<%params> can be any of:
+
+=over
+
+=item * C<witness>
+
+Whether witness data should be included in the hash. Default: false
+
+=back
+
 NOTE: this method returns the hash in big endian, which is not suitable for
 serialized transactions. If you want to manually encode the hash into the
 transaction, you should first C<scalar reverse> it.
+
+=head3 txid
+
+	$txid = $object->txid()
+
+Returns the transaction id as a bytestring. Same as calling L</get_hash>
+but always with C<< witness => 0 >>.
+
+=head3 wtxid
+
+	$wtxid = $object->wtxid()
+
+Returns the transaction witness id as a bytestring. Same as calling L</get_hash>
+but always with C<< witness => 1 >>.
 
 =head3 get_digest
 

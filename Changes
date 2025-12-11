@@ -10,6 +10,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- removed flags parameter from get_digest method
 		- added sign method
 		- added verify_standard method
+		- added txid method
+		- added wtxid method
 	- Bitcoin::Crypto::Transaction::Input:
 		- method script_base is now internal use only, as it depends on other parts to deliver correct results
 	- Bitcoin::Crypto::Transaction::Flags:
