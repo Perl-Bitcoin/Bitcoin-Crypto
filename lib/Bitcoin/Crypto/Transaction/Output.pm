@@ -10,6 +10,7 @@ use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Helpers qw(encode_64bit decode_64bit);
 use Bitcoin::Crypto::Util::Internal qw(pack_compactsize unpack_compactsize);
 use Bitcoin::Crypto::Exception;
+use Bitcoin::Crypto::Constants qw(USE_BIGINTS);
 
 has param 'value' => (
 	writer => 1,
@@ -36,8 +37,13 @@ sub set_max_value
 {
 	my ($self) = @_;
 
-	# $self->set_value('0xffffffffffffffff');
-	$self->set_value((1 << 63) - 1 + (1 << 63));
+	if (USE_BIGINTS) {
+		$self->set_value('0xffffffffffffffff');
+	}
+	else {
+		$self->set_value((1 << 63) - 1 + (1 << 63));
+	}
+
 	return $self;
 }
 
