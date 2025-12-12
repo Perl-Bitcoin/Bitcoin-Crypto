@@ -133,6 +133,9 @@ accept its objects in any place where a secret is expected. It will not try to
 turn it into a Bitcoin::Crypto::Secret instance, but instead store it
 internally as-is.
 
+In order to use Crypt::SecretBuffer with Bitcoin::Crypto, it must be version
+C<0.007> or greater, as this version introduced the C<unmask_to> method.
+
 =head1 INTERFACE
 
 =head2 Methods

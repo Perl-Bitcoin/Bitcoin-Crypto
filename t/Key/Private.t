@@ -161,7 +161,7 @@ subtest 'buffer should be secret' => sub {
 };
 
 subtest 'buffer should be secret (Crypt::SecretBuffer)' => sub {
-	my $has_secretbuffer = eval { require Crypt::SecretBuffer; 1 };
+	my $has_secretbuffer = eval { require Crypt::SecretBuffer; Crypt::SecretBuffer->VERSION('0.007'); 1 };
 	skip_all 'this test requires Crypt::SecretBuffer'
 		unless $has_secretbuffer;
 	my $orig = '010203';
