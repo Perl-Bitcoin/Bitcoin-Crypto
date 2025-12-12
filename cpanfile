@@ -12,4 +12,5 @@ requires 'CryptX' => '0.074';
 requires 'Bitcoin::Secp256k1' => '0.008';
 requires 'Bitcoin::BIP39' => '0.002';
 requires 'Feature::Compat::Try' => 0;
+requires 'namespace::autoclean' => 0;
 

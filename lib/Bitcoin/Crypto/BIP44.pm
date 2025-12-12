@@ -25,8 +25,6 @@ sub _get_network_constant
 	return $coin_type;
 }
 
-use namespace::clean;
-
 has param 'purpose' => (
 	isa => BIP44Purpose,
 	default => 44,
