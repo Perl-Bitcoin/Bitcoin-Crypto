@@ -2,6 +2,13 @@ Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
 
+4.004 Tue Mar 17, 2026
+	[Fixes]
+	- Bump Bitcoin::Secp256k1 dependency to fix a bug with passing undef as pubkey or signature
+	- Bump Mooish::Base dependency to fix test failures with MooX::XSConstructor installed
+	- Crypt::SecretBuffer is now only used if it is in version 0.007 or above
+	- Depend on namespace::autoclean, get rid of namespace::clean usage
+
 4.003 Thu Dec 11, 2025
 	[Public interface changes]
 	- Bitcoin::Crypto::Script::Tree:
