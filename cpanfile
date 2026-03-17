@@ -4,7 +4,7 @@ on 'test' => sub {
 
 requires 'Math::BigInt' => '1.999831';
 requires 'Moo' => '2.003004';
-requires 'Mooish::Base' => '1.001';
+requires 'Mooish::Base' => '1.005';
 requires 'Type::Tiny' => '2';
 requires 'List::Util' => '1.45';
 requires 'CryptX' => '0.074';

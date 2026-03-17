@@ -867,17 +867,15 @@ having 2 P2MS inputs) or 800 taproot transactions (each having 4 key spend
 inputs) can be decoded and verified per second, per process.
 
 For best performance, extra modules from CPAN should be installed, listed
-below. Module will use them if they can be loaded.
+below. This module will use them if they can be loaded.
 
 =over
 
-=item * L<MooX::TypeTiny>
+=item * Modules from L<Mooish::Base/Moo>
 
-=item * L<Type::Tiny::XS>
+=item * L<Type::Tiny::XS> (used automatically by L<Type::Tiny>)
 
-=item * L<Class::XSAccessor>
-
-=item * L<MooX::XSConstructor>
+=item * L<Class::XSAccessor> (used automatically by L<Moo>)
 
 =back
 
