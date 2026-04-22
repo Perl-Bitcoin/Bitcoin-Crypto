@@ -541,6 +541,18 @@ B<Key data:> <none>
 
 B<Value data:> Hash reference with flags: inputs_modifiable, outputs_modifiable, has_sighash_single
 
+=item * PSBT_GLOBAL_VERSION
+
+B<Key data:> <none>
+
+B<Value data:> 32-bit positive integer value
+
+=item * PSBT_GLOBAL_PROPRIETARY
+
+B<Key data:> Array reference with three items: bytestring, unsigned integer, bytestring
+
+B<Value data:> Bytestring value
+
 =back
 
 =head2 Input map
@@ -697,6 +709,12 @@ B<Key data:> <none>
 
 B<Value data:> Bytestring value
 
+=item * PSBT_IN_PROPRIETARY
+
+B<Key data:> Array reference with three items: bytestring, unsigned integer, bytestring
+
+B<Value data:> Bytestring value
+
 =back
 
 =head2 Output map
@@ -750,6 +768,12 @@ B<Value data:> Bitcoin::Crypto::Script::Tree instance
 B<Key data:> Bitcoin::Crypto::Key::Public object
 
 B<Value data:> Array reference, where first item is an array of leaf hashes, second element is a fingerprint and the third element is Bitcoin::Crypto::DerivationPath
+
+=item * PSBT_OUT_PROPRIETARY
+
+B<Key data:> Array reference with three items: bytestring, unsigned integer, bytestring
+
+B<Value data:> Bytestring value
 
 =back
 

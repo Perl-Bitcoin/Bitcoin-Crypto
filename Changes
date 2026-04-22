@@ -8,6 +8,9 @@ Revision history for Perl extension Bitcoin::Crypto.
 	[Fixes]
 	- Fix PSBT serializers and deserializers of proprietary fields' keys
 
+	[Documentation]
+	- Supply missing fields in PSBT documentation
+
 4.004 Tue Mar 17, 2026
 	[Fixes]
 	- Bump Bitcoin::Secp256k1 dependency to fix a bug with passing undef as pubkey or signature
