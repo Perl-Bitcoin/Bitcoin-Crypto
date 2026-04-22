@@ -268,5 +268,10 @@ subtest 'should serialize tx into the witness form, if it was deserialized with 
 	is to_format [hex => $tx->to_serialized(witness => !!1)], $original_form, 'serialized ok';
 };
 
+subtest 'should raise an exception when set_rbf is called with no inputs' => sub {
+	$tx = btc_transaction->new;
+	isa_ok dies { $tx->set_rbf }, 'Bitcoin::Crypto::Exception::Transaction';
+};
+
 done_testing;
 

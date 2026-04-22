@@ -8,6 +8,10 @@ Revision history for Perl extension Bitcoin::Crypto.
 	[Fixes]
 	- Fix PSBT serializers and deserializers of proprietary fields' keys
 
+	[Improvements]
+	- Bitcoin::Crypto::Transaction:
+		- set_rbf now raises a more descriptive exception when called on a transaction with no inputs
+
 	[Documentation]
 	- Supply missing fields in PSBT documentation
 

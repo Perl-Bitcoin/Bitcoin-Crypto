@@ -345,7 +345,13 @@ sub set_rbf
 	# rules according to BIP125
 	# https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
 	if (!$self->has_rbf) {
-		$self->inputs->[0]->set_sequence_no(RBF_SEQUENCE_NO_THRESHOLD);
+		my $input = $self->inputs->[0];
+
+		Bitcoin::Crypto::Exception::Transaction->raise(
+			'set_rbf can only be called on a transaction with at least one input'
+		) unless defined $input;
+
+		$input->set_sequence_no(RBF_SEQUENCE_NO_THRESHOLD);
 	}
 
 	return $self;
