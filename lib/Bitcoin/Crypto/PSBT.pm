@@ -490,7 +490,10 @@ L<Bitcoin::Crypto::PSBT::FieldType/value_data> (which contain short strings
 with description of field content).
 
 For a list of PSBT fields, see
-L<BIP174|https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki>.
+L<BIP174|https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki> and
+follow-up BIPS, most notably
+L<BIP370|https://github.com/bitcoin/bips/blob/master/bip-0370.mediawiki> and
+L<BIP371|https://github.com/bitcoin/bips/blob/master/bip-0371.mediawiki>.
 
 =head2 Global map
 
