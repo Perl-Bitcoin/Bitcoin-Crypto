@@ -163,5 +163,19 @@ subtest 'can derive public key' => sub {
 		'zpub6vVTjHj2VYz8CjXyzC2NT94i1enJcx678vjo4MYBY76eYfye4NbT32eaxMhPrqvvt9v6sjGJwNrnUx1hdrBw9ymJeSxe9uqXzxtAHcx39iS';
 };
 
+subtest 'change is a boolean' => sub {
+	my $bip44 = Bitcoin::Crypto::BIP44->new(
+		change => !!1,
+	);
+
+	is "$bip44", "m/44'/0'/0'/1/0";
+
+	$bip44 = Bitcoin::Crypto::BIP44->new(
+		change => !!0,
+	);
+
+	is "$bip44", "m/44'/0'/0'/0/0";
+};
+
 done_testing;
 

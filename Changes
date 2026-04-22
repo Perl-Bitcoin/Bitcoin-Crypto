@@ -11,6 +11,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 	[Improvements]
 	- Bitcoin::Crypto::Transaction:
 		- set_rbf now raises a more descriptive exception when called on a transaction with no inputs
+	- Bitcoin::Crypto::BIP44:
+		- change can now be passed as a boolean value and will be automatically mapped to an integer
 
 	[Documentation]
 	- Supply missing fields in PSBT documentation

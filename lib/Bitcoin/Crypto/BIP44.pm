@@ -56,7 +56,7 @@ has param 'account' => (
 );
 
 has param 'change' => (
-	isa => Enum [1, 0],
+	isa => Bool,
 	default => 0,
 );
 
@@ -103,7 +103,7 @@ sub as_string
 		if $self->get_account;
 
 	return sprintf "%s/%u/%u",
-		$path, $self->change, $self->index;
+		$path, ($self->change ? 1 : 0), $self->index;
 }
 
 sub get_derivation_path
@@ -193,10 +193,12 @@ By default, the value C<0> is used.
 
 =head3 change
 
-Needs to be a number C<1> (for addresses to be used as change outputs) or C<0>
-(for addresses that are to be used for receiving from external sources).
+Needs to be a true value (for addresses to be used as change outputs) or a
+false value (for addresses that are to be used for receiving from external
+sources).
 
-By default, the value C<0> is used.
+By default, the value C<false> is used. Boolean will be mapped to integer
+values in the derivation path.
 
 =head3 index
 
