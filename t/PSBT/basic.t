@@ -146,5 +146,84 @@ subtest 'should detect out of bonds maps' => sub {
 
 };
 
+subtest 'should support proprietary fields' => sub {
+	my $psbt = btc_psbt->new;
+
+	my $tx = btc_transaction->new;
+
+	$tx->add_input(
+		utxo => [[hex => 'e120db2fb51aa1a698d1096201dcf6e87a7dade39db94abbc1a4d7ea5afb7564'], 1]
+	);
+
+	$tx->add_output(
+		value => 1234,
+		locking_script => [address => 'bc1pjex5vx48metd6xhp20uqdn3dqzwdrnnmzgmpur0mlzys9urgcshs4wmvut'],
+	);
+
+	$psbt->add_field(
+		type => 'PSBT_GLOBAL_UNSIGNED_TX',
+		value => $tx,
+	);
+
+	my $ident = 'myapp';
+	my $subtype = 42;
+	my $subkey = 'somekey';
+	my $value = 'somevalue';
+
+	# add proprietary fields to all three map types
+	$psbt->add_field(
+		type => 'PSBT_GLOBAL_PROPRIETARY',
+		key => [$ident, $subtype, $subkey],
+		value => $value,
+	);
+
+	$psbt->add_field(
+		type => 'PSBT_IN_PROPRIETARY',
+		key => [$ident, $subtype, $subkey],
+		value => $value,
+		index => 0,
+	);
+
+	$psbt->add_field(
+		type => 'PSBT_OUT_PROPRIETARY',
+		key => [$ident, $subtype, $subkey],
+		value => $value,
+		index => 0,
+	);
+
+	ok lives { $psbt->check }, 'check ok';
+	$psbt = btc_psbt->from_serialized($psbt->to_serialized);
+
+	# verify key/value roundtrip for each map type
+	for my $field_type (qw(PSBT_GLOBAL_PROPRIETARY PSBT_IN_PROPRIETARY PSBT_OUT_PROPRIETARY)) {
+		my $index = $field_type eq 'PSBT_GLOBAL_PROPRIETARY' ? undef : 0;
+
+		ok lives {
+			my @fields = $psbt->get_all_fields($field_type, $index);
+			is scalar @fields, 1, "one $field_type field ok";
+
+			my $key_data = $fields[0]->key;
+			my $value_data = $fields[0]->value;
+
+			is $key_data->[0], $ident, "$field_type key ident ok";
+			is $key_data->[1], $subtype, "$field_type key subtype ok";
+			is $key_data->[2], $subkey, "$field_type key subkey ok";
+			is $value_data, $value, "$field_type value ok";
+		}, "$field_type values ok";
+	}
+
+	# verify multiple proprietary fields with different keys can coexist in the same map
+	$psbt->add_field(
+		type => 'PSBT_GLOBAL_PROPRIETARY',
+		key => [$ident, $subtype + 1, $subkey],
+		value => 'othervalue',
+	);
+
+	ok lives { $psbt->check }, 'check with multiple proprietary fields ok';
+
+	my @global_prop = $psbt->get_all_fields('PSBT_GLOBAL_PROPRIETARY');
+	is scalar @global_prop, 2, 'two global proprietary fields ok';
+};
+
 done_testing;
 

@@ -1,6 +1,8 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
+	[Fixes]
+	- Fix PSBT serializers and deserializers of proprietary fields' keys
 
 4.004 Tue Mar 17, 2026
 	[Fixes]

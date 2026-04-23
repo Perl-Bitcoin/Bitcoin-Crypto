@@ -154,15 +154,15 @@ my %script_serializers = (
 );
 
 my %proprietary_key_serializers = (
-	key_data => "Array reference with two bytestring items",
+	key_data => "Array reference with three items: bytestring, unsigned integer, bytestring",
 	key_serializer => sub {
-		state $sig = signature(positional => [Tuple [ByteStr, ByteStr]]);
-		my ($ident, $subkey) = @{($sig->(@_))[0]};
+		state $sig = signature(positional => [Tuple [ByteStr, PositiveOrZeroInt, ByteStr]]);
+		my ($ident, $subtype, $subkey) = @{($sig->(@_))[0]};
 
 		my $result = '';
 		$result .= pack_compactsize(length $ident);
 		$result .= $ident;
-		$result .= pack_compactsize(length $subkey);
+		$result .= pack_compactsize($subtype);
 		$result .= $subkey;
 
 		return $result;
@@ -175,11 +175,10 @@ my %proprietary_key_serializers = (
 		my $ident = substr $val, $pos, $ident_len;
 		$pos += $ident_len;
 
-		my $subkey_len = unpack_compactsize($val, \$pos);
-		my $subkey = substr $val, $pos, $subkey_len;
-		$pos += $subkey_len;
+		my $subtype = unpack_compactsize($val, \$pos);
+		my $subkey = substr $val, $pos;
 
-		return [$ident, $subkey];
+		return [$ident, $subtype, $subkey];
 	},
 );
 
