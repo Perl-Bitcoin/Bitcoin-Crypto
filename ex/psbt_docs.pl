@@ -9,15 +9,24 @@ my %maps = (
 	out => 'Output map',
 );
 
+my @all_fields = (
+	@{Bitcoin::Crypto::PSBT::FieldType->get_fields_available_in_version(0)},
+	@{Bitcoin::Crypto::PSBT::FieldType->get_fields_available_in_version(2)},
+);
+
+my %mapped_fields;
+foreach my $field (@all_fields) {
+	$mapped_fields{$field->map_type}{$field->code} = $field;
+}
+
 foreach my $map (sort keys %maps) {
 	say '=head2 ' . $maps{$map};
 	say '';
 	say '=over';
 	say '';
 
-	for (my $code = 0 ; ; ++$code) {
-		my $field = Bitcoin::Crypto::PSBT::FieldType->get_field_by_code($map, $code);
-		last if $field->name eq 'UNKNOWN';
+	foreach my $field_code (sort { $a <=> $b } keys %{$mapped_fields{$map}}) {
+		my $field = $mapped_fields{$map}{$field_code};
 
 		say '=item * ' . $field->name;
 		say '';

@@ -1,6 +1,10 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
+	[Public interface changes]
+	- Bitcoin::Crypto::PSBT::FieldType:
+		- added get_fields_available_in_version method
+
 	[Fixes]
 	- Fix PSBT serializers and deserializers of proprietary fields' keys
 

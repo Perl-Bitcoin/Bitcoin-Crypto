@@ -901,6 +901,25 @@ sub get_field_by_name
 	return $types{$name};
 }
 
+signature_for get_fields_available_in_version => (
+	method => !!1,
+	positional => [PositiveOrZeroInt],
+);
+
+sub get_fields_available_in_version
+{
+	my ($class, $version) = @_;
+
+	# sort to ensure deterministic order
+	return [
+		grep {
+			$_->available_in_version($version)
+		} map {
+			$types{$_}
+		} sort keys %types
+	];
+}
+
 signature_for get_fields_required_in_version => (
 	method => !!1,
 	positional => [PositiveOrZeroInt],
@@ -1060,6 +1079,12 @@ Returns a field type with a given C<$name>.
 If no such field is defined, an exception will be thrown. Unknown field type
 cannot be created like in L</get_field_by_code>, because code is a required
 part of a field, while name is only informatory.
+
+=head3 get_fields_available_in_version
+
+	$fields_aref = $class->get_fields_available_in_version($version)
+
+Returns an array reference of field types which are available in a given C<$version> number.
 
 =head3 get_fields_required_in_version
 
