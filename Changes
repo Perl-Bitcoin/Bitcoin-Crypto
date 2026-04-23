@@ -1,21 +1,20 @@
 Revision history for Perl extension Bitcoin::Crypto.
 
 {{$NEXT}}
+
+4.005 Thu Apr 23, 2026
 	[Public interface changes]
 	- Bitcoin::Crypto::PSBT::FieldType:
 		- added get_fields_available_in_version method
-
-	[Fixes]
-	- Fix PSBT serializers and deserializers of proprietary fields' keys
-
-	[Improvements]
-	- Bitcoin::Crypto::Transaction:
-		- set_rbf now raises a more descriptive exception when called on a transaction with no inputs
 	- Bitcoin::Crypto::BIP44:
 		- change can now be passed as a boolean value and will be automatically mapped to an integer
 
+	[Fixes and improvements]
+	- fix PSBT serializers and deserializers of proprietary fields' keys
+	- set_rbf now raises a more descriptive exception when called on a transaction with no inputs
+
 	[Documentation]
-	- Supply missing fields in PSBT documentation
+	- supply missing fields in PSBT documentation
 
 4.004 Tue Mar 17, 2026
 	[Fixes]
