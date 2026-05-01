@@ -213,6 +213,43 @@ sub serialized_witness
 		;
 }
 
+signature_for set_serialized_witness => (
+	method => !!1,
+	head => [ByteStr],
+	named => [
+		pos => Maybe [ScalarRef [PositiveOrZeroInt]],
+		{default => undef},
+	],
+	bless => !!0,
+);
+
+sub set_serialized_witness
+{
+	my ($self, $serialized, $args) = @_;
+	my $partial = !!$args->{pos};
+	my $pos = $partial ? ${$args->{pos}} : 0;
+
+	my $input_witness = unpack_compactsize $serialized, \$pos;
+	my @witness;
+	for (1 .. $input_witness) {
+		my $witness_count = unpack_compactsize $serialized, \$pos;
+
+		push @witness, substr $serialized, $pos, $witness_count;
+		$pos += $witness_count;
+	}
+
+	$self->set_witness(\@witness);
+
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'serialized witness data is corrupted'
+	) if !$partial && $pos != length $serialized;
+
+	${$args->{pos}} = $pos
+		if $partial;
+
+	return;
+}
+
 sub script_base
 {
 	my ($self) = @_;
@@ -416,6 +453,33 @@ NOTE: serialized input does not include witness data, which is a part of this cl
 	$object = $class->from_serialized($bytestring, %params)
 
 Creates an object instance from serialized data.
+
+C<%params> can be any of:
+
+=over
+
+=item * C<pos>
+
+Position for partial string decoding. Optional. If passed, must be a scalar
+reference to an integer value.
+
+This integer will mark the starting position of C<$bytestring> from which to
+start decoding. It will be set to the next byte after end of input stream.
+
+=back
+
+=head3 serialized_witness
+
+	$bytestring = $object->serialized_witness()
+
+Serializes witness data of the input as it would appear in the serialized
+transaction, and returns it as a bytestring.
+
+=head3 set_serialized_witness
+
+	$object->set_serialized_witness($bytestring, %params)
+
+Sets L</witness> to data obtained by deserializing C<$bytestring>.
 
 C<%params> can be any of:
 

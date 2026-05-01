@@ -219,16 +219,7 @@ sub from_serialized
 
 	if ($witness_flag) {
 		foreach my $input (@inputs) {
-			my $input_witness = unpack_compactsize $serialized, \$pos;
-			my @witness;
-			for (1 .. $input_witness) {
-				my $witness_count = unpack_compactsize $serialized, \$pos;
-
-				push @witness, substr $serialized, $pos, $witness_count;
-				$pos += $witness_count;
-			}
-
-			$input->set_witness(\@witness);
+			$input->set_serialized_witness($serialized, pos => \$pos);
 		}
 	}
 
