@@ -5,6 +5,9 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Transaction::Input:
 		- added serialized_witness method
 		- added set_serialized_witness method
+	- Bitcoin::Crypto::PSBT:
+		- added get_locktime method
+		- added get_transaction method
 
 4.005 Thu Apr 23, 2026
 	[Public interface changes]

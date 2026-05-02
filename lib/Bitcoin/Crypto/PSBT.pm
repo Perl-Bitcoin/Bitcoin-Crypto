@@ -8,11 +8,13 @@ use Types::Common -sigs;
 use List::Util qw(any);
 use Scalar::Util qw(blessed);
 
+use Bitcoin::Crypto qw(btc_transaction);
 use Bitcoin::Crypto::PSBT::Map;
 use Bitcoin::Crypto::PSBT::Field;
 use Bitcoin::Crypto::PSBT::FieldType;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Constants qw(:psbt);
+use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Exception;
 
 has field 'maps' => (
@@ -87,9 +89,17 @@ sub get_field
 	my ($self, $type, $index, $key) = @_;
 
 	my @values = $self->get_all_fields($type, $index, $key);
-	Bitcoin::Crypto::Exception::PSBT->raise(
-		'Could not get value for field ' . $type->name . ': found ' . @values . ' values in PSBT'
-	) unless @values == 1;
+	if (@values != 1) {
+		my $id = $type->name;
+		$id .= ", index $index" if defined $index;
+		$id .= ', key ' . to_format [hex => $key] if defined $key;
+
+		my $count = @values;
+
+		Bitcoin::Crypto::Exception::PSBT->raise(
+			"Could not get value for field $id: found $count values in PSBT"
+		);
+	}
 
 	return $values[0];
 }
@@ -291,6 +301,112 @@ sub check
 	return $self;
 }
 
+sub get_locktime
+{
+	my ($self) = @_;
+	my $version = $self->version;
+
+	if ($version == 0) {
+		return $self->get_transaction->locktime;
+	}
+	elsif ($version == 2) {
+
+		# NOTE: this logic is based on:
+		# https://github.com/bitcoin/bips/blob/master/bip-0370.mediawiki#determining-lock-time
+
+		my $time_locktimes = 0;
+		my $height_locktimes = 0;
+		my $max_time_locktime = 0;
+		my $max_height_locktime = 0;
+
+		foreach my $input_index (0 .. $self->input_count - 1) {
+			my $time = $self->get_all_fields('PSBT_IN_REQUIRED_TIME_LOCKTIME', $input_index);
+			my $height = $self->get_all_fields('PSBT_IN_REQUIRED_HEIGHT_LOCKTIME', $input_index);
+
+			$time_locktimes += defined $time;
+			$height_locktimes += defined $height;
+
+			$max_time_locktime = $time->value
+				if $time && $time->value > $max_time_locktime;
+			$max_height_locktime = $height->value
+				if $height && $height->value > $max_height_locktime;
+		}
+
+		if ($time_locktimes > 0 && $height_locktimes > 0) {
+			if ($time_locktimes == $self->input_count && $time_locktimes > $height_locktimes) {
+				return $max_time_locktime;
+			}
+			else {
+				return $max_height_locktime;
+			}
+		}
+		elsif ($time_locktimes > $height_locktimes) {
+			return $max_time_locktime;
+		}
+		elsif ($height_locktimes > $time_locktimes) {
+			return $max_height_locktime;
+		}
+		else {
+			my $fallback = $self->get_all_fields('PSBT_GLOBAL_FALLBACK_LOCKTIME');
+
+			return $fallback ? $fallback->value : 0;
+		}
+	}
+}
+
+sub get_transaction
+{
+	my ($self) = @_;
+
+	$self->check;
+	my $version = $self->version;
+
+	my $tx;
+	if ($version == 0) {
+		$tx = $self->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value;
+	}
+	elsif ($version == 2) {
+		$tx = btc_transaction->new(
+			version => $self->get_field('PSBT_GLOBAL_TX_VERSION')->value,
+			locktime => $self->get_locktime,
+		);
+
+		foreach my $input_index (0 .. $self->input_count - 1) {
+			my $utxo_txid = $self->get_field('PSBT_IN_PREVIOUS_TXID', $input_index)->value;
+			my $utxo_output = $self->get_field('PSBT_IN_OUTPUT_INDEX', $input_index)->value;
+			my $sequence_field = $self->get_all_fields('PSBT_IN_SEQUENCE', $input_index);
+
+			$tx->add_input(
+				utxo => [$utxo_txid, $utxo_output],
+				(defined $sequence_field ? (sequence_no => $sequence_field->value) : ()),
+			);
+		}
+
+		foreach my $output_index (0 .. $self->output_count - 1) {
+			my $value = $self->get_field('PSBT_OUT_AMOUNT', $output_index)->value;
+			my $script = $self->get_field('PSBT_OUT_SCRIPT', $output_index)->value;
+
+			$tx->add_output(
+				locking_script => $script,
+				value => $value,
+			);
+		}
+	}
+
+	foreach my $input_index (0 .. $self->input_count - 1) {
+		my $signature_field = $self->get_all_fields('PSBT_IN_FINAL_SCRIPTSIG', $input_index);
+		my $witness_field = $self->get_all_fields('PSBT_IN_FINAL_SCRIPTWITNESS', $input_index);
+
+		$tx->inputs->[$input_index]->set_signature_script($signature_field->value)
+			if $signature_field;
+
+		$tx->inputs->[$input_index]->set_serialized_witness($witness_field->value)
+			if $witness_field;
+	}
+
+	return $tx;
+}
+
 sub dump
 {
 	my ($self) = @_;
@@ -460,6 +576,24 @@ may use this data to loop through PSBT fields.
 
 Checks the internal state of PSBT fields and throws an exception if it is
 invalid. Returns the object itself.
+
+=head3 get_locktime
+
+	$int = $object->get_locktime()
+
+Returns the locktime encoded in the PSBT as an integer. For version 0 PSBTs,
+this simply returns the locktime in the unsigned transaction field. For version
+2, it follows L<procedure described in
+BIP370|https://github.com/bitcoin/bips/blob/master/bip-0370.mediawiki#determining-lock-time>.
+
+Time or height-based threshold can be determined by comparing the result with
+L<Bitcoin::Crypto::Constants/LOCKTIME_HEIGHT_THRESHOLD>.
+
+=head3 get_transaction
+
+	$transaction = $object->get_transaction()
+
+Builds a new L<Bitcoin::Crypto::Transaction> object based on the contents of the PSBT.
 
 =head3 to_serialized
 
