@@ -8,7 +8,7 @@ use Types::Common -sigs;
 use List::Util qw(any);
 use Scalar::Util qw(blessed);
 
-use Bitcoin::Crypto qw(btc_transaction);
+use Bitcoin::Crypto qw(btc_transaction btc_utxo);
 use Bitcoin::Crypto::PSBT::Map;
 use Bitcoin::Crypto::PSBT::Field;
 use Bitcoin::Crypto::PSBT::FieldType;
@@ -354,6 +354,41 @@ sub get_locktime
 	}
 }
 
+sub _get_utxo
+{
+	my ($self, $input_index, $txid, $output_index) = @_;
+
+	my $non_witness_utxo = $self->get_all_fields('PSBT_IN_NON_WITNESS_UTXO', $input_index);
+	my $witness_utxo = $self->get_all_fields('PSBT_IN_WITNESS_UTXO', $input_index);
+
+	return unless $non_witness_utxo || $witness_utxo;
+
+	my $output;
+
+	if ($non_witness_utxo) {
+		my $utxo_tx = $non_witness_utxo->value;
+
+		Bitcoin::Crypto::Exception::PSBT->raise(
+			'invalid PSBT_IN_NON_WITNESS_UTXO - txid mismatch'
+		) unless $utxo_tx->txid eq $txid;
+
+		Bitcoin::Crypto::Exception::PSBT->raise(
+			"invalid PSBT_IN_NON_WITNESS_UTXO - no output $output_index"
+		) unless defined $utxo_tx->outputs->[$output_index];
+
+		$output = $utxo_tx->outputs->[$output_index];
+	}
+	elsif ($witness_utxo) {
+		$output = $witness_utxo->value;
+	}
+
+	return btc_utxo->new(
+		txid => $txid,
+		output_index => $output_index,
+		output => $output,
+	);
+}
+
 sub get_transaction
 {
 	my ($self) = @_;
@@ -377,7 +412,10 @@ sub get_transaction
 			my $sequence_field = $self->get_all_fields('PSBT_IN_SEQUENCE', $input_index);
 
 			$tx->add_input(
-				utxo => [$utxo_txid, $utxo_output],
+
+				# try to get utxo - if not present in the PSBT, fallback to just
+				# basic UTXO information. UTXO will not be registered.
+				utxo => $self->_get_utxo($input_index, $utxo_txid, $utxo_output) // [$utxo_txid, $utxo_output],
 				(defined $sequence_field ? (sequence_no => $sequence_field->value) : ()),
 			);
 		}
@@ -594,6 +632,10 @@ L<Bitcoin::Crypto::Constants/LOCKTIME_HEIGHT_THRESHOLD>.
 	$transaction = $object->get_transaction()
 
 Builds a new L<Bitcoin::Crypto::Transaction> object based on the contents of the PSBT.
+
+If UTXO fields in the PSBT are populated, then the resulting transaction inputs
+will have proper UTXOs set. However, those UTXOs will not be registered
+globally, and will only be available to this transaction only.
 
 =head3 to_serialized
 

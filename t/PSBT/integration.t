@@ -148,6 +148,53 @@ subtest 'should return valid height-based locktime from version 2 based on fallb
 	is $psbt->get_locktime, 555, 'locktime ok';
 };
 
+subtest 'should build transaction with UTXOs' => sub {
+	my $psbt = build_psbt(@minimal_v2);
+	ok !$psbt->get_transaction->inputs->[0]->utxo_registered, 'no utxo for base transaction ok';
+
+	$psbt = build_psbt(
+		@minimal_v2,
+		{
+			type => 'PSBT_IN_NON_WITNESS_UTXO',
+			index => 0,
+			raw_value => [
+				hex =>
+					'02000000000101511b7dac52f391e294e799b1b4097c1a60e578d5183e0d294de78638650b58500200000000ffffffff021a4f03000000000022512078b8bc45652bd8b48059d4d7cfa15415054dee17888ff42bd1dd97b778d0462443420100000000001600147e7467a4cde82b8681c927c30bc116f4916db16f02483045022100959c4a3a29b25df59c997764fff11aadc8e6889f3a58e3b87cab3807b92f00b5022045c7601bd902a70323e15ec4ba4dff57c1fc6e30475abc9f8cee6664190cf59d012102f6f1ff1fe9a1c43020f43b91d91d24090f0f803b54f8a32f17db2795a58949eb00000000'
+			],
+		}
+	);
+
+	is $psbt->get_transaction->inputs->[0]->utxo->output->locking_script->get_address,
+		'bc1p0zutc3t990vtfqze6ntulg25z5z5mmsh3z8lg273mktmw7xsgcjqrc42h3', 'non-witness utxo ok';
+
+	$psbt = build_psbt(
+		@minimal_v2,
+		{
+			type => 'PSBT_IN_WITNESS_UTXO',
+			index => 0,
+			raw_value =>
+				[hex => '1a4f03000000000022512078b8bc45652bd8b48059d4d7cfa15415054dee17888ff42bd1dd97b778d04624'],
+		}
+	);
+
+	is $psbt->get_transaction->inputs->[0]->utxo->output->locking_script->get_address,
+		'bc1p0zutc3t990vtfqze6ntulg25z5z5mmsh3z8lg273mktmw7xsgcjqrc42h3', 'witness utxo ok';
+};
+
+subtest 'should not build transaction with invalid non-witness UTXO' => sub {
+	my $psbt = build_psbt(
+		@minimal_v2,
+		{
+			type => 'PSBT_IN_NON_WITNESS_UTXO',
+			index => 0,
+			raw_value => [hex => $minimal_hex],
+		}
+	);
+
+	# feed tx to its own as its UTXO, which should fail (wrong transaction id)
+	isa_ok dies { $psbt->get_transaction }, 'Bitcoin::Crypto::Exception::PSBT';
+};
+
 done_testing;
 
 sub build_psbt

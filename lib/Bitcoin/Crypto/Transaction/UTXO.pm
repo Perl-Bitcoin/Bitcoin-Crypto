@@ -19,8 +19,6 @@ has param 'txid' => (
 	coerce => ByteStrLen [32],
 );
 
-# NOTE: ideally, utxo should point to a transaction, and transaction should
-# point to a block
 has option 'block' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Block'],
 );
