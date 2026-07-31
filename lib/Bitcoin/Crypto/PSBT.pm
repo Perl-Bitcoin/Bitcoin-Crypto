@@ -412,10 +412,7 @@ sub get_transaction
 			my $sequence_field = $self->get_all_fields('PSBT_IN_SEQUENCE', $input_index);
 
 			$tx->add_input(
-
-				# try to get utxo - if not present in the PSBT, fallback to just
-				# basic UTXO information. UTXO will not be registered.
-				utxo => $self->_get_utxo($input_index, $utxo_txid, $utxo_output) // [$utxo_txid, $utxo_output],
+				utxo => [$utxo_txid, $utxo_output],
 				(defined $sequence_field ? (sequence_no => $sequence_field->value) : ()),
 			);
 		}
@@ -432,13 +429,22 @@ sub get_transaction
 	}
 
 	foreach my $input_index (0 .. $self->input_count - 1) {
+		my $input = $tx->inputs->[$input_index];
+
+		# try to fill utxos - if not present in the PSBT, fallback to simply
+		# leaving the basic UTXO information as they are. UTXO will not be
+		# registered.
+		my $utxo = $self->_get_utxo($input_index, @{$input->utxo_location});
+		$input->set_utxo($utxo) if $utxo;
+
+		# fill signatures
 		my $signature_field = $self->get_all_fields('PSBT_IN_FINAL_SCRIPTSIG', $input_index);
 		my $witness_field = $self->get_all_fields('PSBT_IN_FINAL_SCRIPTWITNESS', $input_index);
 
-		$tx->inputs->[$input_index]->set_signature_script($signature_field->value)
+		$input->set_signature_script($signature_field->value)
 			if $signature_field;
 
-		$tx->inputs->[$input_index]->set_serialized_witness($witness_field->value)
+		$input->set_serialized_witness($witness_field->value)
 			if $witness_field;
 	}
 

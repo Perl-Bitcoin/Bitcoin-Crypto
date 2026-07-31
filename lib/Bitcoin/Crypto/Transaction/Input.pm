@@ -21,6 +21,7 @@ has param 'utxo_location' => (
 
 has option 'utxo' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction::UTXO'],
+	writer => 1,
 	lazy => 1,
 );
 
@@ -375,6 +376,8 @@ be done lazily, so that you can freely deserialize transactions without the
 need to set up their UTXOs.
 
 I<Available in the constructor>.
+
+I<writer>: C<set_utxo>
 
 =head3 utxo_location
 
