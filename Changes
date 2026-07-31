@@ -10,6 +10,9 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added get_locktime method
 		- added get_transaction method
 
+	[Fixes and improvements]
+	- fixed variable-time cryptographic operation in taproot key tweaking
+
 4.005 Thu Apr 23, 2026
 	[Public interface changes]
 	- Bitcoin::Crypto::PSBT::FieldType:

@@ -57,7 +57,10 @@ sub get_taproot_output_key
 	if ($self->_is_private) {
 		my $internal = $self->raw_key('private');
 		my $internal_public = ecc->create_public_key($internal);
-		$internal = ecc->negate_private_key($internal)
+
+		# NOTE: always negate the key to make it constant-time
+		my $internal_negated = ecc->negate_private_key($internal);
+		$internal = $internal_negated
 			unless has_even_y($internal_public);
 
 		my $tweak = tagged_hash('TapTweak', ecc->xonly_public_key($internal_public) . ($tweak_suffix // ''));
