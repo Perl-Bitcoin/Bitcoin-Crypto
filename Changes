@@ -12,6 +12,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 
 	[Fixes and improvements]
 	- fixed variable-time cryptographic operation in taproot key tweaking
+	- improved diagnostics on trying to unpack an empty stream as a compactsize
 
 4.005 Thu Apr 23, 2026
 	[Public interface changes]

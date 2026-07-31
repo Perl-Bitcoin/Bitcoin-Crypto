@@ -293,6 +293,10 @@ sub unpack_compactsize
 	my $partial = !!$pos_ref;
 	my $pos = $partial ? $$pos_ref : 0;
 
+	Bitcoin::Crypto::Exception->raise(
+		"cannot unpack CompactSize: no data in stream"
+	) unless $pos < length $stream;
+
 	# if the first byte is 0xfd, 0xfe or 0xff, then CompactSize contains 2, 4 or 8
 	# bytes respectively
 	my $value = ord substr $stream, $pos++, 1;

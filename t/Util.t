@@ -260,6 +260,12 @@ subtest 'testing unpack_compactsize with leftover data' => sub {
 	}, 'Bitcoin::Crypto::Exception';
 };
 
+subtest 'testing compactsize with no data' => sub {
+	isa_ok dies {
+		unpack_compactsize('');
+	}, 'Bitcoin::Crypto::Exception';
+};
+
 subtest 'testing merkle_root' => sub {
 	my $block_100022 = [
 		[
