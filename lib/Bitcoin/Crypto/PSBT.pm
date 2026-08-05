@@ -444,7 +444,7 @@ sub get_transaction
 		$input->set_signature_script($signature_field->value)
 			if $signature_field;
 
-		$input->set_serialized_witness($witness_field->value)
+		$input->set_witness($witness_field->value)
 			if $witness_field;
 	}
 
@@ -793,7 +793,7 @@ B<Value data:> Bitcoin::Crypto::Script object
 
 B<Key data:> <none>
 
-B<Value data:> Bytestring value
+B<Value data:> Array reference, representing witness stack
 
 =item * PSBT_IN_POR_COMMITMENT
 

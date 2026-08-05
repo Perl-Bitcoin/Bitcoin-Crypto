@@ -18,6 +18,9 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fixed set_serialized_witness from Transaction::Input setting corrupted argument data witness value
 	- improved diagnostics on trying to unpack an empty stream as a compactsize
 
+	[Breaking changes]
+	- PSBT_IN_FINAL_SCRIPTWITNESS is now serialized and deserialized as an array reference of bytestrings
+
 4.005 Thu Apr 23, 2026
 	[Public interface changes]
 	- Bitcoin::Crypto::PSBT::FieldType:

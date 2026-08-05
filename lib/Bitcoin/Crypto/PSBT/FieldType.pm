@@ -11,7 +11,7 @@ use Bitcoin::Crypto qw(btc_extpub btc_pub btc_transaction btc_script btc_tapscri
 use Bitcoin::Crypto::Transaction::Output;
 use Bitcoin::Crypto::Constants qw(:transaction);
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Util::Internal qw(pack_compactsize unpack_compactsize lift_x);
+use Bitcoin::Crypto::Util::Internal qw(pack_compactsize unpack_compactsize pack_array unpack_array lift_x);
 use Bitcoin::Crypto::Helpers qw(encode_64bit decode_64bit die_no_trace);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Transaction::ControlBlock;
@@ -434,7 +434,14 @@ my %types = (
 
 	PSBT_IN_FINAL_SCRIPTWITNESS => {
 		code => 0x08,
-		value_data => "Bytestring value",
+		value_data => "Array reference, representing witness stack",
+		serializer => sub {
+			state $sig = signature(positional => [ArrayRef [ByteStr]]);
+			my ($array) = $sig->(@_);
+
+			return pack_array $array;
+		},
+		deserializer => sub { unpack_array shift },
 		version_status => {
 			0 => AVAILABLE,
 			2 => AVAILABLE,

@@ -84,7 +84,7 @@ subtest 'should build valid transaction with final signatures' => sub {
 		{
 			type => 'PSBT_IN_FINAL_SCRIPTWITNESS',
 			index => 0,
-			value => $tx->inputs->[0]->serialized_witness,
+			value => $tx->inputs->[0]->witness,
 		}
 	);
 
