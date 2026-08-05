@@ -10,7 +10,7 @@ use Feature::Compat::Try;
 
 use Bitcoin::Crypto qw(btc_script btc_utxo);
 use Bitcoin::Crypto::Constants qw(:transaction);
-use Bitcoin::Crypto::Util::Internal qw(to_format pack_compactsize unpack_compactsize);
+use Bitcoin::Crypto::Util::Internal qw(to_format pack_compactsize unpack_compactsize pack_array unpack_array);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Script::Common;
@@ -204,14 +204,7 @@ sub prevout
 
 sub serialized_witness
 {
-	my ($self) = @_;
-
-	my $witness = $self->witness;
-
-	return join '',
-		pack_compactsize(scalar @{$witness}),
-		(map { pack_compactsize(length $_) . $_ } @{$witness}),
-		;
+	return pack_array shift->witness;
 }
 
 signature_for set_serialized_witness => (
@@ -227,27 +220,8 @@ signature_for set_serialized_witness => (
 sub set_serialized_witness
 {
 	my ($self, $serialized, $args) = @_;
-	my $partial = !!$args->{pos};
-	my $pos = $partial ? ${$args->{pos}} : 0;
 
-	my $input_witness = unpack_compactsize $serialized, \$pos;
-	my @witness;
-	for (1 .. $input_witness) {
-		my $witness_count = unpack_compactsize $serialized, \$pos;
-
-		push @witness, substr $serialized, $pos, $witness_count;
-		$pos += $witness_count;
-	}
-
-	$self->set_witness(\@witness);
-
-	Bitcoin::Crypto::Exception::Transaction->raise(
-		'serialized witness data is corrupted'
-	) if !$partial && $pos != length $serialized;
-
-	${$args->{pos}} = $pos
-		if $partial;
-
+	$self->set_witness(unpack_array $serialized, $args);
 	return;
 }
 

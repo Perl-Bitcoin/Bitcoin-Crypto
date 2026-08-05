@@ -33,6 +33,8 @@ our @EXPORT_OK = qw(
 	to_format
 	pack_compactsize
 	unpack_compactsize
+	pack_array
+	unpack_array
 	hash160
 	hash256
 	merkle_root
@@ -333,6 +335,42 @@ sub unpack_compactsize
 		if $partial;
 
 	return $value;
+}
+
+sub pack_array
+{
+	my ($array) = @_;
+
+	return join '',
+		pack_compactsize(scalar @{$array}),
+		(map { pack_compactsize(length $_) . $_ } @{$array}),
+		;
+}
+
+sub unpack_array
+{
+	my ($serialized, $args) = @_;
+
+	my $partial = !!$args->{pos};
+	my $pos = $partial ? ${$args->{pos}} : 0;
+
+	my $count = unpack_compactsize $serialized, \$pos;
+	my @array;
+	for (1 .. $count) {
+		my $size = unpack_compactsize $serialized, \$pos;
+
+		push @array, substr $serialized, $pos, $size;
+		$pos += $size;
+	}
+
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'serialized witness data is corrupted'
+	) if !$partial && $pos != length $serialized;
+
+	${$args->{pos}} = $pos
+		if $partial;
+
+	return \@array;
 }
 
 sub hash160

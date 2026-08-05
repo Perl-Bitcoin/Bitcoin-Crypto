@@ -21,6 +21,8 @@ use Bitcoin::Crypto::Util::Internal qw(
 	to_format
 	pack_compactsize
 	unpack_compactsize
+	pack_array
+	unpack_array
 	hash160
 	hash256
 	merkle_root
@@ -44,6 +46,8 @@ our @EXPORT_OK = qw(
 	to_format
 	pack_compactsize
 	unpack_compactsize
+	pack_array
+	unpack_array
 	hash160
 	hash256
 	merkle_root
@@ -134,6 +138,14 @@ signature_for pack_compactsize => (
 );
 
 signature_for unpack_compactsize => (
+	positional => [ByteStr, Maybe [ScalarRef [PositiveOrZeroInt]], {default => undef}],
+);
+
+signature_for pack_array => (
+	positional => [ArrayRef [ByteStr]],
+);
+
+signature_for unpack_array => (
 	positional => [ByteStr, Maybe [ScalarRef [PositiveOrZeroInt]], {default => undef}],
 );
 
@@ -390,6 +402,26 @@ If C<$pos> is passed, it must be a reference to a scalar containing the
 position at which to start the decoding. It will be modified to contain the
 next position after the CompactSize. If not, decoding will start at 0 and will raise
 an exception if C<$bytestr> contains anything other than CompactSize.
+
+=head2 pack_array
+
+	$bytestr = pack_array($array_ref)
+
+Serializes C<$array_ref> of bytestrings as commonly done in Bitcoin - a
+compactsize count, then each array item prepended by its compactsize byte
+length.
+
+=head2 unpack_array
+
+	$array_ref = unpack_array($bytestr, $pos = undef)
+
+Deserializes an array from C<$bytestr> as commonly done in Bitcoin - see
+L</pack_array>.
+
+If C<$pos> is passed, it must be a reference to a scalar containing the
+position at which to start the decoding. It will be modified to contain the
+next position after the array. If not, decoding will start at 0 and will raise
+an exception if C<$bytestr> contains anything other than the array.
 
 =head2 hash160
 
