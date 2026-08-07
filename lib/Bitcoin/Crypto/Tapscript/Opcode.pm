@@ -44,10 +44,6 @@ sub _OP_CHECKSIG
 
 		# rules according to https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#rules-for-signature-opcodes
 		if (length $raw_pubkey == 32) {
-
-			# TODO: this uses ecc directly and skips creating a new public key
-			# with lift_x - this saves time, but maybe an abstraction for that
-			# should be made as Key::Schnorr (which would use SignVerify)?
 			$known_pubkey_type = !!1;
 		}
 		elsif (length $raw_pubkey == 0) {
@@ -114,6 +110,9 @@ sub _OP_CHECKSIG
 			taproot_ext => $ext
 		);
 
+		# TODO: this uses ecc directly and skips creating a new public key
+		# with lift_x - this saves time, but maybe an abstraction for that
+		# should be made as Key::Schnorr (which would use SignVerify)?
 		my $result = ecc->verify_digest_schnorr($raw_pubkey, $sig, $preimage->hash);
 
 		$runner->_invalid_script('signature verification failed') unless $result;
