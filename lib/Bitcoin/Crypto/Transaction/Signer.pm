@@ -242,6 +242,13 @@ sub finalize
 	return;
 }
 
+sub get_last_element
+{
+	my ($self) = @_;
+
+	return $self->_signature->[-1];
+}
+
 signature_for dump => (
 	method => !!1,
 	positional => [Bool, {default => !!1}],

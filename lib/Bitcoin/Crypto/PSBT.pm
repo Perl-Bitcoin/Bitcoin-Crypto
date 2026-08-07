@@ -22,6 +22,11 @@ has field 'maps' => (
 	default => sub { [] },
 );
 
+with qw(
+	Bitcoin::Crypto::Role::PSBT::Signer
+	Bitcoin::Crypto::Role::PSBT::Finalizer
+);
+
 sub _get_map
 {
 	my ($self, $maptype, %args) = @_;
