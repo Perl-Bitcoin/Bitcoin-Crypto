@@ -3,6 +3,8 @@ use Bitcoin::Crypto::Key::ExtPrivate;
 use Bitcoin::Crypto::Key::ExtPublic;
 use Bitcoin::Crypto::Util qw(to_format);
 
+# most test cases are from https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+
 my @test_data_private = (
 	{
 		seed => '000102030405060708090a0b0c0d0e0f',
@@ -231,6 +233,73 @@ my @test_data_error = (
 	],
 );
 
+my @test_data_invalid = (
+	[
+		'xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6LBpB85b3D2yc8sfvZU521AAwdZafEz7mnzBBsz4wKY5fTtTQBm',
+		'pubkey version / prvkey mismatch'
+	],
+	[
+		'xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGTQQD3dC4H2D5GBj7vWvSQaaBv5cxi9gafk7NF3pnBju6dwKvH',
+		'prvkey version / pubkey mismatch'
+	],
+	[
+		'xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Txnt3siSujt9RCVYsx4qHZGc62TG4McvMGcAUjeuwZdduYEvFn',
+		'invalid pubkey prefix 04'
+	],
+	[
+		'xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGpWnsj83BHtEy5Zt8CcDr1UiRXuWCmTQLxEK9vbz5gPstX92JQ',
+		'invalid prvkey prefix 04'
+	],
+	[
+		'xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6N8ZMMXctdiCjxTNq964yKkwrkBJJwpzZS4HS2fxvyYUA4q2Xe4',
+		'invalid pubkey prefix 01'
+	],
+	[
+		'xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFAzHGBP2UuGCqWLTAPLcMtD9y5gkZ6Eq3Rjuahrv17fEQ3Qen6J',
+		'invalid prvkey prefix 01'
+	],
+	[
+		'xprv9s2SPatNQ9Vc6GTbVMFPFo7jsaZySyzk7L8n2uqKXJen3KUmvQNTuLh3fhZMBoG3G4ZW1N2kZuHEPY53qmbZzCHshoQnNf4GvELZfqTUrcv',
+		'zero depth with non-zero parent fingerprint'
+	],
+	[
+		'xpub661no6RGEX3uJkY4bNnPcw4URcQTrSibUZ4NqJEw5eBkv7ovTwgiT91XX27VbEXGENhYRCf7hyEbWrR3FewATdCEebj6znwMfQkhRYHRLpJ',
+		'zero depth with non-zero parent fingerprint'
+	],
+	[
+		'xprv9s21ZrQH4r4TsiLvyLXqM9P7k1K3EYhA1kkD6xuquB5i39AU8KF42acDyL3qsDbU9NmZn6MsGSUYZEsuoePmjzsB3eFKSUEh3Gu1N3cqVUN',
+		'zero depth with non-zero index'
+	],
+	[
+		'xpub661MyMwAuDcm6CRQ5N4qiHKrJ39Xe1R1NyfouMKTTWcguwVcfrZJaNvhpebzGerh7gucBvzEQWRugZDuDXjNDRmXzSZe4c7mnTK97pTvGS8',
+		'zero depth with non-zero index'
+	],
+	[
+		'DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHGMQzT7ayAmfo4z3gY5KfbrZWZ6St24UVf2Qgo6oujFktLHdHY4',
+		'unknown extended key version'
+	],
+	[
+		'DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHPmHJiEDXkTiJTVV9rHEBUem2mwVbbNfvT2MTcAqj3nesx8uBf9',
+		'unknown extended key version'
+	],
+	[
+		'xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzF93Y5wvzdUayhgkkFoicQZcP3y52uPPxFnfoLZB21Teqt1VvEHx',
+		'private key 0 not in 1..n-1'
+	],
+	[
+		'xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFAzHGBP2UuGCqWLTAPLcMtD5SDKr24z3aiUvKr9bJpdrcLg1y3G',
+		'private key n not in 1..n-1'
+	],
+	[
+		'xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Q5JXayek4PRsn35jii4veMimro1xefsM58PgBMrvdYre8QyULY',
+		'invalid pubkey 020000000000000000000000000000000000000000000000000000000000000007'
+	],
+	[
+		'xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHL',
+		'invalid checksum'
+	],
+);
+
 my $case_num = 0;
 for my $tdata (@test_data_private) {
 	subtest "testing private data, case $case_num" => sub {
@@ -260,10 +329,21 @@ for my $tdata (@test_data_public) {
 
 $case_num = 0;
 for my $tdata (@test_data_error) {
-	subtest "testing invalid data, case $case_num" => sub {
+	subtest "testing error data, case $case_num" => sub {
 		isa_ok dies {
 			my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized([base58 => $tdata->[0]]);
 			$base_key->derive_key($tdata->[1]);
+		}, 'Bitcoin::Crypto::Exception';
+	};
+
+	++$case_num;
+}
+
+$case_num = 0;
+for my $tdata (@test_data_invalid) {
+	subtest "testing invalid data, case $case_num ($tdata->[1])" => sub {
+		isa_ok dies {
+			my $base_key = Bitcoin::Crypto::Key::ExtPublic->from_serialized([base58 => $tdata->[0]]);
 		}, 'Bitcoin::Crypto::Exception';
 	};
 

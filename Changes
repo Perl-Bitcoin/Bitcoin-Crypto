@@ -22,6 +22,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- if the number of outputs is 1, this is erroneously recognized as the witness flag (0x0001)
 		- to avoid creation of incorrectly serialized transactions, serialization of those transactions now raises an exception
 		- serialization of transactions with zero inputs and zero outputs is allowed (as required by some test cases)
+	- hardened extended key validation on deserialization based on new BIP32 test vectors
 	- improved diagnostics on trying to unpack an empty stream as a compactsize
 
 	[Breaking changes]

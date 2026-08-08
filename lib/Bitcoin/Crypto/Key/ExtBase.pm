@@ -108,13 +108,21 @@ sub from_serialized
 	# expected length is 78
 	if (defined $serialized && length $serialized == 78) {
 		my ($version, $depth, $fingerprint, $number, $chain_code, $data) =
-			unpack 'a4aa4a4a32a33', $serialized;
+			unpack 'a4Ca4Na32a33', $serialized;
 
 		my $is_private = pack('x') eq substr $data, 0, 1;
 
 		Bitcoin::Crypto::Exception::KeyCreate->raise(
 			'invalid class used, key is ' . ($is_private ? 'private' : 'public')
 		) if $is_private != $class->_is_private;
+
+		Bitcoin::Crypto::Exception::KeyCreate->raise(
+			'parent fingerprint encountered for key of depth 0'
+		) if $depth == 0 && $fingerprint ne pack 'x4';
+
+		Bitcoin::Crypto::Exception::KeyCreate->raise(
+			'child number encountered for key of depth 0'
+		) if $depth == 0 && $number != 0;
 
 		$data = substr $data, 1, KEY_MAX_LENGTH
 			if $is_private;
@@ -168,9 +176,9 @@ sub from_serialized
 		my $key = $class->new(
 			_key_instance => $data,
 			chain_code => $chain_code,
-			child_number => unpack('N', $number),
+			child_number => $number,
 			parent_fingerprint => $fingerprint,
-			depth => unpack('C', $depth),
+			depth => $depth,
 			network => $found_networks[0],
 			(defined $purpose ? (purpose => $purpose) : ()),
 		);
