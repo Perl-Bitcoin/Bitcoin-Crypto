@@ -300,6 +300,11 @@ instead:
 		hash => bytestring with prehashed leaf,
 	}
 
+Same logic can be applied if only the merkle root of the tree is known - simply
+introduce a prehashed structure as the only element of the tree. This can be
+useful in places where a script tree object is required for its root hash, but
+you don't have the full tree - for example in PSBTs.
+
 =head1 INTERFACE
 
 =head2 Attributes
