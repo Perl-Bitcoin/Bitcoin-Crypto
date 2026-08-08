@@ -6,6 +6,8 @@ use warnings;
 use Mooish::Base -standard, -role;
 use Types::Common -sigs;
 
+use Bitcoin::Crypto qw(btc_script_tree);
+
 sub _add_partial_signature
 {
 	my ($self, $input_index, $key, $signature) = @_;
@@ -57,12 +59,56 @@ sub _do_sign_P2WSH
 	return 0;
 }
 
+sub _do_sign_P2TR_keypath
+{
+	my ($self, $key, $tx, $input, $input_index) = @_;
+
+	my $tree_root = $self->get_all_fields('PSBT_IN_TAP_MERKLE_ROOT', $input_index);
+	my $tree = $tree_root ? btc_script_tree->new(tree => [{hash => $tree_root->value}]) : undef;
+
+	my $output_key = $key->get_public_key->get_taproot_output_key($tree ? $tree->get_merkle_root : ());
+	return 0 unless $output_key->get_xonly_key eq $input->utxo->output->locking_script->get_raw_address;
+
+	my $signer = $tx->sign(
+		signing_index => $input_index,
+		($tree ? (script_tree => $tree) : ()),
+	);
+	my $sighash = $self->get_all_fields('PSBT_IN_SIGHASH_TYPE', $input_index);
+
+	# use transaction signer's ability to give us the signature
+	my $signature = $signer->add_signature($key, sighash => $sighash ? $sighash->value : undef)
+		->signature->[-1];
+
+	$self->add_field(
+		type => 'PSBT_IN_TAP_KEY_SIG',
+		index => $input_index,
+		value => $signature,
+	);
+
+	return 1;
+}
+
+sub _do_sign_P2TR_scriptpath
+{
+	my ($self, $key, $tx, $input, $input_index) = @_;
+
+	my $script = $self->get_all_fields('PSBT_IN_TAP_LEAF_SCRIPT', $input_index);
+	return 0 unless $script;
+
+	# TODO: detect simple P2MS scripts with checksigadd
+
+	return 1;
+}
+
 sub _do_sign_P2TR
 {
 	my ($self, $key, $tx, $input, $input_index) = @_;
 
-	# TODO
-	return 0;
+	my $res = $self->_do_sign_P2TR_scriptpath($key, $tx, $input, $input_index);
+	$res = $self->_do_sign_P2TR_keypath($key, $tx, $input, $input_index)
+		unless $res;
+
+	return $res;
 }
 
 sub _do_sign

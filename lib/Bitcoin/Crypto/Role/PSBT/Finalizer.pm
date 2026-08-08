@@ -104,7 +104,7 @@ sub _should_finalize_P2TR_keypath
 	return () unless $sig;
 
 	return (
-		{type => 'witness', sigs => [$sig]},
+		{type => 'witness', sigs => [$sig->value]},
 	);
 }
 
@@ -113,6 +113,7 @@ sub _should_finalize_P2TR_scriptpath
 	my ($self, $input, $input_index) = @_;
 
 	# TODO: custom script tree - check public keys and signatures for leaves
+	return ();
 }
 
 sub _should_finalize_P2TR

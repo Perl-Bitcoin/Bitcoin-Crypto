@@ -1,5 +1,5 @@
 use Test2::V0;
-use Bitcoin::Crypto qw(btc_transaction btc_prv btc_psbt);
+use Bitcoin::Crypto qw(btc_transaction btc_prv btc_psbt btc_script_tree);
 use Bitcoin::Crypto::Constants qw(:transaction);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Transaction::Output;
@@ -81,6 +81,42 @@ subtest 'should sign and set final signatures when finalizing P2WPKH input' => s
 	);
 
 	is $psbt->sign($priv), 1, 'an input was signed';
+	$psbt->finalize;
+
+	ok lives { $psbt->get_transaction->verify }, 'verification passed';
+};
+
+subtest 'should sign and set final signatures when finalizing P2TR key input' => sub {
+	my $fake_merkle_root = [hex => "1d358125e4839360ade708a32c64548b0ffde92421bc3348eaf07a55ad775651"];
+	my $tree = btc_script_tree->new(tree => [{hash => $fake_merkle_root}]);
+
+	my $psbt = build_psbt(
+		[[$fake_txid, 0], [$fake_txid, 1]],
+		@fields,
+		{
+			type => 'PSBT_IN_WITNESS_UTXO',
+			index => 0,
+			value => Bitcoin::Crypto::Transaction::Output->new(
+				value => 5000,
+				locking_script => [address => $priv->get_public_key->get_taproot_address],
+			),
+		},
+		{
+			type => 'PSBT_IN_WITNESS_UTXO',
+			index => 1,
+			value => Bitcoin::Crypto::Transaction::Output->new(
+				value => 5000,
+				locking_script => [address => $priv->get_public_key->get_taproot_address($tree)],
+			),
+		},
+		{
+			type => 'PSBT_IN_TAP_MERKLE_ROOT',
+			index => 1,
+			value => $fake_merkle_root,
+		},
+	);
+
+	is $psbt->sign($priv), 2, 'both inputs were signed';
 	$psbt->finalize;
 
 	ok lives { $psbt->get_transaction->verify }, 'verification passed';
