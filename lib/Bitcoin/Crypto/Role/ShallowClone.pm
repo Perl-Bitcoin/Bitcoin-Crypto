@@ -14,12 +14,11 @@ sub clone
 	my %new_self;
 	foreach my $key (keys %{$self}) {
 		my $value = $self->{$key};
-		my $ref = ref $value;
 
-		if ($ref eq 'ARRAY') {
+		if (ref $value eq 'ARRAY') {
 			$new_self{$key} = [@{$value}];
 		}
-		elsif ($ref eq 'HASH') {
+		elsif (ref $value eq 'HASH') {
 			$new_self{$key} = {%{$value}};
 		}
 		else {
