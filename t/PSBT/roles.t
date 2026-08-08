@@ -1,5 +1,5 @@
 use Test2::V0;
-use Bitcoin::Crypto qw(btc_prv btc_psbt);
+use Bitcoin::Crypto qw(btc_transaction btc_prv btc_psbt);
 use Bitcoin::Crypto::Constants qw(:transaction);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Transaction::Output;
@@ -55,6 +55,38 @@ my @fields = (
 );
 
 subtest 'should sign and set final signatures when finalizing P2PKH input' => sub {
+	my $utxo_tx = btc_transaction->new;
+
+	# utxo input is mandatory, so make a fake one
+	$utxo_tx->add_input(
+		utxo => [[hex => '1d350125e4839360ade708a32c64548b0ffde92421bc3348eaf07a55ad875651'], 0],
+	);
+
+	# utxo output will be used for signing
+	$utxo_tx->add_output(
+		value => 10_000,
+		locking_script => [address => $priv->get_public_key->get_legacy_address],
+	);
+
+	my $psbt = build_psbt(
+		@fields,
+		{
+			type => 'PSBT_IN_NON_WITNESS_UTXO',
+			index => 0,
+			value => $utxo_tx,
+		}
+	);
+
+	# adjust utxo transaction id (must match)
+	$psbt->get_field('PSBT_IN_PREVIOUS_TXID', 0)->set_value($utxo_tx->get_hash);
+
+	is $psbt->sign($priv), 1, 'an input was signed';
+	$psbt->finalize;
+
+	ok lives { $psbt->get_transaction->verify }, 'verification passed';
+};
+
+subtest 'should sign and set final signatures when finalizing P2WPKH input' => sub {
 	my $psbt = build_psbt(
 		@fields,
 		{
@@ -62,7 +94,7 @@ subtest 'should sign and set final signatures when finalizing P2PKH input' => su
 			index => 0,
 			value => Bitcoin::Crypto::Transaction::Output->new(
 				value => 10_000,
-				locking_script => [address => $priv->get_public_key->get_legacy_address],
+				locking_script => [address => $priv->get_public_key->get_segwit_address],
 			),
 		}
 	);

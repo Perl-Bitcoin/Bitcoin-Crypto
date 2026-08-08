@@ -68,7 +68,7 @@ sub _should_finalize_P2WPKH
 	my @partials = $self->get_all_fields('PSBT_IN_PARTIAL_SIG', $input_index);
 	return () unless @partials;
 
-	my $wpkh = $input->utxo->output->get_raw_address;
+	my $wpkh = $input->utxo->output->locking_script->get_raw_address;
 	foreach my $sig (@partials) {
 		return ({type => 'witness', sigs => [$sig->value, $sig->key->to_serialized]})
 			if $sig->key->get_hash eq $wpkh;
