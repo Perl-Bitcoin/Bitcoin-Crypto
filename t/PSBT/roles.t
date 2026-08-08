@@ -9,6 +9,7 @@ use Bitcoin::Crypto::Transaction::Output;
 ################################################################################
 
 my $priv = btc_prv->from_serialized("\x01" x 32);
+my $fake_txid = [hex => '1d350125e4839360ade708a32c64548b0ffde92421bc3348eaf07a55ad875651'];
 
 my @fields = (
 	{
@@ -20,27 +21,8 @@ my @fields = (
 		value => 2,
 	},
 	{
-		type => 'PSBT_GLOBAL_INPUT_COUNT',
-		value => 1,
-	},
-	{
 		type => 'PSBT_GLOBAL_OUTPUT_COUNT',
 		value => 1,
-	},
-	{
-		type => 'PSBT_IN_PREVIOUS_TXID',
-		index => 0,
-		value => [hex => '1d39012ae4839360ade708a32c64548b0ffde92421bc3348eaf07a55ad87f651'],
-	},
-	{
-		type => 'PSBT_IN_OUTPUT_INDEX',
-		index => 0,
-		value => 0,
-	},
-	{
-		type => 'PSBT_IN_SEQUENCE',
-		index => 0,
-		value => RBF_SEQUENCE_NO_THRESHOLD,
 	},
 	{
 		type => 'PSBT_OUT_AMOUNT',
@@ -59,7 +41,7 @@ subtest 'should sign and set final signatures when finalizing P2PKH input' => su
 
 	# utxo input is mandatory, so make a fake one
 	$utxo_tx->add_input(
-		utxo => [[hex => '1d350125e4839360ade708a32c64548b0ffde92421bc3348eaf07a55ad875651'], 0],
+		utxo => [$fake_txid, 0],
 	);
 
 	# utxo output will be used for signing
@@ -69,16 +51,14 @@ subtest 'should sign and set final signatures when finalizing P2PKH input' => su
 	);
 
 	my $psbt = build_psbt(
+		[[$utxo_tx->get_hash, 0]],
 		@fields,
 		{
 			type => 'PSBT_IN_NON_WITNESS_UTXO',
 			index => 0,
 			value => $utxo_tx,
-		}
+		},
 	);
-
-	# adjust utxo transaction id (must match)
-	$psbt->get_field('PSBT_IN_PREVIOUS_TXID', 0)->set_value($utxo_tx->get_hash);
 
 	is $psbt->sign($priv), 1, 'an input was signed';
 	$psbt->finalize;
@@ -88,6 +68,7 @@ subtest 'should sign and set final signatures when finalizing P2PKH input' => su
 
 subtest 'should sign and set final signatures when finalizing P2WPKH input' => sub {
 	my $psbt = build_psbt(
+		[[$fake_txid, 0]],
 		@fields,
 		{
 			type => 'PSBT_IN_WITNESS_UTXO',
@@ -96,7 +77,7 @@ subtest 'should sign and set final signatures when finalizing P2WPKH input' => s
 				value => 10_000,
 				locking_script => [address => $priv->get_public_key->get_segwit_address],
 			),
-		}
+		},
 	);
 
 	is $psbt->sign($priv), 1, 'an input was signed';
@@ -109,7 +90,29 @@ done_testing;
 
 sub build_psbt
 {
+	my $inputs = shift;
 	my $psbt = btc_psbt->new;
+
+	$psbt->add_field(
+		type => 'PSBT_GLOBAL_INPUT_COUNT',
+		value => scalar @$inputs,
+	);
+
+	foreach my $input_index (0 .. $#$inputs) {
+		my ($txid, $output_index) = @{$inputs->[$input_index]};
+
+		$psbt->add_field(
+			type => 'PSBT_IN_PREVIOUS_TXID',
+			index => $input_index,
+			value => $txid,
+		);
+
+		$psbt->add_field(
+			type => 'PSBT_IN_OUTPUT_INDEX',
+			index => $input_index,
+			value => $output_index,
+		);
+	}
 
 	foreach my $field (@_) {
 		$psbt->add_field(%$field);
