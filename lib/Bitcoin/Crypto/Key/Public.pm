@@ -273,7 +273,7 @@ Returns hash160 of the serialized public key.
 
 =head3 witness_program
 
-	$script = $object->witness_program($version, \%args = {})
+	$script = $object->witness_program($version = 0, \%args = {})
 
 Builds a witness program for given witness C<$version> as
 L<Bitcoin::Crypto::Script> instance. C<%args> depends on witness version:
@@ -291,13 +291,17 @@ can be passed.
 
 =back
 
+Unlike other methods, this method accepts positional arguments as a hash
+B<reference> because the positional C<$version> argument is optional, which
+would make parsing positional non-ref arguments error-prone.
+
 =head3 get_taproot_output_key
 
 	$pub = $object->get_taproot_output_key($tweak_suffix = undef)
 
 Returns a new public key instance that represents an output taproot key, or
 this key if it is marked as L</taproot_output>. Optional C<$tweak_suffix> can
-be passed as bytestring.
+be passed as bytestring (script tree merkle root).
 
 =head3 get_xonly_key
 
