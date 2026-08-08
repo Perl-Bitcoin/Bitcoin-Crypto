@@ -16,7 +16,7 @@ sub _finalize
 	my ($self) = @_;
 
 	$self->transaction->inputs->[$self->signing_index]->set_witness(
-		[reverse @{$self->_signature}]
+		[reverse @{$self->signature}]
 	);
 }
 

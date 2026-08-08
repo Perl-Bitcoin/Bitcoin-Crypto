@@ -12,6 +12,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Util:
 		- added pack_array function
 		- added unpack_array function
+	- Bitcoin::Crypto::Transaction::Signer:
+		- added signature attribute
 
 	[Fixes and improvements]
 	- fixed variable-time cryptographic operation in taproot key tweaking

@@ -16,7 +16,7 @@ sub _initialize
 	my ($self) = @_;
 
 	# do not use add_bytes (not part of this script)
-	push @{$self->_signature}, $self->script->to_serialized;
+	push @{$self->signature}, $self->script->to_serialized;
 
 	$self->set_witness_program($self->script->witness_program);
 }

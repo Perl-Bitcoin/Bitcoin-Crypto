@@ -109,7 +109,7 @@ sub _initialize
 
 	if ($self->script_spend) {
 		my $control_block = $self->script_tree->get_control_block($self->leaf_id, $self->public_key);
-		push @{$self->_signature}, $control_block->to_serialized, $self->script->to_serialized;
+		push @{$self->signature}, $control_block->to_serialized, $self->script->to_serialized;
 	}
 }
 

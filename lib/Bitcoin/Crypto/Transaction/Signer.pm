@@ -4,7 +4,7 @@ use v5.14;
 use warnings;
 
 use Mooish::Base -standard;
-use Types::Common -sigs;
+use Types::Common qw(signature_for);    # frees up 'signature' for our field
 use Carp qw(croak);
 
 use Bitcoin::Crypto::Exception;
@@ -26,7 +26,7 @@ has param 'script' => (
 	coerce => BitcoinScript,
 );
 
-has field '_signature' => (
+has field 'signature' => (
 	isa => ArrayRef,
 	default => sub { [] },
 );
@@ -170,7 +170,7 @@ sub add_bytes
 	my ($self, $bytes) = @_;
 
 	unshift @{$self->_runner->stack}, $bytes;
-	push @{$self->_signature}, $bytes;
+	push @{$self->signature}, $bytes;
 
 	return $self;
 }
@@ -240,13 +240,6 @@ sub finalize
 
 	# no $self returned anymore - this object is done
 	return;
-}
-
-sub get_last_element
-{
-	my ($self) = @_;
-
-	return $self->_signature->[-1];
 }
 
 signature_for dump => (
@@ -355,6 +348,16 @@ The index of input being signed. Required.
 The script being signed. It is required for script hash output types (C<P2SH>
 and C<P2WSH>). Otherwise it will be taken from output locking script. In
 taproot script spends, it will be taken from L</script_tree> and L</leaf_id>.
+
+=head3 signature
+
+Not available in the constructor. This is an array reference with the current
+bytestrings which will be used as a signature. Can be used to manually retrieve
+generated signatures or to debug step by step.
+
+Note that the signature may contain more than just what you add to it with
+method calls. For example, for segwit's P2WPKH, it will contain a serialized
+public key before the signature.
 
 =head2 Taproot attributes
 

@@ -56,7 +56,7 @@ sub _finalize
 	my ($self) = @_;
 
 	my $script = btc_script->new;
-	foreach my $element (reverse @{$self->_signature}) {
+	foreach my $element (reverse @{$self->signature}) {
 		$script->push($element);
 	}
 

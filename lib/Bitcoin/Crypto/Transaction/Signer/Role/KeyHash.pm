@@ -4,7 +4,7 @@ use v5.14;
 use warnings;
 
 use Mooish::Base -standard, -role;
-use Types::Common -sigs;
+use Types::Common qw(signature_for);    # make sure we don't import 'signature'
 
 use Bitcoin::Crypto::Types -types;
 

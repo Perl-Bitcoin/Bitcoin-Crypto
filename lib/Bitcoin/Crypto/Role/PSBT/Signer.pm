@@ -26,8 +26,9 @@ sub _do_sign_P2PKH
 	my $signer = $tx->sign(signing_index => $input_index);
 	my $sighash = $self->get_all_fields('PSBT_IN_SIGHASH_TYPE', $input_index);
 
+	# use transaction signer's ability to give us the signature
 	my $signature = $signer->add_signature($key, sighash => $sighash ? $sighash->value : undef)
-		->get_last_element;
+		->signature->[-1];
 
 	$self->_add_partial_signature($input_index, $key, $signature);
 	return 1;

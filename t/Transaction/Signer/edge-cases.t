@@ -1,6 +1,11 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_prv btc_tapscript btc_script_tree btc_transaction btc_utxo);
 use Bitcoin::Crypto::Constants qw(:script);
+use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Secp256k1;
+
+# disable randomness for deterministic signatures
+$Bitcoin::Secp256k1::FORCED_SCHNORR_AUX_RAND = "\x00" x 32;
 
 my $priv1 = btc_prv->from_serialized("\x01" x 32);
 my $priv2 = btc_prv->from_serialized("\x02" x 32);
@@ -98,6 +103,35 @@ subtest 'should not modify signature without finalizing' => sub {
 		->add_signature($priv2->get_taproot_output_key);
 
 	ok !@{$tx->inputs->[0]->witness // []}, 'witness empty ok';
+};
+
+subtest 'should allow taking signature bytes mid-signing' => sub {
+	my $signature = $tx
+		->sign(
+			signing_index => 0,
+			script_tree => $tree,
+			leaf_id => 0,
+			public_key => $pub1,
+		)
+		->add_number(0)
+		->add_signature($priv2->get_taproot_output_key)
+		->signature;
+
+	is [map { to_format [hex => $_] } @$signature], [
+
+		# control block
+		'c01b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f5febaae2044a6aff8331965bfa11f7c9f3fd609dc7a1b32dae2b8ec64d5c757b',
+
+		# serialized script
+		to_format [hex => $script->to_serialized],
+
+		# OP_0
+		'',
+
+		# signature
+		'f3ea5fb53d2170c24ff6225e1625285525995f2711ec12b17afe209fedb844170c8255cd35eb6de5df85242bb48782a54d46bf68dab62388c7fbc11770084b97',
+		],
+		'signature ok';
 };
 
 done_testing;
