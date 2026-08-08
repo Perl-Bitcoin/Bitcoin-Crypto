@@ -132,6 +132,16 @@ sub to_serialized
 	my $inputs = $self->inputs;
 	my $outputs = $self->outputs;
 
+	# NOTE: this avoids the bug where segwit flag 0x0001 may get recognized
+	# from a transaction with no witness data, but zero inputs. We can't simply
+	# disallow empty transactions, as some code may use them. The middle ground
+	# is to disallow transactions that may trigger this problem - 0 inputs, and
+	# >0 outputs. More broad criteria (>0 outputs rather than 1 output) will
+	# help users to spot the problem sooner
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'cannot serialize a transaction with zero inputs and non-zero outputs'
+	) if @{$inputs} == 0 && @{$outputs} > 0;
+
 	my $with_witness = $args->{witness}
 		&& ($self->had_witness_flag || any { $_->has_witness } @{$inputs});
 

@@ -17,7 +17,11 @@ Revision history for Perl extension Bitcoin::Crypto.
 
 	[Fixes and improvements]
 	- fixed variable-time cryptographic operation in taproot key tweaking
-	- fixed set_serialized_witness from Transaction::Input setting corrupted argument data witness value
+	- fixed set_serialized_witness from Transaction::Input setting witness value when the input argument is corrupted
+	- fixed serialization of transactions with zero inputs and more than zero outputs:
+		- if the number of outputs is 1, this is erroneously recognized as the witness flag (0x0001)
+		- to avoid creation of incorrectly serialized transactions, serialization of those transactions now raises an exception
+		- serialization of transactions with zero inputs and zero outputs is allowed (as required by some test cases)
 	- improved diagnostics on trying to unpack an empty stream as a compactsize
 
 	[Breaking changes]

@@ -10,6 +10,29 @@ use TransactionStore;
 my $tx;
 my $prv = btc_prv->from_serialized("\x12" x 32);
 
+subtest 'should properly handle serializing transactions with zero inputs' => sub {
+	ok lives { btc_transaction->new->to_serialized };
+
+	ok lives {
+		my $tx = btc_transaction->new;
+		$tx->add_input(
+			utxo => [[hex => '0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9'], 0],
+		);
+
+		$tx->to_serialized;
+	};
+
+	isa_ok dies {
+		my $tx = btc_transaction->new;
+		$tx->add_output(
+			value => 1,
+			locking_script => btc_script->new->add('OP_1'),
+		);
+
+		$tx->to_serialized;
+	}, 'Bitcoin::Crypto::Exception::Transaction';
+};
+
 subtest 'should checksig a non-standard transaction' => sub {
 	$tx = btc_transaction->new;
 
