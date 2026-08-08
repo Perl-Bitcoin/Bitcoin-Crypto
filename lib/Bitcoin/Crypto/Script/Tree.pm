@@ -247,6 +247,29 @@ Bitcoin::Crypto::Script::Tree - BIP341 Script trees
 
 =head1 SYNOPSIS
 
+	use Bitcoin::Crypto qw(btc_script_tree);
+	use Bitcoin::Crypto::Constants qw(:script);
+
+	# create a script tree with three leaves, two of them prehashed. Mark the
+	# third script with an id
+
+	my $tree = btc_script_tree->new(
+		tree => [
+			{hash => [hex => 'f154e8e8e17c31d3462d7132589ed29353c6fafdb884c5a6e04ea938834f0d9d']},
+			[
+				{
+					id => 1,
+					leaf_version => TAPSCRIPT_LEAF_VERSION,
+					script => [hex => '20d5094d2dbe9b76e2c245a2b89b6006888952e2faa6a149ae318d69e520617748ac']
+				},
+				{hash => [hex => 'd7485025fceb78b9ed667db36ed8b8dc7b1f0b307ac167fa516fe4352b9f4ef7']},
+			]
+		]
+	);
+
+	# get the tree merkle root hash
+	my $hash = $tree->get_merkle_root;
+
 =head1 DESCRIPTION
 
 This module contains implementation of script trees described in
