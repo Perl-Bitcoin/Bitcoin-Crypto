@@ -488,7 +488,7 @@ C<%args> are empty, an empty string is generated.
 
 C<script_tree> - instance of L<Bitcoin::Crypto::Script::Tree> (required)
 
-C<leaf_id> - integer, identifier of C<script_tree> leaf for current context (required)
+C<leaf_id> - bytestring, identifier of C<script_tree> leaf for current context (required)
 
 C<codesep_pos> - position of last executed codeseparator, or undef if there was none (optional)
 

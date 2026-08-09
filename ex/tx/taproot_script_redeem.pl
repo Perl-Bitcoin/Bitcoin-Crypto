@@ -19,11 +19,10 @@ my $psbt = btc_psbt->from_serialized(
 my $prev_tx = $psbt->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value;
 $prev_tx->update_utxos;
 
-# get tree from psbt, mark the leaf we're spending with an id, and clear tree
-# cache (required after manual changes to tree structure)
+# get tree from psbt, and also define a leaf_id which is a hash of the script
+# leaf we want to spend
 my $tree = $psbt->get_field('PSBT_OUT_TAP_TREE', 0)->value;
-$tree->tree->[0]{id} = 0;
-$tree->clear_tree_cache;
+my $leaf_id = [hex => 'cf560b27c9c761ba98e5b79271a283a03e428b676e7c545aa6b82ab8c3b1a4c8'];
 
 # get public key from psbt
 my $public_key = $psbt->get_field('PSBT_OUT_TAP_INTERNAL_KEY', 0)->value;
@@ -64,7 +63,7 @@ $tx
 	->sign(
 		signing_index => 0,
 		script_tree => $tree,
-		leaf_id => 0,
+		leaf_id => $leaf_id,
 		public_key => $public_key,
 	)
 	->add_signature($private_key_1)

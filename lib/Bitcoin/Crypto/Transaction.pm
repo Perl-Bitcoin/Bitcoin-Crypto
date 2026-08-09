@@ -585,11 +585,9 @@ sub _verify_script_taproot
 			return;
 		}
 
-		# TODO: for now, leaf must have id 0 to get recognized by runner (see
-		# OP_CHECKSIG for tapscript)
 		my $tree = btc_script_tree->from_path(
 			{
-				id => 0,
+				id => 'spending script',
 				leaf_version => $leaf_version,
 				script => $script,
 			},
@@ -597,6 +595,7 @@ sub _verify_script_taproot
 		);
 
 		$script_runner->transaction->set_script_tree($tree);
+		$script_runner->transaction->set_leaf_id('spending script');
 
 		my $tweaked = $control_block->public_key->get_taproot_output_key($tree->get_merkle_root);
 		my $expected_parity = !has_even_y($tweaked);

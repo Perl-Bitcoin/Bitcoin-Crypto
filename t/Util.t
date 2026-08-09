@@ -362,28 +362,28 @@ subtest 'testing get_taproot_ext' => sub {
 	my $tree = btc_script_tree->new(
 		tree => [
 			{
-				id => 0,
+				id => [hex => 'deadbeef'],
 				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => $script,
 			}
 		]
 	);
 
-	my $expected_base = $tree->get_tapleaf_hash(0) . "\x00";
+	my $expected_base = $tree->get_tapleaf_hash([hex => 'deadbeef']) . "\x00";
 
 	is get_taproot_ext(0), '', 'next_flag=0 ok';
 
 	is get_taproot_ext(
 		1,
 		script_tree => $tree,
-		leaf_id => 0,
+		leaf_id => [hex => 'deadbeef'],
 		),
 		$expected_base . pack('V', 0xffffffff), 'ext_flag=1 no codeseparator ok';
 
 	is get_taproot_ext(
 		1,
 		script_tree => $tree,
-		leaf_id => 0,
+		leaf_id => [hex => 'deadbeef'],
 		codesep_pos => 0,
 		),
 		$expected_base . pack('V', 0), 'zext_flag=1 ero codeseparator ok';
@@ -391,7 +391,7 @@ subtest 'testing get_taproot_ext' => sub {
 	is get_taproot_ext(
 		1,
 		script_tree => $tree,
-		leaf_id => 0,
+		leaf_id => [hex => 'deadbeef'],
 		codesep_pos => 1,
 		),
 		$expected_base . pack('V', 1), 'oext_flag=1 ne codeseparator ok';

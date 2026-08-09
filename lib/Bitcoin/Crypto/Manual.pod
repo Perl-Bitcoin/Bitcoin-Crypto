@@ -740,18 +740,16 @@ contains just a single script.
 	my $tree = btc_script_tree->new(
 		tree => [
 			{
-				id => 0,
 				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => $script1,
 			},
 			[
 				{
-					id => 1,
+					id => 'interesting leaf',
 					leaf_version => TAPSCRIPT_LEAF_VERSION,
 					script => $script2,
 				},
 				{
-					id => 2,
 					leaf_version => TAPSCRIPT_LEAF_VERSION,
 					script => $script3,
 				},
@@ -769,13 +767,15 @@ field can be used to store the entire unhashed script tree in base64 format.
 Notice how each leaf in the tree can have an C<id>. This is the way
 Bitcoin::Crypto locates the leaf in various places, for example in
 L<Bitcoin::Crypto::Util/get_taproot_ext> or in
-L<Bitcoin::Crypto::Transaction::Signer/leaf_id>. However, since it is a custom
-part of this structure which is not serialized in PSBT, often you have to give
-an ID to a structure which is already created. In this case, you can add an
-C<id> directly into a structure in L<Bitcoin::Crypto::Script::Tree/tree>, and
-then call L<Bitcoin::Crypto::Script::Tree/clear_tree_cache>:
+L<Bitcoin::Crypto::Transaction::Signer/leaf_id>. However, it is a custom part
+of this structure which is not serialized in PSBT. If a leaf was not marked
+with an C<id>, it is automatically given one which is equal to the hash of the
+leaf.
 
-	$tree->tree->[0]{id} = 0;
+A certain leaf in the tree structure may be given an C<id> after the tree was
+constructed, but that requires rebuilding the tree cache:
+
+	$tree->tree->[0]{id} = 'my_leaf';
 	$tree->clear_tree_cache;
 
 =head4 Various bits and pieces

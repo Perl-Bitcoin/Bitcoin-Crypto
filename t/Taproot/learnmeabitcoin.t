@@ -48,7 +48,7 @@ subtest 'should sign/verify simple script path spend case' => sub {
 	my $tree = btc_script_tree->new(
 		tree => [
 			{
-				id => 0,
+				id => 'test leaf',
 				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => $script,
 			}
@@ -74,7 +74,7 @@ subtest 'should sign/verify simple script path spend case' => sub {
 	$tx->sign(
 		signing_index => 1,
 		script_tree => $tree,
-		leaf_id => 0,
+		leaf_id => 'test leaf',
 		public_key => $pub,
 		)
 		->add_number(8)
@@ -110,7 +110,7 @@ subtest 'should sign/verify script path spend case with signature' => sub {
 	my $tree = btc_script_tree->new(
 		tree => [
 			{
-				id => 0,
+				id => 'test leaf',
 				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => btc_tapscript->new
 					->push($script_prv->get_public_key->get_xonly_key)
@@ -137,7 +137,7 @@ subtest 'should sign/verify script path spend case with signature' => sub {
 	$tx->sign(
 		signing_index => 0,
 		script_tree => $tree,
-		leaf_id => 0,
+		leaf_id => 'test leaf',
 		public_key => $pub,
 		)
 		->add_signature($script_prv, sighash => SIGHASH_ALL)
@@ -174,7 +174,7 @@ subtest 'should sign/verify script path spend case with tree' => sub {
 						}
 					],
 					{
-						id => 0,
+						id => 'test leaf',
 						leaf_version => TAPSCRIPT_LEAF_VERSION,
 						script => $script,
 					}
@@ -209,7 +209,7 @@ subtest 'should sign/verify script path spend case with tree' => sub {
 		transaction => $tx,
 		signing_index => 0,
 		script_tree => $tree,
-		leaf_id => 0,
+		leaf_id => 'test leaf',
 		public_key => $pub,
 		)
 		->add_number(3)

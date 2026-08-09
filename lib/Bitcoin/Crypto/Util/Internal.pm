@@ -448,11 +448,11 @@ sub get_taproot_ext
 	elsif ($ext_flag == 1) {
 		state $type = Dict [
 			script_tree => BitcoinScriptTree,
-			leaf_id => Int,
+			leaf_id => ByteStr,
 			codesep_pos => Optional [Maybe [PositiveOrZeroInt]],
 		];
 
-		$type->assert_valid(\%args);
+		$type->assert_coerce(\%args);
 
 		# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#common-signature-message-extension
 		return $args{script_tree}->get_tapleaf_hash($args{leaf_id})

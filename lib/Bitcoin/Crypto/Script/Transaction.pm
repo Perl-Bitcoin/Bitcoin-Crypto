@@ -58,6 +58,12 @@ has option 'script_tree' => (
 	clearer => -hidden,
 );
 
+has option 'leaf_id' => (
+	coerce => ByteStr,
+	writer => 1,
+	clearer => -hidden,
+);
+
 has option 'sigop_budget' => (
 	isa => Int,
 	writer => -hidden,
@@ -73,6 +79,7 @@ sub _clear
 	$self->set_taproot_ext_flag(0);
 	$self->_clear_taproot_annex;
 	$self->_clear_script_tree;
+	$self->_clear_leaf_id;
 	$self->_clear_sigop_budget;
 }
 

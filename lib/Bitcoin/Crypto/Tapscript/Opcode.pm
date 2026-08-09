@@ -91,11 +91,10 @@ sub _OP_CHECKSIG
 			die_no_trace 'no script_tree in script transaction object'
 				unless $tx->has_script_tree;
 
-			# leaf for this script must be defined with id 0 to get a proper hash
 			$ext = get_taproot_ext(
 				$ext_flag,
 				script_tree => $tx->script_tree,
-				leaf_id => 0,
+				leaf_id => $tx->leaf_id,
 				codesep_pos => $runner->codeseparator,
 			);
 		}

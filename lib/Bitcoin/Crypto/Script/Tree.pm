@@ -44,7 +44,7 @@ sub _traverse
 				state $leaf_type = Dict [
 					leaf_version => IntMaxBits [8],
 					script => BitcoinScript,
-					id => Optional [Int],
+					id => Optional [ByteStr],
 					hash => Optional [ByteStr],
 				];
 
@@ -59,6 +59,8 @@ sub _traverse
 						$value->{hash} =
 							tagged_hash('TapLeaf', join '', pack('C', $value->{leaf_version}), $script_len, $script);
 					}
+
+					$value->{id} //= $value->{hash};
 				}
 
 				$leaf_action->($value, scalar @stack) if defined $leaf_action;
@@ -153,11 +155,16 @@ sub get_merkle_root
 	return $self->_tree_cache->{root}{hash};
 }
 
+signature_for _get_tapleaf => (
+	method => !!1,
+	positional => [ByteStr],
+);
+
 sub _get_tapleaf
 {
 	my ($self, $leaf_id) = @_;
 
-	my $leaf = first { exists $_->{id} && $_->{id} == $leaf_id } @{$self->_tree_cache->{leaves}};
+	my $leaf = first { $_->{id} eq $leaf_id } @{$self->_tree_cache->{leaves}};
 	Bitcoin::Crypto::Exception::ScriptTree->raise(
 		"no such block with id=$leaf_id"
 	) unless defined $leaf;
@@ -218,7 +225,7 @@ sub from_path
 
 signature_for get_control_block => (
 	method => !!1,
-	positional => [Int, InstanceOf ['Bitcoin::Crypto::Key::Public']],
+	positional => [ByteStr, InstanceOf ['Bitcoin::Crypto::Key::Public']],
 );
 
 sub get_control_block
@@ -258,7 +265,7 @@ Bitcoin::Crypto::Script::Tree - BIP341 Script trees
 			{hash => [hex => 'f154e8e8e17c31d3462d7132589ed29353c6fafdb884c5a6e04ea938834f0d9d']},
 			[
 				{
-					id => 1,
+					id => 'leaf_1',
 					leaf_version => TAPSCRIPT_LEAF_VERSION,
 					script => [hex => '20d5094d2dbe9b76e2c245a2b89b6006888952e2faa6a149ae318d69e520617748ac']
 				},
@@ -281,13 +288,14 @@ trees are used by taproot and are necessary to build custom taproot scripts.
 Each leaf in the tree is represented with this Perl structure:
 
 	{
-		id => integer (optional),
+		id => bytestring (optional),
 		leaf_version => integer,
 		script => Bitcoin::Crypto::Script instance (or its coercible),
 	}
 
 Optional C<id> is used to identify the leaf in the tree, which is used in
-methods like L</get_control_block>.
+methods like L</get_control_block>. If it is not present, it is automatically
+assigned as the hash of the leaf.
 
 Currently, C<leaf_version> must be equal to
 L<Bitcoin::Crypto::Constants/TAPSCRIPT_LEAF_VERSION>, since other
@@ -328,18 +336,16 @@ Example structure:
 	# tree with all scripts known
 	[
 		{
-			id => 0,
 			leaf_version => TAPSCRIPT_LEAF_VERSION,
 			script => [hex => '2071981521ad9fc9036687364118fb6ccd2035b96a423c59c5430e98310a11abe2ac']
 		},
 		[
 			{
-				id => 1,
+				id => 'interesting leaf',
 				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => [hex => '20d5094d2dbe9b76e2c245a2b89b6006888952e2faa6a149ae318d69e520617748ac']
 			},
 			{
-				id => 2,
 				leaf_version => TAPSCRIPT_LEAF_VERSION,
 				script => [hex => '20c440b462ad48c7a77f94cd4532d8f2119dcebbd7c9764557e62726419b08ad4cac']
 			}

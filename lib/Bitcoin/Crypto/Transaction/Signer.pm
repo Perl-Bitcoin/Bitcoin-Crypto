@@ -371,8 +371,9 @@ script path.
 
 =head3 leaf_id
 
-Numeric identifier which marks the leaf in L</script_tree>. Must be passed for
-script spends.
+Bytestring identifier which marks the leaf in L</script_tree>. If the leaf was
+not manually marked using C<id>, a leaf hash must be used instead. Must be
+passed for script spends.
 
 =head3 public_key
 

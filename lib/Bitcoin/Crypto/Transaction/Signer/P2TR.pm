@@ -18,7 +18,7 @@ has option 'script_tree' => (
 );
 
 has option 'leaf_id' => (
-	isa => Int,
+	coerce => ByteStr,
 );
 
 has option 'public_key' => (
@@ -71,6 +71,7 @@ sub _build_runner
 	if ($self->script_spend) {
 		$runner->transaction->set_taproot_ext_flag(1);
 		$runner->transaction->set_script_tree($self->script_tree);
+		$runner->transaction->set_leaf_id($self->leaf_id);
 	}
 
 	return $runner;
