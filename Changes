@@ -15,15 +15,20 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Transaction::Signer:
 		- added signature attribute
 
-	[Fixes and improvements]
+	[Improvements and behavior changes]
+	- Script::Tree leaf ids are now bytestrings:
+		- if no id is assigned to a leaf, its hash is used automatically
+		- using integer ids continues to work without any change
+	- extended key validation on deserialization is hardened based on new BIP32 test vectors
+	- improved diagnostics on trying to unpack an empty stream as a compactsize
+
+	[Fixes]
 	- fixed variable-time cryptographic operation in taproot key tweaking
 	- fixed set_serialized_witness from Transaction::Input setting witness value when the input argument is corrupted
 	- fixed serialization of transactions with zero inputs and more than zero outputs:
 		- if the number of outputs is 1, this is erroneously recognized as the witness flag (0x0001)
 		- to avoid creation of incorrectly serialized transactions, serialization of those transactions now raises an exception
 		- serialization of transactions with zero inputs and zero outputs is allowed (as required by some test cases)
-	- hardened extended key validation on deserialization based on new BIP32 test vectors
-	- improved diagnostics on trying to unpack an empty stream as a compactsize
 
 	[Breaking changes]
 	- PSBT_IN_FINAL_SCRIPTWITNESS is now serialized and deserialized as an array reference of bytestrings
