@@ -248,6 +248,7 @@ Bitcoin::Crypto::Script::Tree - BIP341 Script trees
 =head1 SYNOPSIS
 
 	use Bitcoin::Crypto qw(btc_script_tree);
+	use Bitcoin::Crypto qw(btc_tapscript);
 	use Bitcoin::Crypto::Constants qw(:script);
 
 	# create a script tree with three leaves, two of them prehashed. Mark the
@@ -260,7 +261,7 @@ Bitcoin::Crypto::Script::Tree - BIP341 Script trees
 				{
 					id => 'leaf_1',
 					leaf_version => TAPSCRIPT_LEAF_VERSION,
-					script => [hex => '20d5094d2dbe9b76e2c245a2b89b6006888952e2faa6a149ae318d69e520617748ac']
+					script => btc_tapscript->new, # TODO: fill the script
 				},
 				{hash => [hex => 'd7485025fceb78b9ed667db36ed8b8dc7b1f0b307ac167fa516fe4352b9f4ef7']},
 			]
@@ -293,8 +294,9 @@ methods like L</get_control_block>. If it is not present, it is automatically
 assigned as the hash of the leaf.
 
 Currently, C<leaf_version> must be equal to
-L<Bitcoin::Crypto::Constants/TAPSCRIPT_LEAF_VERSION>, since other
-versions are reserved for future use.
+L<Bitcoin::Crypto::Constants/TAPSCRIPT_LEAF_VERSION>, since other versions are
+reserved for future use. For this version, an instance of
+L<Bitcoin::Crypto::Tapscript> should be used for C<script>.
 
 Depth is set automatically for script leaves during tree cache building. If
 depth is already set in a leaf, it gets overwritten.

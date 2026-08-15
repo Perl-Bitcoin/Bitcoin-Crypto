@@ -63,13 +63,13 @@ Bitcoin::Crypto::Script::Tree::Leaf - A leaf in a script tree
 
 =head1 SYNOPSIS
 
-	use Bitcoin::Crypto qw(btc_script);
+	use Bitcoin::Crypto qw(btc_tapscript);
 	use Bitcoin::Crypto::Script::Tree::Leaf;
 	use Bitcoin::Crypto::Constants qw(:script);
 
 	my $leaf = Bitcoin::Crypto::Script::Tree::Leaf->new(
 		leaf_version => TAPSCRIPT_LEAF_VERSION,
-		script => [address => $address_string],
+		script => btc_tapscript->new, # TODO: fill the script
 	);
 
 	# calculate and print the hash
@@ -117,7 +117,8 @@ I<predicate:> C<has_leaf_version>
 
 I<Available in the constructor.>
 
-Optional script instance.
+Optional script instance. Note that currently, it should be an instance of
+L<Bitcoin::Crypto::Tapscript> (with C<TAPSCRIPT_LEAF_VERSION>).
 
 I<predicate:> C<has_script>
 
