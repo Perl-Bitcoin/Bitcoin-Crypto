@@ -6,10 +6,13 @@ use warnings;
 use Mooish::Base -standard;
 use Types::Common -sigs;
 use List::Util qw(first);
+use Scalar::Util qw(blessed);
+use Carp qw(carp);
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util::Internal qw(tagged_hash pack_compactsize has_even_y);
+use Bitcoin::Crypto::Script::Tree::Leaf;
 use Bitcoin::Crypto::Transaction::ControlBlock;
 
 # recursive structure - a binary tree
@@ -26,7 +29,7 @@ has field '_tree_cache' => (
 # script trees
 sub _traverse
 {
-	my ($self, $join_action, $leaf_action) = @_;
+	my ($self, $paths_ref, $leaves_ref) = @_;
 
 	my @stack = ({nodes => [@{$self->tree}], results => []});
 	my $result;
@@ -40,30 +43,14 @@ sub _traverse
 				push @stack, {nodes => [@$item], results => []};
 			}
 			else {
-				state $precomputed_type = Dict [hash => ByteStr];
-				state $leaf_type = Dict [
-					leaf_version => IntMaxBits [8],
-					script => BitcoinScript,
-					id => Optional [ByteStr],
-					hash => Optional [ByteStr],
-				];
 
 				# this value is a leaf which may need calculating
-				my $value = $precomputed_type->coerce($item);
-				if (!$precomputed_type->check($value)) {
-					$value = $leaf_type->assert_coerce($item);
-					if (!defined $value->{hash}) {
-						my $script = $value->{script}->to_serialized;
-						my $script_len = pack_compactsize(length $script);
+				my $value = Bitcoin::Crypto::Script::Tree::Leaf->new(
+					%{$item},
+					depth => scalar @stack,
+				);
 
-						$value->{hash} =
-							tagged_hash('TapLeaf', join '', pack('C', $value->{leaf_version}), $script_len, $script);
-					}
-
-					$value->{id} //= $value->{hash};
-				}
-
-				$leaf_action->($value, scalar @stack) if defined $leaf_action;
+				push @{$leaves_ref}, $value;
 				push @{$stack[-1]{results}}, $value;
 			}
 		}
@@ -75,9 +62,21 @@ sub _traverse
 			@results = reverse @results
 				if $results[0]{hash} gt $results[1]{hash};
 
-			my %data = defined $join_action ? $join_action->(@results, scalar @stack) : ();
+			my @all_ids;
+			foreach my $key (keys @results) {
+				my ($this_one, $other_one) = @results[$key, ($key + 1) % 2];
+
+				my $is_leaf = blessed $this_one;
+				my @ids = $is_leaf ? ($this_one->id) : @{$this_one->{ids}};
+				push @all_ids, @ids;
+
+				foreach my $id (@ids) {
+					push @{$paths_ref->{$id}}, $other_one->{hash};
+				}
+			}
+
 			$result = {
-				%data,
+				ids => \@all_ids,
 				hash => tagged_hash('TapBranch', join '', map { $_->{hash} } @results),
 			};
 		}
@@ -98,52 +97,17 @@ sub _traverse
 	return $result;
 }
 
-sub _tree_paths_action
-{
-	my ($self) = @_;
-
-	my %paths;
-	my $action = sub {
-		my ($node1, $node2) = @_;
-		my @all_ids;
-
-		foreach my $info ([$node1, $node2], [$node2, $node1]) {
-			my ($this_one, $other_one) = @{$info};
-			next unless defined $this_one->{id};
-			my @ids = ref $this_one->{id} ? @{$this_one->{id}} : $this_one->{id};
-			push @all_ids, @ids;
-
-			foreach my $id (@ids) {
-				push @{$paths{$id}}, $other_one->{hash};
-			}
-		}
-
-		return (
-			id => \@all_ids,
-		);
-	};
-
-	return (\%paths, $action);
-}
-
 sub _build_tree_cache
 {
 	my ($self) = @_;
 
 	my @leaves;
-	my ($paths, $paths_action) = $self->_tree_paths_action;
-
-	my $root = $self->_traverse(
-		$paths_action,
-		sub {
-			my $leaf = shift;
-			push @leaves, $leaf;
-		}
-	);
+	my %paths;
+	my $root = $self->_traverse(\%paths, \@leaves);
 
 	return {
 		leaves => \@leaves,
-		paths => $paths,
+		paths => \%paths,
 		root => $root,
 	};
 }
@@ -155,12 +119,12 @@ sub get_merkle_root
 	return $self->_tree_cache->{root}{hash};
 }
 
-signature_for _get_tapleaf => (
+signature_for get_leaf => (
 	method => !!1,
 	positional => [ByteStr],
 );
 
-sub _get_tapleaf
+sub get_leaf
 {
 	my ($self, $leaf_id) = @_;
 
@@ -176,21 +140,27 @@ sub get_tapleaf_script
 {
 	my ($self, $leaf_id) = @_;
 
-	return $self->_get_tapleaf($leaf_id)->{script};
+	carp 'get_tapleaf_script is deprecated - use get_leaf(...)->script instead';
+
+	return $self->get_leaf($leaf_id)->script;
 }
 
 sub get_tapleaf_hash
 {
 	my ($self, $leaf_id) = @_;
 
-	return $self->_get_tapleaf($leaf_id)->{hash};
+	carp 'get_tapleaf_hash is deprecated - use get_leaf(...)->hash instead';
+
+	return $self->get_leaf($leaf_id)->hash;
 }
 
 sub get_tapleaf_version
 {
 	my ($self, $leaf_id) = @_;
 
-	return $self->_get_tapleaf($leaf_id)->{leaf_version};
+	carp 'get_tapleaf_version is deprecated - use get_leaf(...)->leaf_version instead';
+
+	return $self->get_leaf($leaf_id)->leaf_version;
 }
 
 sub get_tree_paths
@@ -198,6 +168,13 @@ sub get_tree_paths
 	my ($self) = @_;
 
 	return $self->_tree_cache->{paths};
+}
+
+sub get_leaves
+{
+	my ($self) = @_;
+
+	return $self->_tree_cache->{leaves};
 }
 
 signature_for from_path => (
@@ -233,7 +210,7 @@ sub get_control_block
 	my ($self, $leaf_id, $pubkey) = @_;
 	my $cache = $self->_tree_cache;
 
-	my $leaf_version = $self->get_tapleaf_version($leaf_id);
+	my $leaf_version = $self->get_leaf($leaf_id)->leaf_version;
 	my $tapkey = $pubkey->get_taproot_output_key($cache->{root}{hash});
 	my $parity = has_even_y($tapkey);
 
@@ -285,7 +262,8 @@ trees are used by taproot and are necessary to build custom taproot scripts.
 
 =head2 Tree leaves
 
-Each leaf in the tree is represented with this Perl structure:
+Each leaf in the tree is represented with this Perl structure, which is turned
+into an instance of L<Bitcoin::Crypto::Script::Tree::Leaf>:
 
 	{
 		id => bytestring (optional),
@@ -367,6 +345,10 @@ disclosing information about a script:
 		]
 	]
 
+The structure in C<tree> is considered immutable and will not be changed. All
+data coercions will be done in separate structures, which can be cleared using
+L</clear_tree_cache> to be updated if the source C<tree> has changed.
+
 =head2 Methods
 
 =head3 new
@@ -398,9 +380,18 @@ could look like this:
 Calculates a merkle root of the script tree. Returns a bytestring which is the
 root hash of the tree.
 
+=head3 get_leaf
+
+	$leaf = $tree->get_leaf($id_or_hash)
+
+Returns a tree leaf - instance of L<Bitcoin::Crypto::Script::Tree::Leaf>. If
+the leaf does not exist, an exception is raised.
+
 =head3 get_tapleaf_script
 
 	$script = $tree->get_tapleaf_script($leaf_id)
+
+Deprecated - use C<< $tree->get_leaf($leaf_id)->script >> instead.
 
 Returns a tapleaf script of a leaf with given C<$leaf_id>. If such leaf does
 not exist, an exception is thrown. Returns a script instance.
@@ -409,12 +400,16 @@ not exist, an exception is thrown. Returns a script instance.
 
 	$int = $tree->get_tapleaf_version($leaf_id)
 
+Deprecated - use C<< $tree->get_leaf($leaf_id)->leaf_version >> instead.
+
 Returns a tapleaf version of a leaf with given C<$leaf_id>. If such leaf does
 not exist, an exception is thrown. Returns an integer.
 
 =head3 get_tapleaf_hash
 
 	$hash = $tree->get_tapleaf_hash($leaf_id)
+
+Deprecated - use C<< $tree->get_leaf($leaf_id)->hash >> instead.
 
 Calculates a tapleaf hash of a leaf with given C<$leaf_id>. If such leaf does
 not exist, an exception is thrown. Returns a bytestring.
@@ -434,6 +429,14 @@ of L<Bitcoin::Crypto::Transaction::ControlBlock>.
 
 Returns a hash reference of paths for each of leaves in the tree which have an
 id. Each path is an array reference - same as what L</from_path> takes as input.
+
+=head3 get_leaves
+
+	$leaves = $tree->get_leaves()
+
+Returns an array reference of leaves in the hash - each leaf is an instance of
+L<Bitcoin::Crypto::Script::Tree::Leaf>. The order of leaves in the array is
+strictly determined by the order of leaves in the tree.
 
 =head3 clear_tree_cache
 

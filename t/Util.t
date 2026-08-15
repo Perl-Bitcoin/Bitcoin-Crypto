@@ -369,7 +369,7 @@ subtest 'testing get_taproot_ext' => sub {
 		]
 	);
 
-	my $expected_base = $tree->get_tapleaf_hash([hex => 'deadbeef']) . "\x00";
+	my $expected_base = $tree->get_leaf([hex => 'deadbeef'])->hash . "\x00";
 
 	is get_taproot_ext(0), '', 'next_flag=0 ok';
 

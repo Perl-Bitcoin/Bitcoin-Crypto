@@ -761,21 +761,21 @@ my %types = (
 			my $tree = ($sig->(@_))[0];
 
 			my @list;
-			my $action = sub {
-				my ($value, $depth) = @_;
-
+			foreach my $leaf (@{$tree->get_leaves}) {
 				die_no_trace 'tree must have all its leaves unhashed'
-					unless defined $value->{script};
+					unless $leaf->has_script && $leaf->has_leaf_version;
 
-				my $serialized = $value->{script}->to_serialized;
+				# this should always be the case, but check nonetheless
+				die_no_trace 'tree must have depth set for its leaves'
+					unless $leaf->has_depth;
 
-				push @list, pack('C', $depth)
-					. pack('C', $value->{leaf_version})
+				my $serialized = $leaf->script->to_serialized;
+
+				push @list, pack('C', $leaf->depth)
+					. pack('C', $leaf->leaf_version)
 					. pack_compactsize(length $serialized)
 					. $serialized;
-			};
-
-			$tree->_traverse(undef, $action);
+			}
 
 			return join '', @list;
 

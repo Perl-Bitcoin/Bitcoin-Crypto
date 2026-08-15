@@ -44,7 +44,7 @@ sub _build_script
 	my ($self) = @_;
 
 	if ($self->script_spend) {
-		return $self->script_tree->get_tapleaf_script($self->leaf_id);
+		return $self->script_tree->get_leaf($self->leaf_id)->script;
 	}
 	else {
 		my $segwit_program = $self->transaction->inputs->[$self->signing_index]->utxo->output->locking_script;

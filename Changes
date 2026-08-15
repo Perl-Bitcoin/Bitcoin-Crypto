@@ -14,6 +14,13 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added unpack_array function
 	- Bitcoin::Crypto::Transaction::Signer:
 		- added signature attribute
+	- Bitcoin::Crypto::Script::Tree:
+		- added get_leaf method
+		- added get_leaves method
+		- deprecated get_tapleaf_script method
+		- deprecated get_tapleaf_version method
+		- deprecated get_tapleaf_hash method
+	- added class Bitcoin::Crypto::Script::Tree::Leaf
 
 	[Improvements and behavior changes]
 	- Script::Tree leaf ids are now bytestrings:

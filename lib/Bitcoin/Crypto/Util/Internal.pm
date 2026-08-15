@@ -455,7 +455,7 @@ sub get_taproot_ext
 		$type->assert_coerce(\%args);
 
 		# https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki#common-signature-message-extension
-		return $args{script_tree}->get_tapleaf_hash($args{leaf_id})
+		return $args{script_tree}->get_leaf($args{leaf_id})->hash
 			. pack('xV', $args{codesep_pos} // 0xffffffff);
 	}
 	else {

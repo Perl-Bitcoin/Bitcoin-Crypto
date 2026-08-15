@@ -7,7 +7,6 @@ use Mooish::Base -standard;
 use Crypt::Mac::HMAC qw(hmac);
 use Bitcoin::BIP39 qw(bip39_mnemonic_to_entropy);
 use Types::Common -sigs;
-use Carp qw(carp);
 
 use Bitcoin::Crypto::BIP44;
 use Bitcoin::Crypto::Key::ExtPublic;

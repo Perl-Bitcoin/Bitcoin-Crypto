@@ -5,7 +5,6 @@ use warnings;
 
 use Mooish::Base -standard;
 use Types::Common -sigs;
-use Carp qw(carp);
 
 use Bitcoin::Crypto::Script;
 use Bitcoin::Crypto::Base58 qw(encode_base58check);

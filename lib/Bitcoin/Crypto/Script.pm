@@ -8,7 +8,6 @@ use Types::Common -sigs;
 use Crypt::Digest::SHA256 qw(sha256);
 use Scalar::Util qw(blessed);
 use List::Util qw(any);
-use Carp qw(carp);
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit get_hrp);

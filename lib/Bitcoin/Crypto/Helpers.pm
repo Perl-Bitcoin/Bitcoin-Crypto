@@ -27,7 +27,6 @@ our @EXPORT_OK = qw(
 	ensure_length
 	encode_64bit
 	decode_64bit
-	carp_once
 	parse_formatdesc
 	ecc
 	standard_push
@@ -39,16 +38,6 @@ our @EXPORT_OK = qw(
 
 our @CARP_NOT;
 my %warned;
-
-sub carp_once
-{
-	my ($msg) = @_;
-
-	return if $warned{$msg};
-	$warned{$msg} = 1;
-	local @CARP_NOT = ((caller)[0]);
-	carp($msg);
-}
 
 sub pad_hex
 {

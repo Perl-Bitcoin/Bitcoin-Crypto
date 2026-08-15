@@ -6,7 +6,6 @@ use warnings;
 use Mooish::Base -standard;
 use Scalar::Util qw(blessed);
 use Types::Common -sigs;
-use Carp qw(carp);
 use List::Util qw(none);
 
 use Bitcoin::Crypto::Key::Private;

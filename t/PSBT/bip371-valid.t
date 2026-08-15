@@ -107,14 +107,19 @@ my @cases = (
 			is $psbt->output_count, 1, 'output count ok';
 
 			my $tree = $psbt->get_field('PSBT_OUT_TAP_TREE', 0)->value;
-			my $structure = $tree->tree;
+			my $leaves = $tree->get_leaves;
 
-			is to_format [hex => $structure->[0][0]{hash}],
+			is to_format [hex => $leaves->[0]->hash],
 				'29a5b4915090162d759afd3fe0f93fa3326056d0b4088cb933cae7826cb8d82c', 'tree hash 1 ok';
-			is to_format [hex => $structure->[0][1]{hash}],
+			is $leaves->[0]->depth, 2, 'tree depth 1 ok';
+
+			is to_format [hex => $leaves->[1]->hash],
 				'18ace409889785e0ea70ceebb8e1ca892a7a78eaede0f2e296cf435961a8f4ca', 'tree hash 2 ok';
-			is to_format [hex => $structure->[1]{hash}],
+			is $leaves->[1]->depth, 2, 'tree depth 2 ok';
+
+			is to_format [hex => $leaves->[2]->hash],
 				'f06b798b92a10ed9a9d0bbfd3af173a53b1617da3a4159ca008216cd856b2e0e', 'tree hash 3 ok';
+			is $leaves->[2]->depth, 1, 'tree depth 3 ok';
 
 			is to_format [hex => $tree->get_merkle_root],
 				'36a5d399284ffec625a7d9a81a2dd5f5e5049b7a7db013126f323aa3ce3f04ba', 'merkle root ok';
