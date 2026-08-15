@@ -8,6 +8,14 @@ use Types::Common -sigs;
 
 use Bitcoin::Crypto qw(btc_script_tree);
 
+sub _input_has_witness_utxo
+{
+	my ($self, $input_index) = @_;
+
+	my $witness_utxo = $self->get_all_fields('PSBT_IN_WITNESS_UTXO', $input_index);
+	return !!$witness_utxo;
+}
+
 sub _add_partial_signature
 {
 	my ($self, $input_index, $key, $signature) = @_;
@@ -23,6 +31,8 @@ sub _add_partial_signature
 sub _do_sign_P2PKH
 {
 	my ($self, $key, $tx, $input, $input_index) = @_;
+
+	return 0 if $self->_input_has_witness_utxo($input_index);
 
 	return 0 unless $key->get_public_key->get_hash eq $input->utxo->output->locking_script->get_raw_address;
 	my $signer = $tx->sign(signing_index => $input_index);
@@ -40,6 +50,11 @@ sub _do_sign_P2SH
 {
 	my ($self, $key, $tx, $input, $input_index) = @_;
 
+	# TODO: If a redeemScript is provided, the scriptPubKey must be for that redeemScript
+
+	# TODO: only for normal P2SH (not nested segwit)
+	return 0 if $self->_input_has_witness_utxo($input_index);
+
 	# TODO
 	return 0;
 }
@@ -48,12 +63,23 @@ sub _do_sign_P2WPKH
 {
 	my ($self, $key, $tx, $input, $input_index) = @_;
 
-	return $self->_do_sign_P2PKH($key, $tx, $input, $input_index);
+	return 0 unless $key->get_public_key->get_hash eq $input->utxo->output->locking_script->get_raw_address;
+	my $signer = $tx->sign(signing_index => $input_index);
+	my $sighash = $self->get_all_fields('PSBT_IN_SIGHASH_TYPE', $input_index);
+
+	# use transaction signer's ability to give us the signature
+	my $signature = $signer->add_signature($key, sighash => $sighash ? $sighash->value : undef)
+		->signature->[-1];
+
+	$self->_add_partial_signature($input_index, $key, $signature);
+	return 1;
 }
 
 sub _do_sign_P2WSH
 {
 	my ($self, $key, $tx, $input, $input_index) = @_;
+
+	# TODO: If a witnessScript is provided, the scriptPubKey or the redeemScript must be for that witnessScript
 
 	# TODO
 	return 0;
@@ -149,17 +175,7 @@ sub sign
 
 	return $signed;
 
-	# TODO: add PSBT_IN_PARTIAL_SIG to inputs
-	# TODO: how to check if the input is ours?
-	# TODO: use PSBT_IN_BIP32_DERIVATION to locate the key
-	# TODO: create a signer and sign each type
-	# TODO: BIP170 checks:
-	# If a non-witness UTXO is provided, its hash must match the hash specified in the prevout
-	# If a witness UTXO is provided, no non-witness signature may be created
-	# If a redeemScript is provided, the scriptPubKey must be for that redeemScript
-	# If a witnessScript is provided, the scriptPubKey or the redeemScript must be for that witnessScript
-	# If a sighash type is provided, the signer must check that the sighash is acceptable. If unacceptable, they must fail.
-	# If a sighash type is not provided, the signer should sign using SIGHASH_ALL, but may use any sighash type they wish.
+	# TODO: If a sighash type is provided, the signer must check that the sighash is acceptable. If unacceptable, they must fail.
 	# TODO: this note
 	# For PSBTv2s, a signer must update the PSBT_GLOBAL_TX_MODIFIABLE field after signing inputs so that it accurately reflects the state of the PSBT. If the Signer added a signature that does not use SIGHASH_ANYONECANPAY, the Input Modifiable flag must be set to False. If the Signer added a signature that does not use SIGHASH_NONE, the Outputs Modifiable flag must be set to False. If the Signer added a signature that uses SIGHASH_SINGLE, the Has SIGHASH_SINGLE flag must be set to True.
 }
