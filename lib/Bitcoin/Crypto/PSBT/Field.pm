@@ -250,6 +250,13 @@ holds the descriptions of what is the type after deserialization (and before
 serialization). Reading the source of L<Bitcoin::Crypto::PSBT::FieldType> may
 be required if it isn't clear how they are implemented for a specific field.
 
+Even though specific serializers aren't documented, they will be kept
+backward-compatible with the same rules as any other part of Bitcoin::Crypto
+(see L<Bitcoin::Crypto::Manual/Backward compatibility>), with an exception of
+upgrading their behavior to more fitting types when they are implemented. If
+you are unsure whether the given serializer will be modified in the future, you
+can use C<raw_*> attributes and serialize/deserialize manually.
+
 Reading the value through L</raw_value> will return a bytestring, but reading
 through C<value> will use the deserializer. Calling C<set_value> will use the
 serializer to update L</raw_value>. The field only holds raw data and uses
