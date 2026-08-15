@@ -38,7 +38,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- serialization of transactions with zero inputs and zero outputs is allowed (as required by some test cases)
 
 	[Breaking changes]
-	- PSBT_IN_FINAL_SCRIPTWITNESS is now serialized and deserialized as an array reference of bytestrings
+	- PSBT_IN_FINAL_SCRIPTWITNESS is now serialized as an array reference of bytestrings
+	- PSBT_IN_TAP_LEAF_SCRIPT value is now serialized as an instance of Bitcoin::Crypto::Script::Tree::Leaf
 
 4.005 Thu Apr 23, 2026
 	[Public interface changes]

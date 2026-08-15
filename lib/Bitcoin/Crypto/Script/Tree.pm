@@ -17,7 +17,7 @@ use Bitcoin::Crypto::Transaction::ControlBlock;
 
 # recursive structure - a binary tree
 has param 'tree' => (
-	isa => ArrayRef [ArrayRef | HashRef],
+	isa => ArrayRef,
 );
 
 has field '_tree_cache' => (
@@ -43,12 +43,22 @@ sub _traverse
 				push @stack, {nodes => [@$item], results => []};
 			}
 			else {
+				my $value;
 
-				# this value is a leaf which may need calculating
-				my $value = Bitcoin::Crypto::Script::Tree::Leaf->new(
-					%{$item},
-					depth => scalar @stack,
-				);
+				if (ref $item eq 'HASH') {
+					$value = Bitcoin::Crypto::Script::Tree::Leaf->new(
+						%{$item},
+						depth => scalar @stack,
+					);
+				}
+				elsif (blessed $item && $item->isa('Bitcoin::Crypto::Script::Tree::Leaf')) {
+					$value = $item;
+					$value->set_depth(scalar @stack);
+				}
+
+				Bitcoin::Crypto::Exception->raise(
+					'unknown tree leaf: not a hash, or a Bitcoin::Crypto::Script::Tree::Leaf instance'
+				) unless defined $value;
 
 				push @{$leaves_ref}, $value;
 				push @{$stack[-1]{results}}, $value;
@@ -179,7 +189,13 @@ sub get_leaves
 
 signature_for from_path => (
 	method => !!1,
-	positional => [HashRef, ArrayRef [ByteStr]],
+	positional => [
+		(InstanceOf ['Bitcoin::Crypto::Script::Tree::Leaf'])
+			->plus_coercions(
+				HashRef, q{ Bitcoin::Crypto::Script::Tree::Leaf->new($_) }
+			),
+		ArrayRef [ByteStr]
+	],
 );
 
 sub from_path
@@ -262,8 +278,9 @@ trees are used by taproot and are necessary to build custom taproot scripts.
 
 =head2 Tree leaves
 
-Each leaf in the tree is represented with this Perl structure, which is turned
-into an instance of L<Bitcoin::Crypto::Script::Tree::Leaf>:
+Each leaf in the tree is represented with an instance of
+L<Bitcoin::Crypto::Script::Tree::Leaf> class. During tree building, this Perl
+structure is most often used, which is turned into an object automatically:
 
 	{
 		id => bytestring (optional),
@@ -278,6 +295,9 @@ assigned as the hash of the leaf.
 Currently, C<leaf_version> must be equal to
 L<Bitcoin::Crypto::Constants/TAPSCRIPT_LEAF_VERSION>, since other
 versions are reserved for future use.
+
+Depth is set automatically for script leaves during tree cache building. If
+depth is already set in a leaf, it gets overwritten.
 
 If the leaf is prehashed or not known, it can be represented as this structure
 instead:
@@ -362,8 +382,9 @@ Standard Moo constructor - see L</Attributes>.
 	$tree = $class->from_path($leaf, \@path)
 
 This static method builds a new C<$tree> object from key path C<@path>. Key
-path represents a script tree by a series of prehashed leaves. C<$leaf> is
-a tree leaf deserialized from transaction data.
+path represents a script tree by a series of prehashed leaves. C<$leaf> is a
+tree leaf as passed to L</tree> during tree construction. It is usually
+deserialized from transaction data.
 
 C<@path> must only contain bytestrings or their coercibles. Example C<@path>
 could look like this:

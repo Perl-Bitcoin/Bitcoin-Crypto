@@ -9,13 +9,14 @@ use List::Util qw(any notall);
 
 use Bitcoin::Crypto qw(btc_extpub btc_pub btc_transaction btc_script btc_tapscript btc_script_tree);
 use Bitcoin::Crypto::Transaction::Output;
+use Bitcoin::Crypto::Script::Tree::Leaf;
+use Bitcoin::Crypto::Transaction::ControlBlock;
+use Bitcoin::Crypto::DerivationPath;
 use Bitcoin::Crypto::Constants qw(:transaction);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Util::Internal qw(pack_compactsize unpack_compactsize pack_array unpack_array lift_x);
 use Bitcoin::Crypto::Helpers qw(encode_64bit decode_64bit die_no_trace);
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Transaction::ControlBlock;
-use Bitcoin::Crypto::DerivationPath;
 
 use constant {
 	REQUIRED => 'required',
@@ -620,12 +621,12 @@ my %types = (
 			return Bitcoin::Crypto::Transaction::ControlBlock->from_serialized($val);
 		},
 		value_data =>
-			"Array reference, where the first item is Bitcoin::Crypto::Script and second element is a leaf version number",
+			"Instance of Bitcoin::Crypto::Script::Tree::Leaf (with script and leaf version)",
 		serializer => sub {
-			state $sig = signature(positional => [BitcoinScript, PositiveOrZeroInt]);
-			my ($script, $leaf_version) = $sig->(@{$_[0]});
+			state $sig = signature(positional => [InstanceOf ['Bitcoin::Crypto::Script::Tree::Leaf']]);
+			my ($leaf) = $sig->(@_);
 
-			return $script->to_serialized . pack 'C', $leaf_version;
+			return $leaf->script->to_serialized . pack 'C', $leaf->leaf_version;
 		},
 		deserializer => sub {
 			my $val = shift;
@@ -634,10 +635,19 @@ my %types = (
 			my $script_raw = $val;
 
 			# NOTE: we assume here that future leaf versions will also use tapscript
-			return [
-				btc_tapscript->from_serialized($script_raw),
-				$leaf_version,
-			];
+			return Bitcoin::Crypto::Script::Tree::Leaf->new(
+				script => btc_tapscript->from_serialized($script_raw),
+				leaf_version => $leaf_version,
+			);
+		},
+		validator => sub {
+			my ($key, $value) = @_;
+
+			die_no_trace 'leaf object must have leaf_version'
+				unless $value->has_leaf_version;
+
+			die_no_trace 'leaf object must have script'
+				unless $value->has_script;
 		},
 		version_status => {
 			0 => AVAILABLE,

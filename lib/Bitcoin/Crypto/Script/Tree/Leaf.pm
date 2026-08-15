@@ -11,6 +11,7 @@ use Bitcoin::Crypto::Util::Internal qw(tagged_hash pack_compactsize);
 
 has option 'depth' => (
 	isa => PositiveInt,
+	writer => 1,
 );
 
 has option 'leaf_version' => (
@@ -93,6 +94,8 @@ Optional integer tree depth for this leaf. Minimum depth is 1. If a leaf was
 created by a tree (during tree cache building), its depth is always present.
 
 I<predicate:> C<has_depth>
+
+I<writer:> C<set_depth>
 
 =head3 id
 

@@ -876,7 +876,7 @@ B<Value data:> Bytestring value
 
 B<Key data:> Instance of Bitcoin::Crypto::Transaction::ControlBlock
 
-B<Value data:> Array reference, where the first item is Bitcoin::Crypto::Script and second element is a leaf version number
+B<Value data:> Instance of Bitcoin::Crypto::Script::Tree::Leaf (with script and leaf version)
 
 =item * PSBT_IN_TAP_BIP32_DERIVATION
 

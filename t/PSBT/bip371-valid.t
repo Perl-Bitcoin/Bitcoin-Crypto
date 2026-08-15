@@ -83,9 +83,9 @@ my @cases = (
 				'merkle root ok';
 			foreach my $script_field ($psbt->get_all_fields('PSBT_IN_TAP_LEAF_SCRIPT', 0)) {
 				my $control_block = $script_field->key;
-				my ($script, $leaf_version) = @{$script_field->value};
+				my $leaf = $script_field->value;
 				my $tree = btc_script_tree->from_path(
-					{leaf_version => $leaf_version, script => $script},
+					$leaf,
 					$control_block->script_blocks
 				);
 				is to_format [hex => $tree->get_merkle_root], to_format [hex => $merkle_root], 'merkle root ok';
