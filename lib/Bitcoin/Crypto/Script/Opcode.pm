@@ -16,7 +16,8 @@ use Bitcoin::Crypto::Constants qw(:script :sighash :transaction);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Util::Internal qw(hash160 hash256);
-use Bitcoin::Crypto::Helpers qw(standard_push check_strict_public_key check_strict_der_signature die_no_trace);
+use Bitcoin::Crypto::Helpers
+	qw(standard_push check_strict_public_key check_strict_der_signature die_no_trace check_sighash);
 use Bitcoin::Crypto::Transaction::Input;
 
 has param 'name' => (
@@ -209,21 +210,10 @@ sub __checksig
 {
 	my ($runner, $sig, $hashtype, $raw_pubkey, $preimage) = @_;
 
-	state $allowed_sighash = {
-		map { $_ => !!1 } (
-			SIGHASH_ALL,
-			SIGHASH_ALL | SIGHASH_ANYONECANPAY,
-			SIGHASH_SINGLE,
-			SIGHASH_SINGLE | SIGHASH_ANYONECANPAY,
-			SIGHASH_NONE,
-			SIGHASH_NONE | SIGHASH_ANYONECANPAY,
-		)
-	};
-
 	if (defined $hashtype) {
 		$runner->_invalid_script('bad sighash')
 			if $runner->flags->strict_encoding
-			&& !$allowed_sighash->{$hashtype};
+			&& !check_sighash($hashtype);
 
 		$runner->_invalid_script('non-strict DER signature')
 			if $runner->flags->strict_signatures

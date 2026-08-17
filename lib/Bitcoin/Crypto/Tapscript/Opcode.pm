@@ -7,7 +7,7 @@ use Mooish::Base -standard;
 
 use List::Util qw(none);
 use Bitcoin::Crypto::Util::Internal qw(lift_x get_taproot_ext);
-use Bitcoin::Crypto::Helpers qw(ecc die_no_trace);
+use Bitcoin::Crypto::Helpers qw(ecc die_no_trace check_sighash);
 use Bitcoin::Crypto::Script::Opcode;
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
@@ -63,19 +63,8 @@ sub _OP_CHECKSIG
 			($sig, $hashtype) = unpack 'a64C', $sig
 				if length $sig == 65;
 
-			state $allowed_sighash = {
-				map { $_ => !!1 } (
-					SIGHASH_ALL,
-					SIGHASH_ALL | SIGHASH_ANYONECANPAY,
-					SIGHASH_SINGLE,
-					SIGHASH_SINGLE | SIGHASH_ANYONECANPAY,
-					SIGHASH_NONE,
-					SIGHASH_NONE | SIGHASH_ANYONECANPAY,
-				)
-			};
-
 			$runner->_invalid_script('bad sighash')
-				if defined $hashtype && !$allowed_sighash->{$hashtype};
+				if defined $hashtype && !check_sighash($hashtype);
 		}
 
 		my $tx = $runner->transaction;

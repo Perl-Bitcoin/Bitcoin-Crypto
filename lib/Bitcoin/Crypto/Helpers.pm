@@ -7,7 +7,7 @@ use Carp qw(croak carp);
 use MIME::Base64;
 use Bitcoin::Secp256k1;
 
-use Bitcoin::Crypto::Constants qw(USE_BIGINTS);
+use Bitcoin::Crypto::Constants qw(USE_BIGINTS :sighash);
 use Bitcoin::Crypto::Exception;
 
 BEGIN {
@@ -34,6 +34,7 @@ our @EXPORT_OK = qw(
 	check_strict_der_signature
 	make_strict_der_signature
 	die_no_trace
+	check_sighash
 );
 
 our @CARP_NOT;
@@ -279,6 +280,24 @@ sub make_strict_der_signature
 sub die_no_trace
 {
 	die $_[0] . "\n";
+}
+
+sub check_sighash
+{
+	my ($hashtype) = @_;
+
+	state $allowed_sighash = {
+		map { $_ => 1 } (
+			SIGHASH_ALL,
+			SIGHASH_ALL | SIGHASH_ANYONECANPAY,
+			SIGHASH_SINGLE,
+			SIGHASH_SINGLE | SIGHASH_ANYONECANPAY,
+			SIGHASH_NONE,
+			SIGHASH_NONE | SIGHASH_ANYONECANPAY,
+		)
+	};
+
+	return exists $allowed_sighash->{$hashtype};
 }
 
 1;
