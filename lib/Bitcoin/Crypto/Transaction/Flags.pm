@@ -180,10 +180,13 @@ Bitcoin::Crypto::Transaction::Flags - Consensus flags
 
 	use Bitcoin::Crypto::Transaction::Flags;
 
-	# full set of flags
-	my $all_flags = Bitcoin::Crypto::Transaction::Flags->new;
+	# full set of flags (standardness rules)
+	my $all_flags = Bitcoin::Crypto::Transaction::Flags->new_full;
 
-	# disable some flags (those not passed are active)
+	# default set of flags (consensus rules)
+	my $consensus_flags = Bitcoin::Crypto::Transaction::Flags->new;
+
+	# disable some flags
 	my $some_flags = Bitcoin::Crypto::Transaction::Flags->new(
 		der_signatures => !!0,
 	);
@@ -203,6 +206,10 @@ module progress, more rules may be added all enabled by default on arrival.
 Since Bitcoin is extended through softforks (implemented in a
 backward-compatible manner), this should rarely pose a problem with
 Bitcoin::Crypto code. If you want to be extra sure, see L</new_empty>.
+
+To verify a transaction which will go through mempool, L</new_full> should be
+used, as it verifies all rules which must be satisfied by a transaction (both
+consensus and standardness).
 
 =head1 INTERFACE
 
