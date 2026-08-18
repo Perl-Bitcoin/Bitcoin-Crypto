@@ -2,6 +2,7 @@ use Test2::V0;
 use Bitcoin::Crypto qw(btc_prv btc_tapscript btc_script_tree btc_transaction btc_utxo);
 use Bitcoin::Crypto::Constants qw(:script);
 use Bitcoin::Crypto::Util qw(to_format);
+use Bitcoin::Crypto::Transaction::Flags;
 use Bitcoin::Secp256k1;
 
 # disable randomness for deterministic signatures
@@ -50,6 +51,24 @@ my $tx = btc_transaction->new;
 $tx->add_input(utxo => $utxo1);
 
 $tx->add_output(
+	locking_script => [P2PKH => $pub2->get_legacy_address],
+	value => 1000
+);
+
+my $utxo2 = btc_utxo->new(
+	txid => "\x01" x 32,
+	output_index => 1,
+	output => {
+		locking_script => [P2PKH => $pub1->get_legacy_address],
+		value => 1000
+	},
+);
+
+my $tx_legacy = btc_transaction->new;
+
+$tx_legacy->add_input(utxo => $utxo2);
+
+$tx_legacy->add_output(
 	locking_script => [P2PKH => $pub2->get_legacy_address],
 	value => 1000
 );
@@ -132,6 +151,39 @@ subtest 'should allow taking signature bytes mid-signing' => sub {
 		'f3ea5fb53d2170c24ff6225e1625285525995f2711ec12b17afe209fedb844170c8255cd35eb6de5df85242bb48782a54d46bf68dab62388c7fbc11770084b97',
 		],
 		'signature ok';
+};
+
+subtest 'should disallow custom sighash value in P2TR' => sub {
+	my $err = dies {
+		$tx
+			->sign(
+				signing_index => 0,
+				script_tree => $tree,
+				leaf_id => 0,
+				public_key => $pub1,
+			)
+			->add_number(0)
+			->add_signature($priv2->get_taproot_output_key, sighash => 57)
+			->finalize;
+	};
+
+	isa_ok $err, 'Bitcoin::Crypto::Exception::Sign';
+	like $err, qr{bad sighash};
+};
+
+subtest 'should disallow custom sighash value in legacy (with flags)' => sub {
+	my $err = dies {
+		$tx_legacy
+			->sign(
+				signing_index => 0,
+				flags => {strict_encoding => !!1},
+			)
+			->add_signature($priv1, sighash => 4)
+			->finalize;
+	};
+
+	isa_ok $err, 'Bitcoin::Crypto::Exception::Sign';
+	like $err, qr{bad sighash};
 };
 
 done_testing;

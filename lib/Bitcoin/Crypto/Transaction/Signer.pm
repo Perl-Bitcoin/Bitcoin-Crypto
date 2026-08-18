@@ -14,6 +14,11 @@ use Bitcoin::Crypto::Script::Runner;
 use Bitcoin::Crypto::Util::Internal qw(to_format);
 use Bitcoin::Crypto::Helpers qw(die_no_trace);
 
+has param 'flags' => (
+	coerce => TransactionFlags,
+	default => undef,
+);
+
 has param 'transaction' => (
 	isa => InstanceOf ['Bitcoin::Crypto::Transaction'],
 );
@@ -47,6 +52,7 @@ sub _build_runner
 
 	my $runner = Bitcoin::Crypto::Script::Runner->new(
 		transaction => $temp_tx,
+		flags => $self->flags,
 	);
 
 	$runner->transaction->set_input_index($ind);
@@ -349,6 +355,18 @@ The script being signed. It is required for script hash output types (C<P2SH>
 and C<P2WSH>). Otherwise it will be taken from output locking script. In
 taproot script spends, it will be taken from L</script_tree> and L</leaf_id>.
 
+=head3 flags
+
+A set of flags used for the internal script runner, an instance of
+L<Bitcoin::Crypto::Transaction::Flags>. By default, only consensus-level flags
+will be used.
+
+Note that regardless of the flags used while signing, you can call
+L</Bitcoin::Crypto::Transaction/verify_standard> afterwards to verify using
+full set of standardness flags. Setting flags on signer-level may help catching
+problems early, or when not all transaction inputs are being signed, but
+otherwise is not critically important.
+
 =head3 signature
 
 Not available in the constructor. This is an array reference with the current
@@ -435,9 +453,9 @@ C<%args> can be any of:
 
 =item * C<sighash>
 
-The sighash which should be used for the signature. By default L<Bitcoin::Crypto::Constants/SIGHASH_ALL>
-is used for pre-taproot outputs and L<Bitcoin::Crypto::Constants/SIGHASH_DEFAULT> for taproot
-outputs.
+The sighash which should be used for the signature. By default
+L<Bitcoin::Crypto::Constants/SIGHASH_ALL> is used for pre-taproot outputs and
+L<Bitcoin::Crypto::Constants/SIGHASH_DEFAULT> for taproot outputs.
 
 =back
 

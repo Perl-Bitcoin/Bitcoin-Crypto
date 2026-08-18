@@ -7,6 +7,7 @@ use Mooish::Base -standard, -role;
 use Types::Common -sigs;
 
 use Bitcoin::Crypto qw(btc_script_tree);
+use Bitcoin::Crypto::Transaction::Flags;
 
 sub _input_has_witness_utxo
 {
@@ -35,7 +36,7 @@ sub _do_sign_P2PKH
 	return 0 if $self->_input_has_witness_utxo($input_index);
 
 	return 0 unless $key->get_public_key->get_hash eq $input->utxo->output->locking_script->get_raw_address;
-	my $signer = $tx->sign(signing_index => $input_index);
+	my $signer = $tx->sign(signing_index => $input_index, flags => Bitcoin::Crypto::Transaction::Flags->new_full);
 	my $sighash = $self->get_all_fields('PSBT_IN_SIGHASH_TYPE', $input_index);
 
 	# use transaction signer's ability to give us the signature
@@ -64,7 +65,7 @@ sub _do_sign_P2WPKH
 	my ($self, $key, $tx, $input, $input_index) = @_;
 
 	return 0 unless $key->get_public_key->get_hash eq $input->utxo->output->locking_script->get_raw_address;
-	my $signer = $tx->sign(signing_index => $input_index);
+	my $signer = $tx->sign(signing_index => $input_index, flags => Bitcoin::Crypto::Transaction::Flags->new_full);
 	my $sighash = $self->get_all_fields('PSBT_IN_SIGHASH_TYPE', $input_index);
 
 	# use transaction signer's ability to give us the signature
@@ -175,7 +176,6 @@ sub sign
 
 	return $signed;
 
-	# TODO: If a sighash type is provided, the signer must check that the sighash is acceptable. If unacceptable, they must fail.
 	# TODO: this note
 	# For PSBTv2s, a signer must update the PSBT_GLOBAL_TX_MODIFIABLE field after signing inputs so that it accurately reflects the state of the PSBT. If the Signer added a signature that does not use SIGHASH_ANYONECANPAY, the Input Modifiable flag must be set to False. If the Signer added a signature that does not use SIGHASH_NONE, the Outputs Modifiable flag must be set to False. If the Signer added a signature that uses SIGHASH_SINGLE, the Has SIGHASH_SINGLE flag must be set to True.
 }

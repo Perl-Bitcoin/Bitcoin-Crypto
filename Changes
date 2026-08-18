@@ -13,6 +13,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added pack_array function
 		- added unpack_array function
 	- Bitcoin::Crypto::Transaction::Signer:
+		- added flags attribute
 		- added signature attribute
 	- Bitcoin::Crypto::Script::Tree:
 		- added get_leaf method
