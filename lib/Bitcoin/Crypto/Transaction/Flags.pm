@@ -8,49 +8,49 @@ use Mooish::Base -standard;
 # BIP16
 has param 'p2sh' => (
 	coerce => Bool,
-	default => 1,
+	default => !!1,
 	writer => 1,
 );
 
 # BIP65
 has param 'checklocktimeverify' => (
 	coerce => Bool,
-	default => 1,
+	default => !!1,
 	writer => 1,
 );
 
 # BIP66
 has param 'der_signatures' => (
 	coerce => Bool,
-	default => 1,
+	default => !!1,
 	writer => 1,
 );
 
 # BIP112
 has param 'checksequenceverify' => (
 	coerce => Bool,
-	default => 1,
+	default => !!1,
 	writer => 1,
 );
 
 # BIP141
 has param 'segwit' => (
 	coerce => Bool,
-	default => 1,
+	default => !!1,
 	writer => 1,
 );
 
 # BIP147
 has param 'null_dummy' => (
 	coerce => Bool,
-	default => 1,
+	default => !!1,
 	writer => 1,
 );
 
 # BIP341
 has param 'taproot' => (
 	coerce => Bool,
-	default => 1,
+	default => !!1,
 	writer => 1,
 );
 
@@ -58,69 +58,69 @@ has param 'taproot' => (
 
 has param 'signature_pushes_only' => (
 	coerce => Bool,
-	default => 0,
+	default => !!0,
 	writer => 1,
 );
 
 # segwit only
 has param 'minimal_if' => (
 	coerce => Bool,
-	default => 0,
+	default => !!0,
 	writer => 1,
 );
 
 # segwit only
 has param 'compressed_pubkeys' => (
 	coerce => Bool,
-	default => 0,
+	default => !!0,
 	writer => 1,
 );
 
 has param 'strict_encoding' => (
 	coerce => Bool,
-	default => 0,
+	default => !!0,
 	writer => 1,
 );
 
 has param 'low_s_signatures' => (
 	coerce => Bool,
-	default => 0,
+	default => !!0,
 	writer => 1,
 );
 
 has param 'minimal_data' => (
 	coerce => Bool,
-	default => 0,
+	default => !!0,
 	writer => 1,
 );
 
 has param 'null_fail' => (
 	coerce => Bool,
-	default => 0,
+	default => !!0,
 	writer => 1,
 );
 
 has param 'clean_stack' => (
 	coerce => Bool,
-	default => 0,
+	default => !!0,
 	writer => 1,
 );
 
 has param 'const_script' => (
 	coerce => Bool,
-	default => 0,
+	default => !!0,
 	writer => 1,
 );
 
 has param 'known_witness' => (
 	coerce => Bool,
-	default => 0,
+	default => !!0,
 	writer => 1,
 );
 
 has param 'illegal_upgradeable_nops' => (
 	coerce => Bool,
-	default => 0,
+	default => !!0,
 	writer => 1,
 );
 
