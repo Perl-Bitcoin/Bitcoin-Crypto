@@ -225,5 +225,107 @@ subtest 'should support proprietary fields' => sub {
 	is scalar @global_prop, 2, 'two global proprietary fields ok';
 };
 
+subtest 'should disallow adding out of range maps in strict mode' => sub {
+	my $psbt = btc_psbt->new(strict => !!1);
+
+	my $tx = btc_transaction->new;
+
+	$tx->add_input(
+		utxo => [[hex => 'e120db2fb51aa1a698d1096201dcf6e87a7dade39db94abbc1a4d7ea5afb7564'], 1]
+	);
+
+	$tx->add_output(
+		value => 1234,
+		locking_script => [address => 'bc1pjex5vx48metd6xhp20uqdn3dqzwdrnnmzgmpur0mlzys9urgcshs4wmvut'],
+	);
+
+	$psbt->add_field(
+		type => 'PSBT_GLOBAL_UNSIGNED_TX',
+		value => $tx,
+	);
+
+	ok lives {
+		$psbt->add_field(type => 'PSBT_IN_SEQUENCE', value => 0, index => 0);
+	}, 'input in range ok';
+
+	ok dies {
+		$psbt->add_field(type => 'PSBT_IN_SEQUENCE', value => 0, index => 1);
+	}, 'input out of range ok';
+
+	ok lives {
+		$psbt->add_field(type => 'PSBT_OUT_REDEEM_SCRIPT', value => [hex => '00'], index => 0);
+	}, 'output in range ok';
+
+	ok dies {
+		$psbt->add_field(type => 'PSBT_OUT_REDEEM_SCRIPT', value => [hex => '00'], index => 1);
+	}, 'output out of range ok';
+};
+
+subtest 'should disallow adding maps without PSBT_GLOBAL_TX_MODIFIABLE in strict mode' => sub {
+	my $psbt = btc_psbt->new(strict => !!1);
+
+	$psbt->add_field(type => 'PSBT_GLOBAL_VERSION', value => 2);
+	$psbt->add_field(type => 'PSBT_GLOBAL_TX_VERSION', value => 2);
+	$psbt->add_field(type => 'PSBT_GLOBAL_INPUT_COUNT', value => 1);
+	$psbt->add_field(type => 'PSBT_GLOBAL_OUTPUT_COUNT', value => 1);
+
+	ok lives {
+		$psbt->add_field(
+			type => 'PSBT_IN_PREVIOUS_TXID',
+			index => 0,
+			value => [hex => '1d39012ae4839360ade708a32c64548b0ffde92421bc3348eaf07a55ad87f651'],
+		);
+	}, 'can add field to an existing input map ok';
+
+	ok lives {
+		$psbt->add_field(
+			type => 'PSBT_IN_OUTPUT_INDEX',
+			index => 0,
+			value => 0,
+		);
+	}, 'can add field to an existing output map ok';
+
+	ok dies {
+		$psbt->add_field(
+			type => 'PSBT_IN_PREVIOUS_TXID',
+			index => 1,
+			value => [hex => '1d39012ae4839360ade708a32c64548b0ffde92421bc3348eaf07a55ad87f651'],
+		);
+	}, 'cannot add input map without modifiable ok';
+
+	ok dies {
+		$psbt->add_field(
+			type => 'PSBT_IN_OUTPUT_INDEX',
+			index => 1,
+			value => 0,
+		);
+	}, 'cannot add output map without modifiable ok';
+
+	$psbt->add_field(
+		type => 'PSBT_GLOBAL_TX_MODIFIABLE',
+		value => {
+			inputs_modifiable => !!1,
+			outputs_modifiable => !!1,
+		}
+	);
+
+	ok lives {
+		$psbt->add_field(
+			type => 'PSBT_IN_PREVIOUS_TXID',
+			index => 1,
+			value => [hex => '1d39012ae4839360ade708a32c64548b0ffde92421bc3348eaf07a55ad87f651'],
+		);
+	}, 'can add input map with modifiable ok';
+
+	ok lives {
+		$psbt->add_field(
+			type => 'PSBT_IN_OUTPUT_INDEX',
+			index => 1,
+			value => 0,
+		);
+	}, 'can add output map with modifiable ok';
+
+};
+
 done_testing;
 

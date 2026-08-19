@@ -7,6 +7,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added set_serialized_witness method
 		- added set_utxo method
 	- Bitcoin::Crypto::PSBT:
+		- added strict attribute
 		- added get_locktime method
 		- added get_transaction method
 	- Bitcoin::Crypto::Util:

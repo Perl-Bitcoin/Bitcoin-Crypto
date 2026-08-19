@@ -17,6 +17,12 @@ use Bitcoin::Crypto::Constants qw(:psbt);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Exception;
 
+has param 'strict' => (
+	isa => Bool,
+	default => !!0,
+	writer => 1,
+);
+
 has field 'maps' => (
 	isa => ArrayRef [InstanceOf ['Bitcoin::Crypto::PSBT::Map']],
 	default => sub { [] },
@@ -26,6 +32,31 @@ with qw(
 	Bitcoin::Crypto::Role::PSBT::Signer
 	Bitcoin::Crypto::Role::PSBT::Finalizer
 );
+
+sub _check_can_modify
+{
+	my ($self, $type, $index) = @_;
+
+	return unless $type eq PSBT_INPUT_MAP || $type eq PSBT_OUTPUT_MAP;
+	return unless $self->strict;
+
+	my $count = $type eq PSBT_INPUT_MAP ? $self->input_count : $self->output_count;
+	return unless $index >= $count;
+
+	if ($self->version == 0) {
+		Bitcoin::Crypto::Exception::PSBT->raise(
+			"Cannot add a new map entry because index is out of range of PSBT_GLOBAL_UNSIGNED_TX ($count)"
+		);
+	}
+	elsif ($self->version == 2) {
+		my $modifiable = $self->get_all_fields('PSBT_GLOBAL_TX_MODIFIABLE');
+		my $field_name = $type eq PSBT_INPUT_MAP ? 'inputs_modifiable' : 'outputs_modifiable';
+
+		Bitcoin::Crypto::Exception::PSBT->raise(
+			"Cannot add a new map entry because PSBT_GLOBAL_TX_MODIFIABLE ($field_name) is off"
+		) unless $modifiable && $modifiable->value->{$field_name};
+	}
+}
 
 sub _get_map
 {
@@ -45,6 +76,9 @@ sub _get_map
 			type => $maptype,
 			index => $args{index},
 		);
+
+		$self->_check_can_modify($found_map->type, $args{index})
+			if $args{check};
 
 		push @{$self->maps}, $found_map;
 	}
@@ -142,7 +176,7 @@ sub add_field
 		$field = Bitcoin::Crypto::PSBT::Field->new(%data);
 	}
 
-	my $map = $self->_get_map($field->type->map_type, index => $index, set => !!1);
+	my $map = $self->_get_map($field->type->map_type, index => $index, set => !!1, check => !!1);
 	$map->add($field);
 
 	return $self;
@@ -525,6 +559,30 @@ field has a value and can optionally have extra key data.
 
 =head2 Attributes
 
+=head3 strict
+
+Optional boolean flag, which is false by default. If set to true, enables some
+extra checks while modifying the PSBT (before L</check> is called). The checks
+are:
+
+=over
+
+=item
+
+For PSBTs version 0, disallows adding new input and output maps via
+L</add_field> unless C<PSBT_GLOBAL_UNSIGNED_TX> contains this input or output
+index.
+
+=item
+
+For PSBTs version 2, disallows adding new input and output maps via
+L</add_field> if not allowed by the state of C<PSBT_GLOBAL_TX_MODIFIABLE>
+field.
+
+=back
+
+I<writer>: C<set_strict>
+
 =head3 maps
 
 B<Not assignable in the constructor>
@@ -601,6 +659,10 @@ get the last found field (as opposed to a field count).
 Adds a new field to the PSBT. It can be run either with C<%field_data> (a hash
 arguments for the L<Bitcoin::Crypto::PSBT::Field/new>) or with C<$field_object>
 (constructed L<Bitcoin::Crypto::PSBT::Field>) and C<$map_index>.
+
+If a map with C<$map_index> does not exist, it will be created. However, when
+doing so, other information like the input or output count must be updated
+manually.
 
 If passing C<%field_data> hash, it can contain an additional C<index> key to
 represent C<$map_index>. The field will be constructed and added to the map.
