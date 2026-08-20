@@ -7,6 +7,7 @@ use Mooish::Base -standard, -role;
 use Types::Common -sigs;
 
 use Bitcoin::Crypto qw(btc_script_tree);
+use Bitcoin::Crypto::Constants qw(:sighash);
 use Bitcoin::Crypto::Transaction::Flags;
 
 sub _input_has_witness_utxo
@@ -19,7 +20,7 @@ sub _input_has_witness_utxo
 
 sub _add_partial_signature
 {
-	my ($self, $input_index, $key, $signature) = @_;
+	my ($self, $input_index, $key, $signature, $sighash) = @_;
 
 	$self->add_field(
 		type => 'PSBT_IN_PARTIAL_SIG',
@@ -27,6 +28,35 @@ sub _add_partial_signature
 		key => $key->get_public_key,
 		value => $signature,
 	);
+
+	if ($self->version == 2) {
+
+		# NOTE: SIGHASH_DEFAULT may not be correct for pre-taproot, but it's only
+		# used to set modifiable flags, which will be the same for SIGHASH_ALL
+		$sighash = $sighash ? $sighash->value : SIGHASH_ALL;
+
+		my $modifiable = $self->get_all_fields('PSBT_GLOBAL_TX_MODIFIABLE');
+		$modifiable //= $self
+			->add_field(type => 'PSBT_GLOBAL_TX_MODIFIABLE', value => {})
+			->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
+
+		my $value = $modifiable->value;
+
+		if (!($sighash & SIGHASH_ANYONECANPAY)) {
+			$value->{inputs_modifiable} = !!0;
+		}
+
+		if (!($sighash & SIGHASH_NONE)) {
+			$value->{outputs_modifiable} = !!0;
+		}
+
+		if (!($sighash & SIGHASH_SINGLE)) {
+			$value->{has_sighash_single} = !!1;
+		}
+
+		# update the value back in the PSBT
+		$modifiable->set_value($value);
+	}
 }
 
 sub _do_sign_P2PKH
@@ -43,7 +73,7 @@ sub _do_sign_P2PKH
 	my $signature = $signer->add_signature($key, sighash => $sighash ? $sighash->value : undef)
 		->signature->[-1];
 
-	$self->_add_partial_signature($input_index, $key, $signature);
+	$self->_add_partial_signature($input_index, $key, $signature, $sighash);
 	return 1;
 }
 
@@ -72,7 +102,7 @@ sub _do_sign_P2WPKH
 	my $signature = $signer->add_signature($key, sighash => $sighash ? $sighash->value : undef)
 		->signature->[-1];
 
-	$self->_add_partial_signature($input_index, $key, $signature);
+	$self->_add_partial_signature($input_index, $key, $signature, $sighash);
 	return 1;
 }
 
@@ -153,8 +183,7 @@ sub _do_sign
 signature_for sign => (
 	method => !!1,
 	positional => [
-		(InstanceOf ['Bitcoin::Crypto::Key::Private'])
-			| (InstanceOf ['Bitcoin::Crypto::Key::ExtPrivate']),
+		InstanceOf ['Bitcoin::Crypto::Key::Private']
 	],
 );
 
@@ -175,9 +204,6 @@ sub sign
 	}
 
 	return $signed;
-
-	# TODO: this note
-	# For PSBTv2s, a signer must update the PSBT_GLOBAL_TX_MODIFIABLE field after signing inputs so that it accurately reflects the state of the PSBT. If the Signer added a signature that does not use SIGHASH_ANYONECANPAY, the Input Modifiable flag must be set to False. If the Signer added a signature that does not use SIGHASH_NONE, the Outputs Modifiable flag must be set to False. If the Signer added a signature that uses SIGHASH_SINGLE, the Has SIGHASH_SINGLE flag must be set to True.
 }
 
 1;

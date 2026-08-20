@@ -61,6 +61,12 @@ subtest 'should sign and set final signatures when finalizing P2PKH input' => su
 	);
 
 	is $psbt->sign($priv), 1, 'an input was signed';
+
+	my $modifiable = $psbt->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
+	ok !$modifiable->{inputs_modifiable}, 'inputs modifiable ok';
+	ok !$modifiable->{outputs_modifiable}, 'outputs modifiable ok';
+	ok !$modifiable->{has_sighash_single}, 'sighash single ok';
+
 	$psbt->finalize;
 
 	ok lives { $psbt->get_transaction->verify }, 'verification passed';
