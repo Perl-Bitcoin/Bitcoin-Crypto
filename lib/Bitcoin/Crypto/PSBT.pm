@@ -216,6 +216,28 @@ sub version
 	return $version;
 }
 
+sub get_id
+{
+	my ($self) = @_;
+
+	my $version = $self->version;
+	if ($version == 0) {
+		return $self->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value->txid;
+	}
+	else {
+		my $tx = $self->get_transaction;
+
+		# remove signature and sequence number. Witness is irrelevant, as we
+		# calculate txid, not wtxid
+		foreach my $input (@{$tx->inputs}) {
+			$input->set_signature_script('');
+			$input->set_sequence_no(0);
+		}
+
+		return $tx->txid;
+	}
+}
+
 signature_for from_serialized => (
 	method => !!1,
 	positional => [ByteStr],
@@ -619,6 +641,13 @@ Returns the number of inputs the PSBT defines.
 	$int = $object->output_count()
 
 Returns the number of outputs the PSBT defines.
+
+=head3 get_id
+
+	$id = $object->get_id()
+
+Returns the ID of the PSBT, which allows to uniquely identify the transaction
+being signed.
 
 =head3 get_field
 

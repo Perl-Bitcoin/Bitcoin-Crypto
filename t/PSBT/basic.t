@@ -3,19 +3,20 @@ use Bitcoin::Crypto qw(btc_psbt btc_transaction);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::PSBT::Field;
 
-subtest 'should allow creation of a version 0 PSBT' => sub {
+subtest 'should throw an exception on checking an empty PSBT' => sub {
 	my $psbt = btc_psbt->new;
 
 	isa_ok dies { $psbt->check }, 'Bitcoin::Crypto::Exception::PSBT';
 };
 
-subtest 'should be able to add new fields' => sub {
+subtest 'should allow creation of a version 0 PSBT' => sub {
 	my $psbt = btc_psbt->new;
 
-	my $tx = btc_transaction->new;
+	my $tx = btc_transaction->new(version => 1);
 
 	$tx->add_input(
-		utxo => [[hex => 'e120db2fb51aa1a698d1096201dcf6e87a7dade39db94abbc1a4d7ea5afb7564'], 1]
+		utxo => [[hex => 'e120db2fb51aa1a698d1096201dcf6e87a7dade39db94abbc1a4d7ea5afb7564'], 1],
+		sequence_no => 0,    # sequence number 0 to maintain the same psbt id as version 2 test below
 	);
 
 	$tx->add_output(
@@ -36,6 +37,8 @@ subtest 'should be able to add new fields' => sub {
 		isa_ok $field->value, 'Bitcoin::Crypto::Transaction';
 	}, 'no exception ok';
 
+	is to_format [hex => $psbt->get_id], 'ed0cbc14260f07a72d3a98bd4dcd95b076d7ec98f9d8bc4196c701f457534da4',
+		'PSBT ID ok';
 	is $psbt->input_count, 1, 'input count ok';
 	is $psbt->output_count, 1, 'output count ok';
 
@@ -57,7 +60,7 @@ subtest 'should allow creation of a version 2 PSBT' => sub {
 		},
 		{
 			type => 'PSBT_GLOBAL_TX_VERSION',
-			value => 0,
+			value => 1,
 		},
 		{
 			type => 'PSBT_GLOBAL_INPUT_COUNT',
@@ -113,9 +116,12 @@ subtest 'should allow creation of a version 2 PSBT' => sub {
 		is $value, $expected, "value roundtrip for $field->{type} ok";
 	}
 
+	is to_format [hex => $psbt->get_id], 'ed0cbc14260f07a72d3a98bd4dcd95b076d7ec98f9d8bc4196c701f457534da4',
+		'PSBT ID ok';
+
 	ok lives {
 		is to_format [base64 => $psbt->to_serialized],
-			'cHNidP8BAgQAAAAAAQQBAQEFAQEB+wQCAAAAAAEOIGR1+1rq16TBu0q5neOtfXro9twBYgnRmKahGrUv2yDhAQ8EAQAAAAABAwjSBAAAAAAAAAEEIlEglk1GGqfeVt0a4VP4Bs4tAJzRznsSNh4N+/iJAvBoxC8A',
+			'cHNidP8BAgQBAAAAAQQBAQEFAQEB+wQCAAAAAAEOIGR1+1rq16TBu0q5neOtfXro9twBYgnRmKahGrUv2yDhAQ8EAQAAAAABAwjSBAAAAAAAAAEEIlEglk1GGqfeVt0a4VP4Bs4tAJzRznsSNh4N+/iJAvBoxC8A',
 			'serialized psbt ok';
 	}, 'no exception ok';
 };
