@@ -31,6 +31,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- using integer ids continues to work without any change
 	- extended key validation on deserialization is hardened based on new BIP32 test vectors
 	- improved diagnostics on trying to unpack an empty stream as a compactsize
+	- checking bytestrings across the library is now done using a faster method
 
 	[Fixes]
 	- fixed variable-time cryptographic operation in taproot key tweaking

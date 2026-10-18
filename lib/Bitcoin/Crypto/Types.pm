@@ -6,6 +6,7 @@ use warnings;
 use Type::Library -base;
 use Type::Coercion;
 use Types::Common -types;
+use utf8;
 
 # make sure Math::BigInt is properly loaded - this module loads it
 use Bitcoin::Crypto::Helpers qw(die_no_trace);
@@ -47,14 +48,14 @@ my $bytestr = __PACKAGE__->add_type(
 	name => 'ByteStr',
 	parent => Str,
 
-	constraint => q{ $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS ? /\\A[\\x00-\\xff]*\\z/ : !!1 },
+	constraint => q{ $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS ? utf8::downgrade($_, 1) : !!1 },
 
 	inline => sub {
 		my $varname = pop;
 
 		return (
 			undef,
-			qq{ \$Bitcoin::Crypto::Types::CHECK_BYTESTRINGS ? $varname =~ /\\A[\\x00-\\xff]*\\z/ : !!1 }
+			qq{ \$Bitcoin::Crypto::Types::CHECK_BYTESTRINGS ? utf8::downgrade($varname, 1) : !!1 }
 		);
 	},
 
