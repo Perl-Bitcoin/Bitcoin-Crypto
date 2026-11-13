@@ -154,15 +154,10 @@ sub _build_opcodes
 		},
 		OP_CHECKMULTISIG => {
 			code => 0xae,
-			needs_transaction => !!1,
-			runner => $class->_OP_CHECKMULTISIG,
-		},
-		OP_CHECKMULTISIG => {
-			code => 0xae,
 			runner => $class->_OP_CHECKMULTISIG,
 		},
 		OP_CHECKMULTISIGVERIFY => {
-			code => 0xae,
+			code => 0xaf,
 			runner => $class->_OP_CHECKMULTISIGVERIFY,
 		},
 		OP_CHECKSIGADD => {
