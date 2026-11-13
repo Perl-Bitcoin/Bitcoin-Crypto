@@ -362,7 +362,7 @@ L<Bitcoin::Crypto::Transaction::Flags>. By default, only consensus-level flags
 will be used.
 
 Note that regardless of the flags used while signing, you can call
-L</Bitcoin::Crypto::Transaction/verify_standard> afterwards to verify using
+L<Bitcoin::Crypto::Transaction/verify_standard> afterwards to verify using
 full set of standardness flags. Setting flags on signer-level may help catching
 problems early, or when not all transaction inputs are being signed, but
 otherwise is not critically important.

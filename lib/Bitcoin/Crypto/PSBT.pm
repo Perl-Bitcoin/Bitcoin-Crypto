@@ -674,8 +674,8 @@ See L</get_all_fields> for a variant which does not check the field count.
 	@fields = $object->get_all_fields($field_type_name, $map_index = undef, $key = undef)
 
 Same as L</get_field>, but will return all the fields of given type from a
-given map. It may be used if the field exists, or to get multiple fields with
-different key data.
+given map. It may be used to check if the field exists, or to get multiple
+fields with different key data.
 
 The return value is a list (not an array), so using it in scalar context will
 get the last found field (as opposed to a field count).
@@ -695,7 +695,7 @@ manually.
 
 If passing C<%field_data> hash, it can contain an additional C<index> key to
 represent C<$map_index>. The field will be constructed and added to the map.
-Adding the index to a map triggers its validations, so it must be complete
+Adding the field to a map triggers its validations, so it must be complete
 enough to pass them. For this reason, sometimes it could be more preferable to
 construct and fill the field by hand before adding it to the PSBT.
 

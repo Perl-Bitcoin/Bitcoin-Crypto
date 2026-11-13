@@ -64,7 +64,7 @@ This class is designed to have two modes of operation:
 
 =item * generating NUMS keys
 
-In this mode, you let C<tweak> be picked at random. You can at retrieve it
+In this mode, you let C<tweak> be picked at random. You can retrieve it
 after generating the public key to prove that this public key cannot be spent:
 
 	my $nums = Bitcoin::Crypto::Key::NUMS->new;

@@ -278,7 +278,7 @@ applicable to Segregated Witness scripts.
 
 =head3 compressed_pubkeys
 
-Whether public keys used is signature-checking scripts must be compressed. Only
+Whether public keys used in signature-checking scripts must be compressed. Only
 applicable to Segregated Witness scripts.
 
 =head3 strict_encoding

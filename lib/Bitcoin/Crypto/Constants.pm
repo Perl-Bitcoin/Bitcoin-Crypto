@@ -508,5 +508,3 @@ Whether the module currently uses BigInts (32-bit architecture compatibility).
 Can be forced to a true value by setting C<BITCOIN_CRYPTO_USE_BIGINTS>
 environmental variable.
 
-=head2
-

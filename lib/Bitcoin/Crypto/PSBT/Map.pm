@@ -251,7 +251,7 @@ This is a helper class which holds a number of PSBT fields in a single namespace
 =head3 type
 
 B<Required in the constructor>. The type of the map. Must be one of the
-C<psbt_*_map> constants defined in L<Bitcoin::Crypto::Constants>.
+C<PSBT_*_MAP> constants defined in L<Bitcoin::Crypto::Constants>.
 
 =head3 index
 

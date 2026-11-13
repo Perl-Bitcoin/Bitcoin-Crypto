@@ -534,7 +534,7 @@ my %types = (
 		%uint_32bitLE_serializers,
 		validator => sub {
 			my ($value) = @_;
-			die_no_trace 'must be greather than or equal to '
+			die_no_trace 'must be greater than or equal to '
 				. LOCKTIME_HEIGHT_THRESHOLD
 				if $value < LOCKTIME_HEIGHT_THRESHOLD;
 		},

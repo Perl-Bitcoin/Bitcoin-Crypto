@@ -663,7 +663,7 @@ block header fields, metrics, and transaction summaries.
 
 =head1 CAVEATS
 
-Some details of block verification are curretly unimplemented. For example,
+Some details of block verification are currently unimplemented. For example,
 block subsidy is not validated. Note that to validate it, UTXOs for each of the
 block's transactions must be known (to calculate fee) - so validating it will
 only ever be possible in a full blockchain scenario.

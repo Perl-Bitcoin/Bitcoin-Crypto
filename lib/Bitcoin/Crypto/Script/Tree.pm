@@ -140,7 +140,7 @@ sub get_leaf
 
 	my $leaf = first { $_->{id} eq $leaf_id } @{$self->_tree_cache->{leaves}};
 	Bitcoin::Crypto::Exception::ScriptTree->raise(
-		"no such block with id=$leaf_id"
+		"no such leaf with id $leaf_id"
 	) unless defined $leaf;
 
 	return $leaf;
@@ -457,7 +457,7 @@ id. Each path is an array reference - same as what L</from_path> takes as input.
 
 	$leaves = $tree->get_leaves()
 
-Returns an array reference of leaves in the hash - each leaf is an instance of
+Returns an array reference of leaves in the tree - each leaf is an instance of
 L<Bitcoin::Crypto::Script::Tree::Leaf>. The order of leaves in the array is
 strictly determined by the order of leaves in the tree.
 

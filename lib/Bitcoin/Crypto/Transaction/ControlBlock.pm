@@ -110,7 +110,7 @@ L<Bitcoin::Crypto::Script::Tree/from_path>.
 
 =head3 new
 
-	$tree = $class->new(%args)
+	$block = $class->new(%args)
 
 Standard Moo constructor - see L</Attributes>.
 

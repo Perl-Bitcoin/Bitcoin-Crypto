@@ -45,5 +45,5 @@ __END__
 =head1 PSBT docs example
 
 This example shows how to loop through all PSBT fields. It generates a
-documentation of all currently supproted PSBT fields.
+documentation of all currently supported PSBT fields.
 

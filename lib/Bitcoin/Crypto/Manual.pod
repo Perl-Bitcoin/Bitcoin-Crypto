@@ -846,7 +846,7 @@ on serializers to turn Perl objects into binary data:
 
 	say 'PSBT with tree and internal key: ' . to_format [base64 => $psbt->to_serialized];
 
-Following example (taken from C<ex/tx/taproot_script_redeem.pl>) decodes a that
+Following example (taken from C<ex/tx/taproot_script_redeem.pl>) decodes that
 PSBT and pulls data out of it:
 
 	my $psbt = btc_psbt->from_serialized([base64 => $b64_psbt]);
@@ -948,7 +948,7 @@ In no particular order:
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2018 - 2025 by Bartosz Jarzyna
+Copyright (C) 2018 - 2026 by Bartosz Jarzyna
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
