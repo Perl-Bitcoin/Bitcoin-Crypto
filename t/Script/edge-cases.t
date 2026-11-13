@@ -34,5 +34,50 @@ subtest 'should not mistake P2WSH for P2TR' => sub {
 	}, 'Bitcoin::Crypto::Exception::SegwitProgram';
 };
 
+subtest 'should allow creating a P2MS standard script with exotic configuration' => sub {
+	ok lives {
+		btc_script->from_standard(
+			P2MS => [0],
+		);
+	}, 'empty P2MS';
+
+	ok lives {
+		btc_script->from_standard(
+			P2MS => [
+				0,
+				("02" . "01" x 32) x 20,
+			],
+		);
+	}, 'zero signatures and max public keys';
+};
+
+subtest 'should disallow creating a P2MS standard script with incorrect configuration' => sub {
+	ok dies {
+		btc_script->from_standard(
+			P2MS => [
+				-1,
+				"02" . "01" x 32,
+			]
+		);
+	}, 'negative number of signatures';
+
+	ok dies {
+		btc_script->from_standard(
+			P2MS => [
+				1,
+			]
+		);
+	}, 'more signatures than public keys';
+
+	ok dies {
+		btc_script->from_standard(
+			P2MS => [
+				21,
+				("02" . "01" x 32) x 21,
+			]
+		);
+	}, 'too many public keys';
+};
+
 done_testing;
 

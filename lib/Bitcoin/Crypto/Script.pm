@@ -11,7 +11,7 @@ use List::Util qw(any);
 
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit get_hrp);
-use Bitcoin::Crypto::Constants qw(:witness);
+use Bitcoin::Crypto::Constants qw(:witness :script);
 use Bitcoin::Crypto::Util::Internal qw(hash160 hash256 get_address_type to_format);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
@@ -134,12 +134,12 @@ sub _build
 				my ($signatures_num, @pubkeys) = @$data;
 
 				Bitcoin::Crypto::Exception::ScriptPush->raise(
-					'P2MS script first element must be a number between 1 and 15'
-				) unless $signatures_num >= 0 && $signatures_num <= 15;
+					'P2MS script pubkey count should not exceed ' . SCRIPT_MAX_MULTISIG_PUBKEYS
+				) unless @pubkeys <= SCRIPT_MAX_MULTISIG_PUBKEYS;
 
 				Bitcoin::Crypto::Exception::ScriptPush->raise(
-					'P2MS script remaining elements number should be between the number of signatures and 15'
-				) unless @pubkeys >= $signatures_num && @pubkeys <= 15;
+					'P2MS script number of signatures should not be negative or exceed the number of pubkeys'
+				) unless $signatures_num >= 0 && $signatures_num <= @pubkeys;
 
 				$self->push(chr $signatures_num);
 

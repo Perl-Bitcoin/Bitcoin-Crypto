@@ -41,6 +41,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- to avoid creation of incorrectly serialized transactions, serialization of those transactions now raises an exception
 		- serialization of transactions with zero inputs and zero outputs is allowed (as required by some test cases)
 	- fixed having 0x30 on the script stack being considered failure by 'success' method of the Runner
+	- fixed incorrect sanity checking of arguments when creating a standard P2MS script
 
 	[Breaking changes]
 	- PSBT_IN_FINAL_SCRIPTWITNESS value serializer is upgraded to use an array of bytestrings
