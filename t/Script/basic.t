@@ -42,5 +42,12 @@ subtest 'testing OP_1NEGATE' => sub {
 	stack_is($script, [chr 0x81], "stack ok");
 };
 
+subtest 'testing success calls' => sub {
+	ok(!Bitcoin::Crypto::Script->new->run->success, 'success with empty script ok');
+	ok(!Bitcoin::Crypto::Script->new->add('OP_0')->run->success, 'success with OP_0 ok');
+	ok(Bitcoin::Crypto::Script->new->add('OP_1')->run->success, 'success with OP_1 ok');
+	ok(Bitcoin::Crypto::Script->new->push('0')->run->success, 'success with pushed 0 ok');
+};
+
 done_testing;
 

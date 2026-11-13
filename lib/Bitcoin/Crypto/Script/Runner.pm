@@ -423,7 +423,7 @@ sub success
 
 	my $stack = $self->stack;
 	return !!0 if !$stack;
-	return !!0 if !$stack->[-1];
+	return !!0 if !defined $stack->[-1];
 	return !!0 if !$self->to_bool($stack->[-1]);
 
 	# NOTE: clean_stack rule does not check altstack, because altstack can only
