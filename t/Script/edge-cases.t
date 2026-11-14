@@ -100,5 +100,13 @@ subtest 'should allow creation of NULLDATA with content 0' => sub {
 	}, 'script creation ok';
 };
 
+subtest 'minimal data should correctly handle negative numbers' => sub {
+	my $script = btc_script->new->add('OP_1NEGATE')->add('OP_1ADD');
+	my $runner = Bitcoin::Crypto::Script::Runner->new(flags => {minimal_data => !!1});
+
+	ok lives { $runner->execute($script) }, 'negative numbers execute ok';
+	is $runner->to_int($runner->stack->[-1]), 0, 'negative numbers handled correctly ok';
+};
+
 done_testing;
 

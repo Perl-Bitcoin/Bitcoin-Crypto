@@ -105,6 +105,7 @@ sub to_int
 		if length $bytes > $max_bytes;
 
 	return 0 if !length $bytes;
+	my $orig_bytes = $bytes;
 
 	my $negative = !!0;
 	my $last = substr $bytes, -1, 1;
@@ -127,7 +128,7 @@ sub to_int
 	}
 
 	die_no_trace 'number is not minimally encoded'
-		if ref $self && $self->flags->minimal_data && $bytes ne $self->from_int($value);
+		if ref $self && $self->flags->minimal_data && $orig_bytes ne $self->from_int($value);
 
 	return $value;
 }
