@@ -94,5 +94,11 @@ subtest 'should check stack size after opcodes adding stack elements' => sub {
 	}
 };
 
+subtest 'should allow creation of NULLDATA with content 0' => sub {
+	ok lives {
+		btc_script->from_standard(NULLDATA => 0);
+	}, 'script creation ok';
+};
+
 done_testing;
 

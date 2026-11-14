@@ -194,7 +194,7 @@ sub BUILD
 	if ($args->{type}) {
 		Bitcoin::Crypto::Exception::ScriptPush->raise(
 			'script with a "type" also requires an "address"'
-		) unless $args->{address};
+		) unless defined $args->{address};
 
 		$self->_build($args->{type}, $args->{address});
 	}
