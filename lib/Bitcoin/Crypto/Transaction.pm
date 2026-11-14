@@ -466,8 +466,7 @@ sub _verify_script_default
 	if (defined $redeem_script) {
 		$redeem_script = btc_script->from_serialized($redeem_script);
 
-		my $type = $redeem_script->type // '';
-		if ($script_runner->flags->segwit && ($type eq 'P2WPKH' || $type eq 'P2WSH')) {
+		if ($script_runner->flags->segwit && $redeem_script->is_native_segwit) {
 			$self->_verify_script_segwit($input, $script_runner, $redeem_script);
 		}
 		else {

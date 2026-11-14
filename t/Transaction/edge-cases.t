@@ -296,5 +296,37 @@ subtest 'should raise an exception when set_rbf is called with no inputs' => sub
 	isa_ok dies { $tx->set_rbf }, 'Bitcoin::Crypto::Exception::Transaction';
 };
 
+subtest 'should automatically enfore cleanstack rule on P2SH nested in P2WSH' => sub {
+	my $script = btc_script->new->add('OP_1');
+
+	$tx = btc_transaction->new;
+	$tx->add_input(
+		utxo => btc_utxo->new(
+			txid => "\x01" x 32,
+			output_index => 0,
+			output => {
+				locking_script => [address => $script->get_compat_address],
+				value => 1000,
+			},
+		),
+	);
+	$tx->add_output(
+		value => 1000,
+		locking_script => $script->get_segwit_address,
+	);
+
+	$tx->sign(
+		signing_index => 0,
+		script => $script,
+		compat => !!1,
+		)
+		->add_number(1)
+		->finalize;
+
+	my $ex = dies { $tx->verify };
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::TransactionScript';
+	like $ex, qr{\Qsegwit redeem script: execution yielded failure\E}, 'fail reason ok';
+};
+
 done_testing;
 

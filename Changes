@@ -46,6 +46,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fixed possible infinite loop when a signature with zero r or s is encountered
 	- fixed extended key being altered when derived with 'm' derivation path
 	- fixed taproot script spends with non-tapscript leaf versions omitting control block checks
+	- fixed incorrect handling of nested witness scripts which caused P2SH(P2WSH) to bypass clean_stack rule
 
 	[Breaking changes]
 	- PSBT_IN_FINAL_SCRIPTWITNESS value serializer is upgraded to use an array of bytestrings

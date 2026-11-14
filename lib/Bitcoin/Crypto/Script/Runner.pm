@@ -430,8 +430,10 @@ sub success
 	# be manipulated by the script itself, so there is no chance for witness
 	# malleability
 	if (@$stack > 1) {
-		my $segwit = $self->has_transaction && $self->transaction->is_native_segwit;
-		return !!0 if $segwit || $self->is_tapscript || $self->flags->clean_stack;
+		return !!0 if
+			$self->is_tapscript
+			|| ($self->has_transaction && $self->transaction->is_segwit)
+			|| $self->flags->clean_stack;
 	}
 
 	return !!1;
