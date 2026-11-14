@@ -258,16 +258,16 @@ sub make_strict_der_signature
 
 	# remove padding
 	$r = substr($r, 1)
-		while unpack('C', $r) == 0;
+		while length $r && unpack('C', $r) == 0;
 	$s = substr($s, 1)
-		while unpack('C', $s) == 0;
+		while length $s && unpack('C', $s) == 0;
 
 	# top bit may be 1, so prepend with zero to avoid being interpreted as
 	# negative
 	$r = "\x00$r"
-		if unpack('C', $r) & 0x80;
+		if length $r && unpack('C', $r) & 0x80;
 	$s = "\x00$s"
-		if unpack('C', $s) & 0x80;
+		if length $s && unpack('C', $s) & 0x80;
 
 	# return extracted strict signature
 	return pack "aCaCa*aCa*",
