@@ -543,6 +543,7 @@ sub _verify_script_segwit
 sub _verify_script_taproot
 {
 	my ($self, $input, $script_runner) = @_;
+	my $run_script = !!1;
 
 	die_no_trace 'signature script is not empty in taproot input'
 		unless $input->signature_script->is_empty;
@@ -565,13 +566,7 @@ sub _verify_script_taproot
 		$script = Bitcoin::Crypto::Script::Common->new(TR => $pubkey);
 	}
 	else {
-		my $control_block = Bitcoin::Crypto::Exception->trap_into(
-			sub {
-				return Bitcoin::Crypto::Transaction::ControlBlock->from_serialized(pop @witness_stack);
-			},
-			'invalid control block'
-		);
-
+		my $control_block = Bitcoin::Crypto::Transaction::ControlBlock->from_serialized(pop @witness_stack);
 		my $raw_script = pop @witness_stack;
 
 		my $leaf_version = $control_block->get_leaf_version;
@@ -580,9 +575,11 @@ sub _verify_script_taproot
 			$script_runner->transaction->set_taproot_ext_flag(1);
 		}
 		else {
+			$script = btc_script->from_serialized($raw_script);
+
 			# future compatibility - script must succeed
 			# https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#cite_note-12
-			return;
+			$run_script = !!0;
 		}
 
 		my $tree = btc_script_tree->from_path(
@@ -614,7 +611,7 @@ sub _verify_script_taproot
 				unless $script_runner->success;
 		},
 		'taproot script'
-	);
+	) if $run_script;
 }
 
 sub verify_script
