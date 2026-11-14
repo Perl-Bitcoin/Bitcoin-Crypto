@@ -122,7 +122,7 @@ sub split_bech32
 		'bech32 string contains mixed case'
 	) if lc $bech32enc ne $bech32enc;
 
-	my @parts = split /1/, $bech32enc;
+	my @parts = split /1/, $bech32enc, -1;
 
 	Bitcoin::Crypto::Exception::Bech32InputFormat->raise(
 		'bech32 separator character missing'

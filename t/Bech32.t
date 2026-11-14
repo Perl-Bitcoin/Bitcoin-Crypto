@@ -322,6 +322,11 @@ my @tests_segwit = (
 	},    # Invalid program length
 
 	{
+		case => 'tb1pqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesf3hn0c1',
+		exception => 'Bech32InputFormat'
+	},    # trailing 1
+
+	{
 		case => 'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7',
 		exception => 'Bech32InputFormat'
 	},    # Mixed case
