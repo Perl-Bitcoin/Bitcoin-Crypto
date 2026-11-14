@@ -149,7 +149,7 @@ sub from_int
 		return '' if $value == 0;
 
 		$negative = $value < 0;
-		$value->babs if $negative;
+		$value = $value->copy->babs if $negative;
 
 		$bytes = reverse pack 'H*', pad_hex($value->to_hex);
 	}
