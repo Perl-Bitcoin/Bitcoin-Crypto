@@ -44,7 +44,11 @@ sub pad_hex
 {
 	my ($hex) = @_;
 	$hex =~ s/\A0x//;
-	$hex =~ tr/0-9a-fA-F//cd;
+
+	Bitcoin::Crypto::Exception->raise(
+		'non-hexadecimal characters in a hex string'
+	) if $hex =~ /[^0-9a-fA-F]/;
+
 	return '0' x (length($hex) % 2) . $hex;
 }
 

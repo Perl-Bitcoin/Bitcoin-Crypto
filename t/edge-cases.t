@@ -6,9 +6,12 @@ use Bitcoin::Crypto::Util qw(generate_mnemonic);
 use Bitcoin::Crypto::Network;
 
 subtest 'testing invalid hex' => sub {
-	isa_ok dies {
+	my $ex = dies {
 		btc_pub->from_serialized([hex => 'not-a-hex']);
-	}, 'Bitcoin::Crypto::Exception::KeyCreate';
+	};
+
+	isa_ok $ex, 'Bitcoin::Crypto::Exception';
+	like $ex, qr{non-hexadecimal characters}, 'exception ok';
 };
 
 subtest 'testing undef as a bytestring' => sub {
