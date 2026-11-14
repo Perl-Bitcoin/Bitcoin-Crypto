@@ -179,5 +179,16 @@ subtest 'refuses to change network in single-network mode' => sub {
 	Bitcoin::Crypto::Network->get->set_default;
 };
 
+subtest 'deriving an extended key with a m path should not override its properties' => sub {
+	my $ser =
+		'xprv9xoYZivLq3T7RYS1sN5uhzQDyGk7gkfvgUKgD7gzwtUGbPu8LxMexvZE39x4Te5r62ekj9aNrjxcfDm4Di3qmHLKeacnmkfQWY8Xubba1Ya';
+
+	my $key = btc_extprv->from_serialized([base58 => $ser]);
+	$key->set_purpose(44);
+
+	my $cloned = $key->derive_key('m');
+	is $cloned->purpose, 44, 'purpose unchanged ok';
+};
+
 done_testing;
 

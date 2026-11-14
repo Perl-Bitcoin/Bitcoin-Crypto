@@ -262,8 +262,12 @@ sub derive_key
 		$key = $key->_derive_key_partial($child_num, $hardened);
 	}
 
-	$key->set_network($self->network);
-	$key->set_purpose($self->_get_purpose_from_BIP44($path));
+	# do not apply these tweaks if no derivation actually happened (path 'm') -
+	# this would remove purpose from the key
+	if ($key != $self) {
+		$key->set_network($self->network);
+		$key->set_purpose($self->_get_purpose_from_BIP44($path));
+	}
 
 	return $key;
 }

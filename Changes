@@ -44,6 +44,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fixed incorrect sanity checking of arguments when creating a standard P2MS script
 	- fixed incorrect handling of trailing '1' characters in bech32 addresses
 	- fixed possible infinite loop when a signature with zero r or s is encountered
+	- fixed extended key being altered when derived with 'm' derivation path
 
 	[Breaking changes]
 	- PSBT_IN_FINAL_SCRIPTWITNESS value serializer is upgraded to use an array of bytestrings
