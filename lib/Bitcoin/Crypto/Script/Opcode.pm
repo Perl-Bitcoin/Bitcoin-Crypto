@@ -625,6 +625,7 @@ sub _OP_TUCK
 
 		$runner->_stack_error unless @$stack >= 2;
 		splice @$stack, -2, 0, $stack->[-1];
+		$class->_verify_stack($runner);
 	};
 }
 

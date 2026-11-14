@@ -1,6 +1,7 @@
 use Test2::V0;
 
 use Bitcoin::Crypto qw(btc_script);
+use Bitcoin::Crypto::Constants qw(:script);
 
 subtest 'should detect P2PKH / P2SH mismatch' => sub {
 	isa_ok dies {
@@ -77,6 +78,20 @@ subtest 'should disallow creating a P2MS standard script with incorrect configur
 			]
 		);
 	}, 'too many public keys';
+};
+
+# NOTE: not checking regular pushdata here or OP_N, as they are all run by the same handler
+subtest 'should check stack size after opcodes adding stack elements' => sub {
+	my @ops = qw(OP_2DUP OP_3DUP OP_2OVER OP_IFDUP OP_DEPTH OP_DUP OP_OVER OP_PICK OP_TUCK OP_SIZE);
+
+	foreach my $op (@ops) {
+		my $script = btc_script->new;
+
+		# NOTE: initial stack size is actually only checked in tapscript. Set
+		# this to max + 1, which allows us to test OP_PICK (which only adds an
+		# element after removing one)
+		ok dies { $script->run(("\x01") x (SCRIPT_MAX_STACK_ELEMENTS + 1)) }, "stack size checked ok for $op";
+	}
 };
 
 done_testing;
