@@ -1067,7 +1067,7 @@ sub _OP_CHECKSIG
 		my $result = __checksig($runner, $sig, $hashtype, $raw_pubkey, $preimage);
 
 		$runner->_script_error('non-empty signature verification failed')
-			if !$result && $runner->flags->null_fail && $sig ne '';
+			if !$result && $runner->flags->null_fail && $sig_orig ne '';
 
 		push @$stack, $runner->from_bool($result);
 	};

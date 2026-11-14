@@ -49,6 +49,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fixed incorrect handling of nested witness scripts which caused P2SH(P2WSH) to bypass clean_stack rule
 	- fixed OP_TUCK not verifying script execution stack state
 	- fixed bad handling of minimal_data and negative integers in scripts
+	- fixed bad handling of null_fail and signatures of length 1
 
 	[Breaking changes]
 	- PSBT_IN_FINAL_SCRIPTWITNESS value serializer is upgraded to use an array of bytestrings

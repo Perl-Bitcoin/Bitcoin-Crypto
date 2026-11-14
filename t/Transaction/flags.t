@@ -288,6 +288,24 @@ subtest 'checking null_fail' => sub {
 	ok dies { $tx->verify(flags => $flags) }, 'checking with test flag ok';
 };
 
+subtest 'checking null_fail with signature of length 1' => sub {
+	my $flags = Bitcoin::Crypto::Transaction::Flags->new_empty(null_fail => !!1);
+
+	# sighash is stripped off the signature, check if that does not collide with null_fail
+	my $tx = build_tx(
+		btc_script->new
+			->push($privkey->get_public_key->to_serialized)
+			->add('OP_CHECKSIG')
+			->add('OP_1'),
+		btc_script->new
+			->push([hex => '01']),
+	);
+
+	# need to also disable der_signatures
+	ok lives { $tx->verify(flags => {der_signatures => !!0}) }, 'checking with consensus flags ok';
+	ok dies { $tx->verify(flags => $flags) }, 'checking with test flag ok';
+};
+
 subtest 'checking clean_stack' => sub {
 	my $flags = Bitcoin::Crypto::Transaction::Flags->new_empty(clean_stack => !!1);
 
