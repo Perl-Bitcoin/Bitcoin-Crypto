@@ -310,7 +310,7 @@ Bitcoin::Crypto::Transaction::Signer - Construct a signature for any transaction
 
 	# sign a multisignature transaction
 	$tx->sign(signing_index => 0, script => $p2ms_script, %more_args)
-		->add_signature($priv, SIGHASH_ALL)
+		->add_signature($priv, sighash => SIGHASH_ALL)
 		->add_signature('bytestring signature')
 		->finalize_multisignature
 		->finalize;

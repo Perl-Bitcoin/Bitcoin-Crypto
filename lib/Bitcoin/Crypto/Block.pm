@@ -430,7 +430,7 @@ Bitcoin::Crypto::Block - Bitcoin block implementation
 	print "Block weight: " . $block->weight . " WU\n";
 
 	# Parse from serialized data
-	my $block = btc_block->from_serialized($block_hex);
+	my $block = btc_block->from_serialized([hex => $block_hex]);
 
 	# Serialize block
 	my $serialized = $block->to_serialized;

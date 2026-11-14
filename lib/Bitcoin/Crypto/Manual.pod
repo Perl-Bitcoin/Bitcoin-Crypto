@@ -552,7 +552,10 @@ not known.
 =head4 Automatically signing a transaction
 
 Since we created the UTXO as a C<P2TR> output (recognizable by the prefix
-C<bc1p>), we can automatically sign it with a private key:
+C<bc1p>), we can automatically sign it with a matching private key:
+
+	# import the corresponding private key into the program
+	my $private = ...;
 
 	# sign the first (and only) input
 	$private->sign_transaction($tx, signing_index => 0);
@@ -608,7 +611,7 @@ look like this:
 		->add_number(0)                      # enter the branch with OP_CHECKMULTISIG
 		->add_signature($external_signature) # add a known external signature
 		->add_signature($private)            # generate a signature using our private key
-		->finalize_multisig                  # end the OP_CHECKMULTISIG signing
+		->finalize_multisignature            # end the OP_CHECKMULTISIG signing
 		->finalize;                          # apply changes to the transaction
 
 Note that even though in the script our public key came in first, we must

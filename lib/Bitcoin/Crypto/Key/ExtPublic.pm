@@ -72,7 +72,7 @@ Bitcoin::Crypto::Key::ExtPublic - Bitcoin extended public keys
 =head1 SYNOPSIS
 
 	use Bitcoin::Crypto qw(btc_extprv);
-	use Bitcoin::Crypto::Util qw(generate_mnemonic to_format)
+	use Bitcoin::Crypto::Util qw(generate_mnemonic to_format);
 
 	my $mnemonic = generate_mnemonic;
 	my $key = btc_extprv->from_mnemonic($mnemonic)->get_public_key;

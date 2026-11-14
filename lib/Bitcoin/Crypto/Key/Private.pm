@@ -142,7 +142,7 @@ Bitcoin::Crypto::Key::Private - Bitcoin private keys
 	# signature is returned as byte string
 	# use to_format to get the representation you need
 
-	use Bitcoin::Crypto::Util::Internal qw(to_format);
+	use Bitcoin::Crypto::Util qw(to_format);
 	my $sig_hex = to_format [hex => $sig];
 
 	# signature verification

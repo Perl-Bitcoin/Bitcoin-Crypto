@@ -515,7 +515,7 @@ Bitcoin::Crypto::Script - Bitcoin Script instance
 	use Bitcoin::Crypto::Script;
 
 	my $script = Bitcoin::Crypto::Script->from_standard(
-		[P2WPKH => $my_segwit_address]
+		P2WPKH => $my_segwit_address
 	);
 
 	# getting serialized script
@@ -644,8 +644,8 @@ Creates a new script instance from a bytestring.
 
 =head3 from_standard
 
-	$object = Bitcoin::Crypto::Script->from_standard([P2PKH => '1Ehr6cNDzPCx3wQRu1sMdXWViEi2MQnFzH'])
-	$object = Bitcoin::Crypto::Script->from_standard([address => '1Ehr6cNDzPCx3wQRu1sMdXWViEi2MQnFzH'])
+	$object = Bitcoin::Crypto::Script->from_standard(P2PKH => '1Ehr6cNDzPCx3wQRu1sMdXWViEi2MQnFzH')
+	$object = Bitcoin::Crypto::Script->from_standard(address => '1Ehr6cNDzPCx3wQRu1sMdXWViEi2MQnFzH')
 
 Creates a new object of standard type with given address. The address must be
 of the currently default network. In case of C<NULLDATA>, C<P2MS> and C<P2PK>

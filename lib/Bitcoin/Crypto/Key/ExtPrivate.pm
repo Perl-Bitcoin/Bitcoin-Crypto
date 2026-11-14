@@ -176,7 +176,7 @@ Bitcoin::Crypto::Key::ExtPrivate - Bitcoin extended private keys
 =head1 SYNOPSIS
 
 	use Bitcoin::Crypto qw(btc_extprv);
-	use Bitcoin::Crypto::Util qw(generate_mnemonic to_format)
+	use Bitcoin::Crypto::Util qw(generate_mnemonic to_format);
 
 	# generate mnemonic words first
 	my $mnemonic = generate_mnemonic;
