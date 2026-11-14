@@ -34,10 +34,7 @@ has option 'transaction' => (
 );
 
 has param 'flags' => (
-	coerce => (InstanceOf ['Bitcoin::Crypto::Transaction::Flags'])
-		->plus_coercions(
-			Undef, q{Bitcoin::Crypto::Transaction::Flags->new}
-		),
+	coerce => TransactionFlags,
 	writer => 1,
 	default => undef,
 );
