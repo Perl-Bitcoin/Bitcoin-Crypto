@@ -94,7 +94,7 @@ sub from_serialized
 	my $script_size = unpack_compactsize $serialized, \$pos;
 
 	Bitcoin::Crypto::Exception::Transaction->raise(
-		'serialized input script data is corrupted'
+		'serialized output script data is corrupted'
 	) if $pos + $script_size > length $serialized;
 
 	my $script = substr $serialized, $pos, $script_size;

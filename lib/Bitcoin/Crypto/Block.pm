@@ -153,13 +153,7 @@ sub to_serialized
 	my ($self, $args) = @_;
 
 	# Bitcoin block serialization format:
-	# - Block header (80 bytes):
-	#   - version (4 bytes)
-	#   - prev_block_hash (32 bytes)
-	#   - merkle_root (32 bytes)
-	#   - timestamp (4 bytes)
-	#   - bits (4 bytes)
-	#   - nonce (4 bytes)
+	# - Block header (80 bytes)
 	# - Transaction count (VarInt)
 	# - Transactions (variable length)
 
@@ -220,7 +214,7 @@ sub from_serialized
 		);
 	}
 
-	Bitcoin::Crypto::Exception::Transaction->raise(
+	Bitcoin::Crypto::Exception::Block->raise(
 		'serialized block data is corrupted'
 	) if !$partial && $pos != length $serialized;
 
@@ -262,10 +256,16 @@ sub get_header
 {
 	my ($self) = @_;
 
-	# Return just the 80-byte block header
+	# - version (4 bytes)
+	# - prev_block_hash (32 bytes)
+	# - merkle_root (32 bytes)
+	# - timestamp (4 bytes)
+	# - bits (4 bytes)
+	# - nonce (4 bytes)
+
 	return pack 'Va32a32VVV',
 		$self->version,
-		scalar(reverse $self->prev_block_hash),
+		scalar(reverse($self->prev_block_hash // ("\x00" x 32))),
 		scalar(reverse $self->merkle_root),
 		$self->timestamp,
 		$self->bits,
