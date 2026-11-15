@@ -59,13 +59,6 @@ sub _OP_CHECKSIG
 			push @$stack, $runner->from_bool(!!0);
 			return;
 		}
-		else {
-			($sig, $hashtype) = unpack 'a64C', $sig
-				if length $sig == 65;
-
-			$runner->_invalid_script('bad sighash')
-				if defined $hashtype && !check_sighash($hashtype);
-		}
 
 		my $tx = $runner->transaction;
 
@@ -92,6 +85,12 @@ sub _OP_CHECKSIG
 			push @$stack, $runner->from_bool(!!1);
 			return;
 		}
+
+		($sig, $hashtype) = unpack 'a64C', $sig
+			if length $sig == 65;
+
+		$runner->_invalid_script('bad sighash')
+			if defined $hashtype && !check_sighash($hashtype);
 
 		my $preimage = $tx->get_digest(
 			sighash => $hashtype,
