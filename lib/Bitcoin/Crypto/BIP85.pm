@@ -57,7 +57,7 @@ sub derive_entropy
 signature_for derive_mnemonic => (
 	method => !!1,
 	named => [
-		words => Enum [12, 18, 24],
+		words => Enum [12, 15, 18, 21, 24],
 		{default => 24},
 		language => Str,
 		{default => 'en'},
@@ -81,8 +81,9 @@ sub derive_mnemonic
 		'fr' => 6,
 		'it' => 7,
 
-		# NOTE: czech has no BIP39 wordlist module, but add it for sake of completeness
+		# NOTE: czech and portuguese has no BIP39 wordlist module, but add it for sake of completeness
 		'cz' => 8,
+		'pt' => 9,
 	);
 
 	my $language_index = $language_map{$args->{language}};
@@ -259,11 +260,13 @@ Derives mnemonic from the master key. C<%args> can be any combination of:
 
 =item * C<words>
 
-The number of words to generate. Can be either C<12>, C<18> or C<24>. Default: C<24>.
+The number of words to generate. Can be either C<12>, C<15>, C<18>, C<21> or
+C<24>. Default: C<24>.
 
 =item * C<language>
 
-The language to use. See L<Bitcoin::BIP39> for more info about this argument. Default: C<en>.
+The language to use. See L<Bitcoin::BIP39> for more info about this argument.
+Default: C<en>.
 
 =item * C<index>
 
