@@ -222,7 +222,7 @@ sub check_strict_der_signature
 
 	# check s length
 	return !!0
-		if $r_len + $s_len + 7 != $len;
+		if !defined $s_len || $r_len + $s_len + 7 != $len;
 
 	for my $item ([$r_len, 2], [$s_len, $r_len + 4]) {
 		($t1, $t2, $t3) = unpack '@0C @2C @3C', substr $signature, $item->[1];
