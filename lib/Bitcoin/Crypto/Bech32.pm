@@ -243,7 +243,12 @@ sub encode_bech32
 		$checksum = create_checksum_bech32m($hrp, $result);
 	}
 
-	return $hrp . 1 . $result . $checksum;
+	$result = $hrp . 1 . $result . $checksum;
+
+	# feed the result back into split_bech32, which validates it
+	split_bech32($result);
+
+	return $result;
 }
 
 signature_for encode_segwit => (

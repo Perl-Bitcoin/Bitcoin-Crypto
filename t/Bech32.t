@@ -444,5 +444,16 @@ subtest 'old bech32 constants are available (backcompat)' => sub {
 	is Bitcoin::Crypto::Bech32::BECH32M, BECH32M, 'bech32m ok';
 };
 
+subtest 'encoding should not produce broken bech32' => sub {
+	isa_ok dies { encode_bech32('', [0, 1, 2, 3, 4]) },
+		['Bitcoin::Crypto::Exception::Bech32InputFormat'], 'empty hrp ok';
+
+	isa_ok dies { encode_bech32('a' x 83, [0]) },
+		['Bitcoin::Crypto::Exception::Bech32InputFormat'], 'too long hrp ok';
+
+	isa_ok dies { encode_bech32('a' x 80, [0, 1, 2, 3]) },
+		['Bitcoin::Crypto::Exception::Bech32InputFormat'], 'too long string ok';
+};
+
 done_testing;
 
