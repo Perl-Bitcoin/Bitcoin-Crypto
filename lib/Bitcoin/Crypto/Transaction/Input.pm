@@ -233,23 +233,22 @@ sub script_base
 		my $utxo = $self->utxo;
 
 		my $locking_script = $utxo->output->locking_script;
-		my $program;
 		my %types = (
 			P2WPKH => sub {
 
 				# get script hash from P2WPKH (ignore the first two OPs - version and push)
 				my $hash = substr $locking_script->to_serialized, 2;
-				$program = Bitcoin::Crypto::Script::Common->new(PKH => $hash);
+				return Bitcoin::Crypto::Script::Common->new(PKH => $hash);
 			},
 			P2WSH => sub {
 
 				# NOTE: Transaction::Digest sets witness to signing_subscript,
 				# which takes OP_CODESEPARATORs into account
-				$program = btc_script->from_serialized(($self->witness // [''])->[-1]);
+				return btc_script->from_serialized(($self->witness // [''])->[-1]);
 			},
 		);
 
-		my $type = $utxo->output->locking_script->type;
+		my $type = $locking_script->type;
 
 		if ($type eq 'P2SH') {
 
@@ -260,8 +259,11 @@ sub script_base
 			$locking_script = $nested;
 		}
 
-		$types{$type}->();
-		return $program;
+		Bitcoin::Crypto::Exception->raise(
+			"cannot get script_base of script type $type"
+		) unless $types{$type};
+
+		return $types{$type}->();
 	}
 	else {
 		return $self->utxo->output->locking_script;
