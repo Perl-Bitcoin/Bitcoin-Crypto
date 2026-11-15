@@ -59,6 +59,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fixed being able to generate a segwit compat address from an uncompressed public key
 	- fixed derive_mnemonic from BIP85 refusing to generate 15 or 21 words
 	- fixed adding short data to script not clearing the script cache, resulting in bad state
+	- fixed calling set_rbf not clearing the internal digest object of the transaction
 
 	[Breaking changes]
 	- PSBT_IN_FINAL_SCRIPTWITNESS value serializer is upgraded to use an array of bytestrings

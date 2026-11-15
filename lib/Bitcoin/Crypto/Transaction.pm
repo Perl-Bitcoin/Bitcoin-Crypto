@@ -353,6 +353,7 @@ sub set_rbf
 		) unless defined $input;
 
 		$input->set_sequence_no(RBF_SEQUENCE_NO_THRESHOLD);
+		$self->clear_digest_object;
 	}
 
 	return $self;

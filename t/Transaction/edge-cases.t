@@ -332,5 +332,27 @@ subtest 'should automatically enfore cleanstack rule on P2SH nested in P2WSH' =>
 	like $ex, qr{\Qsegwit redeem script: execution yielded failure\E}, 'fail reason ok';
 };
 
+subtest 'setting rbf on transaction should refresh digest' => sub {
+	$tx = btc_transaction->new;
+	$tx->add_input(
+		utxo => btc_utxo->new(
+			txid => "\x01" x 32,
+			output_index => 0,
+			output => {
+				locking_script => btc_script->new->add('OP_1'),
+				value => 1000,
+			},
+		),
+	);
+	$tx->add_output(
+		value => 1000,
+		locking_script => [NULLDATA => 'rbf'],
+	);
+
+	my $digest1 = $tx->get_digest_object(signing_index => 0);
+	$tx->set_rbf;
+	ok $tx->get_digest_object(signing_index => 0) != $digest1, 'digest object refreshed ok';
+};
+
 done_testing;
 
