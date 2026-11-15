@@ -366,7 +366,7 @@ configuration set in the extended key will be used.>
 
 	$fingerprint = $object->get_fingerprint($len = 4)
 
-Returns a fingerprint of the extended key of C<$len> length (byte string)
+Returns a fingerprint (byte string) of the extended key of C<$len> length.
 
 =head1 SEE ALSO
 

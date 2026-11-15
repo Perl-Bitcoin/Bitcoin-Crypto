@@ -202,5 +202,14 @@ subtest 'deriving an extended key with a m path should not override its properti
 	is $cloned->purpose, 44, 'purpose unchanged ok';
 };
 
+subtest 'extended key fingerprint should honor length argument' => sub {
+	my $ser =
+		'xprv9xoYZivLq3T7RYS1sN5uhzQDyGk7gkfvgUKgD7gzwtUGbPu8LxMexvZE39x4Te5r62ekj9aNrjxcfDm4Di3qmHLKeacnmkfQWY8Xubba1Ya';
+
+	my $key = btc_extprv->from_serialized([base58 => $ser]);
+	is length $key->get_fingerprint(), 4, 'default length ok';
+	is length $key->get_fingerprint(12), 12, 'custom length ok';
+};
+
 done_testing;
 

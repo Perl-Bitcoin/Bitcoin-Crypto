@@ -215,7 +215,7 @@ sub get_fingerprint
 
 	my $pubkey = $self->raw_key('public_compressed');
 	my $identifier = hash160($pubkey);
-	return substr $identifier, 0, 4;
+	return substr $identifier, 0, $len;
 }
 
 sub _get_purpose_from_BIP44
