@@ -105,6 +105,10 @@ sub get_compat_address
 		'compat addresses can only be created with BIP44 in compat (BIP49) mode'
 	) unless $self->has_purpose(BIP44_COMPAT_PURPOSE);
 
+	Bitcoin::Crypto::Exception::AddressGenerate->raise(
+		'segwit addresses must not be generated with uncompressed keys to avoid potential fund loss'
+	) unless $self->compressed;
+
 	return $self->witness_program->get_legacy_address;
 }
 

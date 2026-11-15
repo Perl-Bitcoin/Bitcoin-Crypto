@@ -109,8 +109,13 @@ subtest 'should handle importing wif (multiple networks) with default' => sub {
 subtest 'refuses to generate segwit address from uncompressed key' => sub {
 	my $wif = '5JKZUnxc5G8toCqErCQpHiUYff3t7GvBd2my4bf6odejtZAy7hG';
 	my $key = btc_prv->from_wif($wif);
+
 	isa_ok dies {
 		$key->get_public_key->get_segwit_address;
+	}, 'Bitcoin::Crypto::Exception::AddressGenerate';
+
+	isa_ok dies {
+		$key->get_public_key->get_compat_address;
 	}, 'Bitcoin::Crypto::Exception::AddressGenerate';
 };
 
