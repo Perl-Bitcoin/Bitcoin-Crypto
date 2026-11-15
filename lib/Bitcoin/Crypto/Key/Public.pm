@@ -159,16 +159,16 @@ sub get_address
 	my ($self) = @_;
 
 	return $self->get_taproot_address
-		if $self->has_purpose(BIP44_TAPROOT_PURPOSE);
+		if $self->has_purpose(BIP44_TAPROOT_PURPOSE, !!1);
 
 	return $self->get_segwit_address
-		if $self->has_purpose(BIP44_SEGWIT_PURPOSE);
+		if $self->has_purpose(BIP44_SEGWIT_PURPOSE, !!1);
 
 	return $self->get_compat_address
-		if $self->has_purpose(BIP44_COMPAT_PURPOSE);
+		if $self->has_purpose(BIP44_COMPAT_PURPOSE, !!1);
 
 	return $self->get_legacy_address
-		if $self->has_purpose(BIP44_PURPOSE);
+		if $self->has_purpose(BIP44_PURPOSE, !!1);
 
 	return $self->get_taproot_address
 		if $self->network->supports_segwit;

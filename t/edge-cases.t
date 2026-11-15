@@ -179,6 +179,18 @@ subtest 'refuses to change network in single-network mode' => sub {
 	Bitcoin::Crypto::Network->get->set_default;
 };
 
+subtest 'allows getting legacy address via get_address if the network does not support segwit' => sub {
+	Bitcoin::Crypto::Network->get('dogecoin')->set_default;
+
+	my $key = btc_prv->from_wif('QVVTD1eyReofUsNjiPoYaLTCNanr2xUx6Yx11R4H9q4TayY433BC');
+
+	ok lives {
+		is $key->get_public_key->get_address, 'D6V34ccS3k2o5rwC5NuYomKmbbMTgr1NQt', 'address ok';
+	}, 'address generation succeeds';
+
+	Bitcoin::Crypto::Network->get('bitcoin')->set_default;
+};
+
 subtest 'deriving an extended key with a m path should not override its properties' => sub {
 	my $ser =
 		'xprv9xoYZivLq3T7RYS1sN5uhzQDyGk7gkfvgUKgD7gzwtUGbPu8LxMexvZE39x4Te5r62ekj9aNrjxcfDm4Di3qmHLKeacnmkfQWY8Xubba1Ya';

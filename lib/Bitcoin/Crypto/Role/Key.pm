@@ -94,14 +94,16 @@ sub BUILD
 
 signature_for has_purpose => (
 	method => !!1,
-	positional => [BIP44Purpose],
+	positional => [BIP44Purpose, Bool, {default => !!0}],
 );
 
 sub has_purpose
 {
-	my ($self, $purpose) = @_;
+	my ($self, $wanted_purpose, $force_defined) = @_;
 
-	return !$self->purpose || $self->purpose == $purpose;
+	my $purpose = $self->purpose;
+	return !$force_defined if !defined $purpose;
+	return $purpose == $wanted_purpose;
 }
 
 signature_for raw_key => (
