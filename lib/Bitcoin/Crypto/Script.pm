@@ -281,8 +281,11 @@ sub push_bytes
 	}
 
 	if ($len <= 75) {
+
+		# NOTE: add_raw (no underscore) to force clearing the object, since no
+		# other add_ is called
 		$self
-			->_add_raw(pack 'Ca*', $len, $bytes);
+			->add_raw(pack 'Ca*', $len, $bytes);
 	}
 	elsif ($len <= 0xff) {
 		$self

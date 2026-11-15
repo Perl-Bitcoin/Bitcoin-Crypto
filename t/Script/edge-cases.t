@@ -119,7 +119,14 @@ subtest 'OP_MIN and OP_MAX should push minimal numbers' => sub {
 
 	$script = btc_script->new->push("\x01\x00")->add('OP_2')->add('OP_MIN');
 	stack_is($script, ["\x01"], 'OP_MIN ok');
+};
 
+subtest 'pushing short bytes should clear the object' => sub {
+	my $script = btc_script->from_standard(NULLDATA => 'test');
+	is $script->type, 'NULLDATA', 'script type before modification ok';
+
+	$script->push('abcdef');
+	is $script->type, undef, 'script type after modification ok';
 };
 
 done_testing;
