@@ -3,6 +3,9 @@ use Test2::V0;
 use Bitcoin::Crypto qw(btc_script);
 use Bitcoin::Crypto::Constants qw(:script);
 
+use lib 't/lib';
+use ScriptTest;
+
 subtest 'should detect P2PKH / P2SH mismatch' => sub {
 	isa_ok dies {
 		btc_script->from_standard(P2PKH => '3HDtyBHZ4111BFtUBY2SA4eXJQxifmaTYw');
@@ -106,6 +109,17 @@ subtest 'minimal data should correctly handle negative numbers' => sub {
 
 	ok lives { $runner->execute($script) }, 'negative numbers execute ok';
 	is $runner->to_int($runner->stack->[-1]), 0, 'negative numbers handled correctly ok';
+};
+
+subtest 'OP_MIN and OP_MAX should push minimal numbers' => sub {
+	my $script;
+
+	$script = btc_script->new->push("\x01\x00")->add('OP_0')->add('OP_MAX');
+	stack_is($script, ["\x01"], 'OP_MAX ok');
+
+	$script = btc_script->new->push("\x01\x00")->add('OP_2')->add('OP_MIN');
+	stack_is($script, ["\x01"], 'OP_MIN ok');
+
 };
 
 done_testing;

@@ -933,9 +933,9 @@ sub _OP_MIN
 		my $stack = $runner->stack;
 
 		$runner->_stack_error unless @$stack >= 2;
-		my ($first, $second) = splice @$stack, -2, 2;
-		push @$stack, $runner->to_int($first) < $runner->to_int($second)
-			? $first : $second;
+		my ($first, $second) = map { $runner->to_int($_) } splice @$stack, -2, 2;
+		my $smaller = $first < $second ? $first : $second;
+		push @$stack, $runner->from_int($smaller);
 	};
 }
 
@@ -948,9 +948,9 @@ sub _OP_MAX
 		my $stack = $runner->stack;
 
 		$runner->_stack_error unless @$stack >= 2;
-		my ($first, $second) = splice @$stack, -2, 2;
-		push @$stack, $runner->to_int($first) > $runner->to_int($second)
-			? $first : $second;
+		my ($first, $second) = map { $runner->to_int($_) } splice @$stack, -2, 2;
+		my $larger = $first > $second ? $first : $second;
+		push @$stack, $runner->from_int($larger);
 	};
 }
 

@@ -50,6 +50,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fixed OP_TUCK not verifying script execution stack state
 	- fixed bad handling of minimal_data and negative integers in scripts
 	- fixed bad handling of null_fail and signatures of length 1
+	- fixed OP_MAX and OP_MIN so that they correctly put back minimal integers on the stack
 
 	[Breaking changes]
 	- PSBT_IN_FINAL_SCRIPTWITNESS value serializer is upgraded to use an array of bytestrings
