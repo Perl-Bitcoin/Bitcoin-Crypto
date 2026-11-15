@@ -287,7 +287,7 @@ Disallows non-strictly encoded DER signatures and public keys.
 
 =head3 low_s_signatures
 
-Disallows signatures encoded with low S.
+Disallows signatures encoded with high S.
 
 =head3 minimal_data
 

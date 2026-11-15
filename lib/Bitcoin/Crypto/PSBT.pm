@@ -568,10 +568,7 @@ Bitcoin::Crypto::PSBT - Partially Signed Bitcoin Transactions
 
 This is a class implementing the PSBT format as described in BIP174 and
 BIP370. It currently supports versions 0 and 2 of the spec. It allows
-serialization, deserialization, validation and access to PSBT fields. It
-currently does not support the roles defined by the PSBT documents, so all the
-operations on PSBTs (like adding inputs or creating a final transaction out of
-it) must be done manually.
+serialization, deserialization, validation and access to PSBT fields.
 
 PSBT consists of a number of maps: one global, one for each transaction input
 and one for each transaction output. Each map holds a number of fields. Each

@@ -240,7 +240,7 @@ Returns the detected segwit program version.
 
 =head2 get_address_type
 
-	$type = get_address_type($address, $network = Bitcoin::Crypto::Network->get)
+	$type = get_address_type($address, $network = Bitcoin::Crypto::Network->get->id)
 
 Tries to guess the type of C<$address>. Returns C<P2PKH>, C<P2SH>, C<P2WPKH>,
 C<P2WSH> or C<P2TR>. May throw Base58, Bech32, SegwitProgram, Address or other

@@ -448,13 +448,15 @@ Bitcoin::Crypto::Block - Bitcoin block implementation
 
 This is a complete Bitcoin block implementation that can parse, construct, and
 serialize Bitcoin blocks. It supports all standard Bitcoin block operations
-including transaction management, merkle root calculation, and block validation.
+including transaction management, and merkle root calculation.
 
 The class also provides the functionality required for locktime and sequence
 checks in transactions, as used in L<Bitcoin::Crypto::Transaction/verify> and
 L<Bitcoin::Crypto::Transaction::UTXO/block>. For transaction verification purposes,
 only the L</timestamp>, L</height>, and optionally L</previous> attributes are
 required - other block header fields can be omitted.
+
+This class does not yet provide a way to verify the block.
 
 =head1 INTERFACE
 

@@ -255,13 +255,14 @@ can be used out of the box, without extra configuration.
 Networks can be set globally through default network or on per-object basis for
 basic and extended keys, and scripts. Other parts of the system does not
 support per-object setting of networks and rely on the currently set default
-network. Setting keys for every object separately is considered an outdated
-feature which is kept for backwards compatibility (and convenience, sometimes).
-If you want to make sure all your keys are in the same, default network, see
-single-network mode in L<Bitcoin::Crypto::Network/single_network>, as shown
-above. This mode will disallow creation of objects with a network other than
-the default. It can come handy if you are de-serializing keys from non-constant
-strings, for example fetched from the Internet or entered by the user.
+network. Setting networks for every key object separately is considered an
+outdated feature which is kept for backwards compatibility (and convenience,
+sometimes). If you want to make sure all your keys are in the same, default
+network, see single-network mode in L<Bitcoin::Crypto::Network/single_network>,
+as shown above. This mode will disallow creation of objects with a network
+other than the default. It can come handy if you are de-serializing keys from
+non-constant strings, for example fetched from the Internet or entered by the
+user.
 
 =head3 Working with Bitcoin-related encodings
 
@@ -285,7 +286,7 @@ and L<Bitcoin::Crypto::Util/unpack_compactsize> will prove themselves useful.
 Use L<Bitcoin::Crypto::Util/generate_mnemonic> to generate list of words which
 form a mnemonic, and L<Bitcoin::Crypto::Key::ExtPrivate/from_mnemonic> to turn
 it into an instance of extended private key. Mnemonic can be imported with a
-password, which generates a different mnemonic. Beware that the password cannot
+password, which generates a different master key. Beware that the password cannot
 be recovered in any way (other than brute forcing) if it is forgotten.
 
 	use Bitcoin::Crypto qw(btc_extprv);

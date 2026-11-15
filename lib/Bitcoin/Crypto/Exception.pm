@@ -380,6 +380,10 @@ Thrown when a problem occurs during creation of a key.
 
 Thrown when a problem occurs during derivation of a key.
 
+=head2 Bitcoin::Crypto::Exception::MnemonicGenerate
+
+Thrown when a mnemonic generation was unsuccessful.
+
 =head2 Bitcoin::Crypto::Exception::MnemonicCheck
 
 Thrown when a mnemonic checking was unsuccessful.

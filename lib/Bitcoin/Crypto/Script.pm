@@ -690,7 +690,11 @@ address encoded in the script of standard type. For example, if the script is
 of type C<P2WPKH>, then a bech32 segwit address will be returned. If the script
 is not of standard type or the type does not use addresses, returns C<undef>.
 
-Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>, C<P2TR>.
+The exception is the C<NULLDATA> script, for which this method returns data
+inside double quotes, for example C<"some data">.
+
+Currently handles script of types C<P2PKH>, C<P2SH>, C<P2WPKH>, C<P2WSH>,
+C<P2TR>, C<NULLDATA>.
 
 =head3 get_raw_address
 
@@ -749,7 +753,15 @@ background. This helper is only meant to run simple scripts.
 
 	$boolean = $object->is_native_segwit
 
-Returns true if the type of the script is either C<P2WPKH>, C<P2WSH> or C<P2TR>.
+Returns true if the segregated witness version of the script is known
+(L</segwit_version>).
+
+=head3 segwit_version
+
+	$maybe_int = $object->segwit_version
+
+Returns the segregated witness version of the script as integer, or undef if
+the script is not segwit. Does not take nested variants into account.
 
 =head3 is_empty
 

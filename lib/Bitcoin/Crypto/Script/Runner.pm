@@ -632,8 +632,7 @@ Depending on the input spending segwit, the subscript will behave differently:
 
 =item * pre-segwit
 
-Removes all codeseparators after the last executed codeseparator. B<Currently
-does not remove the signature (known as FindAndDelete)>.
+Removes all codeseparators after the last executed codeseparator.
 
 =item * segwit
 

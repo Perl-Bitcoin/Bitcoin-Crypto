@@ -277,7 +277,6 @@ Bitcoin::Crypto::Network - Network management class
 
 	Bitcoin::Crypto::Network->get->name; # 'Bitcoin Mainnet'
 
-	# by default there are two networks specified
 	# find() without arguments returns a list of all network ids
 
 	Bitcoin::Crypto::Network->find; # list of strings
@@ -362,9 +361,9 @@ but some functions of the system will refuse to work without them.
 	my %config = (
 		id             => "(*) string identifier for the network, eg. 'bitcoin'",
 		name           => "(*) human-readable network name, eg. 'Bitcoin Mainnet'",
-		p2pkh_byte     => "(*) p2pkh address prefix byte, eg. 0x00",
-		wif_byte       => "(*) WIF private key prefix byte, eg. 0x80",
-		p2sh_byte      => "p2sh address prefix byte, eg. 0x05",
+		p2pkh_byte     => "(*) p2pkh address prefix byte, eg. \x00",
+		wif_byte       => "(*) WIF private key prefix byte, eg. "\x80",
+		p2sh_byte      => "p2sh address prefix byte, eg. "\x05",
 		segwit_hrp     => "segwit native address human readable part, eg. 'bc'",
 
 		extprv_version        => "version prefix of serialized extended private keys, eg. 0x0488ade4",

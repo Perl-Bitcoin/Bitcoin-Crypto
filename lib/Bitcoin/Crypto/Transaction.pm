@@ -1078,16 +1078,17 @@ force this by calling C<clear_digest_object>.
 	$digest_object = $object->get_digest_object(%params)
 
 Same as L</get_digest>, but returns an object of
-C<Bitcoin::Crypto::Transaction::Digest> instead of a bytestring. Advanced use
-only.
+C<Bitcoin::Crypto::Transaction::Digest> class instead of digest result.
+Advanced use only.
 
 =head3 fee
 
 	$fee = $object->fee()
 
 Returns the fee - the difference between sum of input values and the sum of
-output values. The fee is always zero or positive integer, but can be undefined
-if the UTXOs were not registered.
+output values. The correct fee is always zero or positive integer, but can
+negative for badly built / incomplete transactions, or undefined if the UTXOs
+were not registered.
 
 =head3 fee_rate
 

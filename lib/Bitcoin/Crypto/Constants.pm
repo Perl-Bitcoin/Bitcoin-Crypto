@@ -401,7 +401,7 @@ Numeric BIP44 native SegWit purpose (BIP84)
 
 =head2 BIP44_TAPROOT_PURPOSE
 
-Numeric BIP44 native SegWit purpose (BIP86)
+Numeric BIP44 Taproot purpose (BIP86)
 
 =head2 UNITS_PER_COIN
 
