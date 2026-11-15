@@ -395,6 +395,11 @@ my @tests_segwit = (
 		case => 'tb1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vpggkg4j',
 		exception => 'Bech32InputData'
 	},    # Non-zero padding in 8-to-5 conversion
+
+	{
+		case => 'bc1gmk9yu',
+		exception => 'Bech32InputData',
+	},    # empty data part
 );
 
 for my $test (@tests_bech32) {

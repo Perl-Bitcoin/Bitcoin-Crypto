@@ -278,7 +278,11 @@ sub decode_bech32
 sub decode_segwit
 {
 	my ($hrp, $data, $type) = decode_bech32 @_;
+
 	my $ver = shift @{$data};
+	Bitcoin::Crypto::Exception::Bech32InputData->raise(
+		'bech32 with empty data passed to decode_segwit'
+	) unless defined $ver;
 
 	Bitcoin::Crypto::Exception::Bech32InputChecksum->raise(
 		'wrong bech32 checksum calculated for given segwit program'
