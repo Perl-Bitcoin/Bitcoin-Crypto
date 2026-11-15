@@ -52,6 +52,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fixed bad handling of null_fail and signatures of length 1
 	- fixed OP_MAX and OP_MIN so that they correctly put back minimal integers on the stack
 	- fixed taproot OP_CHECKSIG checking sighash in unknown public key scenario
+	- fixed unpack_compactsize not detecting truncated data if position argument is used
 
 	[Breaking changes]
 	- PSBT_IN_FINAL_SCRIPTWITNESS value serializer is upgraded to use an array of bytestrings

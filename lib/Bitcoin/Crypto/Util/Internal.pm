@@ -307,7 +307,7 @@ sub unpack_compactsize
 
 		Bitcoin::Crypto::Exception->raise(
 			"cannot unpack CompactSize: not enough data in stream"
-		) if length $stream < $length;
+		) if $pos + $length > length $stream;
 
 		if ($length == 2) {
 			$value = unpack "\@$pos v", $stream;

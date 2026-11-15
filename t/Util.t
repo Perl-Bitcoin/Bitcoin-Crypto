@@ -254,6 +254,17 @@ subtest 'testing unpack_compactsize with pos argument' => sub {
 	is $pos, 7, 'position ok';
 };
 
+subtest 'testing unpack_compactsize with truncated data and pos argument' => sub {
+	isa_ok dies {
+		unpack_compactsize("\xff\x01\x01\x01\x01\x01\x01\x01");
+	}, ['Bitcoin::Crypto::Exception'], 'check without pos ok';
+
+	isa_ok dies {
+		my $pos = 2;
+		unpack_compactsize("\x00\x00\xff\x01\x01\x01\x01\x01\x01\x01", \$pos);
+	}, ['Bitcoin::Crypto::Exception'], 'check with pos ok';
+};
+
 subtest 'testing unpack_compactsize with leftover data' => sub {
 	isa_ok dies {
 		unpack_compactsize("\xfe\x61\x25\x01\x00\x00");
