@@ -167,8 +167,8 @@ subtest 'should disallow custom sighash value in P2TR' => sub {
 			->finalize;
 	};
 
-	isa_ok $err, 'Bitcoin::Crypto::Exception::Sign';
-	like $err, qr{bad sighash};
+	isa_ok $err, 'Bitcoin::Crypto::Exception::Transaction';
+	like $err, qr{can't digest taproot transaction with unknown sighash};
 };
 
 subtest 'should disallow custom sighash value in legacy (with flags)' => sub {

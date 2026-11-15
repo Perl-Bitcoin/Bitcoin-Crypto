@@ -6,7 +6,7 @@ use warnings;
 use Mooish::Base -standard;
 
 use Crypt::Digest::SHA256 qw(sha256);
-use Bitcoin::Crypto::Helpers qw(ensure_length);
+use Bitcoin::Crypto::Helpers qw(ensure_length check_sighash);
 use Bitcoin::Crypto::Util::Internal qw(hash256 pack_compactsize);
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
@@ -225,6 +225,8 @@ sub _get_digest_taproot
 
 	my $sighash_type = $sighash & 3;
 	my $anyonecanpay = $sighash & SIGHASH_ANYONECANPAY;
+	my $single = $sighash_type == SIGHASH_SINGLE;
+	my $none = $sighash_type == SIGHASH_NONE;
 
 	my $signing_index = $self->signing_index;
 	my $transaction = $self->transaction;
@@ -232,18 +234,11 @@ sub _get_digest_taproot
 	my $annex = $self->taproot_annex;
 	my $ext_flag = $self->taproot_ext_flag;
 
-	state $allowed_sighash = {
-		map { $_ => !!1 } (
-			SIGHASH_DEFAULT,
-			SIGHASH_ALL,
-			SIGHASH_SINGLE,
-			SIGHASH_NONE,
-		)
-	};
-
+	# allow sighash default (full sighash, not sighash_type) explicitly.
+	# check_sighash helper does not take SIGHASH_DEFAULT into account
 	Bitcoin::Crypto::Exception::Transaction->raise(
-		"can't digest taproot transaction with unknown SIGHASH"
-	) unless $allowed_sighash->{$sighash_type};
+		"can't digest taproot transaction with unknown sighash"
+	) if $sighash != SIGHASH_DEFAULT && !check_sighash($sighash);
 
 	# According to https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
 	# SHA256 of the serialization of:
@@ -300,7 +295,7 @@ sub _get_digest_taproot
 		map { $_->to_serialized } @{$transaction->outputs}
 	];
 
-	if ($sighash_type != SIGHASH_NONE && $sighash_type != SIGHASH_SINGLE) {
+	if (!$none && !$single) {
 		$serialized .= sha256(join '', @$outputs);
 	}
 
@@ -325,7 +320,7 @@ sub _get_digest_taproot
 		$serialized .= sha256(pack_compactsize(length $annex) . $annex);
 	}
 
-	if ($sighash_type == SIGHASH_SINGLE) {
+	if ($single) {
 		Bitcoin::Crypto::Exception::Transaction->raise(
 			"can't digest taproot transaction with SIGHASH_SINGLE without corresponding output"
 		) unless $signing_index < @$outputs;
