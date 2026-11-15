@@ -176,6 +176,7 @@ sub get_key_type
 {
 	my $entropy = shift;
 
+	return undef unless length $entropy;
 	return 0 if defined get_public_key_compressed($entropy);
 	return 1
 		if length $entropy <= KEY_MAX_LENGTH;

@@ -422,5 +422,13 @@ subtest 'testing pack_array' => sub {
 	is pack_array(["\xde\xad", "\xbe\xef"]), "\x02\x02\xde\xad\x02\xbe\xef", 'two elements ok';
 };
 
+subtest 'testing get_key_type' => sub {
+	is get_key_type(''), undef, 'empty string ok';
+	is get_key_type("\x01"), 1, 'single character ok';
+	is get_key_type("\x01" x 32), 1, '32 characters ok';
+	is get_key_type("\x02" . ("\x01" x 32)), 0, 'compressed pubkey ok';
+	is get_key_type("\x04" . ("\x01" x 64)), 0, 'uncompressed pubkey ok';
+};
+
 done_testing;
 
