@@ -397,5 +397,19 @@ subtest 'testing get_taproot_ext' => sub {
 		$expected_base . pack('V', 1), 'oext_flag=1 ne codeseparator ok';
 };
 
+subtest 'testing unpack_array' => sub {
+	is unpack_array("\x00"), [], 'zero elements ok';
+	is unpack_array("\x02\x02\xde\xad\x03\xfe\xee\xed"), ["\xde\xad", "\xfe\xee\xed"], 'two elements ok';
+	is unpack_array("\x01\xfd\x01\x00\x00"), ["\x00"], 'multi-byte handling ok';
+
+	my $pos = 1;
+	is unpack_array("\xff\x01\xfd\x01\x00\x00\xff", \$pos), ["\x00"], 'pos handling ok';
+	is $pos, 6, 'pos modified ok';
+};
+
+subtest 'testing pack_array' => sub {
+	is pack_array(["\xde\xad", "\xbe\xef"]), "\x02\x02\xde\xad\x02\xbe\xef", 'two elements ok';
+};
+
 done_testing;
 

@@ -221,7 +221,7 @@ sub set_serialized_witness
 {
 	my ($self, $serialized, $args) = @_;
 
-	$self->set_witness(unpack_array $serialized, $args);
+	$self->set_witness(unpack_array $serialized, $args->{pos});
 	return;
 }
 

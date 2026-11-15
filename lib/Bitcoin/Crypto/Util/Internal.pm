@@ -349,10 +349,10 @@ sub pack_array
 
 sub unpack_array
 {
-	my ($serialized, $args) = @_;
+	my ($serialized, $pos_ref) = @_;
 
-	my $partial = !!$args->{pos};
-	my $pos = $partial ? ${$args->{pos}} : 0;
+	my $partial = !!$pos_ref;
+	my $pos = $partial ? $$pos_ref : 0;
 
 	my $count = unpack_compactsize $serialized, \$pos;
 	my @array;
@@ -363,11 +363,11 @@ sub unpack_array
 		$pos += $size;
 	}
 
-	Bitcoin::Crypto::Exception::Transaction->raise(
-		'serialized witness data is corrupted'
+	Bitcoin::Crypto::Exception->raise(
+		'array data is corruputed'
 	) if !$partial && $pos != length $serialized;
 
-	${$args->{pos}} = $pos
+	$$pos_ref = $pos
 		if $partial;
 
 	return \@array;
