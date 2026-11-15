@@ -239,8 +239,12 @@ subtest 'should verify segwit transactions with uncompressed public keys (P2WSH)
 		utxo => [$random_txid, 0],
 	);
 
+	# generate this compat address without get_compat_address, as this method
+	# rejects uncompressed keys
+	my $compat_address = $prv->get_public_key->witness_program->get_legacy_address;
+
 	$tx->add_output(
-		locking_script => [P2SH => $prv->get_public_key->get_compat_address],
+		locking_script => [P2SH => $compat_address],
 		value => $tx->fee - 1,
 	);
 
