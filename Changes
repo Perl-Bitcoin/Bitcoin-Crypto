@@ -62,6 +62,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fixed calling set_rbf not clearing the internal digest object of the transaction
 	- fixed deserializing Block from a bigger stream taking header from the start of the stream
 	- fixed deserializing ancient blocks failing on trying to take height from coinbase
+	- fixed absolute locktime check being off by one, which verified the transaction with locktime equal to height
 
 	[Breaking changes]
 	- PSBT_IN_FINAL_SCRIPTWITNESS value serializer is upgraded to use an array of bytestrings

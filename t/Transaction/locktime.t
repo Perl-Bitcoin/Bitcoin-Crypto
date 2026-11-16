@@ -24,7 +24,7 @@ my @cases = (
 				locktime => 21333,
 			},
 			block => {
-				height => 21333,
+				height => 21333 + 1,
 			}
 		},
 		Bitcoin::Crypto::Script::Runner->from_int(21333),
@@ -38,7 +38,7 @@ my @cases = (
 				locktime => 21333,
 			},
 			block => {
-				height => 21333,
+				height => 21333 + 1,
 			}
 		},
 		Bitcoin::Crypto::Script::Runner->from_int(21333 + 1),
@@ -52,7 +52,7 @@ my @cases = (
 				locktime => 21333,
 			},
 			block => {
-				height => 21333 - 1,
+				height => 21333,
 			}
 		},
 		Bitcoin::Crypto::Script::Runner->from_int(21333),
@@ -66,7 +66,7 @@ my @cases = (
 				locktime => 1472653723,
 			},
 			block => {
-				timestamp => 1472653723,
+				timestamp => 1472653723 + 1,
 				height => 0,
 			}
 		},
@@ -96,7 +96,7 @@ my @cases = (
 				locktime => 1472653723,
 			},
 			block => {
-				timestamp => 1472653723,
+				timestamp => 1472653723 + 1,
 				height => 0,
 			}
 		},
@@ -111,7 +111,7 @@ my @cases = (
 				locktime => 1472653723,
 			},
 			block => {
-				timestamp => 1472653723 - 1,
+				timestamp => 1472653723,
 				height => 0,
 			}
 		},
@@ -126,7 +126,7 @@ my @cases = (
 				locktime => 1472653723,
 			},
 			block => {
-				timestamp => 1472653723,
+				timestamp => 1472653723 + 1,
 				height => 0,
 			}
 		},
@@ -141,7 +141,7 @@ my @cases = (
 				locktime => 21333,
 			},
 			block => {
-				height => 21333,
+				height => 21333 + 1,
 			}
 		},
 		Bitcoin::Crypto::Script::Runner->from_int(1472653723),
