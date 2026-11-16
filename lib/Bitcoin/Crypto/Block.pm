@@ -304,7 +304,6 @@ sub median_time_past
 
 	my $current = $self;
 	for my $count (1 .. 11) {
-		push @stamps, $current->timestamp;
 
 		# NOTE: since we do not expect full blockchain to be available, exit
 		# the loop early if we didn't get full 11 blocks required for MTP. Same
@@ -312,8 +311,11 @@ sub median_time_past
 		# blocks
 		last unless $current->has_previous;
 		$current = $current->previous;
+
+		push @stamps, $current->timestamp;
 	}
 
+	return $self->timestamp unless @stamps;
 	@stamps = sort { $a <=> $b } @stamps;
 	return $stamps[int(@stamps / 2)];
 }
@@ -656,7 +658,11 @@ of previous 11 blocks).
 
 Since this block implementation can be used without full chain, it will happily
 calculate median time past from less than 11 blocks, if there aren't enough
-blocks chained via L</previous>.
+blocks chained via L</previous>. If there is no previous block, it returns this
+block's timestamp.
+
+It also currently calculates median time for all blocks, regardless of version
+bits that enabled median time past.
 
 =head3 dump
 

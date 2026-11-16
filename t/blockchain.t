@@ -23,13 +23,17 @@ sub add_blocks
 	}
 }
 
+subtest 'should return block timestamp for median_time_past without previous blocks' => sub {
+	is $top->median_time_past, $top->timestamp;
+};
+
 subtest 'should calculate partial median_time_past' => sub {
 	add_blocks(5);
 
-	# all we have now is 6 blocks (1 + 5)
-	# median should be from block index 3:
-	# 0 1 2 (3) 4 top
-	my $expected = $top->timestamp - 2 * $interval;
+	# all we have now is 5 blocks
+	# median should be from block index 2:
+	# 0 1 (2) 3 4 top
+	my $expected = $top->timestamp - 3 * $interval;
 	is $top->median_time_past, $expected;
 };
 
@@ -38,8 +42,8 @@ subtest 'should calculate full median_time_past' => sub {
 
 	# we have full 11 blocks
 	# median should be from block index 5:
-	# 0 1 2 3 4 (5) 6 7 8 9 top
-	my $expected = $top->timestamp - 5 * $interval;
+	# 0 1 2 3 4 (5) 6 7 8 9 10 top
+	my $expected = $top->timestamp - 6 * $interval;
 	is $top->median_time_past, $expected;
 };
 

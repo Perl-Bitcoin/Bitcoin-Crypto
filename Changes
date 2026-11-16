@@ -64,6 +64,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fixed deserializing ancient blocks failing on trying to take height from coinbase
 	- fixed absolute locktime check being off by one, which verified the transaction with locktime equal to height
 	- fixed incorrect dumping via the transaction signer near the script start
+	- fixed calculation of Block's median_time_past
 
 	[Breaking changes]
 	- PSBT_IN_FINAL_SCRIPTWITNESS value serializer is upgraded to use an array of bytestrings
