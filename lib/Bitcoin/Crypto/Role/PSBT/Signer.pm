@@ -193,11 +193,6 @@ sub sign
 	my $tx = $self->get_transaction;
 	my $inputs = $tx->inputs;
 
-	my $is_mine = sub {
-		my ($input_index) = @_;
-		state $is_ext = $key->isa('Bitcoin::Crypto::Key::ExtPrivate');
-	};
-
 	my $signed = 0;
 	foreach my $input_index (0 .. $#{$inputs}) {
 		$signed += $self->_do_sign($key, $tx, $inputs->[$input_index], $input_index);
