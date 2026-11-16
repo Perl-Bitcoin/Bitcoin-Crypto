@@ -88,6 +88,7 @@ sub _build_height
 {
 	my ($self) = @_;
 
+	return undef unless $self->version >= 2;
 	return undef unless $self->has_transactions;
 
 	my $tx = $self->transactions->[0];
@@ -517,7 +518,8 @@ I<writer:> C<set_nonce>
 =head3 height
 
 Optional block height. If the block has transactions, it will reach to the
-first (coinbase) transaction and attempt to read it from it.
+first (coinbase) transaction and attempt to read it from it (for blocks of
+version 2 and above).
 
 I<Available in the constructor>.
 
