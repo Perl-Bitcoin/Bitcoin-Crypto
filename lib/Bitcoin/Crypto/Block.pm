@@ -196,7 +196,7 @@ sub from_serialized
 
 	# Parse block header (80 bytes)
 	my ($version, $prev_block_hash, $merkle_root, $timestamp, $bits, $nonce)
-		= unpack 'Va32a32VVV', $serialized;
+		= unpack "\@$pos Va32a32VVV", $serialized;
 	$pos += 80;
 
 	$prev_block_hash = reverse $prev_block_hash;
