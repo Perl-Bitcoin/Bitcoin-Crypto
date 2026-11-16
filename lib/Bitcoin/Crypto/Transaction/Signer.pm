@@ -269,9 +269,12 @@ sub dump
 
 	my @ops_dump;
 	for my $this_pos ($pos - 2 .. $pos + 2) {
+		next unless $this_pos >= 0;
+
 		my $op = $ops->[$this_pos];
 		push @ops_dump, '**'
 			if $this_pos == $pos;
+
 		next unless $op;
 
 		push @ops_dump, $op->[0]->name;
