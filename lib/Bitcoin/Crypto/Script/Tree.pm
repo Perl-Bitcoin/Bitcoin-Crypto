@@ -178,7 +178,7 @@ sub get_tree_paths
 
 	my $leaves = $self->get_leaves;
 	my %paths;
-	foreach my $leaf ($leaves->@*) {
+	foreach my $leaf (@{$leaves}) {
 		$paths{$leaf->id} //= $leaf->path;
 	}
 
