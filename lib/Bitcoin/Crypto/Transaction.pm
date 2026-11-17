@@ -202,6 +202,10 @@ sub from_serialized
 	# has already been checked.
 	local $Bitcoin::Crypto::Types::CHECK_BYTESTRINGS = !!0;
 
+	Bitcoin::Crypto::Exception::Transaction->raise(
+		'cannot deserialize transaction: no data in stream'
+	) if length $serialized < $pos + 6;
+
 	my ($version, $witness_flag) = unpack "\@$pos Vn", $serialized;
 	$pos += 6;
 

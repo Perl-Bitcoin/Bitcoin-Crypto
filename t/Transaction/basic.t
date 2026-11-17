@@ -47,6 +47,19 @@ subtest 'should serialize transactions' => sub {
 	is to_format [hex => $tx->to_serialized], $expected_serialized, 'serialization ok';
 };
 
+subtest 'should fail to deserialize transactions when there is not enough data in the buffer' => sub {
+	my $ex;
+
+	$ex = dies { btc_transaction->from_serialized('abcde'); };
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
+	like $ex, qr{no data in stream}, 'message ok';
+
+	my $pos = 2;
+	$ex = dies { btc_transaction->from_serialized('xxabcde', pos => \$pos); };
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::Transaction';
+	like $ex, qr{no data in stream}, 'message ok';
+};
+
 subtest 'should deserialize transactions' => sub {
 	my $deserialized = btc_transaction->from_serialized([hex => $expected_serialized]);
 	is to_format [hex => $deserialized->to_serialized], $expected_serialized, 'deserialization ok';
