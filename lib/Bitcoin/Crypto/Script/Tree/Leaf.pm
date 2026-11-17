@@ -32,6 +32,11 @@ has param 'hash' => (
 	lazy => 1,
 );
 
+has field 'path' => (
+	isa => ArrayRef [ByteStr],
+	default => sub { [] },
+);
+
 sub BUILD
 {
 	my ($self) = @_;
@@ -131,6 +136,11 @@ L</leaf_version> and L</script>.
 
 Note that if you specify both hash and script / leaf_version, the correctness of
 the hash will not be checked.
+
+=head3 path
+
+An array reference holding the path to this leaf in a tree - same as what
+L<Bitcoin::Crypto::Script::Tree/from_path> takes as input.
 
 =head2 Methods
 

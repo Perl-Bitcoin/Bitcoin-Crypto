@@ -29,7 +29,7 @@ has field '_tree_cache' => (
 # script trees
 sub _traverse
 {
-	my ($self, $paths_ref, $leaves_ref) = @_;
+	my ($self) = @_;
 
 	my @stack = ({nodes => [@{$self->tree}], results => []});
 	my $result;
@@ -60,7 +60,6 @@ sub _traverse
 					'unknown tree leaf: not a hash, or a Bitcoin::Crypto::Script::Tree::Leaf instance'
 				) unless defined $value;
 
-				push @{$leaves_ref}, $value;
 				push @{$stack[-1]{results}}, $value;
 			}
 		}
@@ -68,25 +67,25 @@ sub _traverse
 		my @results = @{$stack[-1]{results}};
 		if (@results == 2) {
 
-			# sort result so that smaller hash values come first
-			@results = reverse @results
-				if $results[0]{hash} gt $results[1]{hash};
-
-			my @all_ids;
+			my @all_leaves;
 			foreach my $key (keys @results) {
 				my ($this_one, $other_one) = @results[$key, ($key + 1) % 2];
 
 				my $is_leaf = blessed $this_one;
-				my @ids = $is_leaf ? ($this_one->id) : @{$this_one->{ids}};
-				push @all_ids, @ids;
+				my @leaves = $is_leaf ? ($this_one) : @{$this_one->{leaves}};
+				push @all_leaves, @leaves;
 
-				foreach my $id (@ids) {
-					push @{$paths_ref->{$id}}, $other_one->{hash};
+				foreach my $leaf (@leaves) {
+					push @{$leaf->path}, $other_one->{hash};
 				}
 			}
 
+			# sort result so that smaller hash values come first
+			@results = reverse @results
+				if $results[0]{hash} gt $results[1]{hash};
+
 			$result = {
-				ids => \@all_ids,
+				leaves => \@all_leaves,
 				hash => tagged_hash('TapBranch', join '', map { $_->{hash} } @results),
 			};
 		}
@@ -111,22 +110,22 @@ sub _build_tree_cache
 {
 	my ($self) = @_;
 
-	my @leaves;
-	my %paths;
-	my $root = $self->_traverse(\%paths, \@leaves);
+	my $root = $self->_traverse;
+	if (blessed $root) {
+		$root = {
+			leaves => [$root],
+			hash => $root->hash,
+		};
+	}
 
-	return {
-		leaves => \@leaves,
-		paths => \%paths,
-		root => $root,
-	};
+	return $root;
 }
 
 sub get_merkle_root
 {
 	my ($self) = @_;
 
-	return $self->_tree_cache->{root}{hash};
+	return $self->_tree_cache->{hash};
 }
 
 signature_for get_leaf => (
@@ -138,7 +137,7 @@ sub get_leaf
 {
 	my ($self, $leaf_id) = @_;
 
-	my $leaf = first { $_->{id} eq $leaf_id } @{$self->_tree_cache->{leaves}};
+	my $leaf = first { $_->id eq $leaf_id } @{$self->_tree_cache->{leaves}};
 	Bitcoin::Crypto::Exception::ScriptTree->raise(
 		"no such leaf with id $leaf_id"
 	) unless defined $leaf;
@@ -177,7 +176,13 @@ sub get_tree_paths
 {
 	my ($self) = @_;
 
-	return $self->_tree_cache->{paths};
+	my $leaves = $self->get_leaves;
+	my %paths;
+	foreach my $leaf ($leaves->@*) {
+		$paths{$leaf->id} //= $leaf->path;
+	}
+
+	return \%paths;
 }
 
 sub get_leaves
@@ -224,16 +229,15 @@ signature_for get_control_block => (
 sub get_control_block
 {
 	my ($self, $leaf_id, $pubkey) = @_;
-	my $cache = $self->_tree_cache;
 
-	my $leaf_version = $self->get_leaf($leaf_id)->leaf_version;
-	my $tapkey = $pubkey->get_taproot_output_key($cache->{root}{hash});
+	my $leaf = $self->get_leaf($leaf_id);
+	my $tapkey = $pubkey->get_taproot_output_key($self->get_merkle_root);
 	my $parity = has_even_y($tapkey);
 
 	return Bitcoin::Crypto::Transaction::ControlBlock->new(
-		control_byte => $leaf_version | !$parity,
+		control_byte => $leaf->leaf_version | !$parity,
 		public_key => $pubkey,
-		script_blocks => $cache->{paths}{$leaf_id} // [],
+		script_blocks => $leaf->path,
 	);
 }
 
@@ -403,12 +407,24 @@ could look like this:
 Calculates a merkle root of the script tree. Returns a bytestring which is the
 root hash of the tree.
 
+=head3 get_leaves
+
+	$leaves = $tree->get_leaves()
+
+Returns an array reference of leaves in the tree - each leaf is an instance of
+L<Bitcoin::Crypto::Script::Tree::Leaf>. The order of leaves in the array is
+strictly determined by the order of leaves in the tree.
+
 =head3 get_leaf
 
 	$leaf = $tree->get_leaf($id_or_hash)
 
 Returns a tree leaf - instance of L<Bitcoin::Crypto::Script::Tree::Leaf>. If
 the leaf does not exist, an exception is raised.
+
+In rare case of ids being duplicated (same script+leaf version, or erroneously
+declared duplicate id), returns the first leaf only. When in doubt,
+L</get_leaves> can be used to make sure the id is not duplicated.
 
 =head3 get_tapleaf_script
 
@@ -450,23 +466,23 @@ of L<Bitcoin::Crypto::Transaction::ControlBlock>.
 
 	$paths = $tree->get_tree_paths()
 
-Returns a hash reference of paths for each of leaves in the tree which have an
-id. Each path is an array reference - same as what L</from_path> takes as input.
+Deprecated - use C<< $tree->get_leaf($leaf_id)->path >> instead.
 
-=head3 get_leaves
+Returns a hash reference of paths for each of leaves in the tree with keys
+being their ids. Each path is an array reference - same as what L</from_path>
+takes as input.
 
-	$leaves = $tree->get_leaves()
-
-Returns an array reference of leaves in the tree - each leaf is an instance of
-L<Bitcoin::Crypto::Script::Tree::Leaf>. The order of leaves in the array is
-strictly determined by the order of leaves in the tree.
+In rare case of ids being duplicated (same script+leaf version, or erroneously
+declared duplicate id), only the first leaf with given id will be present in
+the hash. When in doubt, L</get_leaves> can be used to make sure the id is not
+duplicated. See L<Bitcoin::Crypto::Script::Leaf/path>.
 
 =head3 clear_tree_cache
 
 	$tree->clear_tree_cache()
 
 Clears the internal cache of the tree, forcing recalculation of merkle root and
-all leaf hashes. Must be done after the internal structure of the tree
+all leaves. Must be done after the internal structure of the tree
 changed.
 
 =head1 SEE ALSO

@@ -23,6 +23,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- deprecated get_tapleaf_script method
 		- deprecated get_tapleaf_version method
 		- deprecated get_tapleaf_hash method
+		- deprecated get_tree_paths method
 	- added class Bitcoin::Crypto::Script::Tree::Leaf
 
 	[Improvements and behavior changes]
@@ -65,6 +66,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- fixed absolute locktime check being off by one, which verified the transaction with locktime equal to height
 	- fixed incorrect dumping via the transaction signer near the script start
 	- fixed calculation of Block's median_time_past
+	- fixed Script::Tree paths behavior with duplicate leaf ids
 
 	[Breaking changes]
 	- PSBT_IN_FINAL_SCRIPTWITNESS value serializer is upgraded to use an array of bytestrings

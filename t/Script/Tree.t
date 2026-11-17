@@ -1,7 +1,7 @@
 use Test2::V0;
-use Bitcoin::Crypto qw(btc_script_tree);
+use Bitcoin::Crypto qw(btc_script_tree btc_tapscript);
 use Bitcoin::Crypto::Constants qw(:script);
-use Bitcoin::Crypto::Util qw(from_format to_format);
+use Bitcoin::Crypto::Util qw(from_format to_format tagged_hash);
 
 subtest 'should calculate tree root' => sub {
 
@@ -179,5 +179,62 @@ subtest 'should return tree paths' => sub {
 		'paths for leaf #82475 ok';
 };
 
+subtest 'should correctly handle duplicated leaves with no ids' => sub {
+	my $tree = btc_script_tree->new(
+		tree => [
+			{
+				leaf_version => TAPSCRIPT_LEAF_VERSION,
+				script => btc_tapscript->new->add('OP_1'),
+			},
+			[
+				{
+					leaf_version => TAPSCRIPT_LEAF_VERSION,
+					script => btc_tapscript->new->add('OP_1'),
+				},
+				{
+					leaf_version => TAPSCRIPT_LEAF_VERSION,
+					script => btc_tapscript->new->add('OP_1'),
+				},
+			]
+		]
+	);
+
+	my $leaves = $tree->get_leaves;
+	is scalar @$leaves, 3, 'leaves count ok';
+
+	my $hash = $leaves->[0]->hash;
+	ok $hash eq $leaves->[1]->hash && $hash eq $leaves->[2]->hash, 'hashes ok';
+	is $leaves->[0]->depth, 1, 'first leaf depth ok';
+	is $leaves->[1]->depth, 2, 'second leaf depth ok';
+	is $leaves->[2]->depth, 2, 'third leaf depth ok';
+
+	my $branch_hash = tagged_hash(
+		'TapBranch',
+		$hash . $hash
+	);
+
+	is $tree->get_merkle_root,
+		tagged_hash(
+			'TapBranch',
+			$hash . $branch_hash
+		),
+		'merkle root ok';
+
+	my $paths = $tree->get_tree_paths;
+	is scalar keys %$paths, 1, 'get_tree_paths keys count ok';
+	is _hex_arr($paths->{$hash}), _hex_arr([$branch_hash]), 'get_tree_paths path ok';
+
+	is _hex_arr($leaves->[0]->path), _hex_arr([$branch_hash]), 'path from leaf 1 ok';
+	is _hex_arr($leaves->[1]->path), _hex_arr([$hash, $hash]), 'path from leaf 2 ok';
+	is _hex_arr($leaves->[2]->path), _hex_arr([$hash, $hash]), 'path from leaf 3 ok';
+};
+
 done_testing;
+
+sub _hex_arr
+{
+	my ($arg) = @_;
+
+	return [map { to_format [hex => $_] } @{$arg}];
+}
 
