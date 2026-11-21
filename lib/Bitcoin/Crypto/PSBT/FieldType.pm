@@ -310,10 +310,10 @@ my %types = (
 			state $sig = signature(positional => [HashRef]);
 			my $hash = ($sig->(@_))[0];
 
-			my $raw = 0;
-			$raw |= 0x01 if $hash->{inputs_modifiable};
-			$raw |= 0x02 if $hash->{outputs_modifiable};
-			$raw |= 0x04 if $hash->{has_sighash_single};
+			my $raw = $hash->{raw_value} // 0;
+			$raw = $hash->{inputs_modifiable} ? $raw | 0x01 : $raw & ~0x01;
+			$raw = $hash->{outputs_modifiable} ? $raw | 0x02 : $raw & ~0x02;
+			$raw = $hash->{has_sighash_single} ? $raw | 0x04 : $raw & ~0x04;
 
 			return pack 'C', $raw;
 		},
