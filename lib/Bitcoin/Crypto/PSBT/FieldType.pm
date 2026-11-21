@@ -310,7 +310,7 @@ my %types = (
 			state $sig = signature(positional => [HashRef]);
 			my $hash = ($sig->(@_))[0];
 
-			my $raw = $hash->{raw_value} // 0;
+			my $raw = 0;
 			$raw |= 0x01 if $hash->{inputs_modifiable};
 			$raw |= 0x02 if $hash->{outputs_modifiable};
 			$raw |= 0x04 if $hash->{has_sighash_single};

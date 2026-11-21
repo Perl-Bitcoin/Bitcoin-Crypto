@@ -2,6 +2,7 @@ use Test2::V0;
 use Bitcoin::Crypto qw(btc_psbt btc_transaction);
 use Bitcoin::Crypto::Util qw(to_format pack_compactsize);
 use Bitcoin::Crypto::Constants qw(:psbt :transaction);
+use Bitcoin::Crypto::PSBT::Field;
 
 my $minimal_tx = btc_transaction->new(version => 2)
 	->add_input(
@@ -25,6 +26,21 @@ subtest 'should disallow maps without a final separator' => sub {
 	my $ex = dies { btc_psbt->from_serialized([hex => $erroneous]); };
 	isa_ok $ex, 'Bitcoin::Crypto::Exception::PSBT';
 	like $ex, qr{serialized map data is corrupted}, 'exception full ok';
+};
+
+subtest 'should allow MODIFIABLE to change the value without changing raw value' => sub {
+	my $field = Bitcoin::Crypto::PSBT::Field->new(
+		type => 'PSBT_GLOBAL_TX_MODIFIABLE',
+		value => {
+			inputs_modifiable => !!1,
+		},
+	);
+
+	my $value = $field->value;
+	$value->{inputs_modifiable} = !!0;
+	$field->set_value($value);
+
+	is $field->value->{inputs_modifiable}, !!0, 'can modify PSBT_GLOBAL_TX_MODIFIABLE ok';
 };
 
 done_testing;
