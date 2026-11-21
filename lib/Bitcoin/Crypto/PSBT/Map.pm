@@ -164,9 +164,11 @@ sub from_serialized
 		index => $args->{index},
 	);
 
+	my $finished = !!0;
 	while ($pos < length $serialized) {
 		if (substr($serialized, $pos, 1) eq PSBT_SEPARATOR) {
 			$pos += 1;
+			$finished = !!1;
 			last;
 		}
 
@@ -181,7 +183,7 @@ sub from_serialized
 
 	Bitcoin::Crypto::Exception::PSBT->raise(
 		'serialized map data is corrupted'
-	) if !$partial && $pos != length $serialized;
+	) if !$finished || (!$partial && $pos != length $serialized);
 
 	${$args->{pos}} = $pos
 		if $partial;
