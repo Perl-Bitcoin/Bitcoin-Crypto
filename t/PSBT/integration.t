@@ -7,6 +7,8 @@ use Bitcoin::Crypto::Util qw(to_format);
 # This tests for integration of PSBTs with other parts of Bitcoin::Crypto
 ################################################################################
 
+my $fake_txid = [hex => '1d39012ae4839360ade708a32c64548b0ffde92421bc3348eaf07a55ad87f651'];
+
 # NOTE: segwit transaction, signatures do not affect hash
 my $expected_minimal = '866caf39ed25aaf2b8a61eba9cecffc5a258275879935454c743ad7fee73d09e';
 my $minimal_hex =
@@ -17,7 +19,7 @@ my @minimal_v0 = (
 		type => 'PSBT_GLOBAL_UNSIGNED_TX',
 		value => btc_transaction->new(version => 2)
 			->add_input(
-				utxo => [[hex => '1d39012ae4839360ade708a32c64548b0ffde92421bc3348eaf07a55ad87f651'], 0],
+				utxo => [$fake_txid, 0],
 				sequence_no => RBF_SEQUENCE_NO_THRESHOLD,
 			)
 			->add_output(
@@ -37,27 +39,8 @@ my @minimal_v2 = (
 		value => 2,
 	},
 	{
-		type => 'PSBT_GLOBAL_INPUT_COUNT',
-		value => 1,
-	},
-	{
 		type => 'PSBT_GLOBAL_OUTPUT_COUNT',
 		value => 1,
-	},
-	{
-		type => 'PSBT_IN_PREVIOUS_TXID',
-		index => 0,
-		value => [hex => '1d39012ae4839360ade708a32c64548b0ffde92421bc3348eaf07a55ad87f651'],
-	},
-	{
-		type => 'PSBT_IN_OUTPUT_INDEX',
-		index => 0,
-		value => 0,
-	},
-	{
-		type => 'PSBT_IN_SEQUENCE',
-		index => 0,
-		value => RBF_SEQUENCE_NO_THRESHOLD,
 	},
 	{
 		type => 'PSBT_OUT_AMOUNT',
@@ -72,14 +55,16 @@ my @minimal_v2 = (
 );
 
 subtest 'should build valid transaction from minimal psbt' => sub {
-	is to_format [hex => build_psbt(@minimal_v0)->get_transaction->txid], $expected_minimal, 'psbtv0 ok';
-	is to_format [hex => build_psbt(@minimal_v2)->get_transaction->txid], $expected_minimal, 'psbtv2 ok';
+	is to_format [hex => build_psbt(undef, @minimal_v0)->get_transaction->txid], $expected_minimal, 'psbtv0 ok';
+	is to_format [hex => build_psbt([[$fake_txid, 0]], @minimal_v2)->get_transaction->txid], $expected_minimal,
+		'psbtv2 ok';
 };
 
 subtest 'should build valid transaction with final signatures' => sub {
 	my $tx = btc_transaction->from_serialized([hex => $minimal_hex]);
 
 	my $psbt = build_psbt(
+		undef,
 		@minimal_v0,
 		{
 			type => 'PSBT_IN_FINAL_SCRIPTWITNESS',
@@ -92,8 +77,9 @@ subtest 'should build valid transaction with final signatures' => sub {
 	is $psbt_witness, $tx->inputs->[0]->witness, 'witness ok';
 };
 
-subtest 'should return valid height-based locktime from version 2 based on input' => sub {
+subtest 'should return valid height-based locktime from version 2 based on inputs' => sub {
 	my $psbt = build_psbt(
+		[[$fake_txid, 0], [$fake_txid, 1]],
 		@minimal_v2,
 		{
 			type => 'PSBT_IN_REQUIRED_HEIGHT_LOCKTIME',
@@ -102,24 +88,32 @@ subtest 'should return valid height-based locktime from version 2 based on input
 		}
 	);
 
-	is $psbt->get_locktime, 555, 'locktime ok';
-};
+	is $psbt->get_locktime, 555, 'locktime ok (one field)';
 
-subtest 'should return valid time-based locktime from version 2 based on input' => sub {
-	my $psbt = build_psbt(
+	$psbt = build_psbt(
+		[[$fake_txid, 0], [$fake_txid, 1]],
 		@minimal_v2,
 		{
-			type => 'PSBT_IN_REQUIRED_TIME_LOCKTIME',
+			type => 'PSBT_IN_REQUIRED_HEIGHT_LOCKTIME',
 			index => 0,
+			value => 555,
+		},
+		{
+			type => 'PSBT_IN_REQUIRED_TIME_LOCKTIME',
+			index => 1,
 			value => LOCKTIME_HEIGHT_THRESHOLD + 555,
-		}
+		},
+		{
+			type => 'PSBT_IN_REQUIRED_HEIGHT_LOCKTIME',
+			index => 1,
+			value => 554,
+		},
 	);
 
-	is $psbt->get_locktime, LOCKTIME_HEIGHT_THRESHOLD + 555, 'locktime ok';
-};
+	is $psbt->get_locktime, 555, 'locktime ok (two fields)';
 
-subtest 'should return valid height-based locktime from version 2 based on input (both options)' => sub {
-	my $psbt = build_psbt(
+	$psbt = build_psbt(
+		[[$fake_txid, 0], [$fake_txid, 1]],
 		@minimal_v2,
 		{
 			type => 'PSBT_IN_REQUIRED_HEIGHT_LOCKTIME',
@@ -130,14 +124,61 @@ subtest 'should return valid height-based locktime from version 2 based on input
 			type => 'PSBT_IN_REQUIRED_TIME_LOCKTIME',
 			index => 0,
 			value => LOCKTIME_HEIGHT_THRESHOLD + 555,
+		},
+		{
+			type => 'PSBT_IN_REQUIRED_HEIGHT_LOCKTIME',
+			index => 1,
+			value => 554,
+		},
+		{
+			type => 'PSBT_IN_REQUIRED_TIME_LOCKTIME',
+			index => 1,
+			value => LOCKTIME_HEIGHT_THRESHOLD + 554,
 		}
 	);
 
-	is $psbt->get_locktime, 555, 'locktime ok';
+	is $psbt->get_locktime, 555, 'locktime ok (both options)';
 };
 
-subtest 'should return valid height-based locktime from version 2 based on fallback' => sub {
+subtest 'should return valid time-based locktime from version 2 based on inputs' => sub {
 	my $psbt = build_psbt(
+		[[$fake_txid, 0], [$fake_txid, 1]],
+		@minimal_v2,
+		{
+			type => 'PSBT_IN_REQUIRED_TIME_LOCKTIME',
+			index => 0,
+			value => LOCKTIME_HEIGHT_THRESHOLD + 555,
+		}
+	);
+
+	is $psbt->get_locktime, LOCKTIME_HEIGHT_THRESHOLD + 555, 'locktime ok';
+
+	$psbt = build_psbt(
+		[[$fake_txid, 0], [$fake_txid, 1]],
+		@minimal_v2,
+		{
+			type => 'PSBT_IN_REQUIRED_TIME_LOCKTIME',
+			index => 0,
+			value => LOCKTIME_HEIGHT_THRESHOLD + 554,
+		},
+		{
+			type => 'PSBT_IN_REQUIRED_TIME_LOCKTIME',
+			index => 1,
+			value => LOCKTIME_HEIGHT_THRESHOLD + 555,
+		},
+		{
+			type => 'PSBT_IN_REQUIRED_HEIGHT_LOCKTIME',
+			index => 1,
+			value => 555,
+		},
+	);
+
+	is $psbt->get_locktime, LOCKTIME_HEIGHT_THRESHOLD + 555, 'locktime ok';
+};
+
+subtest 'should return locktime from version 2 based on fallback' => sub {
+	my $psbt = build_psbt(
+		[[$fake_txid, 0], [$fake_txid, 1]],
 		@minimal_v2,
 		{
 			type => 'PSBT_GLOBAL_FALLBACK_LOCKTIME',
@@ -148,11 +189,33 @@ subtest 'should return valid height-based locktime from version 2 based on fallb
 	is $psbt->get_locktime, 555, 'locktime ok';
 };
 
+subtest 'should throw an exception if locktime cannot be determined' => sub {
+	my $psbt = build_psbt(
+		[[$fake_txid, 0], [$fake_txid, 1]],
+		@minimal_v2,
+		{
+			type => 'PSBT_IN_REQUIRED_TIME_LOCKTIME',
+			index => 0,
+			value => LOCKTIME_HEIGHT_THRESHOLD + 554,
+		},
+		{
+			type => 'PSBT_IN_REQUIRED_HEIGHT_LOCKTIME',
+			index => 1,
+			value => 555,
+		},
+	);
+
+	my $ex = dies { $psbt->get_locktime };
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::PSBT';
+	like $ex, qr{could not determine locktime}, 'exception ok';
+};
+
 subtest 'should build version 0 transaction with UTXOs' => sub {
-	my $psbt = build_psbt(@minimal_v0);
+	my $psbt = build_psbt(undef, @minimal_v0);
 	ok !$psbt->get_transaction->inputs->[0]->utxo_registered, 'no utxo for base transaction ok';
 
 	$psbt = build_psbt(
+		undef,
 		@minimal_v0,
 		{
 			type => 'PSBT_IN_NON_WITNESS_UTXO',
@@ -168,6 +231,7 @@ subtest 'should build version 0 transaction with UTXOs' => sub {
 		'bc1p0zutc3t990vtfqze6ntulg25z5z5mmsh3z8lg273mktmw7xsgcjqrc42h3', 'non-witness utxo ok';
 
 	$psbt = build_psbt(
+		undef,
 		@minimal_v0,
 		{
 			type => 'PSBT_IN_WITNESS_UTXO',
@@ -182,10 +246,11 @@ subtest 'should build version 0 transaction with UTXOs' => sub {
 };
 
 subtest 'should build version 2 transaction with UTXOs' => sub {
-	my $psbt = build_psbt(@minimal_v2);
+	my $psbt = build_psbt([[$fake_txid, 0]], @minimal_v2);
 	ok !$psbt->get_transaction->inputs->[0]->utxo_registered, 'no utxo for base transaction ok';
 
 	$psbt = build_psbt(
+		[[$fake_txid, 0]],
 		@minimal_v2,
 		{
 			type => 'PSBT_IN_NON_WITNESS_UTXO',
@@ -201,6 +266,7 @@ subtest 'should build version 2 transaction with UTXOs' => sub {
 		'bc1p0zutc3t990vtfqze6ntulg25z5z5mmsh3z8lg273mktmw7xsgcjqrc42h3', 'non-witness utxo ok';
 
 	$psbt = build_psbt(
+		[[$fake_txid, 0]],
 		@minimal_v2,
 		{
 			type => 'PSBT_IN_WITNESS_UTXO',
@@ -216,6 +282,7 @@ subtest 'should build version 2 transaction with UTXOs' => sub {
 
 subtest 'should not build transaction with invalid non-witness UTXO' => sub {
 	my $psbt = build_psbt(
+		[[$fake_txid, 0]],
 		@minimal_v2,
 		{
 			type => 'PSBT_IN_NON_WITNESS_UTXO',
@@ -232,7 +299,37 @@ done_testing;
 
 sub build_psbt
 {
+	my $inputs = shift;
 	my $psbt = btc_psbt->new;
+
+	if (defined $inputs) {
+		$psbt->add_field(
+			type => 'PSBT_GLOBAL_INPUT_COUNT',
+			value => scalar @$inputs,
+		);
+
+		foreach my $input_index (0 .. $#$inputs) {
+			my ($txid, $output_index) = @{$inputs->[$input_index]};
+
+			$psbt->add_field(
+				type => 'PSBT_IN_PREVIOUS_TXID',
+				index => $input_index,
+				value => $txid,
+			);
+
+			$psbt->add_field(
+				type => 'PSBT_IN_OUTPUT_INDEX',
+				index => $input_index,
+				value => $output_index,
+			);
+
+			$psbt->add_field(
+				type => 'PSBT_IN_SEQUENCE',
+				index => $input_index,
+				value => RBF_SEQUENCE_NO_THRESHOLD,
+			);
+		}
+	}
 
 	foreach my $field (@_) {
 		$psbt->add_field(%$field);

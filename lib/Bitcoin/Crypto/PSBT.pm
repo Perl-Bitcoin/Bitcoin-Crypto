@@ -377,6 +377,7 @@ sub get_locktime
 
 		my $time_locktimes = 0;
 		my $height_locktimes = 0;
+		my $none_locktimes = 0;
 		my $max_time_locktime = 0;
 		my $max_height_locktime = 0;
 
@@ -386,6 +387,7 @@ sub get_locktime
 
 			$time_locktimes += defined $time;
 			$height_locktimes += defined $height;
+			$none_locktimes += !defined $time && !defined $height;
 
 			$max_time_locktime = $time->value
 				if $time && $time->value > $max_time_locktime;
@@ -393,24 +395,25 @@ sub get_locktime
 				if $height && $height->value > $max_height_locktime;
 		}
 
-		if ($time_locktimes > 0 && $height_locktimes > 0) {
-			if ($time_locktimes == $self->input_count && $time_locktimes > $height_locktimes) {
-				return $max_time_locktime;
-			}
-			else {
-				return $max_height_locktime;
-			}
-		}
-		elsif ($time_locktimes > $height_locktimes) {
-			return $max_time_locktime;
-		}
-		elsif ($height_locktimes > $time_locktimes) {
-			return $max_height_locktime;
-		}
-		else {
+		if ($none_locktimes == $self->input_count) {
 			my $fallback = $self->get_all_fields('PSBT_GLOBAL_FALLBACK_LOCKTIME');
 
 			return $fallback ? $fallback->value : 0;
+		}
+
+		$time_locktimes += $none_locktimes;
+		$height_locktimes += $none_locktimes;
+
+		if ($time_locktimes == $self->input_count && $time_locktimes > $height_locktimes) {
+			return $max_time_locktime;
+		}
+		elsif ($height_locktimes == $self->input_count) {
+			return $max_height_locktime;
+		}
+		else {
+			Bitcoin::Crypto::Exception::PSBT->raise(
+				'could not determine locktime - no type of locktime is supported by all inputs'
+			);
 		}
 	}
 }
