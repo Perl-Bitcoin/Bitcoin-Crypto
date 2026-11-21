@@ -220,7 +220,7 @@ sub dump
 
 		foreach my $item (@{$fields{$key}}) {
 			my $dumped = $item->dump;
-			$dumped =~ s/^/> > /g;
+			$dumped =~ s/^/> > /gm;
 
 			push @result, $dumped;
 		}
