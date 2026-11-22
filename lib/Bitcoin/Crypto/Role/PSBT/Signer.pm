@@ -5,6 +5,7 @@ use warnings;
 
 use Mooish::Base -standard, -role;
 use Types::Common -sigs;
+use List::Util qw(any);
 
 use Bitcoin::Crypto qw(btc_script_tree);
 use Bitcoin::Crypto::Constants qw(:sighash);
@@ -220,8 +221,12 @@ sub sign
 	my $tx = $self->get_transaction;
 	my $inputs = $tx->inputs;
 
+	my $public_hash = $key->get_public_key->get_hash;
 	my $signed = 0;
 	foreach my $input_index (0 .. $#{$inputs}) {
+		my @sigs = $self->get_all_fields('PSBT_IN_PARTIAL_SIG', $input_index);
+		next if any { $_->key->get_hash eq $public_hash } @sigs;
+
 		$signed += $self->_do_sign($key, $tx, $inputs->[$input_index], $input_index);
 	}
 

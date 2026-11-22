@@ -153,6 +153,24 @@ subtest 'should sign and set final signatures when finalizing P2TR key input' =>
 	ok lives { $psbt->get_transaction->verify }, 'verification passed';
 };
 
+subtest 'should do nothing when calling sign twice' => sub {
+	my $psbt = build_psbt(
+		[[$fake_txid, 0]],
+		@fields,
+		{
+			type => 'PSBT_IN_WITNESS_UTXO',
+			index => 0,
+			value => Bitcoin::Crypto::Transaction::Output->new(
+				value => 10_000,
+				locking_script => [address => $priv->get_public_key->get_segwit_address],
+			),
+		},
+	);
+
+	is $psbt->sign($priv), 1, 'an input was signed';
+	is $psbt->sign($priv), 0, 'no inputs signed a second time';
+};
+
 done_testing;
 
 sub build_psbt
