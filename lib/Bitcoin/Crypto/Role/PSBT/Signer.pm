@@ -50,7 +50,7 @@ sub _add_partial_signature
 			$value->{outputs_modifiable} = !!0;
 		}
 
-		if (!($sighash & SIGHASH_SINGLE)) {
+		if ($sighash & SIGHASH_SINGLE) {
 			$value->{has_sighash_single} = !!1;
 		}
 
