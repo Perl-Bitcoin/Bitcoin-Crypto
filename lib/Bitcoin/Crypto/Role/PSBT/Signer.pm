@@ -46,11 +46,13 @@ sub _add_partial_signature
 			$value->{inputs_modifiable} = !!0;
 		}
 
-		if (!($sighash & SIGHASH_NONE)) {
+		my $sighash_type = $sighash & 31;
+
+		if ($sighash_type != SIGHASH_NONE) {
 			$value->{outputs_modifiable} = !!0;
 		}
 
-		if ($sighash & SIGHASH_SINGLE) {
+		if ($sighash_type == SIGHASH_SINGLE) {
 			$value->{has_sighash_single} = !!1;
 		}
 
