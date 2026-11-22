@@ -178,7 +178,10 @@ sub _do_sign
 	my $type = $input->utxo->output->locking_script->type;
 	return 0 unless defined $type;
 
-	my $method = "_do_sign_$type";
+	# some types are defined but unsupported (P2PK, nulldata)
+	my $method = $self->can("_do_sign_$type");
+	return 0 unless $method;
+
 	return $self->$method($key, $tx, $input, $input_index);
 }
 

@@ -40,14 +40,13 @@ sub _should_finalize_P2SH
 	my $script = $redeem->value;
 	my @result = ({type => 'signature', sigs => [$script]});
 
-	if ($script->is_native_segwit) {
-		my $method = '_should_finalize_' . $script->type;
+	my $type = $script->type;
+	if ($type eq 'P2WPKH' || $type eq 'P2WSH') {
+		my $method = "_should_finalize_$type";
 
 		push @result, $self->$method($input, $input_index);
 	}
-	elsif ($script->type eq 'P2MS') {
-
-		# we only support P2MS
+	elsif ($type eq 'P2MS') {
 
 		# are there any partial signatures?
 		my @partials = $self->get_all_fields('PSBT_IN_PARTIAL_SIG', $input_index);
@@ -140,7 +139,10 @@ sub _should_finalize
 	my $type = $input->utxo->output->locking_script->type;
 	return () unless defined $type;
 
-	my $method = "_should_finalize_$type";
+	# some types are defined but unsupported (P2PK, nulldata)
+	my $method = $self->can("_should_finalize_$type");
+	return () unless $method;
+
 	return $self->$method($input, $input_index);
 }
 
