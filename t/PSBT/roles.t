@@ -1,6 +1,6 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_transaction btc_prv btc_psbt btc_script_tree);
-use Bitcoin::Crypto::Constants qw(:transaction);
+use Bitcoin::Crypto::Constants qw(:transaction :sighash);
 use Bitcoin::Crypto::Util qw(to_format);
 use Bitcoin::Crypto::Transaction::Output;
 
@@ -61,12 +61,7 @@ subtest 'should sign and set final signatures when finalizing P2PKH input' => su
 	);
 
 	is $psbt->sign($priv), 1, 'an input was signed';
-
-	my $modifiable = $psbt->get_field('PSBT_GLOBAL_TX_MODIFIABLE')->value;
-	ok !$modifiable->{inputs_modifiable}, 'inputs modifiable ok';
-	ok !$modifiable->{outputs_modifiable}, 'outputs modifiable ok';
-	ok !$modifiable->{has_sighash_single}, 'sighash single ok';
-
+	check_modifiable($psbt);
 	$psbt->finalize;
 
 	ok lives { $psbt->get_transaction->verify }, 'verification passed';
@@ -92,6 +87,7 @@ subtest 'should sign and set final signatures when finalizing P2SH(P2WPKH) input
 	);
 
 	is $psbt->sign($priv), 1, 'an input was signed';
+	check_modifiable($psbt);
 	$psbt->finalize;
 
 	ok lives { $psbt->get_transaction->verify }, 'verification passed';
@@ -112,6 +108,7 @@ subtest 'should sign and set final signatures when finalizing P2WPKH input' => s
 	);
 
 	is $psbt->sign($priv), 1, 'an input was signed';
+	check_modifiable($psbt);
 	$psbt->finalize;
 
 	ok lives { $psbt->get_transaction->verify }, 'verification passed';
@@ -148,6 +145,7 @@ subtest 'should sign and set final signatures when finalizing P2TR key input' =>
 	);
 
 	is $psbt->sign($priv), 2, 'both inputs were signed';
+	check_modifiable($psbt);
 	$psbt->finalize;
 
 	ok lives { $psbt->get_transaction->verify }, 'verification passed';
@@ -204,5 +202,28 @@ sub build_psbt
 	}
 
 	return $psbt;
+}
+
+sub check_modifiable
+{
+	my ($psbt, $sighash) = @_;
+	$sighash //= SIGHASH_ALL;
+
+	my %expected = (
+		inputs_modifiable => !!($sighash & SIGHASH_ANYONECANPAY),
+		outputs_modifiable => ($sighash & 31) == SIGHASH_NONE,
+		has_sighash_single => ($sighash & 31) == SIGHASH_SINGLE,
+	);
+
+	$expected{raw_value} =
+		($expected{inputs_modifiable} & 0x01)
+		| ($expected{outputs_modifiable} & 0x02)
+		| ($expected{has_sighash_single} & 0x04)
+		;
+
+	my $modifiable = $psbt->get_all_fields('PSBT_GLOBAL_TX_MODIFIABLE');
+	my $value = $modifiable ? $modifiable->value : undef;
+
+	is $value, \%expected, 'PSBT_GLOBAL_TX_MODIFIABLE status ok';
 }
 

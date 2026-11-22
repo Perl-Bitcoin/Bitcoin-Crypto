@@ -19,16 +19,9 @@ sub _input_has_witness_utxo
 	return !!$witness_utxo;
 }
 
-sub _add_partial_signature
+sub _update_modifiable_flags
 {
-	my ($self, $input_index, $key, $signature, $sighash) = @_;
-
-	$self->add_field(
-		type => 'PSBT_IN_PARTIAL_SIG',
-		index => $input_index,
-		key => $key->get_public_key,
-		value => $signature,
-	);
+	my ($self, $sighash) = @_;
 
 	if ($self->version == 2) {
 
@@ -62,6 +55,34 @@ sub _add_partial_signature
 	}
 }
 
+sub _add_partial_signature_legacy
+{
+	my ($self, $input_index, $key, $signature, $sighash) = @_;
+
+	$self->add_field(
+		type => 'PSBT_IN_PARTIAL_SIG',
+		index => $input_index,
+		key => $key->get_public_key,
+		value => $signature,
+	);
+
+	$self->_update_modifiable_flags($sighash);
+}
+
+sub _add_partial_signature_taproot
+{
+	my ($self, $input_index, $key, $signature, $sighash) = @_;
+
+	# TODO: add support for PSBT_IN_TAP_SCRIPT_SIG
+	$self->add_field(
+		type => 'PSBT_IN_TAP_KEY_SIG',
+		index => $input_index,
+		value => $signature,
+	);
+
+	$self->_update_modifiable_flags($sighash);
+}
+
 sub _do_sign_P2PKH
 {
 	my ($self, $key, $tx, $input, $input_index) = @_;
@@ -76,7 +97,7 @@ sub _do_sign_P2PKH
 	my $signature = $signer->add_signature($key, sighash => $sighash ? $sighash->value : undef)
 		->signature->[-1];
 
-	$self->_add_partial_signature($input_index, $key, $signature, $sighash);
+	$self->_add_partial_signature_legacy($input_index, $key, $signature, $sighash);
 	return 1;
 }
 
@@ -127,7 +148,7 @@ sub _do_sign_P2WPKH
 	my $signature = $signer->add_signature($key, sighash => $sighash ? $sighash->value : undef)
 		->signature->[-1];
 
-	$self->_add_partial_signature($input_index, $key, $signature, $sighash);
+	$self->_add_partial_signature_legacy($input_index, $key, $signature, $sighash);
 	return 1;
 }
 
@@ -156,16 +177,13 @@ sub _do_sign_P2TR_keypath
 		($tree ? (script_tree => $tree) : ()),
 	);
 	my $sighash = $self->get_all_fields('PSBT_IN_SIGHASH_TYPE', $input_index);
+	my $sighash_value = $sighash ? $sighash->value : undef;
 
 	# use transaction signer's ability to give us the signature
-	my $signature = $signer->add_signature($key, sighash => $sighash ? $sighash->value : undef)
+	my $signature = $signer->add_signature($key, sighash => $sighash_value)
 		->signature->[-1];
 
-	$self->add_field(
-		type => 'PSBT_IN_TAP_KEY_SIG',
-		index => $input_index,
-		value => $signature,
-	);
+	$self->_add_partial_signature_taproot($input_index, $key, $signature, $sighash_value);
 
 	return 1;
 }
