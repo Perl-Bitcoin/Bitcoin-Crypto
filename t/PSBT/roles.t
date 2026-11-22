@@ -72,6 +72,31 @@ subtest 'should sign and set final signatures when finalizing P2PKH input' => su
 	ok lives { $psbt->get_transaction->verify }, 'verification passed';
 };
 
+subtest 'should sign and set final signatures when finalizing P2SH(P2WPKH) input' => sub {
+	my $psbt = build_psbt(
+		[[$fake_txid, 0]],
+		@fields,
+		{
+			type => 'PSBT_IN_WITNESS_UTXO',
+			index => 0,
+			value => Bitcoin::Crypto::Transaction::Output->new(
+				value => 10_000,
+				locking_script => [address => $priv->get_public_key->get_compat_address],
+			),
+		},
+		{
+			type => 'PSBT_IN_REDEEM_SCRIPT',
+			index => 0,
+			value => $priv->get_public_key->witness_program,
+		},
+	);
+
+	is $psbt->sign($priv), 1, 'an input was signed';
+	$psbt->finalize;
+
+	ok lives { $psbt->get_transaction->verify }, 'verification passed';
+};
+
 subtest 'should sign and set final signatures when finalizing P2WPKH input' => sub {
 	my $psbt = build_psbt(
 		[[$fake_txid, 0]],

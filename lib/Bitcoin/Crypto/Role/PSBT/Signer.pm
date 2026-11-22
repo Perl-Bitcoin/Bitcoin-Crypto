@@ -83,21 +83,43 @@ sub _do_sign_P2SH
 {
 	my ($self, $key, $tx, $input, $input_index) = @_;
 
-	# TODO: If a redeemScript is provided, the scriptPubKey must be for that redeemScript
+	# is there a matching redeem script?
+	my $redeem = $self->get_all_fields('PSBT_IN_REDEEM_SCRIPT', $input_index);
+	return 0 unless $redeem;
 
-	# TODO: only for normal P2SH (not nested segwit)
-	return 0 if $self->_input_has_witness_utxo($input_index);
+	my $script = $redeem->value;
+	return 0 unless $script->get_hash eq $input->utxo->output->locking_script->get_raw_address;
 
-	# TODO
+	my $type = $script->type;
+	if ($type eq 'P2WPKH' || $type eq 'P2WSH') {
+		my $method = "_do_sign_$type";
+		return $self->$method($key, $tx, $input, $input_index, $script);
+	}
+	elsif ($type eq 'P2MS') {
+		return 0 if $self->_input_has_witness_utxo($input_index);
+
+		# TODO P2MS signing
+	}
+
 	return 0;
 }
 
 sub _do_sign_P2WPKH
 {
-	my ($self, $key, $tx, $input, $input_index) = @_;
+	my ($self, $key, $tx, $input, $input_index, $compat_script) = @_;
 
-	return 0 unless $key->get_public_key->get_hash eq $input->utxo->output->locking_script->get_raw_address;
-	my $signer = $tx->sign(signing_index => $input_index, flags => Bitcoin::Crypto::Transaction::Flags->new_full);
+	my $to_compare = $compat_script
+		? $compat_script->get_raw_address
+		: $input->utxo->output->locking_script->get_raw_address
+		;
+
+	return 0 unless $key->get_public_key->get_hash eq $to_compare;
+
+	my $signer = $tx->sign(
+		signing_index => $input_index,
+		flags => Bitcoin::Crypto::Transaction::Flags->new_full,
+		($compat_script ? (compat => !!1) : ()),
+	);
 	my $sighash = $self->get_all_fields('PSBT_IN_SIGHASH_TYPE', $input_index);
 
 	# use transaction signer's ability to give us the signature
@@ -110,7 +132,7 @@ sub _do_sign_P2WPKH
 
 sub _do_sign_P2WSH
 {
-	my ($self, $key, $tx, $input, $input_index) = @_;
+	my ($self, $key, $tx, $input, $input_index, $compat_script) = @_;
 
 	# TODO: If a witnessScript is provided, the scriptPubKey or the redeemScript must be for that witnessScript
 

@@ -38,13 +38,13 @@ sub _should_finalize_P2SH
 	return () unless $redeem;
 
 	my $script = $redeem->value;
-	my @result = ({type => 'signature', sigs => [$script]});
+	my @result = ({type => 'signature', sigs => [$script->to_serialized]});
 
 	my $type = $script->type;
 	if ($type eq 'P2WPKH' || $type eq 'P2WSH') {
 		my $method = "_should_finalize_$type";
 
-		push @result, $self->$method($input, $input_index);
+		push @result, $self->$method($input, $input_index, $script);
 	}
 	elsif ($type eq 'P2MS') {
 
@@ -61,16 +61,20 @@ sub _should_finalize_P2SH
 
 sub _should_finalize_P2WPKH
 {
-	my ($self, $input, $input_index) = @_;
+	my ($self, $input, $input_index, $compat_script) = @_;
 
 	# are there any partial signatures?
 	my @partials = $self->get_all_fields('PSBT_IN_PARTIAL_SIG', $input_index);
 	return () unless @partials;
 
-	my $wpkh = $input->utxo->output->locking_script->get_raw_address;
+	my $to_compare = $compat_script
+		? $compat_script->get_raw_address
+		: $input->utxo->output->locking_script->get_raw_address
+		;
+
 	foreach my $sig (@partials) {
 		return ({type => 'witness', sigs => [$sig->value, $sig->key->to_serialized]})
-			if $sig->key->get_hash eq $wpkh;
+			if $sig->key->get_hash eq $to_compare;
 	}
 
 	return ();
@@ -78,7 +82,7 @@ sub _should_finalize_P2WPKH
 
 sub _should_finalize_P2WSH
 {
-	my ($self, $input, $input_index) = @_;
+	my ($self, $input, $input_index, $compat_script) = @_;
 
 	my $redeem = $self->get_all_fields('PSBT_IN_WITNESS_SCRIPT', $input_index);
 	return () unless $redeem;
