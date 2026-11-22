@@ -87,6 +87,7 @@ subtest 'should correctly handle deep TAP_TREE fields' => sub {
 	);
 
 	my $tree2 = $field->value;
+	ok $tree2 != $tree, 'not the same tree object ok';
 	is $tree2->get_merkle_root, $tree->get_merkle_root, 'trees ok';
 };
 
