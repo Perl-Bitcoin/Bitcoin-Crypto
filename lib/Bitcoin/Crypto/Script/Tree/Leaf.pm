@@ -7,7 +7,7 @@ use Mooish::Base -standard;
 use Types::Common -sigs;
 
 use Bitcoin::Crypto::Types -types;
-use Bitcoin::Crypto::Util::Internal qw(tagged_hash pack_compactsize);
+use Bitcoin::Crypto::Util::Internal qw(tagged_hash pack_compactsize to_format);
 
 has option 'depth' => (
 	isa => PositiveInt,
@@ -56,6 +56,26 @@ sub _build_hash
 	my $script_len = pack_compactsize(length $script);
 
 	return tagged_hash('TapLeaf', join '', pack('C', $self->leaf_version), $script_len, $script);
+}
+
+signature_for dump => (
+	method => !!1,
+	positional => [],
+);
+
+sub dump
+{
+	my ($self) = @_;
+
+	my @result;
+	push @result, 'Tree leaf ' . to_format [hex => $self->id];
+	push @result, 'hash ' . to_format [hex => $self->hash]
+		unless $self->hash eq $self->id;
+	push @result, 'depth ' . $self->depth;
+	push @result, 'leaf version ' . $self->leaf_version;
+	push @result, 'script: ' . $self->script->dump;
+
+	return join "\n", @result;
 }
 
 1;
@@ -152,4 +172,10 @@ Standard Moo constructor - see L</Attributes>.
 
 Objects of this class must be constructed with either L</leaf_version> and
 L</script>, or a L</hash>. This will be checked upon object construction.
+
+=head3 dump
+
+	$text = $object->dump()
+
+Returns a readable description of the leaf.
 

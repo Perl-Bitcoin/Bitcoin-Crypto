@@ -20,6 +20,7 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Script::Tree:
 		- added get_leaf method
 		- added get_leaves method
+		- added dump method
 		- deprecated get_tapleaf_script method
 		- deprecated get_tapleaf_version method
 		- deprecated get_tapleaf_hash method

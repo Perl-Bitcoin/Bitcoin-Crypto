@@ -11,7 +11,7 @@ use Carp qw(carp);
 
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Exception;
-use Bitcoin::Crypto::Util::Internal qw(tagged_hash pack_compactsize has_even_y);
+use Bitcoin::Crypto::Util::Internal qw(tagged_hash pack_compactsize has_even_y to_format);
 use Bitcoin::Crypto::Script::Tree::Leaf;
 use Bitcoin::Crypto::Transaction::ControlBlock;
 
@@ -239,6 +239,27 @@ sub get_control_block
 		public_key => $pubkey,
 		script_blocks => $leaf->path,
 	);
+}
+
+signature_for dump => (
+	method => !!1,
+	positional => [],
+);
+
+sub dump
+{
+	my ($self) = @_;
+
+	my @result;
+	push @result, 'Tree ' . to_format [hex => $self->get_merkle_root];
+	push @result, @{$self->get_leaves} . ' leaves: ';
+
+	foreach my $leaf (@{$self->get_leaves}) {
+		push @result, $leaf->dump;
+		push @result, '';
+	}
+
+	return join "\n", @result;
 }
 
 1;
@@ -484,6 +505,12 @@ duplicated. See L<Bitcoin::Crypto::Script::Leaf/path>.
 Clears the internal cache of the tree, forcing recalculation of merkle root and
 all leaves. Must be done after the internal structure of the tree
 changed.
+
+=head3 dump
+
+	$text = $object->dump()
+
+Returns a readable description of the script tree.
 
 =head1 SEE ALSO
 
