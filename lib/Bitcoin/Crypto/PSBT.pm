@@ -45,7 +45,7 @@ sub _check_can_modify
 
 	if ($self->version == 0) {
 		Bitcoin::Crypto::Exception::PSBT->raise(
-			"Cannot add a new map entry because index is out of range of PSBT_GLOBAL_UNSIGNED_TX ($count)"
+			"cannot add a new map entry because index is out of range of PSBT_GLOBAL_UNSIGNED_TX ($count)"
 		);
 	}
 	elsif ($self->version == 2) {
@@ -53,7 +53,7 @@ sub _check_can_modify
 		my $field_name = $type eq PSBT_INPUT_MAP ? 'inputs_modifiable' : 'outputs_modifiable';
 
 		Bitcoin::Crypto::Exception::PSBT->raise(
-			"Cannot add a new map entry because PSBT_GLOBAL_TX_MODIFIABLE ($field_name) is off"
+			"cannot add a new map entry because PSBT_GLOBAL_TX_MODIFIABLE ($field_name) is off"
 		) unless $modifiable && $modifiable->value->{$field_name};
 	}
 }
@@ -92,11 +92,19 @@ sub input_count
 	my $version = $self->version;
 
 	if ($version == 0) {
-		my $tx = $self->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value;
-		return scalar @{$tx->inputs};
+		my $tx = $self->get_field('PSBT_GLOBAL_UNSIGNED_TX');
+		Bitcoin::Crypto::Exception::PSBT->raise(
+			'cannot calculate input_count: no PSBT_GLOBAL_UNSIGNED_TX field'
+		) unless $tx;
+
+		return scalar @{$tx->value->inputs};
 	}
 	elsif ($version == 2) {
-		return $self->get_field('PSBT_GLOBAL_INPUT_COUNT')->value;
+		my $count = $self->get_field('PSBT_GLOBAL_INPUT_COUNT');
+		Bitcoin::Crypto::Exception::PSBT->raise(
+			'cannot calculate input_count: no PSBT_GLOBAL_INPUT_COUNT field'
+		) unless $count;
+		return $count->value;
 	}
 }
 
@@ -106,11 +114,19 @@ sub output_count
 	my $version = $self->version;
 
 	if ($version == 0) {
-		my $tx = $self->get_field('PSBT_GLOBAL_UNSIGNED_TX')->value;
-		return scalar @{$tx->outputs};
+		my $tx = $self->get_field('PSBT_GLOBAL_UNSIGNED_TX');
+		Bitcoin::Crypto::Exception::PSBT->raise(
+			'cannot calculate output_count: no PSBT_GLOBAL_UNSIGNED_TX field'
+		) unless $tx;
+
+		return scalar @{$tx->value->outputs};
 	}
 	elsif ($version == 2) {
-		return $self->get_field('PSBT_GLOBAL_OUTPUT_COUNT')->value;
+		my $count = $self->get_field('PSBT_GLOBAL_OUTPUT_COUNT');
+		Bitcoin::Crypto::Exception::PSBT->raise(
+			'cannot calculate output_count: no PSBT_GLOBAL_OUTPUT_COUNT field'
+		) unless $count;
+		return $count->value;
 	}
 }
 
@@ -136,7 +152,7 @@ sub get_field
 		my $count = @values;
 
 		Bitcoin::Crypto::Exception::PSBT->raise(
-			"Could not get value for field $id: found $count values in PSBT"
+			"cannot get value for field $id: found $count values in PSBT"
 		);
 	}
 
@@ -412,7 +428,7 @@ sub get_locktime
 		}
 		else {
 			Bitcoin::Crypto::Exception::PSBT->raise(
-				'could not determine locktime - no type of locktime is supported by all inputs'
+				'cannot determine locktime - no type of locktime is supported by all inputs'
 			);
 		}
 	}

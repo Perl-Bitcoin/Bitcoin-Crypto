@@ -207,7 +207,7 @@ subtest 'should throw an exception if locktime cannot be determined' => sub {
 
 	my $ex = dies { $psbt->get_locktime };
 	isa_ok $ex, 'Bitcoin::Crypto::Exception::PSBT';
-	like $ex, qr{could not determine locktime}, 'exception ok';
+	like $ex, qr{cannot determine locktime}, 'exception ok';
 };
 
 subtest 'should build version 0 transaction with UTXOs' => sub {
