@@ -814,7 +814,7 @@ my %types = (
 					script => btc_tapscript->from_serialized($script_raw),
 				};
 
-				while ($#stack > $depth) {
+				while ($#stack > $depth || (@stack && @{$stack[-1]} == 2)) {
 					pop @stack;
 				}
 

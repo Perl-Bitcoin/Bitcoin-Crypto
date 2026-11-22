@@ -1,7 +1,7 @@
 use Test2::V0;
-use Bitcoin::Crypto qw(btc_psbt btc_transaction);
+use Bitcoin::Crypto qw(btc_psbt btc_transaction btc_script_tree btc_tapscript);
 use Bitcoin::Crypto::Util qw(to_format pack_compactsize);
-use Bitcoin::Crypto::Constants qw(:psbt :transaction);
+use Bitcoin::Crypto::Constants qw(:psbt :transaction :script);
 use Bitcoin::Crypto::PSBT::Field;
 
 my $minimal_tx = btc_transaction->new(version => 2)
@@ -41,6 +41,53 @@ subtest 'should allow MODIFIABLE to change the value without changing raw value'
 	$field->set_value($value);
 
 	is $field->value->{inputs_modifiable}, !!0, 'can modify PSBT_GLOBAL_TX_MODIFIABLE ok';
+};
+
+subtest 'should correctly handle deep TAP_TREE fields' => sub {
+	my $tree = btc_script_tree->new(
+		tree => [
+			[
+				{
+					script => btc_tapscript->new->add('OP_1'),
+					leaf_version => TAPSCRIPT_LEAF_VERSION,
+				},
+				{
+					script => btc_tapscript->new->add('OP_2'),
+					leaf_version => TAPSCRIPT_LEAF_VERSION,
+				},
+			],
+			[
+				[
+					{
+						script => btc_tapscript->new->add('OP_3'),
+						leaf_version => TAPSCRIPT_LEAF_VERSION,
+					},
+					[
+						{
+							script => btc_tapscript->new->add('OP_4'),
+							leaf_version => TAPSCRIPT_LEAF_VERSION,
+						},
+						{
+							script => btc_tapscript->new->add('OP_5'),
+							leaf_version => TAPSCRIPT_LEAF_VERSION,
+						},
+					],
+				],
+				{
+					script => btc_tapscript->new->add('OP_6'),
+					leaf_version => TAPSCRIPT_LEAF_VERSION,
+				},
+			],
+		]
+	);
+
+	my $field = Bitcoin::Crypto::PSBT::Field->new(
+		type => 'PSBT_OUT_TAP_TREE',
+		value => $tree,
+	);
+
+	my $tree2 = $field->value;
+	is $tree2->get_merkle_root, $tree->get_merkle_root, 'trees ok';
 };
 
 done_testing;
