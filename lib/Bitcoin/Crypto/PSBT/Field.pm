@@ -14,6 +14,7 @@ use Bitcoin::Crypto::Util::Internal qw(to_format pack_compactsize unpack_compact
 has field 'map' => (
 	isa => InstanceOf ['Bitcoin::Crypto::PSBT::Map'],
 	writer => -hidden,
+	clearer => -hidden,
 	weak_ref => 1,
 );
 
@@ -31,6 +32,10 @@ has param 'raw_value' => (
 	coerce => ByteStr,
 	writer => 1,
 	default => '',
+);
+
+with qw(
+	Bitcoin::Crypto::Role::ShallowClone
 );
 
 sub BUILD
@@ -52,7 +57,13 @@ sub BUILD
 	if (defined $args->{key}) {
 		$self->set_key($args->{key});
 	}
+}
 
+sub _cloned
+{
+	my ($self) = @_;
+
+	$self->_clear_map;
 }
 
 sub validate

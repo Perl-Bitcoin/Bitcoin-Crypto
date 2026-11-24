@@ -30,7 +30,7 @@ sub BUILD
 	my ($self) = @_;
 
 	Bitcoin::Crypto::Exception::PSBT->raise(
-		'Map of type ' . $self->type . ' requires an index'
+		"Map of type '" . $self->type . "' requires an index"
 	) if $self->need_index && !defined $self->index;
 }
 

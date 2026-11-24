@@ -31,6 +31,7 @@ has field 'maps' => (
 with qw(
 	Bitcoin::Crypto::Role::PSBT::Signer
 	Bitcoin::Crypto::Role::PSBT::Finalizer
+	Bitcoin::Crypto::Role::PSBT::Combiner
 );
 
 sub _check_can_modify

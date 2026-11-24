@@ -23,36 +23,41 @@ sub _update_modifiable_flags
 {
 	my ($self, $sighash) = @_;
 
-	if ($self->version == 2) {
+	return unless $self->version == 2;
 
-		# NOTE: SIGHASH_DEFAULT may not be correct for pre-taproot, but it's only
-		# used to set modifiable flags, which will be the same for SIGHASH_ALL
-		$sighash = $sighash ? $sighash->value : SIGHASH_ALL;
+	# NOTE: SIGHASH_DEFAULT may not be correct for pre-taproot, but it's only
+	# used to set modifiable flags, which will be the same for SIGHASH_ALL
+	$sighash = $sighash ? $sighash->value : SIGHASH_ALL;
 
-		my $modifiable = $self->get_all_fields('PSBT_GLOBAL_TX_MODIFIABLE');
-		$modifiable //= $self
-			->add_field(type => 'PSBT_GLOBAL_TX_MODIFIABLE', value => {})
-			->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
+	my $modifiable = $self->get_all_fields('PSBT_GLOBAL_TX_MODIFIABLE');
+	$modifiable //= $self
+		->add_field(
+			type => 'PSBT_GLOBAL_TX_MODIFIABLE',
+			value => {
+				inputs_modifiable => !!1,
+				outputs_modifiable => !!1,
+			},
+		)
+		->get_field('PSBT_GLOBAL_TX_MODIFIABLE');
 
-		my $value = $modifiable->value;
+	my $value = $modifiable->value;
 
-		if (!($sighash & SIGHASH_ANYONECANPAY)) {
-			$value->{inputs_modifiable} = !!0;
-		}
-
-		my $sighash_type = $sighash & 31;
-
-		if ($sighash_type != SIGHASH_NONE) {
-			$value->{outputs_modifiable} = !!0;
-		}
-
-		if ($sighash_type == SIGHASH_SINGLE) {
-			$value->{has_sighash_single} = !!1;
-		}
-
-		# update the value back in the PSBT
-		$modifiable->set_value($value);
+	if (!($sighash & SIGHASH_ANYONECANPAY)) {
+		$value->{inputs_modifiable} = !!0;
 	}
+
+	my $sighash_type = $sighash & 31;
+
+	if ($sighash_type != SIGHASH_NONE) {
+		$value->{outputs_modifiable} = !!0;
+	}
+
+	if ($sighash_type == SIGHASH_SINGLE) {
+		$value->{has_sighash_single} = !!1;
+	}
+
+	# update the value back in the PSBT
+	$modifiable->set_value($value);
 }
 
 sub _add_partial_signature_legacy

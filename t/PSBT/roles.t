@@ -169,6 +169,38 @@ subtest 'should do nothing when calling sign twice' => sub {
 	is $psbt->sign($priv), 0, 'no inputs signed a second time';
 };
 
+subtest 'should combine two PSBTs' => sub {
+	my $psbt1 = build_psbt(
+		[[$fake_txid, 0]],
+		@fields,
+		{
+			type => 'PSBT_IN_WITNESS_UTXO',
+			index => 0,
+			value => Bitcoin::Crypto::Transaction::Output->new(
+				value => 10_000,
+				locking_script => [address => $priv->get_public_key->get_segwit_address],
+			),
+		},
+	);
+
+	my $psbt2 = build_psbt(
+		[[$fake_txid, 0]],
+		@fields,
+		{
+			type => 'PSBT_IN_SIGHASH_TYPE',
+			index => 0,
+			value => SIGHASH_ALL | SIGHASH_ANYONECANPAY,
+		},
+	);
+
+	my $combined = $psbt1->combine($psbt2);
+	ok $combined != $psbt1 && $combined != $psbt2, 'new psbt created';
+	is $combined->sign($priv), 1, 'signed correctly';
+	check_modifiable($combined, SIGHASH_ALL | SIGHASH_ANYONECANPAY);
+};
+
+# TODO: check combining MODIFIABLE
+
 done_testing;
 
 sub build_psbt
