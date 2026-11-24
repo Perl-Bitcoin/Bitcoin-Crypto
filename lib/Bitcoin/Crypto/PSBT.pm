@@ -202,8 +202,21 @@ sub list_fields
 {
 	my ($self) = @_;
 
+	state $order = {
+		(PSBT_GLOBAL_MAP) => 0,
+		(PSBT_INPUT_MAP) => 1,
+		(PSBT_OUTPUT_MAP) => 2,
+	};
+
+	# make sure the order of the maps will always be the same: global, input,
+	# output, sorted by index
+	my @maps = sort {
+		$order->{$a->type} <=> $order->{$b->type}
+			|| ($a->index // 0) <=> ($b->index // 0)
+	} @{$self->maps};
+
 	my @results;
-	foreach my $map (@{$self->maps}) {
+	foreach my $map (@maps) {
 		my $index = $map->index;
 		my %seen;
 
@@ -725,6 +738,10 @@ This method lists all fields present in the PSBT. It returns a list of array
 references, each array reference has two elements: field type and map index.
 These are the same elements that are needed in L</get_all_fields> calls, so you
 may use this data to loop through PSBT fields.
+
+Returned fields are guaranteed to be returned in the following order: all
+global fields, all input fields, and all output fields. The input and output
+fields will be present in ascending index order.
 
 =head3 check
 

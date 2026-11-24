@@ -3,6 +3,7 @@ use Bitcoin::Crypto qw(btc_psbt btc_transaction btc_script_tree btc_tapscript);
 use Bitcoin::Crypto::Util qw(to_format pack_compactsize);
 use Bitcoin::Crypto::Constants qw(:psbt :transaction :script);
 use Bitcoin::Crypto::PSBT::Field;
+use Bitcoin::Crypto::PSBT::FieldType;
 
 my $minimal_tx = btc_transaction->new(version => 2)
 	->add_input(
@@ -89,6 +90,52 @@ subtest 'should correctly handle deep TAP_TREE fields' => sub {
 	my $tree2 = $field->value;
 	ok $tree2 != $tree, 'not the same tree object ok';
 	is $tree2->get_merkle_root, $tree->get_merkle_root, 'trees ok';
+};
+
+subtest 'should return field list in a correct order' => sub {
+	my $psbt = btc_psbt->new;
+
+	$psbt->add_field(
+		type => 'PSBT_OUT_SCRIPT',
+		index => 1,
+		value => btc_tapscript->new->add('OP_1'),
+	);
+
+	$psbt->add_field(
+		type => 'PSBT_OUT_AMOUNT',
+		index => 0,
+		value => 32767,
+	);
+
+	$psbt->add_field(
+		type => 'PSBT_IN_SEQUENCE',
+		index => 0,
+		value => 32767,
+	);
+
+	$psbt->add_field(
+		type => 'PSBT_IN_OUTPUT_INDEX',
+		index => 1,
+		value => 5,
+	);
+
+	$psbt->add_field(
+		type => 'PSBT_GLOBAL_TX_VERSION',
+		value => 2,
+	);
+
+	my $_f = sub {
+		Bitcoin::Crypto::PSBT::FieldType->get_field_by_name(shift);
+	};
+
+	is [$psbt->list_fields], [
+		[$_f->('PSBT_GLOBAL_TX_VERSION'), undef],
+		[$_f->('PSBT_IN_SEQUENCE'), 0],
+		[$_f->('PSBT_IN_OUTPUT_INDEX'), 1],
+		[$_f->('PSBT_OUT_AMOUNT'), 0],
+		[$_f->('PSBT_OUT_SCRIPT'), 1],
+		],
+		'field list ok';
 };
 
 done_testing;
