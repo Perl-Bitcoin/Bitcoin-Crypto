@@ -624,6 +624,61 @@ When C<finalize> is called, the transaction is modified and it should now
 contain a valid signature (but always check with C<verify> or
 C<verify_standard>).
 
+The following cookbook explains how to obtain a C<$signer> valid for a given
+type of input script, which can later be used to sign manually.
+
+B<Signing legacy inputs>
+
+Initializing the signing of legacy input only requires C<signing_index>. If
+the script is of P2SH type, it also requires a C<script> argument
+(L<Bitcoin::Crypto::Script>).
+
+	$tx->sign(signing_index => 0); # P2PKH
+	$tx->sign(signing_index => 0, script => $p2sh_script); # P2SH
+
+B<Signing SegWit compatibility inputs>
+
+P2SH(P2WPKH) and P2SH(P2WSH) inputs require C<compat> argument passed as true
+value to distinguish them. Other than that, they work exactly like legacy
+transactions.
+
+	$tx->sign(signing_index => 0, compat => !!1); # P2SH(P2WPKH)
+	$tx->sign(signing_index => 0, script => $p2wsh_script, compat => !!1); # P2SH(P2WSH)
+
+B<Signing SegWit native (v0) inputs>
+
+P2WPKH and P2WSH are signed exactly like legacy inputs, since they can be
+distinguished by the locking script itself.
+
+	$tx->sign(signing_index => 0); # P2WPKH
+	$tx->sign(signing_index => 0, script => $p2wsh_script); # P2WSH
+
+B<Signing Taproot (SegWit v1) inputs>
+
+To sign P2TR key path with script path disabled, the same argument list as for
+P2PKH or P2WPKH can be used. If the taproot address was created with enabled
+script path, a C<script_tree> (L<Bitcoin::Crypto::Script::Tree>) argument must
+be passed.
+
+	$tx->sign(signing_index => 0); # P2TR (created with disabled script path)
+	$tx->sign(signing_index => 0, script_tree => $tree); # P2TR (created with enabled script path)
+
+Script path is more complex, as it always requires C<script_tree>, in addition
+to C<leaf_id> (bytestring) pointing to an existing tree leaf id or hash, and
+C<public_key> (L<Bitcoin::Crypto::Key::Public>) containing the public key
+associated with the address.
+
+	# an address created like this:
+	$pubkey->get_taproot_address($tree);
+
+	# is signed like this:
+	$tx->sign(
+		signing_index => 0,
+		script_tree => $tree,
+		leaf_id => [hex => '...'],
+		public_key => $pubkey,
+	);
+
 =head4 More transaction examples
 
 Bundled directory C<ex/tx/> contains scripts with transactions which were
