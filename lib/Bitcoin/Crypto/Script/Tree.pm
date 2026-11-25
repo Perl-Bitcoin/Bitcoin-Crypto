@@ -496,7 +496,7 @@ takes as input.
 In rare case of ids being duplicated (same script+leaf version, or erroneously
 declared duplicate id), only the first leaf with given id will be present in
 the hash. When in doubt, L</get_leaves> can be used to make sure the id is not
-duplicated. See L<Bitcoin::Crypto::Script::Leaf/path>.
+duplicated. See L<Bitcoin::Crypto::Script::Tree::Leaf/path>.
 
 =head3 clear_tree_cache
 
