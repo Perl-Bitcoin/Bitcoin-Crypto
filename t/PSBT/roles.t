@@ -220,7 +220,43 @@ subtest 'should combine two PSBTs' => sub {
 	is $sighash_value, SIGHASH_ALL | SIGHASH_ANYONECANPAY, 'PSBT_IN_SIGHASH_TYPE ok';
 };
 
-# TODO: check combining MODIFIABLE
+subtest 'should resolve conflicts in PSBT_GLOBAL_TX_MODIFIABLE' => sub {
+	my $psbt1 = build_psbt(
+		[[$fake_txid, 0]],
+		@fields,
+		{
+			type => 'PSBT_GLOBAL_TX_MODIFIABLE',
+			value => {
+				inputs_modifiable => !!1,
+				outputs_modifiable => !!0,
+				has_sighash_single => !!1,
+			},
+		},
+	);
+
+	my $psbt2 = build_psbt(
+		[[$fake_txid, 0]],
+		@fields,
+		{
+			type => 'PSBT_GLOBAL_TX_MODIFIABLE',
+			value => {
+				inputs_modifiable => !!0,
+				outputs_modifiable => !!1,
+				has_sighash_single => !!1,
+			},
+		},
+	);
+
+	my $combined = $psbt1->combine($psbt2);
+	my $modifiable = $combined->get_field('PSBT_GLOBAL_TX_MODIFIABLE', 0)->value;
+	is $modifiable, {
+		raw_value => 4,
+		inputs_modifiable => !!0,
+		outputs_modifiable => !!0,
+		has_sighash_single => !!1,
+		},
+		'modifiable value ok';
+};
 
 done_testing;
 
