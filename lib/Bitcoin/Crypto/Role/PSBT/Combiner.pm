@@ -79,9 +79,15 @@ sub combine
 {
 	my ($self, $others) = @_;
 
-	my $id = $self->get_id;
-	my $new_psbt = $self->new(strict => $self->strict);
-	foreach my $psbt ($self, @{$others}) {
+	my @list = @{$others};
+	unshift @list, $self if ref $self;
+	Bitcoin::Crypto::Exception::PSBT->raise(
+		'combining PSBTs failed - need at least two PSBTs'
+	) unless @list > 1;
+
+	my $id = $list[0]->get_id;
+	my $new_psbt = $self->new(strict => $list[0]->strict);
+	foreach my $psbt (@list) {
 		Bitcoin::Crypto::Exception::PSBT->raise(
 			'combining PSBTs failed - not the same PSBT'
 		) unless $psbt->get_id eq $id;

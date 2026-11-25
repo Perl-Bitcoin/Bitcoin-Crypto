@@ -822,11 +822,13 @@ transaction after finalizing.
 
 =head3 combine
 
-	$new_psbt = $object->combine($psbt2, [$psbt3, ...])
+	$new_psbt = $object->combine($psbt2, ...)
+	$new_psbt = $class->combine($psbt1, $psbt2, ...)
 
 Combines the contents of multiple PSBTs into a brand new one. C<$new_psbt> will
 contain all fields of the combined PSBTs, except the ones which were
-duplicated.
+duplicated. Can be called in object or class context and requires at least two
+PSBTs.
 
 In case of a conflict in field contents an exception will be raised, except
 the following field types, which will resolve the conflict:

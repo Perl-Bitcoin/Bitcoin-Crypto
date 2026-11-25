@@ -258,6 +258,20 @@ subtest 'should resolve conflicts in PSBT_GLOBAL_TX_MODIFIABLE' => sub {
 		'modifiable value ok';
 };
 
+subtest 'should allow combining PSBTs via static method call' => sub {
+	my $psbt1 = build_psbt(
+		[[$fake_txid, 0]],
+		@fields,
+	);
+
+	my $psbt2 = build_psbt(
+		[[$fake_txid, 0]],
+		@fields,
+	);
+
+	ok lives { btc_psbt->combine($psbt1, $psbt2) }, 'combining ok';
+};
+
 done_testing;
 
 sub build_psbt

@@ -138,5 +138,18 @@ subtest 'should return field list in a correct order' => sub {
 		'field list ok';
 };
 
+subtest 'should refuse to combine less than two PSBTs' => sub {
+	my $psbt = btc_psbt->new;
+	my $ex;
+
+	$ex = dies { $psbt->combine() };
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::PSBT';
+	like $ex, qr{need at least two PSBTs};
+
+	$ex = dies { btc_psbt->combine($psbt) };
+	isa_ok $ex, 'Bitcoin::Crypto::Exception::PSBT';
+	like $ex, qr{need at least two PSBTs};
+};
+
 done_testing;
 
