@@ -859,6 +859,19 @@ PSBT and pulls data out of it:
 	my $tree = $psbt->get_field('PSBT_OUT_TAP_TREE', 0)->value;
 	my $public_key = $psbt->get_field('PSBT_OUT_TAP_INTERNAL_KEY', 0)->value;
 
+PSBTs can be automatically signed, combined into one and finalized:
+
+	# tries to sign - returns the number of inputs signed
+	$psbt->sign($private) or die 'could not sign';
+
+	# combine partial PSBTs with signatures into one and finalize
+	my $combined_psbt = $psbt->combine($partial_2, $partial_3);
+	$combined_psbt->finalize;
+
+	# get the transaction from a final PSBT - will be fully signed
+	my $final_tx = $combined_psbt->get_transaction;
+
+
 See L<Bitcoin::Crypto::PSBT> for more details and a complete reference of field
 types and what objects their serializers / deserializers use.
 

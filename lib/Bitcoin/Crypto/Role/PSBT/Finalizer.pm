@@ -210,6 +210,8 @@ sub finalize
 		# TODO remove fields other than unknowns and utxo
 		# TODO check sighashes for each signature
 	}
+
+	return $self;
 }
 
 1;

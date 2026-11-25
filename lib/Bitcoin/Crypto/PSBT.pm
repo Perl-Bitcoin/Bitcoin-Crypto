@@ -787,6 +787,56 @@ serializing.
 Deserializes the bytestring C<$data> into a PSBT object. L</check> is called
 automatically after deserializing.
 
+=head3 sign
+
+	$signed_count = $object->sign($private_key)
+
+Signs the PSBT using C<$private_key>, which should be an instance of
+L<Bitcoin::Crypto::Key::Private>. Signing is done by searching all inputs of
+the PSBT and finding the ones which match the given key. For each input
+successfully signed, C<$signed_count> will be increased by 1. If the method
+returns 0, either no input matches the given private key, or all matching
+inputs were already signed.
+
+Bad state of the PSBT will result in an exception. This includes trying to sign
+a PSBT which was finalized previously or lacking fields required for signing.
+
+Automatic signing can currently sign P2PKH, P2SH(P2WKPH), P2WPKH and P2TR (key
+path) inputs. P2SH, P2SH(P2WSH) and P2WSH will only be signed if they contain a
+P2MS script inside them. P2TR (script path) will be signed if it contains a
+simple multisig script using C<OP_CHECKSIGADD>. Any other script will require
+manual signing.
+
+Signing PSBTv2 will automatically adjust C<PSBT_GLOBAL_TX_MODIFIABLE> flags
+accordingly.
+
+=head3 finalize
+
+	$object = $object->finalize()
+
+Finalizes the state of a fully signed PSBT. If the PSBT is missing fields
+required for finalization, an exception will be raised.
+
+Returns the PSBT object itself. Call L</get_transaction> to get the signed
+transaction after finalizing.
+
+=head3 combine
+
+	$new_psbt = $object->combine($psbt2, [$psbt3, ...])
+
+Combines the contents of multiple PSBTs into a brand new one. C<$new_psbt> will
+contain all fields of the combined PSBTs, except the ones which were
+duplicated.
+
+In case of a conflict in field contents an exception will be raised, except
+the following field types, which will resolve the conflict:
+
+=over
+
+=item * C<PSBT_GLOBAL_TX_MODIFIABLE>
+
+=back
+
 =head3 dump
 
 	$text = $object->dump()

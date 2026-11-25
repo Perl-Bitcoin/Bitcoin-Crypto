@@ -11,6 +11,9 @@ Revision history for Perl extension Bitcoin::Crypto.
 		- added get_id method
 		- added get_locktime method
 		- added get_transaction method
+		- added sign method
+		- added finalize method
+		- added combine method
 	- Bitcoin::Crypto::Util:
 		- added pack_array function
 		- added unpack_array function
