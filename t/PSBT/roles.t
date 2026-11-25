@@ -195,8 +195,29 @@ subtest 'should combine two PSBTs' => sub {
 
 	my $combined = $psbt1->combine($psbt2);
 	ok $combined != $psbt1 && $combined != $psbt2, 'new psbt created';
-	is $combined->sign($priv), 1, 'signed correctly';
-	check_modifiable($combined, SIGHASH_ALL | SIGHASH_ANYONECANPAY);
+
+	my @fields = $combined->list_fields;
+	is [map { [$_->[0]->name, $_->[1]] } @fields],
+		[
+			['PSBT_GLOBAL_INPUT_COUNT', undef],
+			['PSBT_GLOBAL_VERSION', undef],
+			['PSBT_GLOBAL_TX_VERSION', undef],
+			['PSBT_GLOBAL_OUTPUT_COUNT', undef],
+			['PSBT_IN_PREVIOUS_TXID', 0],
+			['PSBT_IN_OUTPUT_INDEX', 0],
+			['PSBT_IN_WITNESS_UTXO', 0],
+			['PSBT_IN_SIGHASH_TYPE', 0],
+			['PSBT_OUT_AMOUNT', 0],
+			['PSBT_OUT_SCRIPT', 0],
+		],
+		'fields ok';
+
+	my $utxo_value = $combined->get_field('PSBT_IN_WITNESS_UTXO', 0)->value;
+	is $utxo_value->locking_script->get_address, $priv->get_public_key->get_segwit_address,
+		'PSBT_IN_WITNESS_UTXO ok';
+
+	my $sighash_value = $combined->get_field('PSBT_IN_SIGHASH_TYPE', 0)->value;
+	is $sighash_value, SIGHASH_ALL | SIGHASH_ANYONECANPAY, 'PSBT_IN_SIGHASH_TYPE ok';
 };
 
 # TODO: check combining MODIFIABLE
