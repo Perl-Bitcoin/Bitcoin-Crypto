@@ -20,6 +20,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- Bitcoin::Crypto::Transaction::Signer:
 		- added flags attribute
 		- added signature attribute
+	- Bitcoin::Crypto::Script:
+		- added get_witness_hash method
 	- Bitcoin::Crypto::Script::Tree:
 		- added get_leaf method
 		- added get_leaves method

@@ -12,7 +12,7 @@ use List::Util qw(any);
 use Bitcoin::Crypto::Base58 qw(encode_base58check decode_base58check);
 use Bitcoin::Crypto::Bech32 qw(encode_segwit decode_segwit get_hrp);
 use Bitcoin::Crypto::Constants qw(:witness :script);
-use Bitcoin::Crypto::Util::Internal qw(hash160 hash256 get_address_type to_format);
+use Bitcoin::Crypto::Util::Internal qw(hash160 get_address_type to_format);
 use Bitcoin::Crypto::Exception;
 use Bitcoin::Crypto::Types -types;
 use Bitcoin::Crypto::Script::Opcode;
@@ -345,6 +345,11 @@ sub get_hash
 	return hash160(shift->_serialized);
 }
 
+sub get_witness_hash
+{
+	return sha256(shift->to_serialized);
+}
+
 sub to_serialized
 {
 	goto \&_serialized;
@@ -403,7 +408,7 @@ sub witness_program
 	my $program = Bitcoin::Crypto::Script->new(network => $self->network);
 	$program
 		->add_operation('OP_' . SEGWIT_WITNESS_VERSION)
-		->push_bytes(sha256($self->to_serialized));
+		->push_bytes($self->get_witness_hash);
 
 	return $program;
 }
@@ -663,7 +668,15 @@ of script type.
 
 	$bytestring = $object->get_hash()
 
-Returns a serialized script parsed with C<HASH160> (C<RIPEMD160> of C<SHA256>).
+Returns a serialized script digested with C<HASH160> (C<RIPEMD160> of
+C<SHA256>).
+
+=head3 get_witness_hash
+
+	$bytestring = $object->get_witness_hash()
+
+Returns a serialized script for use in witness transactions, digested with
+C<SHA256>.
 
 =head3 get_legacy_address
 

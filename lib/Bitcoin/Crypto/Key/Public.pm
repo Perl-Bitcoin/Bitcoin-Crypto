@@ -20,9 +20,7 @@ sub _is_private { 0 }
 
 sub get_hash
 {
-	my ($self) = @_;
-
-	return hash160($self->to_serialized);
+	return hash160(shift->to_serialized);
 }
 
 sub get_xonly_key
