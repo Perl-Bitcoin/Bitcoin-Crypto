@@ -41,6 +41,8 @@ Revision history for Perl extension Bitcoin::Crypto.
 	- checking bytestrings across the library is now done using a faster method
 	- encode_bech32 and encode_segwit now check correctness of their results after encoding
 	- list_fields from PSBT will now return fields in a specific order regardless of how the PSBT was created
+	- get_address from Script now correctly returns an address for unknown segwit scripts
+	- get_raw_address from Script now returns public keys encoded in P2PK, P2MS and UNKNOWN_SEGWIT
 
 	[Fixes]
 	- fixed variable-time cryptographic operation in taproot key tweaking

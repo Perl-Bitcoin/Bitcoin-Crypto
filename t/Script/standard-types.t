@@ -1,5 +1,6 @@
 use Test2::V0;
 use Bitcoin::Crypto qw(btc_script);
+use Bitcoin::Crypto::Util qw(to_format);
 
 my @cases = (
 	[
@@ -7,12 +8,16 @@ my @cases = (
 		[
 			hex =>
 				'410411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3ac'
-		]
+		],
+		undef,
+		'0411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3',
 	],
 
 	[
 		'P2PK',
-		[hex => '2102394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967cac']
+		[hex => '2102394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967cac'],
+		undef,
+		'02394fde5115357067c1d728210fc43aa1573ed52522b6f6d560fe29f1d0d1967c',
 	],
 
 	[
@@ -32,7 +37,15 @@ my @cases = (
 		[
 			hex =>
 				'532102002a57268073cbc5472d35d8f8fae2c52825241592f53e53ae516913d8c82bd121026c1061b95ccfc52594c9b376382e2f0240a523b3b1dc5db6a9cdd9730a4a0c2121029e8c3ae6c0516df4075089ab9475c9335985569ac0f3b9f1a4b0d946785937cd2102bf0faf4d948a56a6d78d1b87c6a62c9172005409da2f44f9ff6267dfde3cfd482103ba7c7d7b8d2379de450441445c30a638c555305cbe044abb88f10643d9621bf055ae'
-		]
+		],
+		undef,
+		[
+			'02002a57268073cbc5472d35d8f8fae2c52825241592f53e53ae516913d8c82bd1',
+			'026c1061b95ccfc52594c9b376382e2f0240a523b3b1dc5db6a9cdd9730a4a0c21',
+			'029e8c3ae6c0516df4075089ab9475c9335985569ac0f3b9f1a4b0d946785937cd',
+			'02bf0faf4d948a56a6d78d1b87c6a62c9172005409da2f44f9ff6267dfde3cfd48',
+			'03ba7c7d7b8d2379de450441445c30a638c555305cbe044abb88f10643d9621bf0',
+		],
 	],
 
 	# P2MS, but zero keys and signatures
@@ -41,7 +54,9 @@ my @cases = (
 		[
 			hex =>
 				'0000ae'
-		]
+		],
+		undef,
+		[],
 	],
 
 	# P2MS, but contains a non-strict encoded uncompressed key (starting with 06)
@@ -50,6 +65,10 @@ my @cases = (
 		[
 			hex =>
 				'51410611db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a351ae'
+		],
+		undef,
+		[
+			'0611db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3',
 		]
 	],
 
@@ -94,6 +113,7 @@ my @cases = (
 	[
 		'UNKNOWN_SEGWIT',
 		[hex => '5f022233'],
+		'bc10ygesggvrdt',
 	],
 
 	# P2PKH, but OP_CHECKSIG is duplicated
@@ -147,7 +167,7 @@ my @cases = (
 
 my $case_num = 0;
 foreach my $case (@cases) {
-	my ($type, $raw_script, $address) = @$case;
+	my ($type, $raw_script, $address, $raw_address) = @$case;
 	my $type_str = $type // 'no type';
 
 	subtest "testing case $case_num ($type_str)" => sub {
@@ -168,6 +188,15 @@ foreach my $case (@cases) {
 			}
 			else {
 				ok !defined $script->get_address, 'address ok';
+			}
+
+			if (defined $raw_address) {
+				my $to_compare = ref $raw_address eq 'ARRAY'
+					? [map { to_format [hex => $_] } @{$script->get_raw_address}]
+					: to_format [hex => $script->get_raw_address]
+					;
+
+				is $to_compare, $raw_address, 'raw_address ok';
 			}
 		};
 	};

@@ -458,11 +458,7 @@ sub get_address
 			'this network does not support segregated witness'
 		) unless $self->network->supports_segwit;
 
-		my $version = pack 'C',
-			$self->is_taproot
-			? TAPROOT_WITNESS_VERSION
-			: SEGWIT_WITNESS_VERSION;
-
+		my $version = pack 'C', $self->segwit_version;
 		return encode_segwit($self->network->segwit_hrp, $version . $address);
 	}
 	elsif ($self->type eq 'P2PKH') {
@@ -474,6 +470,8 @@ sub get_address
 	elsif ($self->type eq 'NULLDATA') {
 		return qq("$address");
 	}
+
+	return undef;
 }
 
 sub has_type
@@ -716,10 +714,13 @@ C<P2TR>, C<NULLDATA>.
 
 	$raw_address = $object->get_raw_address()
 
-Same as L</get_address>, but does not encode the address with base58 / bech32,
-and does not add any network markers specific for this type of address. Can be
-used to fetch the data encoded in a standard script type, for example output
-xonly public key for C<P2TR>.
+Returns the data encoded in a standard script type, for example output
+xonly public key for C<P2TR>. This data is not encoded in any way.
+
+While not all script types return addresses via L</get_address>, they still
+return raw address data based on their contents. For C<NULLDATA> it is a text
+stored by the output, for C<P2PK> it is a public key associated with the
+script, and for C<P2MS> this is an array reference of public keys.
 
 =head3 operations
 
