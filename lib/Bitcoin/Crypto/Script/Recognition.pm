@@ -23,11 +23,10 @@ has param 'segwit_version' => (
 
 use constant {
 	KIND_OPCODE => 1,
-	KIND_SEGWIT_VERSION => 2,
-	KIND_NUMBER => 3,
-	KIND_ADDRESS => 4,
-	KIND_DATA => 5,
-	KIND_REPEATED => 6,
+	KIND_NUMBER => 2,
+	KIND_DATA => 3,
+	KIND_REPEATED => 4,
+	KIND_CHECK => 5,
 };
 
 sub _blueprints
@@ -46,27 +45,27 @@ sub _build_blueprints
 	my @blueprints = (
 		[
 			'P2TR',
-			[KIND_SEGWIT_VERSION, 1],
-			[KIND_ADDRESS, 32],
+			[KIND_NUMBER, 'segwit_version', 1],
+			[KIND_DATA, 'address', 32],
 		],
 
 		[
 			'P2WPKH',
-			[KIND_SEGWIT_VERSION, 0],
-			[KIND_ADDRESS, 20],
+			[KIND_NUMBER, 'segwit_version', 0],
+			[KIND_DATA, 'address', 20],
 		],
 
 		[
 			'P2WSH',
-			[KIND_SEGWIT_VERSION, 0],
-			[KIND_ADDRESS, 32],
+			[KIND_NUMBER, 'segwit_version', 0],
+			[KIND_DATA, 'address', 32],
 		],
 
 		[
 			'P2PKH',
 			'OP_DUP',
 			'OP_HASH160',
-			[KIND_ADDRESS, 20],
+			[KIND_DATA, 'address', 20],
 			'OP_EQUALVERIFY',
 			'OP_CHECKSIG',
 		],
@@ -74,69 +73,71 @@ sub _build_blueprints
 		[
 			'P2SH',
 			'OP_HASH160',
-			[KIND_ADDRESS, 20],
+			[KIND_DATA, 'address', 20],
 			'OP_EQUAL',
 		],
 
 		[
 			'P2PK',
-			[KIND_ADDRESS, 33, 65],
+			[KIND_DATA, 'address', 33, 65],
 			'OP_CHECKSIG',
 		],
 
 		[
 			'UNKNOWN_SEGWIT',
-			[KIND_SEGWIT_VERSION, 0 .. 16],
-			[KIND_ADDRESS, 2 .. 40],
+			[KIND_NUMBER, 'segwit_version', 0 .. 16],
+			[KIND_DATA, 'address', 2 .. 40],
 		],
 
 		[
 			'NULLDATA',
 			'OP_RETURN',
-			[KIND_ADDRESS, 1 .. 80],
+			[KIND_DATA, 'address', 1 .. 80],
 		],
 
 		[
 			'P2MS',
-			[KIND_NUMBER, 0 .. 20],
+			[KIND_NUMBER, 'sigs_number', 0 .. 20],
 			[
 				KIND_REPEATED,
-				[KIND_ADDRESS, 33, 65],
+				[KIND_DATA, 'addresses', 33, 65],
 			],
-			[KIND_NUMBER, 0 .. 20],
+			[KIND_NUMBER, 'pubkeys_number', 0 .. 20],
+			sub {
+				$_[0]->{vars}{addresses} //= [];
+				$_[0]->{vars}{pubkeys_number} == @{$_[0]->{vars}{addresses}}
+					&& $_[0]->{vars}{pubkeys_number} >= $_[0]->{vars}{sigs_number};
+			},
 			'OP_CHECKMULTISIG',
 		],
 	);
 
 	my $preprocess_parts;
 	$preprocess_parts = sub {
-		my ($parts, $data, $in_repeat_group) = @_;
+		my @parts = @_;
 
-		foreach my $part (@{$parts}) {
-			if (ref $part) {
+		foreach my $part (@parts) {
+			if (ref $part eq 'ARRAY') {
 				my ($kind, @vars) = @$part;
 
-				if ($kind == KIND_ADDRESS) {
-					$data->{multi_address} = !!1
-						if $in_repeat_group;
-				}
-				elsif ($kind == KIND_DATA) {
+				if ($kind == KIND_DATA || $kind == KIND_NUMBER) {
+					my $name = shift @vars;
 
-					# no special handling
+					@vars = map { Bitcoin::Crypto::Script::Runner->from_int($_) } @vars
+						if $kind == KIND_NUMBER;
+
+					my %lookup = map { $_ => !!1 } @vars;
+					$part = [$kind, $name, \%lookup];
 				}
 				elsif ($kind == KIND_REPEATED) {
-					$part = [$kind, [$preprocess_parts->(\@vars, $data, !!1)]];
-					next;    # skip creating a lookup
-				}
-				elsif ($kind == KIND_NUMBER || $kind == KIND_SEGWIT_VERSION) {
-					@vars = map { Bitcoin::Crypto::Script::Runner->from_int($_) } @vars;
+					$part = [$kind, [$preprocess_parts->(@vars)]];
 				}
 				else {
 					die "invalid blueprint kind: $kind";
 				}
-
-				my %lookup = map { $_ => !!1 } @vars;
-				$part = [$kind, \%lookup];
+			}
+			elsif (ref $part eq 'CODE') {
+				$part = [KIND_CHECK, $part];
 			}
 			else {
 				my $opcode = Bitcoin::Crypto::Script::Opcode->get_opcode_by_name($part);
@@ -144,15 +145,13 @@ sub _build_blueprints
 			}
 		}
 
-		return @{$parts};
+		return @parts;
 	};
 
 	# pre-process blueprints for faster execution
 	foreach my $variant (@blueprints) {
 		my ($type, @parts) = @$variant;
-		my $data = {};
-
-		$variant = [$type, $data, $preprocess_parts->(\@parts, $data)];
+		$variant = [$type, $preprocess_parts->(@parts)];
 	}
 
 	return \@blueprints;
@@ -160,58 +159,63 @@ sub _build_blueprints
 
 sub _check_blueprint_segment
 {
-	my ($class, $ops, $parts, $state) = @_;
+	my ($class, $ops, $parts, $state, $in_repeat_group) = @_;
 
 	foreach my $part (@{$parts}) {
-		my ($kind, $lookup) = @{$part};
+		my ($kind, @args) = @{$part};
 
-		my $op_data = $ops->[$state->{pos}];
-		return 0 unless $op_data;
+		if ($kind == KIND_OPCODE || $kind == KIND_DATA || $kind == KIND_NUMBER) {
+			my $op_data = $ops->[$state->{pos}];
+			return 0 unless $op_data;
 
-		if ($kind == KIND_OPCODE) {
-			return 0 unless $lookup == $op_data->[0]->code;
-		}
-		elsif ($kind == KIND_ADDRESS || $kind == KIND_DATA) {
-			return 0 unless $op_data->[0]->pushop;
-			return 0 unless $lookup->{length $op_data->[2]};
-			return 0 unless standard_push($op_data->[0]->name, $op_data->[2]);
+			if ($kind == KIND_OPCODE) {
+				return 0 unless $args[0] == $op_data->[0]->code;
+			}
+			else {
+				return 0 unless $op_data->[0]->pushop;
+				return 0 unless standard_push($op_data->[0]->name, $op_data->[2]);
 
-			push @{$state->{addresses}}, $op_data->[2]
-				if $kind == KIND_ADDRESS;
-		}
-		elsif ($kind == KIND_NUMBER || $kind == KIND_SEGWIT_VERSION) {
-			return 0 unless $op_data->[0]->pushop;
-			return 0 unless $lookup->{$op_data->[2]};
-			return 0 unless standard_push($op_data->[0]->name, $op_data->[2]);
+				my ($name, $lookup) = @args;
+				my $value;
 
-			# numify bigint on 32 bit arch
-			$state->{segwit_version} = '' . Bitcoin::Crypto::Script::Runner->to_int($op_data->[2])
-				if $kind == KIND_SEGWIT_VERSION;
+				if ($kind == KIND_DATA) {
+					return 0 unless $lookup->{length $op_data->[2]};
+
+					$value = $op_data->[2];
+				}
+				elsif ($kind == KIND_NUMBER) {
+					return 0 unless $lookup->{$op_data->[2]};
+
+					# numify bigint on 32 bit arch
+					$value = '' . Bitcoin::Crypto::Script::Runner->to_int($op_data->[2]);
+				}
+
+				if ($in_repeat_group) {
+					push @{$state->{vars}{$name}}, $value;
+				}
+				else {
+					$state->{vars}{$name} = $value;
+				}
+			}
+
+			$state->{pos} += 1;
 		}
 		elsif ($kind == KIND_REPEATED) {
-			my $count = 0;
 			while (1) {
 
-				# state copy avoids having temporary addresses stored inside
+				# state copy avoids having temporary data stored inside
 				# state if repeated part fails, as well as rewinding the
-				# position
+				# position to the last one which was valid
 				my %state_cpy = %{$state};
-				last unless $class->_check_blueprint_segment($ops, $lookup, \%state_cpy);
+				last unless $class->_check_blueprint_segment($ops, $args[0], \%state_cpy, 1);
 
 				# commit state copy back into state (since matching succeded)
 				%{$state} = %state_cpy;
-				$count += 1;
 			}
-
-			$op_data = $ops->[$state->{pos}];
-			return 0 unless $op_data && $op_data->[0]->pushop;
-			return 0 unless Bitcoin::Crypto::Script::Runner->from_int($count) eq $op_data->[2];
-
-			# check the same opcode again with next blueprint part
-			next;
 		}
-
-		++$state->{pos};
+		elsif ($kind == KIND_CHECK) {
+			return 0 unless $args[0]->($state);
+		}
 	}
 
 	return 1;
@@ -221,24 +225,19 @@ sub _check_blueprint
 {
 	my ($class, $ops, $blueprint) = @_;
 
-	my ($type, $data, @parts) = @{$blueprint};
+	my ($type, @parts) = @{$blueprint};
 	my %state = (
 		pos => 0,
-		addresses => [],
-		segwit_version => undef,
+		vars => {},
 	);
 
 	return undef unless $class->_check_blueprint_segment($ops, \@parts, \%state);
 	return undef unless $state{pos} == @{$ops};
 
-	my $address = $state{addresses};
-	$address = $address->[0]
-		unless $data->{multi_address};
-
 	return $class->new(
 		type => $type,
-		address => $address,
-		segwit_version => $state{segwit_version},
+		address => $state{vars}{addresses} // $state{vars}{address},
+		segwit_version => $state{vars}{segwit_version},
 	);
 }
 

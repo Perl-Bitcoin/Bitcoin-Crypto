@@ -128,6 +128,12 @@ my @cases = (
 		[hex => '00ae']
 	],
 
+	# P2MS, but more signatures than pubkeys
+	[
+		undef,
+		[hex => '0100ae']
+	],
+
 	# unknown segwit, too short
 	[
 		undef,
